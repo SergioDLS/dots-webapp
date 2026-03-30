@@ -14,20 +14,22 @@ type Level = {
 export default async function LevelContainer() {
   // Server-side fetch that forwards cookies using the helper
   const levels: Level[] = await getLevelsServer();
-
+  console.log("Fetched levels:", JSON.stringify(levels[0], null, 2));
   return (
-    <div className={`w-full md:w-2/3`}>
+  <div className={`w-full md:ml-80 md:w-[calc(100%-20rem-2rem)] md:pr-4 px-4 min-h-screen`}>
       <Suspense fallback={<Spinner title="Loading levels..." />}>
-        {levels.map((item: Level) => (
-          <Difficulty
-            key={item.id}
-            idLevel={item.id}
-            pose={item.img}
-            enabled={item.enabled}
-            name={item.name}
-            sections={item.sections}
-          />
-        ))}
+        <div className="flex flex-col gap-6">
+          {levels.map((item: Level) => (
+            <Difficulty
+              key={item.id}
+              idLevel={item.id}
+              pose={item.img}
+              enabled={item.enabled}
+              name={item.name}
+              sections={item.sections}
+            />
+          ))}
+        </div>
       </Suspense>
     </div>
   );

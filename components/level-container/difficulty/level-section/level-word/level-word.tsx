@@ -16,7 +16,7 @@ type LevelWordProps = {
   name: string;
   src: string;
   animation?: string;
-  available: boolean;
+  unlocked?: boolean;
   levels_left: number;
   progress: number;
   animationIndex?: number;
@@ -41,7 +41,7 @@ export default function LevelWord({
   color,
   name,
   src,
-  available,
+  unlocked,
   levels_left,
   progress,
   animationIndex,
@@ -79,9 +79,16 @@ export default function LevelWord({
   };
   const cssColor = colorHexMap[resolvedColor] ?? colorHexMap.blue;
 
-  // circular progress params
-  const R = 30; // radius
-  const stroke = 6;
+  const isUnlocked = unlocked ?? true;
+
+  const displayName = String(name || "")
+    .split(" ")
+    .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+
+  // circular progress params (reduced node size to show more items)
+  const R = 44; // radius
+  const stroke = 9;
   const normalizedRadius = R - stroke * 0.5;
   const circumference = 2 * Math.PI * normalizedRadius;
   const progressClamped = Math.max(0, Math.min(100, Math.round(progress)));
@@ -107,8 +114,8 @@ export default function LevelWord({
 
   return (
     <div
-      className="flex flex-col items-center justify-center gap-2"
-      onClick={() => available && canOpen && setOpen(true)}
+      className="flex flex-col items-center justify-center gap-3 group"
+      onClick={() => isUnlocked && canOpen && setOpen(true)}
     >
       {open && (
         <Modal click={() => setOpen(false)} tone="neutral">
@@ -127,7 +134,7 @@ export default function LevelWord({
         </Modal>
       )}
       <div
-        className={`relative flex flex-col items-center justify-center gap-2 ${available ? "cursor-pointer" : "cursor-not-allowed"}`}
+        className={`relative flex flex-col items-center justify-center gap-2 ${isUnlocked ? "cursor-pointer" : "cursor-not-allowed"}`}
         style={{
           opacity: mounted ? 1 : 0,
           transform: mounted ? "translateY(0)" : "translateY(-6px)",
@@ -135,7 +142,7 @@ export default function LevelWord({
           transitionDelay: `${(animationIndex ?? 0) * 60}ms`,
         }}
       >
-        <div className="relative z-10 w-20 h-20">
+        <div className="relative z-10 w-40 h-40 transform-gpu group-hover:-translate-y-2 group-hover:scale-105 transition-transform duration-300">
           <svg
             viewBox={`0 0 ${R * 2} ${R * 2}`}
             className="absolute inset-0 w-full h-full block"
@@ -193,16 +200,18 @@ export default function LevelWord({
               }}
             />
           </svg>
-          <div className="relative z-20 w-full h-full rounded-full overflow-hidden p-0.5 bg-white/5">
-            <WordImg
-              size="medium"
-              src={src}
-              opacity={1}
-              customClass="mx-auto"
-            />
+          <div className="relative z-20 w-full h-full rounded-full overflow-hidden p-0.5 bg-white/6 backdrop-blur-sm border border-white/6 flex items-center justify-center">
+            <div className="w-28 h-28 rounded-full overflow-hidden">
+              <WordImg
+                size="large"
+                src={src}
+                opacity={1}
+                customClass="w-full h-full object-contain"
+              />
+            </div>
           </div>
 
-          {!available && (
+          {!unlocked && (
             <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-1 bg-black/30 backdrop-blur-sm rounded-full">
               <Image
                 src="/images/Lock_icon.png"
@@ -216,13 +225,35 @@ export default function LevelWord({
           )}
         </div>
 
-        {/* floating title that slightly overlaps the node and protrudes */}
-        <div className="relative -mt-3 z-20">
+        {/* floating title that slightly overlaps the node and a visible progress bar */}
+        <div className="relative -mt-3 z-20 flex flex-col items-center gap-2">
           <div
-            className={`px-3 py-1 rounded-full bg-(--surface) border border-(--border) shadow-md text-sm font-semibold text-center ${progress > 99 ? "text-green-500" : "text-foreground"}`}
+            className={`px-4 py-1 rounded-full bg-white/7 backdrop-blur-sm border border-white/9 shadow-md text-base font-semibold text-center`}
+            style={{
+              color: progress > 99 ? "#10B981" : cssColor,
+              borderColor: `${cssColor}33`,
+              boxShadow: `0 10px 30px ${cssColor}22`,
+            }}
           >
-            {name}
+            {displayName}
           </div>
+
+          {unlocked && (
+            <div
+              className="w-36 h-2 rounded-full bg-black/8 dark:bg-white/8 overflow-hidden"
+              aria-hidden
+              style={{ boxShadow: "inset 0 1px 2px rgba(0,0,0,0.06)" }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${progressClamped}%`,
+                  background: `linear-gradient(90deg, ${cssColor}, ${cssColor}99)`,
+                  boxShadow: `0 8px 20px ${cssColor}33, 0 1px 0 rgba(0,0,0,0.06)`,
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

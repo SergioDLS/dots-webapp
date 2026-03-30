@@ -26,6 +26,8 @@ export async function getLevelsServer(): Promise<
   try {
     const res = await api.get("/levels");
     const data = res.data;
+    console.log(data);
+    
     return Array.isArray(data) ? data : data.levels ?? [];
   } catch (err) {
     console.error("getLevelsServer error:", err);

@@ -22,23 +22,39 @@ interface LevelSectionProps {
 
 export default function LevelSection({ id, name, levels, colors }: LevelSectionProps) {
   const list = levels ?? [];
+  const accent = (colors && colors.length > 0 ? colors[0] : "pink") || "pink";
+  const colorHexMap: Record<string, string> = {
+    pink: "#F472B6",
+    orangered: "#F97316",
+    blue: "#1D4ED8",
+    pale_blue: "#7DD3FC",
+    opal: "#5EEAD4",
+    orange: "#FBBF24",
+    pale_green: "#BEF264",
+    yellow: "#FACC15",
+    green: "#34D399",
+  };
+  const accentHex = colorHexMap[accent] ?? colorHexMap.pink;
 
+  // Clustered layout: items arranged in rows with slight overlap/offsets
   return (
-  <div className="flex w-full flex-col items-center gap-4" data-section-id={id}>
-      <span className="text-2xl font-semibold text-foreground">{name}</span>
-      <div className="relative w-full">
-        {/* vertical connector line behind nodes */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-6 bottom-6 w-px bg-(--border) opacity-30 z-0" />
+    <div className="flex w-full flex-col gap-6" data-section-id={id}>
+      <div className="w-full flex items-center justify-center">
+        <span
+          className="text-2xl font-semibold text-foreground flex items-center gap-3 px-3 py-1 rounded-md bg-white/6 backdrop-blur-sm border border-white/8"
+          style={{ boxShadow: `0 8px 30px ${accentHex}22` }}
+        >
+          <span className="w-3 h-3 rounded-full" style={{ background: accentHex, boxShadow: `0 6px 20px ${accentHex}33` }} />
+          <span className="leading-tight">{name}</span>
+        </span>
+      </div>
 
-        <div className="flex flex-col items-center gap-8 py-6 px-4 z-10">
+      <div className="relative w-full">
+        <div className="flex flex-col items-center py-6 px-4 z-10">
           {list.length === 0 ? (
             <span className="text-(--muted)">No levels available.</span>
           ) : (
             list.map((item, index) => {
-
-              console.log(item);
-              
-              // choose color from parent palette if provided, otherwise fallback to id-derived
               const palette = colors && colors.length > 0 ? colors : [
                 "pink",
                 "orangered",
@@ -51,18 +67,34 @@ export default function LevelSection({ id, name, levels, colors }: LevelSectionP
                 "green",
               ];
               const color = palette[index % palette.length] ?? palette[0];
+
+              // horizontal offset that creates a gentle curve; smaller amplitude so nodes stay centered
+              // increase amplitude significantly for a wide, pronounced curve
+              const amplitude = 160; // px max offset (much wider curve)
+              // lower frequency so nodes alternate across the curve more naturally
+              const offsetX = Math.round(Math.sin(index * 0.7) * amplitude);
+              const zIndex = 1000 - index;
+
+              // non-overlapping layout: use small positive gap so nodes don't overlap
+              const gap = 12; // px vertical gap between nodes
+
               return (
-                <div className="relative" key={item.id} style={{ transitionDelay: `${index * 80}ms` }}>
-                  <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px" aria-hidden />
-                  <LevelWord {...item} color={color} animationIndex={index} />
-                  {/* connector curve between this node and the next */}
-                  {index < list.length - 1 && (
-                    <div className="flex items-center justify-center -mt-2">
-                      <svg width="36" height="28" viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                        <path d="M18 0 C18 8 18 20 18 28" stroke="currentColor" strokeWidth="2" strokeOpacity="0.18" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                  )}
+                <div
+                  key={item.id}
+                  style={{
+                    transform: `translateX(${offsetX}px)`,
+                    zIndex,
+                    transition: "transform 320ms cubic-bezier(.2,.9,.2,1)",
+                    transitionDelay: `${index * 16}ms`,
+                    marginBottom: `${gap}px`,
+                  }}
+                  className="relative"
+                >
+                  <LevelWord
+                    {...item}
+                    color={color}
+                    animationIndex={index}
+                  />
                 </div>
               );
             })

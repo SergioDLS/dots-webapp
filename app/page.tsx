@@ -95,8 +95,7 @@ export default function Login() {
       name: name,
       lastName: lastName,
       email: email,
-      password: md5(password2),
-      birth: moment(birthday).format("YYYY-MM-DD"),
+
       code: code,
     };
     axios
