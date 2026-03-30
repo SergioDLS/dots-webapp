@@ -1,0 +1,241 @@
+@import '../../../assets/styles/colors';
+@import '../../../assets/styles/mixins';
+
+.PracticeContainer{
+    background-color: $primary-bg;
+    border-radius: 1rem 1rem 0 0;
+    width: 100%;
+    height: 45rem;
+    position: relative;
+    padding: 1rem;
+    overflow: hidden;
+
+    @include respond(portrait){
+      height: 65vh;
+    }
+
+    &__base{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    &__correct-sentence{
+        font-size: 2rem;
+    }
+
+    &__streak{
+        justify-content: center;
+        font-size: 3rem;
+    }
+
+    &__sentence{
+        display: flex;
+        align-items: flex-end;
+        margin-bottom: 2rem;
+    }
+
+    &__text{
+        font-size: 2.3rem;
+        @include respond(portrait){
+          font-size:4rem;
+        }
+        @include respond(phone){
+         font-size:2.6rem;
+        }
+    }
+    &__options{
+        display: flex;
+        flex-wrap: wrap;
+        width: 50%;
+        justify-content: center;
+        @include respond(portrait){
+          width: 100%;
+        }
+        @include respond(phone){
+          width: 90%;
+         }
+
+    }
+    &__options-build{
+        display: flex;
+        flex-wrap: wrap;
+        width: 50%;
+        transition: all .2s;
+        
+        @include respond(portrait){
+            width: 90%;
+        }
+    }
+    &__options-sentences{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+
+    }
+    &__options-images{
+        display: flex;
+        width: 50%;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        @include respond(portrait){
+             width: 100%;
+             max-width: 60rem;
+             position: absolute;
+             top:50%;
+             left:50%;
+             transform: translate(-50%,-50%);
+        }
+
+    }
+    &__option{
+        margin: 1rem;
+        background-color: $color-blue-dark;
+        width: 42%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $primary-bg;
+        padding: .8rem 1.6rem;
+        cursor: pointer;
+        font-size: 1.7rem;
+        border-radius: 1rem;
+        @include respond(portrait){
+          font-size:3rem;
+        }
+        @include respond(phone){
+         font-size:2.6rem;
+        }
+    }
+
+
+
+    &__option-build{
+        margin: 1rem;
+        background-color: $color-blue-dark;
+        width: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $primary-bg;
+        padding: .6rem 1.4rem;
+        cursor: pointer;
+        font-size: 1.4rem;
+        border-radius: 1rem;
+        transition: all .2s;
+        @include respond(portrait){
+            font-size: 3rem;
+        }
+    }
+
+    &__option-img{
+        margin: 1rem;
+        background-color: $color-blue-dark;
+        width: 40%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $primary-bg;
+        padding: .8rem 1.6rem;
+        cursor: pointer;
+        font-size: 1.7rem;
+        border-radius: 1rem;
+
+    }
+
+    &__option-fill{
+        position: absolute;
+        top:0;
+        left: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+
+    }
+
+    &__option-sentence{
+        margin: 1rem;
+        background-color: $color-blue-dark;
+        width: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $primary-bg;
+        padding: .8rem 1.6rem;
+        cursor: pointer;
+        font-size: 1.7rem;
+        border-radius: 1rem;
+        @include respond(portrait){
+          width: 100%;
+          font-size:2.8rem;
+        }
+
+    }
+
+    &__selected{
+        background-color: $pale-blue-dots;
+    }
+    &__selected-build{
+        margin: .3rem;
+        background-color: $pale-blue-dots;
+
+        &-order-1{order: -20;}
+        &-order-2{order: -19;}
+        &-order-3{order: -18;}
+        &-order-4{order: -17;}
+        &-order-5{order: -16;}
+        &-order-6{order: -15;}
+        &-order-7{order: -14;}
+        &-order-8{order: -13;}
+        &-order-9{order: -12;}
+        &-order-10{order: -11;}
+        &-order-11{order: -10;}
+        &-order-12{order: -9;}
+        &-order-13{order: -8;}
+        &-order-14{order: -7;}
+        &-order-15{order: -6;}
+        &-order-16{order: -5;}
+        &-order-17{order: -4;}
+        &-order-18{order: -3;}
+        &-order-19{order: -2;}
+        &-order-20{order: -1;}
+    }
+
+    &__build-block{
+        height: 2rem;
+        width: 100%;
+        border-top: solid $color-blue-dark .1rem;
+    }
+
+
+    &__correct{
+        background-color: $green-color;
+        cursor:auto;
+    }
+    &__wrong{
+        background-color: $red-color;
+        cursor:auto;
+    }
+
+    &__default{
+        background-color: $default-color;
+        cursor:auto;
+    }
+
+    &__doty{
+        height: 12rem;
+        width: 12rem !important;
+        @include respond(portrait){
+            height: 15rem;
+            width: 15rem !important;
+        }
+    }
+}

@@ -1,0 +1,129 @@
+@import '../../../assets/styles/mixins';
+@import '../../../assets/styles/colors';
+
+.Bubble{
+  padding: 2rem;
+  border-radius: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #211650;
+  cursor: pointer;
+  border: solid .1rem #211650;
+  background-color: $primary-bg;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  text-align: center;
+  transition: all .2s;
+  font-size: 2rem;
+  position: relative;
+  text-decoration: none;
+
+
+  @include respond(tablet){
+    font-size: 2.5rem;
+  }
+
+  @include respond(tablet){
+    font-size: 1.8rem;
+  }
+
+  @include respond(phone){
+    width: 4rem;
+  }
+
+  &:not(:first-child){
+    margin-right: 1.5rem;
+  }
+
+
+  &:hover :first-child{
+    transform: scale(1.1);
+  }
+
+  &:hover {
+    background-color: #211650;
+    color: white;
+    border: solid .1rem $primary-bg;
+
+  }
+
+  &.big{
+
+    width: 32rem;
+    height: 32rem;
+
+    @include respond(tablet){
+      width: 28rem;
+      height: 28rem;
+    }
+
+    @include respond(portrait){
+      width: 26rem;
+      height: 26rem;
+    }
+    @include respond(phone){
+      width: 24rem;
+      height: 24rem;
+    }
+  }
+
+  &.medium{
+    width: 30rem;
+    height: 30rem;
+
+    @include respond(tablet){
+      width: 26rem;
+      height: 26rem;
+    }
+
+    @include respond(portrait){
+      width: 24rem;
+      height: 24rem;
+    }
+    @include respond(phone){
+      width: 22rem;
+      height: 22rem;
+    }
+  }
+
+  &.small{
+    width: 20rem;
+    height: 20rem;
+
+    @include respond(tablet){
+      width: 16rem;
+      height: 16rem;
+    }
+
+    @include respond(portrait){
+      width: 14rem;
+      height: 14rem;
+    }
+    @include respond(phone){
+      width: 12rem;
+      height: 12rem;
+    }
+  }
+
+  &:hover .blackHover{
+    opacity: .9;
+  }
+}
+
+.blackHover{
+  position: absolute;
+  font-size: 10rem;
+  background-color: #000;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight:bold;
+  transition: all .2s;
+  opacity: 0;
+
+}

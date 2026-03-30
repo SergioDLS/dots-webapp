@@ -1,26 +1,89 @@
 @import "tailwindcss";
 
+/* ─── Light theme ─────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --background: #e6e6fc;     /* lavender */
+  --surface:    #f5f3ff;     /* white-ish card */
+  --border:     #ccc7f0;
+
+  /* Text – must be ≥ 4.5:1 on both backgrounds above */
+  --foreground: #1b1340;     /* very dark navy  → 12:1 on #e6e6fc */
+  --muted:      #4a4070;     /* subdued text    → 5.2:1 on #e6e6fc */
+
+  /* Brand */
+  --primary:          #211650; /* navy */
+  --primary-contrast: #ffffff;
+  --accent:           #d4007e; /* slightly darker pink → 5.3:1 on white */
+  --accent-contrast:  #ffffff;
+
+  /* primary-accent is used for important highlights (buttons). By default
+    it follows --primary; dark theme can override to use --accent (pink). */
+  --primary-accent: var(--primary);
+  --primary-accent-contrast: var(--primary-contrast);
+
+  /* Input fill */
+  --input-bg: rgba(255,255,255,0.75);
+
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-nunito);
   --font-mono: var(--font-geist-mono);
 }
 
+/* ─── Dark theme ──────────────────────────────────────────── */
+:root[data-theme="dark"],
+:root[data-theme="dark"] {
+  --background: #130d35;     /* deep navy */
+  --surface:    #1e1550;     /* slightly lighter card */
+  --border:     #332776;
+
+  /* Text – white on dark navy ≥ 12:1 */
+  --foreground: #f0eeff;
+  --muted:      #a89fd8;     /* 4.6:1 on #130d35 */
+
+  /* Brand */
+  --primary:          #c9c0ff; /* light lavender */
+  --primary-contrast: #130d35;
+  --accent:           #d4007e; /* use the project's accent pink in dark mode */
+  --accent-contrast:  #ffffff; /* white contrast for the pink */
+
+  /* in dark theme use the bright pink accent for highlights */
+  --primary-accent: var(--accent);
+  --primary-accent-contrast: var(--accent-contrast);
+
+  --input-bg: rgba(255,255,255,0.07);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme]) {
+    --background: #130d35;
+    --surface:    #1e1550;
+    --border:     #332776;
+    --foreground: #f0eeff;
+    --muted:      #a89fd8;
+    --primary:          #c9c0ff;
+    --primary-contrast: #130d35;
+    --accent:           #ff4bc1;
+    --accent-contrast:  #1b0040;
+    --input-bg: rgba(255,255,255,0.07);
+    color-scheme: dark;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 200ms ease, color 200ms ease;
 }

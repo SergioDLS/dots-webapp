@@ -1,0 +1,36 @@
+@import '../../../assets/styles/colors';
+.header{
+
+  color: $color-blue-dark;
+
+  &__dark{
+    color: $color-blue-dark;
+  }
+
+  &-primary{
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 5rem;
+
+  }
+  &-secondary{
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 4rem;
+  }
+  &-tertiary{
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 3rem;
+  }
+  &-fourthiary{
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 2rem;
+  }
+  &-fifthiary{
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 1.4rem;
+  }
+}

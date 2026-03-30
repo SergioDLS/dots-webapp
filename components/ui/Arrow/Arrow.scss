@@ -1,0 +1,11 @@
+@import '../../../assets/styles/colors';
+.Arrow{
+  width: 7rem;
+  transition: all .2s;
+  cursor: pointer;
+  color: $primary-bg;
+
+  &:hover{
+    transform: scale(1.1);
+  }
+}

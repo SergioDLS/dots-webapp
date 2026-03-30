@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Nunito } from "next/font/google";
 import "./globals.css";
+import ThemeToggle from "@/components/theme-toggle";
+import { AuthProvider } from "@/context/auth-context";
+import AuthSync from "@/context/auth-sync";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -24,10 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${nunito.variable} ${geistMono.variable} antialiased`}>
+        <AuthProvider>
+          <AuthSync />
+          <ThemeToggle />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

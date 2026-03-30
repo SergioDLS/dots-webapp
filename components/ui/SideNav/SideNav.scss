@@ -1,0 +1,145 @@
+@import '../../../assets/styles/colors';
+@import '../../../assets/styles/mixins';
+.SideNav{
+  margin:0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 1100;
+      background-color: #211650;
+
+      top: 0;
+      left: 0;
+      width: 30rem;
+      padding: 3rem;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+
+  &__close{
+    color: white;
+    font-size: 3.6rem;
+    position: absolute;
+    right: 1rem;
+    top: 0;
+    cursor: pointer;
+    transition: all .2s;
+
+    &:hover{
+      transform: scale(1.1);
+    }
+  }
+
+  &__doty-container{
+    width: 18rem;
+    height: 18rem;
+    background-color: $primary-bg;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  nav {
+    width: 30rem;
+    margin-top: 1rem;
+    text-decoration: none;
+
+    & ul{
+      text-decoration: none;
+    }
+  }
+  &__li{
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    padding: .2rem;
+
+
+
+    &:hover{
+      background-color: rgba(255,255,255,.2);
+    }
+  }
+
+  &__link, a {
+    color: white;
+    text-decoration: none;
+    font-size: 3rem;
+    text-transform: uppercase;
+  }
+
+  &__logout{
+    position: absolute;
+    bottom: 2rem;;
+    left: 50%;
+    transform: translateX(-50%);
+    text-decoration: none;
+
+
+  }
+  &__mini{
+    position: fixed;
+    top: 3rem;
+    left: 3rem;
+    cursor: pointer;
+    height: 5rem;
+    border-radius: 50%;
+    z-index: 1000;
+    height: 6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: black;
+    transition: all .2s;
+    background-color: $primary-bg;
+    border-radius: 1rem;
+    padding: 1rem;
+
+
+    &:hover{
+      transform: scale(1.1);
+    }
+
+    @include respond(tablet){
+      display: none;
+    }
+
+  }
+
+  &__hamburger{
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    position: fixed;
+    right: 3rem;
+    bottom: 3rem;
+    cursor: pointer;
+    height: 6rem;
+    width: 6rem;
+    border-radius: 50%;
+    z-index: 1000;
+    transition: all .2s;
+    background-color: $color-blue-dark;
+    padding: 2rem;
+    color: white;
+
+    @include respond(tablet){
+      display: flex;
+    }
+  }
+
+}
+
+li{
+  text-decoration: none;
+}

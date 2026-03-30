@@ -1,0 +1,28 @@
+@import '../../../assets/styles/colors';
+
+.Option{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35rem;
+  background-color: $secondary-bg;
+  color: white;
+  padding: 1rem 5rem;
+  font-size: 2.4rem;
+  cursor: pointer;
+  border-radius: 10rem;
+  transition: all .2s;
+  text-align: center;
+
+
+  &:hover{
+    background-color: darken($secondary-bg, 10);
+    transform: scale(1.1);
+  }
+
+  &__margin{
+    &:not(:last-child){
+      margin-bottom: 1rem;
+    }
+  }
+}
