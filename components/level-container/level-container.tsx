@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import Difficulty from "./difficulty/difficulty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getLevelsServer } from "@/services/levels.server";
@@ -13,8 +14,25 @@ type Level = {
 
 export default async function LevelContainer() {
   // Server-side fetch that forwards cookies using the helper
-  const levels: Level[] = await getLevelsServer();
-  console.log("Fetched levels:", JSON.stringify(levels[0], null, 2));
+  let levels: Level[] = [];
+  try {
+    levels = await getLevelsServer();
+    console.log("Fetched levels:", JSON.stringify(levels[0], null, 2));
+  } catch (err) {
+    // If the server-side fetch fails (for example missing cookies or
+    // invalid session) return a friendly message instead of throwing a
+    // raw error that crashes Server Components rendering.
+    console.error("LevelContainer: failed to fetch levels:", err);
+    return (
+      <div className="w-full px-4 py-8">
+        <h2 className="text-2xl font-bold">Could not load levels</h2>
+        <p className="text-sm text-(--muted)">There was a problem loading your levels. Please ensure you are logged in and try again.</p>
+        <div className="mt-4">
+          <Link href="/" className="text-sm underline">Go to login</Link>
+        </div>
+      </div>
+    );
+  }
   return (
   <div className={`w-full md:ml-80 md:w-[calc(100%-20rem-2rem)] md:pr-4 px-4 min-h-screen`}>
       <Suspense fallback={<Spinner title="Loading levels..." />}>
