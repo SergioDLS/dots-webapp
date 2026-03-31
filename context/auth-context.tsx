@@ -2,6 +2,7 @@
 
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -22,17 +23,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
 
-  const setAccessToken = (token: string | null) => {
+  const setAccessToken = useCallback((token: string | null) => {
     setAccessTokenState(token);
     setApiAccessToken(token);
-  };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const res = await api.post("/auth/refresh");
-        const token = res.data?.accessToken ?? null;
+        // Backend returns { token } (not accessToken)
+        const token = res.data?.token ?? res.data?.accessToken ?? null;
         if (mounted) setAccessToken(token);
       } catch {
         if (mounted) setAccessToken(null);
@@ -43,20 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [setAccessToken]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await api.post("/auth/logout");
     } finally {
       setAccessToken(null);
       if (typeof window !== "undefined") window.location.replace("/login");
     }
-  };
+  }, [setAccessToken]);
 
   const value = useMemo(
     () => ({ accessToken, isBootstrapping, setAccessToken, logout }),
-    [accessToken, isBootstrapping],
+    [accessToken, isBootstrapping, setAccessToken, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

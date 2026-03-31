@@ -13,6 +13,18 @@ export async function getLevelsServer(): Promise<
   const cookieList = cookieStore.getAll ? cookieStore.getAll() : [];
   const cookieHeader = cookieList.map((c) => `${c.name}=${c.value}`).join("; ");
 
+  // Temporary debug: print cookie names received by Next server-side during SSR.
+  // Enable by setting DEBUG_COOKIES=true in the Next.js runtime environment.
+  if (process.env.DEBUG_COOKIES === "true") {
+    try {
+      const names = cookieList.map((c) => c.name);
+      // don't log values — only names to avoid exposing sensitive tokens in logs
+      console.log("getLevelsServer - received cookie names:", names);
+    } catch (e) {
+      console.warn("getLevelsServer - cookie debug failed", e);
+    }
+  }
+
   // Create a per-request axios instance that forwards cookies and handles refresh
   const api = createServerApi(cookieHeader);
   // If an access_token cookie is present, attach it as Authorization for compatibility

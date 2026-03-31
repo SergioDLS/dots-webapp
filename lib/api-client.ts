@@ -21,7 +21,8 @@ let refreshPromise: Promise<string | null> | null = null;
 const doRefresh = async (): Promise<string | null> => {
   try {
     const res = await api.post("/auth/refresh");
-    const token: string | null = res.data?.accessToken ?? null;
+    // Backend returns { token } (not accessToken)
+    const token: string | null = res.data?.token ?? res.data?.accessToken ?? null;
     setAccessToken(token);
     return token;
   } catch {
