@@ -73,13 +73,11 @@ function SoundButton({
         type="button"
         onClick={playSound}
         aria-label="Play sound"
-        className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+        className="flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-150"
         style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.25) 100%)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          border: "1.5px solid rgba(255,255,255,0.30)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35)",
+          background: 'var(--btn-bg, #ffffff)',
+          color: 'var(--btn-foreground, #111827)',
+          border: 'none',
         }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
@@ -94,21 +92,21 @@ function SoundButton({
 
 // ── Option visual state ───────────────────────────────────────────────────────
 function optionStyle(selected: boolean, answered: string, correct: boolean): React.CSSProperties {
+  // Flat, colorful styles (minimal shadows/gradients)
   if (selected && answered === "correct")
-    return { background: "rgba(34,197,94,0.25)", border: "1.5px solid rgba(34,197,94,0.55)", cursor: "default" };
+    return { background: "#16a34a", color: '#fff', border: "none", cursor: "default" };
   if (selected && answered === "wrong")
-    return { background: "rgba(239,68,68,0.22)", border: "1.5px solid rgba(239,68,68,0.50)", cursor: "default" };
+    return { background: "#ef4444", color: '#fff', border: "none", cursor: "default" };
   if (!selected && (answered === "correct" || answered === "wrong") && correct)
-    return { background: "rgba(34,197,94,0.18)", border: "1.5px solid rgba(34,197,94,0.45)", cursor: "default" };
+    return { background: "#059669", color: '#fff', border: "none", cursor: "default" };
   if (!selected && (answered === "correct" || answered === "wrong"))
-    return { background: "rgba(255,255,255,0.04)", border: "1.5px solid rgba(255,255,255,0.10)", cursor: "default", opacity: 0.5 };
-  if (selected)
-    return { background: "rgba(99,102,241,0.25)", border: "1.5px solid rgba(99,102,241,0.55)" };
-  return { background: "rgba(255,255,255,0.09)", border: "1.5px solid rgba(255,255,255,0.18)" };
+    return { background: "transparent", border: "1px solid var(--card-border, rgba(0,0,0,0.06))", cursor: "default", opacity: 0.6 };
+  if (selected) return { background: "#6366f1", color: '#fff', border: "none" };
+  return { background: "transparent", border: "1px solid var(--card-border, rgba(0,0,0,0.06))" };
 }
 
 const baseOptionCls =
-  "flex items-center justify-center text-center rounded-xl px-4 py-3 text-sm font-semibold text-foreground transition-all duration-200 hover:scale-[1.02] active:scale-[.98] cursor-pointer select-none";
+  "flex items-center justify-center text-center rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-150 cursor-pointer select-none";
 
 // ── Shared glass panel wrapper ────────────────────────────────────────────────
 function PanelWrapper({ children }: { children: React.ReactNode }) {
@@ -116,19 +114,13 @@ function PanelWrapper({ children }: { children: React.ReactNode }) {
     <div
       className="relative w-full flex flex-col items-center justify-between gap-5 rounded-2xl p-6 overflow-hidden"
       style={{
-        background: "linear-gradient(155deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.12) 100%)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        border: "1.5px solid rgba(255,255,255,0.20)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.28)",
-        minHeight: "22rem",
+        background: 'var(--panel-bg, #ffffff)',
+        border: '1px solid var(--card-border, rgba(0,0,0,0.06))',
+        minHeight: '22rem',
       }}
     >
-      {/* Top sheen */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1/3 rounded-t-2xl"
-        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.18) 0%, transparent 100%)" }}
-      />
+      {/* Top decorative area (kept minimal) */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1/6 rounded-t-2xl" />
       {children}
     </div>
   );
@@ -243,7 +235,7 @@ export default function PracticeContainer({
         {/* Selected words tray */}
         <div
           className="flex flex-wrap gap-2 w-full min-h-12 rounded-xl p-3"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)" }}
+          style={{ background: 'var(--tray-bg, rgba(255,255,255,0.05))', border: '1px solid var(--card-border, rgba(0,0,0,0.06))' }}
         >
           {buildUpSentence.length === 0 && (
             <span className="text-xs text-(--muted) self-center">Tap words below to build the sentence…</span>
@@ -260,7 +252,7 @@ export default function PracticeContainer({
           ))}
         </div>
 
-        <div className="w-full h-px" style={{ background: "rgba(255,255,255,0.12)" }} />
+  <div className="w-full h-px" style={{ background: 'var(--divider, rgba(0,0,0,0.06))' }} />
 
         {/* Word pool */}
         <div className="flex flex-wrap justify-center gap-2 w-full">

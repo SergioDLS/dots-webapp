@@ -63,7 +63,7 @@ export default function Practice() {
   // ── Fetch ────────────────────────────────────────────────────────────────
   useEffect(() => {
     api
-      .get<Sentence[]>(`/sentences/sentences-practice/${id}`)
+      .get<Sentence[]>(`/sentences/practice/${id}`)
       .then((res) => {
         if (res.data.length > 0) {
           setArraySentences(res.data);
@@ -87,7 +87,8 @@ export default function Practice() {
     setConfirmReady(true);
   };
 
-  const goToLevels = () => window.location.replace("/levels");
+  //const goToLevels = () => window.location.replace("/levels");
+  const goToLevels = () => console.log("Go to levels"); // placeholder for navigation
 
   const confirmSelectedHandler = () => {
     if (answerState === "") {
@@ -296,7 +297,18 @@ export default function Practice() {
   }
 
   return (
-    <div className="relative flex flex-col items-center gap-4 w-full max-w-2xl mx-auto px-4 py-6 md:py-10">
+    <div
+      className="relative flex flex-col items-center gap-4 w-full max-w-2xl mx-auto px-4 py-6 md:py-10"
+      // Inline CSS custom properties for the flat theme
+      style={(
+        {
+          '--panel-bg': '#ffffff',
+          '--card-border': 'rgba(15,23,42,0.06)',
+          '--btn-bg': '#f8fafc',
+          '--btn-foreground': '#0f172a',
+        } as unknown
+      ) as React.CSSProperties}
+    >
       {content}
     </div>
   );
