@@ -25,16 +25,26 @@ export default function Login() {
   const { setAccessToken } = useAuth();
 
   const loginHandler = useCallback(async () => {
-    const response = await loginService(user, password);
-    console.log("response", response);
-    if (response.token) {
-      console.log("redirect");
-      
-      setAccessToken(response.token);
-      window.location.replace("/levels");
-    } else {
+    try {
+      const response = await loginService(user, password);
+      console.log("response", response);
+      if (response && response.token) {
+        setIncorrect(false);
+        setMsg("");
+        setAccessToken(response.token);
+        window.location.replace("/levels");
+      } else {
+        setIncorrect(true);
+        // backend may return an error message in different shapes
+        const text = (response && (response.message || response.error)) || "Incorrect username or password!";
+        setMsg(text);
+      }
+    } catch (e: unknown) {
+      // Normalize error message for the UI without using `any`
       setIncorrect(true);
-      setMsg("Incorrect username or password!");
+      const ex = e as { response?: { data?: { message?: string; error?: string } }; message?: string };
+      const errMsg = ex?.response?.data?.message || ex?.response?.data?.error || ex?.message || "Login failed. Please try again.";
+      setMsg(errMsg);
     }
   }, [user, password, setAccessToken]);
 
