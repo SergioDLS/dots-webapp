@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Doty from "../../ui/doty/doty";
 import Image from "next/image";
-import { getRankingStreaksService } from "../../../../services/user.service";
 import { BASE_URL_IMAGES } from "../../../constants";
 const GoldCup = "/images/cups/gold_cup.png";
 const SilverCup = "/images/cups/silver_cup.png";

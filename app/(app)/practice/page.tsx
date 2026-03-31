@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
@@ -31,8 +31,11 @@ type Sentence = {
   answered?: boolean;
   times_wrong: number;
 };
-
-export default function Practice() {
+// Move the client-side logic into a Suspense-wrapped inner component so
+// that hooks like `useSearchParams()` are isolated and can be rendered
+// inside a Suspense boundary. This addresses cases where router-read
+// hooks should be resolved inside a suspense/async boundary.
+function PracticeClient() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "0";
 
@@ -51,7 +54,7 @@ export default function Practice() {
   const [confirmLabel, setConfirmLabel] = useState("Confirm");
   const [confirmReady, setConfirmReady] = useState(false);
 
-  // ── Audio ────────────────────────────────────────────────────────────────
+  // ── Audio ───────────────────────────────────────────────────────────────
   const playSound = (type: "correct" | "wrong") => {
     const src =
       type === "correct"
@@ -60,7 +63,7 @@ export default function Practice() {
     new Audio(src).play().catch(() => {});
   };
 
-  // ── Fetch ────────────────────────────────────────────────────────────────
+  // ── Fetch ───────────────────────────────────────────────────────────────
   useEffect(() => {
     api
       .get<Sentence[]>(`/sentences/practice/${id}`)
@@ -313,3 +316,12 @@ export default function Practice() {
     </div>
   );
 }
+
+export default function Practice() {
+  return (
+    <Suspense fallback={<div className="flex h-full items-center justify-center"><Spinner /></div>}>
+      <PracticeClient />
+    </Suspense>
+  );
+}
+

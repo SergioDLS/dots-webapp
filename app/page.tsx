@@ -104,7 +104,7 @@ export default function Login() {
         (response: AxiosResponse<{ result: string; username?: string }>) => {
           if (response.data.result === "OK") {
             setLogin("username");
-            setNewUsername(response.data.username);
+            setNewUsername(String(response.data.username));
           } else if (response.data.result === "NOK5") {
             setLogin("wrongcode");
           }
