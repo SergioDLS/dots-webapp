@@ -20,7 +20,15 @@ let refreshPromise: Promise<string | null> | null = null;
 
 const doRefresh = async (): Promise<string | null> => {
   try {
-    const res = await api.post("/auth/refresh");
+    // Use a plain axios instance (no interceptors) to avoid the response
+    // interceptor catching a 401 on the refresh call itself and recursing.
+    const plain = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+      timeout: 8000,
+    });
+    const res = await plain.post("/auth/refresh");
     // Backend returns { token } (not accessToken)
     const token: string | null = res.data?.token ?? res.data?.accessToken ?? null;
     setAccessToken(token);
