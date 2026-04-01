@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Doty from "../ui/doty/doty";
 import Image from "next/image";
 //import { getGamesService } from "../../../services/games.service";
@@ -14,81 +14,63 @@ type GameItem = {
 };
 
 export default function GamesList() {
-  const [games, setGames] = useState<GameItem[]>([]);
+  const [games] = useState<GameItem[]>([]);
   const [hover, setHover] = useState<number | null>(null);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth < 768);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  useEffect(() => {
-    const getGames = async () => {
-      /*const response = await getGamesService();
-      if (Array.isArray(response) && response.length > 0) {
-        setGames(response as GameItem[]);
-      }
-        */
-    };
-    getGames();
-  }, []);
+  // data fetch (wired when service is ready)
+  // useEffect(() => { ... }, []);
 
   return (
-    <div
-      className="w-full h-full overflow-auto flex flex-col items-center gap-4 p-6 relative"
-      style={{
-        background: "linear-gradient(155deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.09) 100%)",
-      }}
-    >
-      {/* Top sheen */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1/3"
-        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, transparent 100%)" }}
-      />
-      <div className="relative flex items-center gap-2">
-        <Doty pose="12" size={isMobile ? "tiny" : "mini"} />
-        <h3 className={`${isMobile ? "text-2xl" : "text-lg"} font-semibold text-foreground`}>
+    <div className="w-full h-full overflow-auto flex flex-col gap-4 p-5">
+      {/* Header */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Doty pose="12" size="mini" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
           Let&apos;s play!
-        </h3>
+        </span>
       </div>
 
-      <div className="relative w-full flex flex-col gap-3">
+      {/* List */}
+      <div className="flex flex-col gap-3">
         {games.map((item) => (
           <button
             key={item.id}
             onMouseEnter={() => setHover(item.id)}
             onMouseLeave={() => setHover(null)}
             onClick={() => window.location.replace(`/games${item.path}`)}
-            className={`flex items-center justify-center gap-3 w-full p-4 rounded-xl cursor-pointer transform transition-all duration-200 ${hover === item.id ? "scale-105" : "scale-100"}`}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 active:scale-[.98] cursor-pointer"
             style={{
-              background: hover === item.id
-                ? "rgba(255,255,255,0.18)"
-                : "rgba(255,255,255,0.09)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
+              background: hover === item.id ? "rgba(212,0,126,0.10)" : "var(--background)",
+              border: hover === item.id
+                ? "1.5px solid rgba(212,0,126,0.35)"
+                : "1.5px solid var(--border)",
             }}
           >
             <div className="shrink-0">
               {item.path === "/dont-pop" && (
-                <div className={`${isMobile ? "w-24 h-24" : "w-16 h-16"} relative`}>
+                <div className="w-14 h-14 relative">
                   <Image src={Baloon} alt="balloon" fill className="object-contain" />
                 </div>
               )}
               {item.path === "/dot-bombs" && (
-                <div className={`${isMobile ? "w-28 h-28 -translate-x-2" : "w-20 h-20 -translate-x-2"} relative`}>
+                <div className="w-14 h-14 relative">
                   <Image src={Bomb} alt="bomb" fill className="object-contain" />
                 </div>
               )}
             </div>
-            <div className={`${isMobile ? "text-xl" : "text-base"} font-medium text-foreground`}>
+            <span className="text-base font-semibold text-(--foreground)">
               {item.name}
-            </div>
+            </span>
           </button>
         ))}
+
+        {/* Empty state */}
+        {games.length === 0 && (
+          <div className="flex flex-col items-center gap-3 py-8 opacity-50">
+            <Doty pose="01" size="small" />
+            <p className="text-sm text-(--muted) text-center">Games coming soon!</p>
+          </div>
+        )}
       </div>
     </div>
   );

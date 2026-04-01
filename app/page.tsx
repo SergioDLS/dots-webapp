@@ -22,9 +22,11 @@ export default function Login() {
   const [code] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
   const { setAccessToken } = useAuth();
 
   const loginHandler = useCallback(async () => {
+    setLoginLoading(true);
     try {
       const response = await loginService(user, password);
       console.log("response", response);
@@ -35,16 +37,16 @@ export default function Login() {
         window.location.replace("/levels");
       } else {
         setIncorrect(true);
-        // backend may return an error message in different shapes
         const text = (response && (response.message || response.error)) || "Incorrect username or password!";
         setMsg(text);
       }
     } catch (e: unknown) {
-      // Normalize error message for the UI without using `any`
       setIncorrect(true);
       const ex = e as { response?: { data?: { message?: string; error?: string } }; message?: string };
       const errMsg = ex?.response?.data?.message || ex?.response?.data?.error || ex?.message || "Login failed. Please try again.";
       setMsg(errMsg);
+    } finally {
+      setLoginLoading(false);
     }
   }, [user, password, setAccessToken]);
 
@@ -176,8 +178,15 @@ export default function Login() {
             type="password"
             className={inputCls}
           />
-          <button type="button" onClick={loginHandler} className={btnPrimary}>
-            Log in
+          <button type="button" onClick={loginHandler} disabled={loginLoading} className={btnPrimary}>
+            {loginLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Logging in…
+              </span>
+            ) : (
+              "Log in"
+            )}
           </button>
         </div>
 

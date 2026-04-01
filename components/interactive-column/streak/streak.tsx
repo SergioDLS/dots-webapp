@@ -8,13 +8,16 @@ export default function Streak() {
   const day = streak === 1 ? "day" : "days";
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-5 h-5 relative">
+    <div
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+      style={{ background: "rgba(251,191,36,0.15)", border: "1.5px solid rgba(251,191,36,0.35)" }}
+    >
+      <div className="w-4 h-4 relative shrink-0">
         <Image src={Fire} alt="fire" fill className="object-contain animate-pulse" />
       </div>
-      <div className="text-sm font-medium text-gray-800">
+      <span className="text-xs font-extrabold" style={{ color: "#b45309" }}>
         {streak} {day} streak!
-      </div>
+      </span>
     </div>
   );
 }

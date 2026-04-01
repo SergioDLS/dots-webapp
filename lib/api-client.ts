@@ -67,9 +67,9 @@ api.interceptors.response.use(
 
     const newToken = await refreshPromise;
     if (!newToken) {
-      if (typeof window !== "undefined") {
-        window.location.replace("/login");
-      }
+      // Don't redirect here — let callers (AuthProvider, pages) decide
+      // what to do when auth fails. Redirecting from the interceptor
+      // causes a hard navigation that prevents components from mounting.
       throw error;
     }
 

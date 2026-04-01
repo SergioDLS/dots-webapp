@@ -20,6 +20,7 @@ import StreakTop from "./streak/streak-top";
 import TopStudents from "./top-students";
 import ReadingsList from "./readings-list";
 import GamesList from "./games-list";
+import ThemeToggle from "../theme-toggle";
 //import { updateProfilePictureService } from "../../services/user.service";
 import { ADMIN_PROFILE, BASE_URL_IMAGES } from "../../constants";
 
@@ -31,7 +32,7 @@ type User = {
   [k: string]: unknown;
 };
 
-  const getUserFromStorage = () => {
+const getUserFromStorage = () => {
   try {
     const raw = localStorage.getItem("user");
     if (!raw) return {};
@@ -79,18 +80,21 @@ export default function InteractiveColumn() {
     { title: "Games", icon: <IconGame /> },
   ];
 
-  
-
   // matchMedia for responsive JS logic (md breakpoint ~768px)
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
-    type LegacyMQL = { addListener?: (cb: (e: MediaQueryListEvent) => void) => void; removeListener?: (cb: (e: MediaQueryListEvent) => void) => void };
-  const update = () => setIsMobile(!!mq.matches);
+    type LegacyMQL = {
+      addListener?: (cb: (e: MediaQueryListEvent) => void) => void;
+      removeListener?: (cb: (e: MediaQueryListEvent) => void) => void;
+    };
+    const update = () => setIsMobile(!!mq.matches);
     update();
-    if (mq.addEventListener) mq.addEventListener("change", update as EventListener);
+    if (mq.addEventListener)
+      mq.addEventListener("change", update as EventListener);
     else (mq as LegacyMQL).addListener?.(update);
     return () => {
-      if (mq.removeEventListener) mq.removeEventListener("change", update as EventListener);
+      if (mq.removeEventListener)
+        mq.removeEventListener("change", update as EventListener);
       else (mq as LegacyMQL).removeListener?.(update);
     };
   }, []);
@@ -117,7 +121,8 @@ export default function InteractiveColumn() {
   // keyboard navigation for accessibility (left/right arrows)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") setCurrentSection((s) => Math.min(s + 1, menus.length - 1));
+      if (e.key === "ArrowRight")
+        setCurrentSection((s) => Math.min(s + 1, menus.length - 1));
       if (e.key === "ArrowLeft") setCurrentSection((s) => Math.max(s - 1, 0));
     };
     window.addEventListener("keydown", onKey);
@@ -145,7 +150,8 @@ export default function InteractiveColumn() {
       const delta = touchDeltaX.current;
       const threshold = 40; // pixels
       if (delta > threshold) setCurrentSection((s) => Math.max(s - 1, 0));
-      else if (delta < -threshold) setCurrentSection((s) => Math.min(s + 1, menus.length - 1));
+      else if (delta < -threshold)
+        setCurrentSection((s) => Math.min(s + 1, menus.length - 1));
       touchStartX.current = null;
       touchDeltaX.current = 0;
     };
@@ -164,7 +170,6 @@ export default function InteractiveColumn() {
   const closeDialogHandler = () => {
     setDialog({ show: false });
   };
-
 
   const logOutHandler = () => {
     setDialog({
@@ -186,7 +191,10 @@ export default function InteractiveColumn() {
       const url = URL.createObjectURL(file);
       setProfilePhoto(url);
       //updateProfilePictureService(user.id as number, file);
-      const newUser = { ...user, profile_pic: `${String(user.id)}.${file.name.split(".")[1]}` } as User;
+      const newUser = {
+        ...user,
+        profile_pic: `${String(user.id)}.${file.name.split(".")[1]}`,
+      } as User;
       setUser(newUser);
       localStorage.setItem("user", JSON.stringify(newUser));
     }
@@ -197,14 +205,14 @@ export default function InteractiveColumn() {
   // carousel positioning now uses percentage-based translateX(-N*100%)
 
   const comingSoon = (
-    <div className="flex w-full items-center justify-center flex-col gap-4 rounded-2xl bg-(--surface) border border-(--border) p-8">
+    <div className="flex w-full h-full items-center justify-center flex-col gap-3 p-8">
       <Doty pose="03" size="small" />
-      <h3 className="text-base font-semibold text-foreground">Coming soon…</h3>
-      <p className="text-xs text-(--muted) text-center">We&apos;re working on something cool!</p>
+      <h3 className="text-sm font-extrabold text-foreground">Coming soon…</h3>
+      <p className="text-xs text-(--muted) text-center">
+        We&apos;re working on something cool!
+      </p>
     </div>
   );
-
-  
 
   return (
     <div
@@ -213,31 +221,23 @@ export default function InteractiveColumn() {
       onMouseLeave={() => setHover(false)}
       aria-label="Interactive column"
     >
-      <div className={`p-4 w-full md:w-80 ${isMobile ? "relative" : ""} md:sticky md:top-8`}>
+      <div
+        className={`p-4 w-full md:w-80 ${isMobile ? "relative" : ""} md:sticky md:top-8`}
+      >
         <div className="flex flex-col gap-5">
-
           {/* ── Profile card ─────────────────────────────────── */}
           <div
-            className="rounded-2xl p-4 relative overflow-hidden"
-            style={{
-              background: "linear-gradient(155deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.12) 100%)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1.5px solid rgba(255,255,255,0.18)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.26)",
-            }}
+            onMouseEnter={() => setUserSettingsHover(true)}
+            onMouseLeave={() => setUserSettingsHover(false)}
+            className="rounded-2xl p-4 bg-surface border border-(--border) shadow-sm"
           >
-            {/* Top sheen */}
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl"
-              style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.16) 0%, transparent 100%)" }}
-            />
-            <div className={`flex ${isMobile ? "flex-row items-center" : "flex-col items-center"} gap-4`}>
-
+              className={`flex ${isMobile ? "flex-row items-center" : "flex-col items-center"} gap-4`}
+            >
               {/* Avatar */}
-              <div className="relative w-20 h-20 md:w-24 md:h-24 shrink-0">
+              <div className="relative w-18 h-18 md:w-20 md:h-20 shrink-0">
                 <div
-                  className={`absolute inset-0 z-20 flex items-center justify-center rounded-full transition-all duration-200 ${hoverPhoto ? "bg-black/50" : "bg-transparent"}`}
+                  className={`absolute inset-0 z-20 flex items-center justify-center rounded-full transition-all duration-200 ${hoverPhoto ? "bg-black/40" : "bg-transparent"}`}
                   onMouseEnter={() => setHoverPhoto(true)}
                   onMouseLeave={() => setHoverPhoto(false)}
                 >
@@ -254,15 +254,22 @@ export default function InteractiveColumn() {
                     {hoverPhoto && (
                       <div className="flex flex-col items-center gap-0.5">
                         <IconEdit />
-                        <span className="text-[10px] font-semibold">Change</span>
+                        <span className="text-[10px] font-semibold">
+                          Change
+                        </span>
                       </div>
                     )}
                   </label>
                 </div>
 
                 {profilePhoto ? (
-                  <div className="relative w-full h-full rounded-full overflow-hidden ring-3 ring-(--accent)/40 shadow-md">
-                    <Image src={profilePhoto} alt="profile" fill style={{ objectFit: "cover" }} />
+                  <div className="relative w-full h-full rounded-full overflow-hidden ring-3 ring-(--accent)/50 shadow-md">
+                    <Image
+                      src={profilePhoto}
+                      alt="profile"
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center rounded-full bg-background ring-3 ring-(--border) p-2">
@@ -277,27 +284,27 @@ export default function InteractiveColumn() {
                 onMouseEnter={() => setUserHover(true)}
                 onMouseLeave={() => setUserHover(false)}
               >
-                <p className="text-xs font-semibold uppercase tracking-widest text-(--muted)">Welcome back</p>
-                <h3 className="text-lg font-extrabold leading-tight truncate text-foreground">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
+                  Welcome back
+                </p>
+                <h3 className="text-base font-extrabold leading-tight truncate text-foreground">
                   {user?.name || "there"} 👋
                 </h3>
-                <div className="mt-1">
+                <div className="mt-0.5">
                   <Streak />
                 </div>
               </div>
             </div>
 
-            {/* Settings panel – slides in on hover */}
+            {/* Settings panel */}
             <div
               className={`overflow-hidden transition-all duration-300 ${userHover || userSettingsHover ? "opacity-100 max-h-44 mt-3" : "opacity-0 max-h-0"}`}
-              onMouseEnter={() => setUserSettingsHover(true)}
-              onMouseLeave={() => setUserSettingsHover(false)}
             >
-              <div className="flex flex-col gap-2 pt-3 border-t border-white/10">
+              <div className="flex flex-col gap-2 pt-3 border-t border-(--border)">
+                <ThemeToggle />
                 <button
                   onClick={logOutHandler}
-                  className="w-full rounded-xl border border-white/15 px-4 py-2 text-sm font-medium text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/5 focus:outline-none focus:ring-2 focus:ring-(--accent)/30"
-                  style={{ background: "rgba(255,255,255,0.06)" }}
+                  className="w-full rounded-xl border border-(--border) px-4 py-2 text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/8 focus:outline-none"
                 >
                   Log out
                 </button>
@@ -306,8 +313,7 @@ export default function InteractiveColumn() {
                   <div className="relative" ref={menuRef}>
                     <button
                       onClick={() => setShowAdminMenu((s) => !s)}
-                      className="w-full rounded-xl border border-white/15 px-4 py-2 text-sm font-medium text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/5 focus:outline-none focus:ring-2 focus:ring-(--accent)/30"
-                      style={{ background: "rgba(255,255,255,0.06)" }}
+                      className="w-full rounded-xl border border-(--border) px-4 py-2 text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/8 focus:outline-none"
                       aria-expanded={showAdminMenu}
                       aria-haspopup="menu"
                     >
@@ -315,16 +321,7 @@ export default function InteractiveColumn() {
                     </button>
 
                     {showAdminMenu && (
-                      <ul
-                        className="absolute right-0 z-30 mt-2 w-44 rounded-2xl overflow-hidden"
-                        style={{
-                          background: "linear-gradient(155deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.15) 100%)",
-                          backdropFilter: "blur(16px)",
-                          WebkitBackdropFilter: "blur(16px)",
-                          border: "1.5px solid rgba(255,255,255,0.22)",
-                          boxShadow: "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.28)",
-                        }}
-                      >
+                      <ul className="absolute right-0 z-30 mt-2 w-44 rounded-2xl overflow-hidden bg-surface border border-(--border) shadow-lg">
                         {[
                           { label: "Levels", href: "/admin/levels" },
                           { label: "Readings", href: "/admin/readings" },
@@ -333,7 +330,7 @@ export default function InteractiveColumn() {
                           <li key={item.href}>
                             <button
                               onClick={() => (window.location.href = item.href)}
-                              className="block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-(--accent)/8 hover:text-(--accent) transition-colors"
+                              className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-(--accent)/10 hover:text-(--accent) transition-colors"
                             >
                               {item.label}
                             </button>
@@ -348,31 +345,23 @@ export default function InteractiveColumn() {
           </div>
 
           {/* ── Navigation tabs ───────────────────────────────── */}
-          <div
-            className="rounded-2xl p-2 relative overflow-hidden"
-            style={{
-              background: "linear-gradient(155deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.11) 100%)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              border: "1.5px solid rgba(255,255,255,0.18)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.24)",
-            }}
-          >
-            <div className="grid grid-cols-3 gap-1.5">
+          <div className="rounded-2xl p-1.5 bg-surface border border-(--border) shadow-sm">
+            <div className="grid grid-cols-3 gap-1">
               {menus.map((m, idx) => (
                 <button
                   key={m.title}
                   onClick={() => setCurrentSection(idx)}
                   aria-pressed={currentSection === idx}
-                  className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-(--accent)/30 ${
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-center transition-all duration-200 focus:outline-none ${
                     currentSection === idx
-                      ? "bg-linear-to-br from-(--primary-accent) to-(--accent) text-white shadow-md shadow-(--accent)/25"
-                      : "text-(--muted) hover:bg-(--accent)/8 hover:text-(--accent)"
+                      ? "bg-(--accent) text-white shadow-sm"
+                      : "text-(--muted) hover:bg-(--accent)/10 hover:text-(--accent)"
                   }`}
-                  style={currentSection !== idx ? { background: "rgba(255,255,255,0.05)" } : undefined}
                 >
                   <span className="text-base leading-none">{m.icon}</span>
-                  <span className="text-[10px] font-semibold leading-tight">{m.title}</span>
+                  <span className="text-[9px] font-bold leading-tight tracking-wide">
+                    {m.title}
+                  </span>
                 </button>
               ))}
             </div>
@@ -380,30 +369,36 @@ export default function InteractiveColumn() {
 
           {/* ── Carousel ─────────────────────────────────────── */}
           <div
-            className="w-full overflow-hidden rounded-2xl"
-            style={{
-              height: isMobile ? "40rem" : "28rem",
-              background: "linear-gradient(155deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.10) 100%)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1.5px solid rgba(255,255,255,0.16)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.22)",
-            }}
+            className="w-full overflow-hidden rounded-2xl bg-surface border border-(--border) shadow-sm"
+            style={{ height: isMobile ? "38rem" : "26rem" }}
           >
             <div
               ref={carouselRef}
-              className="flex h-full transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSection * 100}%)`, willChange: "transform" }}
+              className="flex h-full transition-transform duration-400 ease-in-out"
+              style={{
+                transform: `translateX(-${currentSection * 100}%)`,
+                willChange: "transform",
+              }}
               role="region"
               aria-roledescription="carousel"
               aria-live="polite"
             >
-              <div className="flex-none w-full h-full"><DailyProgress /></div>
+              <div className="flex-none w-full h-full">
+                <DailyProgress />
+              </div>
               <div className="flex-none w-full h-full">{comingSoon}</div>
-              <div className="flex-none w-full h-full"><ReadingsList /></div>
-              <div className="flex-none w-full h-full"><TopStudents /></div>
-              <div className="flex-none w-full h-full"><StreakTop /></div>
-              <div className="flex-none w-full h-full"><GamesList /></div>
+              <div className="flex-none w-full h-full">
+                <ReadingsList />
+              </div>
+              <div className="flex-none w-full h-full">
+                <TopStudents />
+              </div>
+              <div className="flex-none w-full h-full">
+                <StreakTop />
+              </div>
+              <div className="flex-none w-full h-full">
+                <GamesList />
+              </div>
             </div>
           </div>
 
@@ -422,7 +417,6 @@ export default function InteractiveColumn() {
               />
             ))}
           </div>
-
         </div>
       </div>
 

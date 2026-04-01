@@ -31,7 +31,6 @@ export default function RootLayout({
       <body className={`${nunito.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <AuthSync />
-          <ThemeToggle />
           {children}
         </AuthProvider>
       </body>

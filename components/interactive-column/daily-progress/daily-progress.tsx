@@ -7,15 +7,6 @@ import Doty from "../../ui/doty/doty";
 
 export default function DailyProgress() {
   const [progress, setProgress] = useState<number>(0);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  // determine viewport size for responsive sizing (md breakpoint at 768px)
-  useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth < 768);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -50,37 +41,42 @@ export default function DailyProgress() {
   }
 
   return (
-    <div
-      className="w-full h-full overflow-auto flex flex-col items-center p-6 relative"
-      style={{
-        background: "linear-gradient(155deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.09) 100%)",
-      }}
-    >
-      {/* Top sheen */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1/3"
-        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, transparent 100%)" }}
-      />
-      <h3
-        className={`relative font-semibold text-foreground ${isMobile ? "text-2xl" : "text-lg"}`}
-      >
-        My progress today
-      </h3>
-      <div
-        className={`relative ${isMobile ? "text-2xl" : "text-lg"} text-(--muted) mt-2 mb-4`}
-      >
-        {progress}%
+    <div className="w-full h-full flex flex-col items-center justify-center gap-5 p-6">
+      {/* Header */}
+      <div className="flex items-center gap-2 self-start">
+        <span className="inline-block w-1 h-5 rounded-full bg-(--accent)" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">My progress today</span>
       </div>
 
-      <div className="relative w-full mb-4">
+      {/* Doty + message */}
+      <div className="flex items-center gap-3">
+        <Doty pose={pose} size="mini" />
+        <div className="flex flex-col gap-0.5">
+          <span className="text-3xl font-extrabold text-foreground">{progress}%</span>
+          <span className="text-sm font-semibold text-(--muted)">{message}</span>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-full">
         <LoadBar progress={progress} />
       </div>
 
-      <div className="relative flex items-center gap-3">
-        <Doty pose={pose} size={isMobile ? "tiny" : "mini"} />
-        <div className={`${isMobile ? "text-xl" : "text-base"} text-foreground`}>
-          {message}
-        </div>
+      {/* Motivational chips */}
+      <div className="flex gap-2 flex-wrap justify-center">
+        {[
+          { label: "Keep going 🚀", active: progress > 0 && progress < 50 },
+          { label: "Halfway 🌟",    active: progress >= 50 && progress < 100 },
+          { label: "Done! 🎉",      active: progress >= 100 },
+        ].map((chip) => chip.active && (
+          <span
+            key={chip.label}
+            className="rounded-full px-3 py-1 text-xs font-extrabold"
+            style={{ background: "rgba(212,0,126,0.12)", color: "#d4007e", border: "1.5px solid rgba(212,0,126,0.25)" }}
+          >
+            {chip.label}
+          </span>
+        ))}
       </div>
     </div>
   );

@@ -9,6 +9,9 @@ import React, {
   useState,
 } from "react";
 import api, { setAccessToken as setApiAccessToken } from "@/lib/api-client";
+import axios from "axios";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 type AuthContextType = {
   accessToken: string | null;
@@ -32,7 +35,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await api.post("/auth/refresh");
+        // Use a plain axios instance (no interceptors) to avoid triggering
+        // the response interceptor's retry-refresh logic on this initial call.
+        const plain = axios.create({
+          baseURL: API_BASE,
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+          timeout: 8000,
+        });
+        const res = await plain.post("/auth/refresh");
         // Backend returns { token } (not accessToken)
         const token = res.data?.token ?? res.data?.accessToken ?? null;
         if (mounted) setAccessToken(token);

@@ -36,17 +36,44 @@ export default function LevelSection({ id, name, levels, colors }: LevelSectionP
   };
   const accentHex = colorHexMap[accent] ?? colorHexMap.pink;
 
+  // Section progress — thin, discreet
+  const sectionProgress =
+    list.length > 0
+      ? Math.round(list.reduce((sum, l) => sum + (l.progress ?? 0), 0) / list.length)
+      : 0;
+
   // Clustered layout: items arranged in rows with slight overlap/offsets
   return (
     <div className="flex w-full flex-col gap-6" data-section-id={id}>
-      <div className="w-full flex items-center justify-center">
-        <span
-          className="text-2xl font-semibold text-foreground flex items-center gap-3 px-3 py-1 rounded-md bg-white/6 backdrop-blur-sm border border-white/8"
-          style={{ boxShadow: `0 8px 30px ${accentHex}22` }}
-        >
-          <span className="w-3 h-3 rounded-full" style={{ background: accentHex, boxShadow: `0 6px 20px ${accentHex}33` }} />
-          <span className="leading-tight">{name}</span>
+
+      {/* Section header with subtle progress bar */}
+      <div className="w-full flex flex-col items-center gap-1.5">
+        <span className="text-2xl font-semibold text-foreground flex items-center gap-3">
+          <span
+            className="w-2.5 h-2.5 rounded-full shrink-0"
+            style={{ background: accentHex }}
+          />
+          {name}
         </span>
+
+        {/* Thin progress bar — discreet, doesn't compete with Difficulty's bar */}
+        <div className="w-40 flex items-center gap-1.5">
+          <div
+            className="flex-1 h-1 rounded-full overflow-hidden"
+            style={{ background: `rgba(0,0,0,0.08)` }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${sectionProgress}%`, background: accentHex, opacity: 0.65 }}
+            />
+          </div>
+          <span
+            className="text-[9px] font-bold tabular-nums leading-none"
+            style={{ color: accentHex, opacity: 0.75 }}
+          >
+            {sectionProgress}%
+          </span>
+        </div>
       </div>
 
       <div className="relative w-full">
@@ -56,45 +83,26 @@ export default function LevelSection({ id, name, levels, colors }: LevelSectionP
           ) : (
             list.map((item, index) => {
               const palette = colors && colors.length > 0 ? colors : [
-                "pink",
-                "orangered",
-                "blue",
-                "pale_blue",
-                "opal",
-                "orange",
-                "pale_green",
-                "yellow",
-                "green",
+                "pink", "orangered", "blue", "pale_blue", "opal",
+                "orange", "pale_green", "yellow", "green",
               ];
               const color = palette[index % palette.length] ?? palette[0];
 
-              // horizontal offset that creates a gentle curve; smaller amplitude so nodes stay centered
-              // increase amplitude significantly for a wide, pronounced curve
-              const amplitude = 160; // px max offset (much wider curve)
-              // lower frequency so nodes alternate across the curve more naturally
-              const offsetX = Math.round(Math.sin(index * 0.7) * amplitude);
+              // wider curve amplitude — nodes are large so we need more horizontal swing
+              const amplitude = 130;
+              const offsetX = Math.round(Math.sin(index * 0.72) * amplitude);
               const zIndex = 1000 - index;
 
-              // non-overlapping layout: use small positive gap so nodes don't overlap
-              const gap = 12; // px vertical gap between nodes
+              // generous vertical gap so the slide panel doesn't overlap the next node
+              const gap = 16;
 
               return (
                 <div
                   key={item.id}
-                  style={{
-                    transform: `translateX(${offsetX}px)`,
-                    zIndex,
-                    transition: "transform 320ms cubic-bezier(.2,.9,.2,1)",
-                    transitionDelay: `${index * 16}ms`,
-                    marginBottom: `${gap}px`,
-                  }}
+                  style={{ transform: `translateX(${offsetX}px)`, zIndex, marginBottom: `${gap}px` }}
                   className="relative"
                 >
-                  <LevelWord
-                    {...item}
-                    color={color}
-                    animationIndex={index}
-                  />
+                  <LevelWord {...item} color={color} animationIndex={index} />
                 </div>
               );
             })

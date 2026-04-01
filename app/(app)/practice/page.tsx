@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 
 import LoadBar from "@/components/ui/load-bar/load-bar";
 import Doty from "@/components/ui/doty/doty";
@@ -90,10 +89,13 @@ function PracticeClient() {
     setConfirmReady(true);
   };
 
-  //const goToLevels = () => window.location.replace("/levels");
-  const goToLevels = () => console.log("Go to levels"); // placeholder for navigation
+  const goToLevels = () => window.location.replace("/levels");
 
   const confirmSelectedHandler = () => {
+    if(isFinalMode) {
+      goToLevels();
+      return;
+    }
     if (answerState === "") {
       if (answer) {
         const newAnswered = answered + 1;
@@ -208,46 +210,22 @@ function PracticeClient() {
     content = (
       <>
         {/* ── Top bar: hearts + progress ── */}
-        <div
-          className="flex items-center gap-4 w-full px-4 py-3 rounded-2xl relative overflow-hidden"
-          style={{
-            background:
-              "linear-gradient(155deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.12) 100%)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
-            border: "1.5px solid rgba(255,255,255,0.18)",
-            boxShadow:
-              "0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.24)",
-          }}
-        >
-          {/* Top sheen */}
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(255,255,255,0.16) 0%, transparent 100%)",
-            }}
-          />
-          {/* Hearts */}
-          <div className="relative flex flex-col items-center gap-0.5 shrink-0">
-            <div
-              className={`relative w-7 h-7 ${lifes <= 2 ? "animate-pulse" : ""}`}
-            >
-              <Image
-                src="/images/heart.png"
-                alt="Hearts"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span
-              className={`text-xs font-bold ${lifes <= 2 ? "text-rose-400" : "text-foreground"}`}
-            >
-              {lifes}
-            </span>
+        <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-2xl bg-surface border border-(--border)">
+          {/* Hearts as emoji */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <span
+                key={i}
+                className={`text-lg leading-none transition-all duration-300 ${
+                  i < lifes ? "" : "grayscale opacity-30"
+                } ${lifes <= 2 && i < lifes ? "animate-pulse" : ""}`}
+              >
+                ❤️
+              </span>
+            ))}
           </div>
           {/* Progress bar */}
-          <div className="relative flex-1">
+          <div className="flex-1">
             <LoadBar progress={progress} streak={streak} />
           </div>
         </div>
@@ -262,24 +240,38 @@ function PracticeClient() {
           streak={streak}
         />
 
+        {/* ── Answer feedback flash ── */}
+        {answerState !== "" && !isFinalMode && mode !== "streak" && (
+          <div
+            className={`flex items-center gap-2 w-full px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-300 ${
+              answerState === "correct"
+                ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                : "bg-rose-500/15 border border-rose-500/40 text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            <span className="text-base">{answerState === "correct" ? "✅" : "❌"}</span>
+            <span>{answerState === "correct" ? "Great job!" : "Keep going!"}</span>
+          </div>
+        )}
+
         {/* ── Action buttons ── */}
         {!isFinalMode && (
           <div className="flex gap-3 w-full">
-            <UIButton tone="neutral" onClick={goToLevels} className="flex-1">
+            <UIButton tone="neutral" onClick={goToLevels}>
               Exit
             </UIButton>
             <UIButton
               tone="accent"
               onClick={confirmSelectedHandler}
               disabled={!confirmReady && answerState === ""}
-              className="flex-1"
+              fullWidth
             >
               {confirmLabel}
             </UIButton>
           </div>
         )}
         {isFinalMode && (
-          <div className="flex gap-3 w-full">
+          <div className="w-full">
             <UIButton tone="accent" onClick={confirmSelectedHandler} fullWidth>
               {confirmLabel}
             </UIButton>
@@ -302,15 +294,6 @@ function PracticeClient() {
   return (
     <div
       className="relative flex flex-col items-center gap-4 w-full max-w-2xl mx-auto px-4 py-6 md:py-10"
-      // Inline CSS custom properties for the flat theme
-      style={(
-        {
-          '--panel-bg': '#ffffff',
-          '--card-border': 'rgba(15,23,42,0.06)',
-          '--btn-bg': '#f8fafc',
-          '--btn-foreground': '#0f172a',
-        } as unknown
-      ) as React.CSSProperties}
     >
       {content}
     </div>

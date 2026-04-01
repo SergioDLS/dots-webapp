@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Doty from "../ui/doty/doty";
 //import { getEnabledReadingsService } from "../../../services/reading.service";
 import Image from "next/image";
@@ -12,79 +12,45 @@ type Reading = {
 };
 
 export default function ReadingsList() {
-  const [readings, setReadings] = useState<Reading[]>([]);
+  const [readings] = useState<Reading[]>([]);
   const [hover, setHover] = useState<number | null>(null);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth < 768);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const raw =
-          typeof window !== "undefined" ? localStorage.getItem("user") : null;
-        const user = raw ? JSON.parse(raw) : null;
-        //const response = await getEnabledReadingsService(user);
-        /* if (Array.isArray(response) && response.length > 0) setReadings(response as Reading[]);*/
-      } catch {
-        // ignore
-      }
-    };
-    fetch();
-  }, []);
+  // data fetch (commented out — wired when service is ready)
+  // useEffect(() => { ... }, []);
 
   return (
-    <div
-      className="w-full h-full overflow-auto flex flex-col items-center gap-4 p-6 relative"
-      style={{
-        background: "linear-gradient(155deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.09) 100%)",
-      }}
-    >
-      {/* Top sheen */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1/3"
-        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, transparent 100%)" }}
-      />
-      <div className="relative flex items-center gap-2">
-        <Doty pose="17" size={isMobile ? "tiny" : "mini"} />
-        <h3 className={`${isMobile ? "text-2xl" : "text-lg"} font-semibold text-foreground`}>
-          Let&apos;s read!
-        </h3>
+    <div className="w-full h-full flex flex-col gap-3 p-5 overflow-auto">
+      {/* Header */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Doty pose="17" size="mini" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Let&apos;s read!</span>
       </div>
 
-      <div className="relative w-full flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
+        {readings.length === 0 && (
+          <p className="text-xs text-(--muted) text-center pt-6">No readings available yet.</p>
+        )}
         {readings.map((item) => (
           <button
             key={item.id}
             onMouseEnter={() => setHover(item.id)}
             onMouseLeave={() => setHover(null)}
             onClick={() => item.unlocked && window.location.replace(`/readings/${item.id}`)}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl cursor-pointer transform transition-all duration-200 ${hover === item.id ? "scale-105" : "scale-100"}`}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[.98]"
             style={{
-              background: hover === item.id
-                ? "rgba(255,255,255,0.18)"
-                : "rgba(255,255,255,0.09)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
+              background: hover === item.id ? "rgba(212,0,126,0.10)" : "var(--background)",
+              border: hover === item.id ? "1.5px solid rgba(212,0,126,0.35)" : "1.5px solid var(--border)",
             }}
           >
             {!item.unlocked && (
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-8 h-8 relative">
+              <div className="flex flex-col items-center justify-center shrink-0">
+                <div className="w-5 h-5 relative">
                   <Image src={Lock} alt="Locked" fill className="object-contain" />
                 </div>
-                <div className="text-xs text-(--muted)">{item.unlock_left}</div>
+                <span className="text-[9px] text-(--muted) font-bold">{item.unlock_left}</span>
               </div>
             )}
-            <div className={`${isMobile ? "text-xl" : "text-base"} font-medium text-foreground`}>
-              {item.title}
-            </div>
+            <span className="text-sm font-semibold text-foreground truncate">{item.title}</span>
           </button>
         ))}
       </div>
