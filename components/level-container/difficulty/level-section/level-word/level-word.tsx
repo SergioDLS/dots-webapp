@@ -14,10 +14,13 @@ type LevelWordProps = {
   name: string;
   src: string;
   animation?: string;
+  available?: boolean;
   unlocked?: boolean;
   levels_left: number;
   progress: number;
   animationIndex?: number;
+  /** Which edge to anchor to — drives the slide-in direction */
+  side?: "left" | "right";
 };
 
 // ── Color palette ─────────────────────────────────────────────────────────────
@@ -34,36 +37,27 @@ const colorMap: Record<string, { bg: string; ring: string; text: string; glow: s
   disabled:   { bg: "#f3f4f6", ring: "#d1d5db", text: "#6b7280", glow: "209,213,219", dark: { bg: "#1f2937", text: "#9ca3af" } },
 };
 
-// Node size: large enough so only ~3 fit in the viewport vertically
-// clamp(148px, 22vmin, 192px) — scales with screen height
-const SIZE_CSS = "clamp(148px, 22vmin, 192px)";
-// Numeric fallback for SVG calculations (use the middle of the clamp range)
-const SIZE_NUM = 170;
-const STROKE = 10;
-const Rc = SIZE_NUM / 2;
-const nr = Rc - STROKE / 2;
-const circ = 2 * Math.PI * nr;
-
 export default function LevelWord({
   on_construction,
   id,
   color,
   name,
   src,
+  available,
   unlocked,
   levels_left,
   progress,
-  animationIndex,
+  animationIndex = 0,
+  side = "left",
 }: LevelWordProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]       = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [bounced, setBounced] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-  const [animOffset, setAnimOffset] = useState(circ);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [isDark, setIsDark]   = useState(false);
+  const [barWidth, setBarWidth] = useState(0);
+  const wrapperRef            = useRef<HTMLDivElement>(null);
 
-  const canOpen = on_construction !== 1 || profile === "1";
-  const isUnlocked = unlocked ?? true;
+  const canOpen       = on_construction !== 1 || profile === "1";
+  const isUnlocked    = unlocked ?? available ?? true;
   const progressClamped = Math.max(0, Math.min(100, Math.round(progress)));
 
   // detect dark mode
@@ -75,20 +69,13 @@ export default function LevelWord({
     return () => obs.disconnect();
   }, []);
 
-  // staggered bounce-in entry
+  // staggered slide-in from edge + progress bar fill
   useEffect(() => {
-    const delay = (animationIndex ?? 0) * 80 + 30;
+    const delay = animationIndex * 90 + 40;
     const t1 = setTimeout(() => setMounted(true), delay);
-    const t2 = setTimeout(() => setBounced(true), delay + 20);
+    const t2 = setTimeout(() => setBarWidth(progressClamped), delay + 200);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [animationIndex]);
-
-  // animate progress ring after entry
-  useEffect(() => {
-    const target = circ * (1 - progressClamped / 100);
-    const t = setTimeout(() => setAnimOffset(target), (animationIndex ?? 0) * 80 + 300);
-    return () => clearTimeout(t);
-  }, [progressClamped, animationIndex]);
+  }, [animationIndex, progressClamped]);
 
   // close on outside click
   useEffect(() => {
@@ -108,8 +95,13 @@ export default function LevelWord({
     return keys[((id * 2654435761) >>> 0) % keys.length];
   })();
 
-  const c = colorMap[resolvedKey] ?? colorMap.blue;
-  const pal = { bg: isDark ? c.dark.bg : c.bg, ring: c.ring, text: isDark ? c.dark.text : c.text, glow: c.glow };
+  const c   = colorMap[resolvedKey] ?? colorMap.blue;
+  const ring = c.ring;
+  const glow = c.glow;
+  const txt  = isDark ? c.dark.text : c.text;
+  const cardBg = isDark
+    ? `linear-gradient(145deg,#1a1a2e,#16213e)`
+    : `linear-gradient(145deg,${c.bg},${c.bg}ee)`;
 
   const displayName = String(name || "")
     .split(" ")
@@ -117,173 +109,176 @@ export default function LevelWord({
     .join(" ");
 
   const goTo = (path: string) => window.location.replace(`${path}?id=${id}`);
+  const slideFrom = side === "left" ? "translateX(-72px)" : "translateX(72px)";
 
   return (
     <div
       ref={wrapperRef}
-      className="flex flex-col items-center"
+      className={`w-full flex ${side === "right" ? "justify-end" : "justify-start"}`}
       style={{
-        // bounce-in: scale overshoots then settles
         opacity: mounted ? 1 : 0,
-        transform: bounced
-          ? "translateY(0) scale(1)"
-          : mounted
-            ? "translateY(-4px) scale(1.06)"
-            : "translateY(24px) scale(0.78)",
-        transition: bounced
-          ? "opacity 320ms ease, transform 420ms cubic-bezier(.34,1.56,.64,1)"
-          : "opacity 120ms ease, transform 120ms ease",
-        transitionDelay: `${(animationIndex ?? 0) * 70}ms`,
+        transform: mounted ? "translateX(0)" : slideFrom,
+        transition: "opacity 400ms ease, transform 520ms cubic-bezier(.34,1.45,.64,1)",
+        transitionDelay: `${animationIndex * 65}ms`,
       }}
     >
-      {/* ── Node ─────────────────────────────────────────────────────────────── */}
-      <button
-        onClick={() => isUnlocked && canOpen && setOpen((v) => !v)}
-        disabled={!isUnlocked || !canOpen}
-        aria-expanded={open}
-        className="relative flex items-center justify-center rounded-full focus-visible:outline-none group"
-        style={{
-          width: SIZE_CSS,
-          height: SIZE_CSS,
-          background: pal.bg,
-          border: `4px solid ${pal.ring}`,
-          boxShadow: open
-            ? `0 0 0 6px rgba(${pal.glow},0.22), 0 10px 40px rgba(${pal.glow},0.45)`
-            : `0 6px 28px rgba(${pal.glow},0.38)`,
-          cursor: isUnlocked && canOpen ? "pointer" : "not-allowed",
-          opacity: isUnlocked ? 1 : 0.7,
-          // smooth shadow transition when opening
-          transition: "box-shadow 280ms ease, transform 180ms ease",
-        }}
-        // hover lift + subtle scale via inline style (avoids Tailwind group-hover conflict with open state)
-        onMouseEnter={(e) => { if (isUnlocked && canOpen) (e.currentTarget as HTMLElement).style.transform = "translateY(-5px) scale(1.04)"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; }}
-        onMouseDown={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(0.96)"; }}
-        onMouseUp={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; }}
-      >
-        {/* SVG progress ring — uses SIZE_NUM for math, CSS size for display */}
-        <svg
-          viewBox={`0 0 ${SIZE_NUM} ${SIZE_NUM}`}
-          className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
-          aria-hidden
-        >
-          {/* track */}
-          <circle cx={Rc} cy={Rc} r={nr} fill="none" stroke={`rgba(${pal.glow},0.15)`} strokeWidth={STROKE} />
-          {/* animated fill */}
-          <circle
-            cx={Rc} cy={Rc} r={nr}
-            fill="none"
-            stroke={pal.ring}
-            strokeWidth={STROKE}
-            strokeLinecap="round"
-            strokeDasharray={`${circ} ${circ}`}
-            strokeDashoffset={animOffset}
-            style={{ transition: "stroke-dashoffset 900ms cubic-bezier(.2,.9,.2,1)" }}
-          />
-        </svg>
-
-        {/* word image — 58% of node diameter */}
-        <div
-          className="relative z-10 flex items-center justify-center rounded-full overflow-hidden"
-          style={{ width: "58%", height: "58%" }}
-        >
-          <WordImg
-            size="large"
-            src={src}
-            opacity={isUnlocked ? 1 : 0.35}
-            customClass="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* locked overlay */}
-        {!isUnlocked && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1 rounded-full bg-white/45 dark:bg-black/45">
-            <Image src="/images/Lock_icon.png" alt="Locked" width={36} height={36} />
-            <span className="text-sm font-bold leading-none" style={{ color: pal.text }}>{levels_left}</span>
-          </div>
-        )}
-
-        {/* open-state inner glow ring */}
-        {open && (
-          <span
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              boxShadow: `inset 0 0 0 3px rgba(${pal.glow},0.30)`,
-              animation: "pulse-ring 1.4s ease-in-out infinite",
-            }}
-          />
-        )}
-      </button>
-
-      {/* ── Label ─────────────────────────────────────────────────────────────── */}
-      <div className="mt-3 flex flex-col items-center gap-1.5">
-        <span
-          className="text-sm font-extrabold tracking-wide text-center leading-snug"
-          style={{ color: pal.text, maxWidth: "calc(clamp(148px, 22vmin, 192px) + 8px)" }}
-        >
-          {displayName}
-        </span>
-        {isUnlocked && (
-          <div
-            className="rounded-full overflow-hidden"
-            style={{ width: "calc(clamp(148px,22vmin,192px) * 0.55)", height: "6px", background: `rgba(${pal.glow},0.18)` }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${progressClamped}%`,
-                background: pal.ring,
-                transition: "width 900ms cubic-bezier(.2,.9,.2,1)",
-                boxShadow: `0 0 8px rgba(${pal.glow},0.5)`,
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ── Slide-down action panel ───────────────────────────────────────────── */}
+      {/* ── CARD ─────────────────────────────────────────────────────────── */}
       <div
-        aria-hidden={!open}
-        className="overflow-hidden w-full"
+        className="relative overflow-hidden"
         style={{
-          maxHeight: open ? "140px" : "0px",
-          opacity: open ? 1 : 0,
-          transform: open ? "scaleY(1)" : "scaleY(0.85)",
-          transformOrigin: "top center",
-          transition: "max-height 350ms cubic-bezier(.34,1.3,.64,1), opacity 220ms ease, transform 350ms cubic-bezier(.34,1.3,.64,1)",
+          width: "74%",
+          borderRadius: 24,
+          background: cardBg,
+          border: `2px solid rgba(${glow},${isDark ? 0.3 : 0.4})`,
+          boxShadow: open
+            ? `0 0 0 4px rgba(${glow},0.2),0 20px 56px rgba(${glow},0.32)`
+            : `0 8px 36px rgba(${glow},0.22), inset 0 1px 0 rgba(255,255,255,0.55)`,
+          transition: "box-shadow 280ms ease, transform 200ms ease",
         }}
+        onMouseEnter={(e) => { if (isUnlocked && canOpen) (e.currentTarget as HTMLElement).style.transform = "translateY(-5px) scale(1.02)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; }}
+        onMouseDown={(e)  => { (e.currentTarget as HTMLElement).style.transform = "scale(0.97)"; }}
+        onMouseUp={(e)    => { (e.currentTarget as HTMLElement).style.transform = ""; }}
       >
-        <div
-          className="flex flex-col gap-2.5 pt-4 items-stretch"
-          style={{ width: "calc(clamp(148px,22vmin,192px) - 8px)", margin: "0 auto" }}
+        {/* Ambient blob */}
+        <span
+          className="absolute pointer-events-none"
+          style={{
+            width: 140, height: 140, borderRadius: "50%",
+            background: `radial-gradient(circle,rgba(${glow},0.28) 0%,transparent 68%)`,
+            top: -40,
+            right: side === "left" ? -30 : "auto",
+            left:  side === "right" ? -30 : "auto",
+            filter: "blur(20px)",
+          }}
+        />
+
+        <button
+          onClick={() => isUnlocked && canOpen && setOpen((v) => !v)}
+          disabled={!isUnlocked || !canOpen}
+          aria-expanded={open}
+          className="w-full flex items-stretch text-left focus-visible:outline-none"
+          style={{ cursor: isUnlocked && canOpen ? "pointer" : "not-allowed", opacity: isUnlocked ? 1 : 0.6 }}
         >
-          <button
-            onClick={() => goTo("/practice")}
-            className="rounded-2xl py-2.5 text-sm font-extrabold tracking-wide transition-all duration-150 active:scale-95"
+          {/* Image block */}
+          <div
+            className="relative shrink-0 flex items-center justify-center"
             style={{
-              background: pal.ring,
-              color: isDark ? "#0f172a" : "#fff",
-              boxShadow: `0 5px 18px rgba(${pal.glow},0.5)`,
+              width: 96, height: 96,
+              background: `rgba(${glow},${isDark ? 0.14 : 0.16})`,
+              borderRight: side === "left" ? `1.5px solid rgba(${glow},0.18)` : "none",
+              borderLeft:  side === "right" ? `1.5px solid rgba(${glow},0.18)` : "none",
+              order: side === "left" ? 0 : 1,
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
           >
-            ▶ Practice
-          </button>
-          <button
-            onClick={() => goTo("/spelling")}
-            className="rounded-2xl py-2.5 text-sm font-extrabold tracking-wide transition-all duration-150 active:scale-95"
-            style={{
-              background: pal.bg,
-              color: pal.text,
-              border: `2.5px solid ${pal.ring}`,
-            }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.05)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+            <WordImg
+              size="medium"
+              src={src}
+              opacity={isUnlocked ? 1 : 0.22}
+              customClass="w-[68px] h-[68px] object-contain drop-shadow-md"
+            />
+            {!isUnlocked && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-black/20 backdrop-blur-[2px]">
+                <Image src="/images/Lock_icon.png" alt="Locked" width={26} height={26} />
+                <span className="text-[11px] font-black" style={{ color: ring }}>{levels_left}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Text block */}
+          <div
+            className="flex flex-col justify-center gap-2 px-4 py-3 flex-1 min-w-0"
+            style={{ order: side === "left" ? 1 : 0 }}
           >
-            ✏️ Spelling
-          </button>
+            <span
+              className="font-black leading-snug"
+              style={{ color: txt, fontSize: "1.1rem", letterSpacing: "-0.015em" }}
+            >
+              {displayName}
+            </span>
+
+            {isUnlocked ? (
+              <div className="flex flex-col gap-1">
+                {/* Glowing progress bar */}
+                <div className="relative w-full rounded-full overflow-hidden" style={{ height: 9, background: `rgba(${glow},0.16)` }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${barWidth}%`,
+                      background: `linear-gradient(90deg,${ring},rgba(${glow},0.6))`,
+                      boxShadow: `0 0 10px rgba(${glow},0.75),0 0 22px rgba(${glow},0.4)`,
+                      transition: "width 1000ms cubic-bezier(.2,.9,.2,1)",
+                    }}
+                  >
+                    {/* sheen */}
+                    <span className="absolute right-0 inset-y-0 w-3" style={{ background: "rgba(255,255,255,0.45)", filter: "blur(3px)" }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-extrabold tabular-nums" style={{ color: ring }}>
+                    {progressClamped}%
+                  </span>
+                  {progressClamped === 100 && <span className="text-xs">⭐</span>}
+                </div>
+              </div>
+            ) : (
+              <span className="text-[11px] font-semibold" style={{ color: txt, opacity: 0.55 }}>
+                🔒 {levels_left} levels away
+              </span>
+            )}
+          </div>
+
+          {/* Chevron */}
+          {isUnlocked && canOpen && (
+            <div className="shrink-0 flex items-center pr-3" style={{ order: 2, color: ring, opacity: 0.55 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 300ms cubic-bezier(.34,1.3,.64,1)" }}>
+                <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+        </button>
+
+        {/* ── Action panel ─────────────────────────────────────────────── */}
+        <div
+          aria-hidden={!open}
+          style={{
+            maxHeight: open ? "68px" : "0px",
+            opacity: open ? 1 : 0,
+            overflow: "hidden",
+            transition: "max-height 380ms cubic-bezier(.34,1.3,.64,1),opacity 240ms ease",
+          }}
+        >
+          <div
+            className="flex gap-2 px-4 pt-1.5 pb-3"
+            style={{ borderTop: `1px solid rgba(${glow},0.18)` }}
+          >
+            <button
+              onClick={() => goTo("/practice")}
+              className="flex-1 rounded-2xl py-2 text-sm font-black tracking-wide active:scale-95 transition-transform duration-100"
+              style={{ background: ring, color: isDark ? "#0f172a" : "#fff", boxShadow: `0 4px 18px rgba(${glow},0.48)` }}
+            >
+              ▶ Practice
+            </button>
+            <button
+              onClick={() => goTo("/spelling")}
+              className="flex-1 rounded-2xl py-2 text-sm font-black tracking-wide active:scale-95 transition-transform duration-100"
+              style={{ background: `rgba(${glow},0.12)`, color: txt, border: `1.5px solid rgba(${glow},0.38)` }}
+            >
+              ✏️ Spelling
+            </button>
+          </div>
         </div>
+
+        {/* ✓ Done badge */}
+        {progressClamped === 100 && (
+          <div
+            className="absolute top-2 right-2 rounded-full text-[10px] font-black px-2 py-0.5"
+            style={{ background: ring, color: isDark ? "#0f172a" : "#fff", boxShadow: `0 2px 8px rgba(${glow},0.5)` }}
+          >
+            ✓ Done
+          </div>
+        )}
       </div>
     </div>
   );
