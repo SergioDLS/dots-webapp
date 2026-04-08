@@ -10,6 +10,7 @@ type Level = {
   enabled: number;
   name: string;
   sections?: { id: number; name: string }[];
+  progress: number;
 };
 
 export default async function LevelContainer() {
@@ -45,6 +46,7 @@ export default async function LevelContainer() {
               enabled={item.enabled}
               name={item.name}
               sections={item.sections}
+              progress={item.progress}
             />
           ))}
         </div>

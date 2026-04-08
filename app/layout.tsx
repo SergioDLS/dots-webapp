@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Nunito } from "next/font/google";
 import "./globals.css";
-import ThemeToggle from "@/components/theme-toggle";
 import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
 
@@ -27,7 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply saved theme BEFORE first paint to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${nunito.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <AuthSync />

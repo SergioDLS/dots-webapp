@@ -1,7 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BASE_URL_SOUNDS } from "@/constants";
+
+/* ── Inject keyframes once ─────────────────────────────────── */
+if (typeof document !== "undefined") {
+  const ID = "__snd_kf__";
+  if (!document.getElementById(ID)) {
+    const s = document.createElement("style");
+    s.id = ID;
+    s.textContent = `
+      @keyframes snd-ping {
+        0%   { transform: scale(1);   opacity: 0.7; }
+        70%  { transform: scale(1.8); opacity: 0; }
+        100% { transform: scale(1.8); opacity: 0; }
+      }
+      @keyframes snd-bounce {
+        0%,100% { transform: translateY(0); }
+        40%     { transform: translateY(-2px); }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface SoundProps {
@@ -33,33 +54,38 @@ export default function Sound({
   children,
 }: SoundProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  // Track whether autoplay has fired for the current src (avoids double-play on re-renders)
   const playedRef = useRef(false);
+  const [playing, setPlaying] = useState(false);
 
-  // Build or rebuild the Audio instance whenever src changes
   useEffect(() => {
     const audio = new Audio(`${BASE_URL_SOUNDS}/${src}`);
-    
-    
     audioRef.current = audio;
     playedRef.current = false;
+
+    const onEnd = () => setPlaying(false);
+    audio.addEventListener("ended", onEnd);
 
     if (autoplay) {
       audio.play().catch(() => {});
       playedRef.current = true;
+      setPlaying(true);
     }
 
     return () => {
+      audio.removeEventListener("ended", onEnd);
       audio.pause();
       audioRef.current = null;
     };
-  // autoplay is intentionally excluded: we only want this to run when src changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
   const handlePlay = () => {
-    audioRef.current?.play().catch(() => {});
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
     playedRef.current = true;
+    setPlaying(true);
     onClick?.();
   };
 
@@ -68,18 +94,34 @@ export default function Sound({
     <span
       className={[
         "absolute z-10 flex items-center justify-center",
-        "w-8 h-8 rounded-full",
-        "bg-(--accent) text-white shadow-sm",
-        "transition-transform duration-150 hover:scale-110 active:scale-95",
-        position === "right" ? "top-1/2 -translate-y-1/2 -right-5" : "-bottom-4 left-1/2 -translate-x-1/2",
+        "w-6 h-6 rounded-full cursor-pointer",
+        "transition-all duration-200 hover:scale-125 active:scale-95",
+        position === "right"
+          ? "top-1/2 -translate-y-1/2 -right-3.5"
+          : "-top-4 -right-4",
       ].join(" ")}
+      style={{
+        background: "var(--accent)",
+        opacity: playing ? 0.95 : 0.45,
+        color: "#fff",
+        animation: playing ? "snd-bounce 0.6s ease-in-out infinite" : "none",
+      }}
       aria-hidden="true"
     >
-      {/* Speaker / volume-up SVG */}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Ping ring when playing */}
+      {playing && (
+        <span
+          className="absolute inset-0 rounded-full"
+          style={{
+            border: "2px solid var(--accent)",
+            animation: "snd-ping 1s ease-out infinite",
+          }}
+        />
+      )}
+      {/* 🔊 mini icon */}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+        {playing && <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />}
       </svg>
     </span>
   ) : null;

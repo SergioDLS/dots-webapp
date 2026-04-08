@@ -15,7 +15,7 @@ type SectionLevelItem = {
   current?: boolean;
 };
 
-type Section = { id: number; name: string; levels?: SectionLevelItem[] };
+type Section = { id: number; name: string; levels?: SectionLevelItem[], progress: number };
 
 interface DifficultyProps {
   idLevel: number;
@@ -23,6 +23,7 @@ interface DifficultyProps {
   enabled: number;
   name: string;
   sections?: Section[];
+  progress: number;
 }
 
 const motivational = (pct: number): { msg: string; emoji: string } => {
@@ -35,7 +36,7 @@ const motivational = (pct: number): { msg: string; emoji: string } => {
   return           { msg: "Level mastered! You're amazing!",     emoji: "🏆" };
 };
 
-export default function Difficulty({ idLevel, pose, enabled, name, sections }: DifficultyProps) {
+export default function Difficulty({ idLevel, pose, enabled, name, sections, progress }: DifficultyProps) {
   const list = sections ?? [];
 
   const baseColors = [
@@ -52,10 +53,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
 
   // Aggregate progress across all levels in all sections
   const allLevels = list.flatMap((s) => s.levels ?? []);
-  const totalProgress =
-    allLevels.length > 0
-      ? Math.round(allLevels.reduce((sum, l) => sum + (l.progress ?? 0), 0) / allLevels.length)
-      : 0;
+ 
 
   // Combo placeholder — will come from backend
   const combo = 0;
@@ -74,7 +72,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
   };
   const accentHex  = colorHexMap[accent] ?? colorHexMap.pink;
 
-  const { msg, emoji } = motivational(totalProgress);
+  const { msg, emoji } = motivational(progress);
 
   return (
     <div className="flex w-full flex-col gap-4" aria-labelledby={`difficulty-${name}`}>
@@ -148,7 +146,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
                 <div
                   className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
                   style={{
-                    width: `${totalProgress}%`,
+                    width: `${progress}%`,
                     background: accentHex,
                   }}
                 />
@@ -157,7 +155,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
                 className="shrink-0 text-xs font-extrabold tabular-nums leading-none"
                 style={{ color: accentHex }}
               >
-                {totalProgress}%
+                {progress}%
               </span>
             </div>
 
@@ -193,6 +191,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
               name={section.name}
               levels={section.levels ?? []}
               colors={colors}
+              progress={section.progress}
             />
           ))
         )}

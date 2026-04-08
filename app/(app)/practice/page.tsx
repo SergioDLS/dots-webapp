@@ -9,6 +9,7 @@ import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
 import PracticeContainer from "@/components/practice-container/practice-container";
 import api from "@/lib/api-client";
+import { useAuth } from "@/context/auth-context";
 
 /* ── Inject practice keyframes once ────────────────────────── */
 if (typeof document !== "undefined") {
@@ -73,6 +74,7 @@ type Sentence = {
 function PracticeClient() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "0";
+  const { isBootstrapping } = useAuth();
 
   const [progress, setProgress] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -100,6 +102,7 @@ function PracticeClient() {
 
   // ── Fetch ───────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (isBootstrapping) return; // wait for auth to finish before calling API
     api
       .get<Sentence[]>(`/sentences/practice/${id}`)
       .then((res) => {
@@ -112,7 +115,7 @@ function PracticeClient() {
         }
       })
       .catch(console.error);
-  }, [id]);
+  }, [id, isBootstrapping]);
 
   useEffect(() => {
     if (lifes <= 0) levelFinishedHandler();

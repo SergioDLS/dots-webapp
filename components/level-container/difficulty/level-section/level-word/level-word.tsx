@@ -153,7 +153,7 @@ export default function LevelWord({
   const goTo = (path: string) => window.location.replace(`${path}?id=${id}`);
 
   /* ── Sizes ──────────────────────────────────────────────── */
-  const CIRCLE = 100;
+  const CIRCLE = 112;
   const RING_W = 6;
 
   /* ── Progress ring (SVG) ────────────────────────────────── */
@@ -171,7 +171,7 @@ export default function LevelWord({
           ? `lw-pop-in 500ms cubic-bezier(.34,1.56,.64,1) ${animationIndex * 90}ms both`
           : "none",
         opacity: mounted ? undefined : 0,
-        width: 140,
+        width: 156,
       }}
     >
       {/* ── Circular node ────────────────────────────────── */}
@@ -283,7 +283,7 @@ export default function LevelWord({
               size="medium"
               src={src}
               opacity={1}
-              customClass="w-[68px] h-[68px] object-contain drop-shadow-md"
+              customClass="w-[76px] h-[76px] object-contain drop-shadow-md"
             />
           </div>
 
