@@ -9,20 +9,31 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-// Keep presentational classes but drive actual colors from CSS variables so
-// light/dark themes can override tone colors centrally.
-const toneClasses: Record<ButtonTone, string> = {
-  accent: "hover:opacity-95 focus-visible:ring-2",
-  primary: "hover:opacity-95 focus-visible:ring-2",
-  neutral: "border border-gray-200 hover:bg-gray-50 focus-visible:ring-2",
-  ghost: "bg-transparent text-gray-500 hover:bg-transparent focus-visible:ring-2",
-};
-
 const toneStyles: Record<ButtonTone, React.CSSProperties> = {
-  accent: { backgroundColor: 'var(--btn-accent, #ffb86b)', color: 'var(--btn-accent-foreground, #000)', boxShadow: 'none' },
-  primary: { backgroundColor: 'var(--btn-primary, #7c3aed)', color: 'var(--btn-primary-foreground, #fff)', boxShadow: 'none' },
-  neutral: { backgroundColor: 'var(--btn-neutral, #ffffff)', color: 'var(--btn-neutral-foreground, #000)' },
-  ghost: { backgroundColor: 'transparent', color: 'var(--btn-ghost-foreground, #6b7280)' },
+  accent: {
+    background: "linear-gradient(135deg, var(--accent), #f472b6)",
+    color: "#fff",
+    border: "none",
+    boxShadow: "0 3px 12px rgba(212,0,126,0.25)",
+  },
+  primary: {
+    background: "linear-gradient(135deg, var(--primary), var(--accent))",
+    color: "var(--primary-contrast)",
+    border: "none",
+    boxShadow: "0 3px 12px rgba(0,0,0,0.15)",
+  },
+  neutral: {
+    background: "var(--surface)",
+    color: "var(--foreground)",
+    border: "2px solid var(--border)",
+    boxShadow: "none",
+  },
+  ghost: {
+    background: "transparent",
+    color: "var(--muted)",
+    border: "none",
+    boxShadow: "none",
+  },
 };
 
 export default function UIButton({
@@ -30,16 +41,32 @@ export default function UIButton({
   tone = "accent",
   fullWidth = false,
   className = "",
+  disabled,
   ...rest
 }: ButtonProps) {
-  const toneClass = toneClasses[tone];
   const widthClass = fullWidth ? "w-full" : "w-auto";
+
+  const style: React.CSSProperties = {
+    ...toneStyles[tone],
+    ...(disabled ? { opacity: 0.5, pointerEvents: "none" as const, filter: "grayscale(0.4)" } : {}),
+    ...(rest.style as React.CSSProperties),
+  };
 
   return (
     <button
       {...rest}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[.98] focus-visible:outline-none ${toneClass} ${widthClass} ${className}`}
-      style={{ ...(toneStyles[tone] || {}), ...(rest.style as React.CSSProperties) }}
+      disabled={disabled}
+      className={[
+        "inline-flex items-center justify-center gap-2",
+        "rounded-2xl px-5 py-3.5 text-sm font-extrabold cursor-pointer",
+        "transition-all duration-200",
+        "hover:brightness-110 hover:scale-[1.02]",
+        "active:scale-[.97] active:brightness-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        widthClass,
+        className,
+      ].join(" ")}
+      style={style}
     >
       {children}
     </button>

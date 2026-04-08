@@ -94,6 +94,7 @@ export default function Sound({
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handlePlay()}
       className={[
         "group relative text-center cursor-pointer select-none",
+        "transition-transform duration-150 active:scale-[.93]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)",
         className,
       ].join(" ")}

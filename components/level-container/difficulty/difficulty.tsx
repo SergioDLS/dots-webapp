@@ -12,6 +12,7 @@ type SectionLevelItem = {
   available: boolean;
   levels_left: number;
   progress: number;
+  current?: boolean;
 };
 
 type Section = { id: number; name: string; levels?: SectionLevelItem[] };

@@ -25,6 +25,7 @@ export default function WordImg({ size, opacity = 1, src, customClass }: Props) 
 
   const wrapperCls = [
     "inline-block overflow-hidden rounded",
+    "transition-transform duration-150 group-active:scale-[.92]",
     isCustomSize ? size : `w-[${dim}px] h-[${dim}px]`,
     customClass ?? "",
   ]
