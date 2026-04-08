@@ -72,10 +72,6 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
     green:      "#34D399",
   };
   const accentHex  = colorHexMap[accent] ?? colorHexMap.pink;
-  const accentRgb  = accentHex.replace("#", "");
-  const r = parseInt(accentRgb.slice(0, 2), 16);
-  const g = parseInt(accentRgb.slice(2, 4), 16);
-  const b = parseInt(accentRgb.slice(4, 6), 16);
 
   const { msg, emoji } = motivational(totalProgress);
 
@@ -84,28 +80,28 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
 
       {/* ── Banner ─────────────────────────────────────────── */}
       <div
-        className="rounded-3xl overflow-hidden"
+        className="relative rounded-2xl overflow-hidden"
         style={{
-          background: "var(--surface)",
-          border: `2px solid rgba(${r},${g},${b},0.35)`,
-          boxShadow: `0 4px 20px rgba(${r},${g},${b},0.12)`,
+          background: `${accentHex}18`,
+          border: `2px solid ${accentHex}55`,
+          boxShadow: `0 2px 10px rgba(0,0,0,0.06)`,
         }}
       >
-        <div className="flex items-start gap-4 p-4 pb-3">
+        <div className="relative flex items-start gap-4 p-5 pb-4">
 
           {/* Avatar */}
           <div
-            className="shrink-0 w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center"
+            className="shrink-0 w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center"
             style={{
-              background: `rgba(${r},${g},${b},0.12)`,
-              border: `2px solid rgba(${r},${g},${b},0.25)`,
+              background: `${accentHex}22`,
+              border: `2px solid ${accentHex}44`,
             }}
           >
             <Doty size="mini" pose={pose} />
           </div>
 
           {/* Right side */}
-          <div className="flex-1 flex flex-col gap-2 min-w-0">
+          <div className="flex-1 flex flex-col gap-2.5 min-w-0">
 
             {/* Title + combo */}
             <div className="flex items-center justify-between gap-2">
@@ -122,13 +118,13 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
                 style={
                   combo > 0
                     ? {
-                        background: "rgba(251,191,36,0.15)",
-                        border: "1.5px solid rgba(251,191,36,0.45)",
+                        background: "#fef3c7",
+                        border: "2px solid #fbbf24",
                         color: "#92400e",
                       }
                     : {
-                        background: `rgba(${r},${g},${b},0.10)`,
-                        border: `1.5px solid rgba(${r},${g},${b},0.25)`,
+                        background: `${accentHex}18`,
+                        border: `2px solid ${accentHex}44`,
                         color: accentHex,
                       }
                 }
@@ -143,13 +139,11 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
             </p>
 
             {/* Progress bar */}
-            <div className="flex items-center gap-2 mt-0.5">
-              {/* Track */}
+            <div className="flex items-center gap-2">
               <div
-                className="relative flex-1 h-2.5 rounded-full overflow-hidden"
-                style={{ background: `rgba(${r},${g},${b},0.12)` }}
+                className="relative flex-1 rounded-full overflow-hidden"
+                style={{ height: 8, background: `${accentHex}22` }}
               >
-                {/* Fill */}
                 <div
                   className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
                   style={{
@@ -157,21 +151,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
                     background: accentHex,
                   }}
                 />
-                {/* Shimmer */}
-                {totalProgress > 0 && (
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full pointer-events-none"
-                    style={{
-                      width: `${totalProgress}%`,
-                      background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%)",
-                      backgroundSize: "200% 100%",
-                      animation: "shimmer 2s linear infinite",
-                    }}
-                  />
-                )}
               </div>
-
-              {/* Percentage */}
               <span
                 className="shrink-0 text-xs font-extrabold tabular-nums leading-none"
                 style={{ color: accentHex }}
@@ -181,7 +161,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
             </div>
 
             {Number(enabled) === 0 && (
-              <p className="text-xs text-(--muted) mt-0.5">Coming soon…</p>
+              <p className="text-xs text-(--muted)">Coming soon…</p>
             )}
           </div>
         </div>
@@ -189,11 +169,11 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections }: D
         {/* Footer: levels completed */}
         {allLevels.length > 0 && (
           <div
-            className="px-4 py-1.5 flex items-center gap-1.5"
-            style={{ borderTop: `1.5px solid rgba(${r},${g},${b},0.15)` }}
+            className="relative px-5 py-2 flex items-center gap-2"
+            style={{ borderTop: `2px solid ${accentHex}33` }}
           >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: accentHex }} />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: accentHex }} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-(--muted)">
               {allLevels.filter((l) => (l.progress ?? 0) >= 100).length} / {allLevels.length} levels completed
             </span>
           </div>

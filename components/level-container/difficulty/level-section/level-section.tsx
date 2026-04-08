@@ -44,7 +44,7 @@ export default function LevelSection({ id, name, levels, colors }: LevelSectionP
 
   // Clustered layout: items arranged in rows with slight overlap/offsets
   return (
-    <div className="flex w-full flex-col gap-6" data-section-id={id}>
+    <div className="flex w-full flex-col gap-5" data-section-id={id}>
 
       {/* Section header with subtle progress bar */}
       <div className="w-full flex flex-col items-center gap-1.5">
@@ -77,9 +77,9 @@ export default function LevelSection({ id, name, levels, colors }: LevelSectionP
       </div>
 
       <div className="relative w-full">
-        <div className="flex flex-col items-center py-6 px-4 z-10">
+        <div className="relative grid grid-cols-2 gap-x-4 gap-y-4 py-2 z-10">
           {list.length === 0 ? (
-            <span className="text-(--muted)">No levels available.</span>
+            <span className="text-(--muted) col-span-2">No levels available.</span>
           ) : (
             list.map((item, index) => {
               const palette = colors && colors.length > 0 ? colors : [
@@ -87,22 +87,16 @@ export default function LevelSection({ id, name, levels, colors }: LevelSectionP
                 "orange", "pale_green", "yellow", "green",
               ];
               const color = palette[index % palette.length] ?? palette[0];
-
-              // wider curve amplitude — nodes are large so we need more horizontal swing
-              const amplitude = 130;
-              const offsetX = Math.round(Math.sin(index * 0.72) * amplitude);
-              const zIndex = 1000 - index;
-
-              // generous vertical gap so the slide panel doesn't overlap the next node
-              const gap = 16;
+              const side = index % 2 === 0 ? "left" : "right";
 
               return (
-                <div
-                  key={item.id}
-                  style={{ transform: `translateX(${offsetX}px)`, zIndex, marginBottom: `${gap}px` }}
-                  className="relative"
-                >
-                  <LevelWord {...item} color={color} animationIndex={index} />
+                <div key={item.id} className="flex justify-center">
+                  <LevelWord
+                    {...item}
+                    color={color}
+                    animationIndex={index}
+                    side={side}
+                  />
                 </div>
               );
             })
