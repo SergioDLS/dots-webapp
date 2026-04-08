@@ -3,19 +3,11 @@ import Link from "next/link";
 import Difficulty from "./difficulty/difficulty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getLevelsServer } from "@/services/levels.server";
-
-type Level = {
-  id: number;
-  img: string;
-  enabled: number;
-  name: string;
-  sections?: { id: number; name: string }[];
-  progress: number;
-};
+import type { Difficulty as DifficultyType } from "@/types/levels.types";
 
 export default async function LevelContainer() {
   // Server-side fetch that forwards cookies using the helper
-  let levels: Level[] = [];
+  let levels: DifficultyType[] = [];
   try {
     levels = await getLevelsServer();
     console.log("Fetched levels:", JSON.stringify(levels[0], null, 2));
@@ -38,7 +30,7 @@ export default async function LevelContainer() {
   <div className={`w-full md:ml-80 md:w-[calc(100%-20rem-2rem)] md:pr-4 px-4 min-h-screen`}>
       <Suspense fallback={<Spinner title="Loading levels..." />}>
         <div className="flex flex-col gap-6">
-          {levels.map((item: Level) => (
+          {levels.map((item) => (
             <Difficulty
               key={item.id}
               idLevel={item.id}

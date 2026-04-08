@@ -2,22 +2,12 @@
 
 import React from "react";
 import LevelWord from "./level-word/level-word";
-
-type LevelItem = {
-  id: number;
-  name: string;
-  on_construction: number;
-  src: string;
-  available: boolean;
-  levels_left: number;
-  progress: number;
-  current?: boolean;
-};
+import type { Level } from "@/types/levels.types";
 
 interface LevelSectionProps {
   id: number;
   name: string;
-  levels?: LevelItem[];
+  levels?: Level[];
   colors?: string[];
   progress?: number;
 }

@@ -3,26 +3,14 @@
 import React from "react";
 import Doty from "../../ui/doty/doty";
 import LevelSection from "./level-section/level-section";
-
-type SectionLevelItem = {
-  id: number;
-  name: string;
-  on_construction: number;
-  src: string;
-  available: boolean;
-  levels_left: number;
-  progress: number;
-  current?: boolean;
-};
-
-type Section = { id: number; name: string; levels?: SectionLevelItem[], progress: number };
+import type { SectionLevel } from "@/types/levels.types";
 
 interface DifficultyProps {
   idLevel: number;
   pose: string;
   enabled: number;
   name: string;
-  sections?: Section[];
+  sections?: SectionLevel[];
   progress: number;
 }
 

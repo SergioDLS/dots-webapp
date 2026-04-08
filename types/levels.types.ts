@@ -2,17 +2,18 @@ export type Level = {
   id: number;
   name: string;
   src: string;
-  idSection: 1;
-  onConstruction: boolean;
-  enabled: boolean;
-  unlock: number;
-  unlocked: boolean;
+  on_construction: number;
+  available: boolean;
+  levels_left: number;
+  progress: number;
+  current?: boolean;
 };
 
 export type SectionLevel = {
   id: number;
   name: string;
   levels: Array<Level>;
+  progress: number;
 };
 
 export type Difficulty = {
@@ -21,4 +22,5 @@ export type Difficulty = {
   enabled: number;
   name: string;
   sections: Array<SectionLevel>;
+  progress: number;
 };
