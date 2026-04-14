@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Doty from "@/components/ui/doty/doty";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
@@ -68,6 +68,21 @@ if (typeof document !== "undefined") {
       @keyframes pc-option-in {
         0%   { transform: scale(0.85) translateY(6px); opacity: 0; }
         100% { transform: scale(1) translateY(0); opacity: 1; }
+      }
+      @keyframes pc-fly-to-tray {
+        0%   { transform: scale(1) translateY(0); opacity: 1; }
+        40%  { transform: scale(0.8) translateY(-10px); opacity: 0.6; }
+        100% { transform: scale(0) translateY(-32px); opacity: 0; }
+      }
+      @keyframes pc-fly-from-pool {
+        0%   { transform: scale(0.5) translateY(18px); opacity: 0; }
+        60%  { transform: scale(1.1) translateY(-3px); opacity: 1; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+      }
+      @keyframes pc-fly-back-from-tray {
+        0%   { transform: scale(1) translateY(0); opacity: 1; }
+        40%  { transform: scale(0.8) translateY(10px); opacity: 0.6; }
+        100% { transform: scale(0) translateY(28px); opacity: 0; }
       }
       @keyframes pc-correct-flash {
         0%   { box-shadow: 0 0 0 0px rgba(34,197,94,0.5); }
@@ -211,6 +226,11 @@ export default function PracticeContainer({
     buildUpSentence: Option[];
   }>({ sentenceId: null, options: [], buildUpSentence: [] });
 
+  // Track which option id is currently animating and in which direction
+  const [flyingId, setFlyingId] = useState<number | null>(null);
+  const [flyDir, setFlyDir] = useState<"to-tray" | "from-tray">("to-tray");
+  const flyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Derive from state for convenience
   const { options, buildUpSentence } = practiceState;
 
@@ -227,20 +247,34 @@ export default function PracticeContainer({
     setPracticeState({ sentenceId: dataSentence.id, options: fresh, buildUpSentence: [] });
   }
 
-  const selectHandler = (index: number, item: Option) => {
+  const selectHandler = useCallback((index: number, item: Option) => {
     if (answered !== "") return;
     const newOptions = [...options];
 
     if (mode === "buildUp") {
       const arrayBuild = [...buildUpSentence];
       const optIdx = newOptions.findIndex((o) => o.id === item.id);
-      newOptions[optIdx].selected = !newOptions[optIdx].selected;
-      const updatedBuild = newOptions[optIdx].selected
-        ? [...arrayBuild, item]
-        : arrayBuild.filter((itm) => itm.id !== item.id);
-      const text = updatedBuild.map((o) => o.word).join(" ");
-      setPracticeState((s) => ({ ...s, options: newOptions, buildUpSentence: updatedBuild }));
-      click(text.toUpperCase() === dataSentence.text.toUpperCase());
+      const isAdding = !newOptions[optIdx].selected;
+
+      // Trigger fly animation for this item
+      setFlyingId(item.id);
+      setFlyDir(isAdding ? "to-tray" : "from-tray");
+
+      // Clear any existing timer
+      if (flyTimer.current) clearTimeout(flyTimer.current);
+
+      // After animation completes, commit the state change
+      flyTimer.current = setTimeout(() => {
+        const opts = [...options];
+        opts[optIdx] = { ...opts[optIdx], selected: isAdding };
+        const updatedBuild = isAdding
+          ? [...arrayBuild, item]
+          : arrayBuild.filter((itm) => itm.id !== item.id);
+        const text = updatedBuild.map((o) => o.word).join(" ");
+        setPracticeState((s) => ({ ...s, options: opts, buildUpSentence: updatedBuild }));
+        click(text.toUpperCase() === dataSentence.text.toUpperCase());
+        setFlyingId(null);
+      }, 260);
     } else {
       const realIdx = newOptions.findIndex((o) => o.id === item.id);
       newOptions.forEach((_, i) => { newOptions[i].selected = false; });
@@ -248,7 +282,7 @@ export default function PracticeContainer({
       setPracticeState((s) => ({ ...s, options: newOptions }));
       click(item.correct);
     }
-  };
+  }, [answered, mode, options, buildUpSentence, dataSentence.text, click]);
 
   let sentenceText = dataSentence.text;
   if (answered === "correct") {
@@ -360,14 +394,18 @@ export default function PracticeContainer({
           )}
           {buildUpSentence.map((word, i) => (
             <button
-              key={i}
+              key={`tray-${word.id}-${i}`}
               onClick={() => selectHandler(i, word)}
               className={`${baseOptionCls} px-3 py-1.5 text-sm`}
               style={{
                 background: "rgba(212,0,126,0.1)",
                 border: "2px solid rgba(212,0,126,0.3)",
                 color: "var(--accent)",
-                animation: `pc-option-in 0.2s ease-out both ${i * 0.05}s`,
+                animation: flyingId === word.id && flyDir === "to-tray"
+                  ? "pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both"
+                  : flyingId === word.id && flyDir === "from-tray"
+                    ? "pc-fly-back-from-tray 0.24s ease-in both"
+                    : `pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both ${i * 0.04}s`,
               }}
             >
               {word.word}
@@ -381,15 +419,20 @@ export default function PracticeContainer({
         <div className="flex flex-wrap justify-center gap-2 w-full">
           {options.map((item, index) => {
             if (item.selected) return null;
+            const isFlyingOut = flyingId === item.id && flyDir === "to-tray";
             const state = getOptionState(false, answered, item.correct);
             return (
               <button
                 key={item.id}
                 onClick={() => selectHandler(index, item)}
+                disabled={flyingId === item.id}
                 className={`${baseOptionCls} px-3 py-1.5 text-sm`}
                 style={{
                   ...optionStyles[state],
-                  animation: `pc-option-in 0.25s ease-out both ${index * 0.04}s`,
+                  animation: isFlyingOut
+                    ? "pc-fly-to-tray 0.26s ease-in both"
+                    : `pc-option-in 0.25s ease-out both ${index * 0.04}s`,
+                  pointerEvents: flyingId !== null ? "none" : undefined,
                 }}
               >
                 {item.word}

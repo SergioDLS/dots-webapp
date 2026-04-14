@@ -208,7 +208,7 @@ function PracticeClient() {
     try {
       const user = JSON.parse(localStorage.getItem("user") ?? "{}");
       api
-        .post("/sentences/progress", {
+        .put("/sentences/progress", {
           sentences,
           level_id: id,
           user_id: user.id,
