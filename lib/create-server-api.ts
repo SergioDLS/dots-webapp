@@ -27,6 +27,30 @@ export function createServerApi(cookieHeader?: string) {
     timeout: 8000,
   });
 
+  // Server-side refresh flow: use a plain axios instance (no interceptors) to avoid recursion
+  const doRefresh = async (): Promise<string | null> => {
+    try {
+      const plain = axios.create({
+        baseURL: API_BASE,
+        headers: {
+          "Content-Type": "application/json",
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        },
+        timeout: 8000,
+      });
+
+      const res = await plain.post("/auth/refresh");
+      // backend returns access token in body as `token`
+      const token: string | null =
+        res.data?.accessToken ?? res.data?.token ?? null;
+      accessTokenMemory = token;
+      return token;
+    } catch {
+      accessTokenMemory = null;
+      return null;
+    }
+  };
+
   // Attach Authorization header if we have an access token for this request.
   // If we don't, attempt a server-side refresh before the first request.
   api.interceptors.request.use(async (config) => {
@@ -40,29 +64,6 @@ export function createServerApi(cookieHeader?: string) {
     }
     return config;
   });
-
-  // Server-side refresh flow: use a plain axios instance (no interceptors) to avoid recursion
-  const doRefresh = async (): Promise<string | null> => {
-    try {
-      const plain = axios.create({
-        baseURL: API_BASE,
-        headers: {
-          "Content-Type": "application/json",
-          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-        },
-        timeout: 8000,
-      });
-
-  const res = await plain.post("/auth/refresh");
-  // backend may return access token in `accessToken` or `token`
-  const token: string | null = res.data?.accessToken ?? res.data?.token ?? null;
-      accessTokenMemory = token;
-      return token;
-    } catch {
-      accessTokenMemory = null;
-      return null;
-    }
-  };
 
   let isRefreshing = false;
   let refreshPromise: Promise<string | null> | null = null;

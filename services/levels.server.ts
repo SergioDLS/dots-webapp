@@ -2,16 +2,16 @@ import { cookies } from "next/headers";
 import { createServerApi } from "@/lib/create-server-api";
 import { Difficulty } from "@/types/levels.types";
 
-export async function getLevelsServer(): Promise<
-  Array<Difficulty>
-> {
-
+export async function getLevelsServer(): Promise<Array<Difficulty>> {
   const cookieStore = (await Promise.resolve(cookies() as unknown)) as {
     getAll?: () => Array<{ name: string; value: string }>;
   };
+  console.log("COOKIES", cookieStore);
 
   const cookieList = cookieStore.getAll ? cookieStore.getAll() : [];
   const cookieHeader = cookieList.map((c) => `${c.name}=${c.value}`).join("; ");
+
+  console.log("cokies header", cookieHeader);
 
   // Temporary debug: print cookie names received by Next server-side during SSR.
   // Enable by setting DEBUG_COOKIES=true in the Next.js runtime environment.
@@ -32,15 +32,16 @@ export async function getLevelsServer(): Promise<
   if (accessCookie?.value) {
     api.defaults.headers = api.defaults.headers ?? {};
     api.defaults.headers.common = api.defaults.headers.common ?? {};
-    api.defaults.headers.common["Authorization"] = `Bearer ${accessCookie.value}`;
+    api.defaults.headers.common["Authorization"] =
+      `Bearer ${accessCookie.value}`;
   }
 
   try {
     const res = await api.get("/levels");
     const data = res.data;
-    console.log(data);
-    
-    return Array.isArray(data) ? data : data.levels ?? [];
+   
+
+    return Array.isArray(data) ? data : (data.levels ?? []);
   } catch (err) {
     console.error("getLevelsServer error:", err);
     throw err;
