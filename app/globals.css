@@ -224,6 +224,43 @@ h1, h2, h3, .font-display {
   66%      { transform: translate(-16px, 14px) scale(0.96); }
 }
 
+/* ─── Dotaxi game ─────────────────────────────────────────── */
+/* lane dashes scrolling toward the player to fake forward motion */
+@keyframes dotaxi-road {
+  0%   { background-position-y: 0; }
+  100% { background-position-y: 64px; }
+}
+/* taxi idle bob */
+@keyframes dotaxi-bob {
+  0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  50%      { transform: translateY(-3px) rotate(var(--tilt, 0deg)); }
+}
+/* crash shake */
+@keyframes dotaxi-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20%      { transform: translateX(-8px) rotate(-5deg); }
+  40%      { transform: translateX(7px) rotate(4deg); }
+  60%      { transform: translateX(-5px) rotate(-3deg); }
+  80%      { transform: translateX(4px) rotate(2deg); }
+}
+/* roadside scenery rushing past */
+@keyframes dotaxi-scenery {
+  0%   { transform: translateY(-30%); }
+  100% { transform: translateY(130%); }
+}
+/* speed lines streaking down */
+@keyframes dotaxi-speedline {
+  0%   { transform: translateY(-20vh); opacity: 0; }
+  10%  { opacity: 0.9; }
+  100% { transform: translateY(120vh); opacity: 0; }
+}
+/* red damage flash overlay */
+@keyframes dotaxi-flash {
+  0%   { opacity: 0; }
+  30%  { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

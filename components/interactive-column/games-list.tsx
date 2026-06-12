@@ -13,6 +13,7 @@ const gameVisual = (path: string): { img?: string; emoji?: string } => {
   if (path === "/dont-pop") return { img: Balloon };
   if (path === "/dot-bombs") return { img: Bomb };
   if (path === "/flashcards") return { emoji: "🎴" };
+  if (path === "/dotaxi") return { emoji: "🚕" };
   return { emoji: "🎮" };
 };
 

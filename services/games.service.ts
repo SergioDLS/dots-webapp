@@ -29,6 +29,13 @@ export type Flashcard = {
   answered: boolean;
 };
 
+export type DotaxiQuestion = {
+  id: number;
+  text: string;
+  options: string[];
+  correct: string;
+};
+
 export async function getGamesService(): Promise<Game[]> {
   try {
     const { data } = await api.get<Game[]>("/games");
@@ -50,5 +57,10 @@ export async function getFlashcardsService(): Promise<Flashcard[]> {
 
 export async function getDontPopService(): Promise<GameWord[]> {
   const { data } = await api.get<GameWord[]>("/games/dont-pop");
+  return data;
+}
+
+export async function getDotaxiService(): Promise<DotaxiQuestion[]> {
+  const { data } = await api.get<DotaxiQuestion[]>("/games/dotaxi");
   return data;
 }
