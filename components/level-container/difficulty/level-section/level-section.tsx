@@ -77,7 +77,7 @@ export default function LevelSection({
     >
       {/* Section header */}
       <div className="w-full flex flex-col items-center gap-1.5">
-        <span className="text-2xl font-semibold text-foreground flex items-center gap-3">
+        <span className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
           <span
             className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ background: accentHex }}

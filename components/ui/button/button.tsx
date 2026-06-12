@@ -9,24 +9,25 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
+// Each tone pairs a fill with a darker --press-color for the 3-D edge.
 const toneStyles: Record<ButtonTone, React.CSSProperties> = {
   accent: {
-    background: "linear-gradient(135deg, var(--accent), #f472b6)",
-    color: "#fff",
+    background: "var(--accent)",
+    color: "var(--accent-contrast)",
     border: "none",
-    boxShadow: "0 3px 12px rgba(212,0,126,0.25)",
+    ["--press-color" as string]: "#9c005d",
   },
   primary: {
-    background: "linear-gradient(135deg, var(--primary), var(--accent))",
+    background: "var(--primary)",
     color: "var(--primary-contrast)",
     border: "none",
-    boxShadow: "0 3px 12px rgba(0,0,0,0.15)",
+    ["--press-color" as string]: "rgba(0,0,0,0.35)",
   },
   neutral: {
     background: "var(--surface)",
     color: "var(--foreground)",
     border: "2px solid var(--border)",
-    boxShadow: "none",
+    ["--press-color" as string]: "var(--border)",
   },
   ghost: {
     background: "transparent",
@@ -48,7 +49,9 @@ export default function UIButton({
 
   const style: React.CSSProperties = {
     ...toneStyles[tone],
-    ...(disabled ? { opacity: 0.5, pointerEvents: "none" as const, filter: "grayscale(0.4)" } : {}),
+    ...(disabled
+      ? { opacity: 0.5, pointerEvents: "none" as const, filter: "grayscale(0.4)" }
+      : {}),
     ...(rest.style as React.CSSProperties),
   };
 
@@ -59,10 +62,8 @@ export default function UIButton({
       className={[
         "inline-flex items-center justify-center gap-2",
         "rounded-2xl px-5 py-3.5 text-sm font-extrabold cursor-pointer",
-        "transition-all duration-200",
-        "hover:brightness-110 hover:scale-[1.02]",
-        "active:scale-[.97] active:brightness-95",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        tone === "ghost" ? "transition-all duration-200 hover:text-(--accent)" : "dots-pressable",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2",
         widthClass,
         className,
       ].join(" ")}

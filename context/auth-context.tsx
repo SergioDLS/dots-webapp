@@ -8,10 +8,10 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import api, { setAccessToken as setApiAccessToken } from "@/lib/api-client";
-import axios from "axios";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import api, {
+  refreshAccessToken,
+  setAccessToken as setApiAccessToken,
+} from "@/lib/api-client";
 
 type AuthContextType = {
   accessToken: string | null;
@@ -31,26 +31,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setApiAccessToken(token);
   }, []);
 
+  // Bootstrap: try to restore a session from the HttpOnly refresh cookie.
+  // Uses the shared single-flight refresh so it can't race with interceptors.
   useEffect(() => {
     let mounted = true;
     (async () => {
-      try {
-        // Use a plain axios instance (no interceptors) to avoid triggering
-        // the response interceptor's retry-refresh logic on this initial call.
-        const plain = axios.create({
-          baseURL: API_BASE,
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-          timeout: 8000,
-        });
-        const res = await plain.post("/auth/refresh");
-        // Backend returns { token } (not accessToken)
-        const token = res.data?.token ?? res.data?.accessToken ?? null;
-        if (mounted) setAccessToken(token);
-      } catch {
-        if (mounted) setAccessToken(null);
-      } finally {
-        if (mounted) setIsBootstrapping(false);
+      const token = await refreshAccessToken();
+      if (mounted) {
+        setAccessToken(token);
+        setIsBootstrapping(false);
       }
     })();
     return () => {
@@ -60,10 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      // Revoke the refresh token server-side before clearing local state.
       await api.post("/auth/logout");
+    } catch {
+      // Even if the server call fails, clear the local session.
     } finally {
       setAccessToken(null);
-      if (typeof window !== "undefined") window.location.replace("/login");
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("user");
+        window.location.replace("/");
+      }
     }
   }, [setAccessToken]);
 

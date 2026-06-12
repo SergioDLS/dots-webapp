@@ -1,29 +1,55 @@
 @import "tailwindcss";
 
+/* ════════════════════════════════════════════════════════════
+   dots — design system
+   Personality: candy-soft, tactile, mascot-driven.
+   Navy + bubblegum pink brand, lavender canvas sprinkled with
+   the brand's own polka dots. Chunky rounded shapes, pressable
+   3-D buttons, springy motion.
+   ════════════════════════════════════════════════════════════ */
+
 /* ─── Light theme ─────────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --background: #e6e6fc;     /* lavender */
-  --surface:    #f5f3ff;     /* white-ish card */
-  --border:     #ccc7f0;
+  --background: #ece9fd;     /* soft lavender */
+  --surface:    #ffffff;     /* cards pop on the lavender canvas */
+  --surface-2:  #f7f5ff;     /* nested / subtle panels */
+  --border:     #d8d2f4;
+  --dot:        #d6cff5;     /* polka-dot sprinkle on the canvas */
 
-  /* Text – must be ≥ 4.5:1 on both backgrounds above */
-  --foreground: #1b1340;     /* very dark navy  → 12:1 on #e6e6fc */
-  --muted:      #4a4070;     /* subdued text    → 5.2:1 on #e6e6fc */
+  /* Text – ≥ 4.5:1 on both backgrounds above */
+  --foreground: #1b1340;     /* very dark navy */
+  --muted:      #5d5384;     /* subdued text */
 
   /* Brand */
   --primary:          #211650; /* navy */
   --primary-contrast: #ffffff;
-  --accent:           #d4007e; /* slightly darker pink → 5.3:1 on white */
+  --accent:           #d4007e; /* bubblegum pink */
+  --accent-soft:      #ff4bc1;
   --accent-contrast:  #ffffff;
 
-  /* primary-accent is used for important highlights (buttons). By default
-    it follows --primary; dark theme can override to use --accent (pink). */
+  /* Important highlights (CTA buttons). Light theme: navy. */
   --primary-accent: var(--primary);
   --primary-accent-contrast: var(--primary-contrast);
 
+  /* Feedback */
+  --success:      #16a34a;
+  --success-soft: #dcfce7;
+  --danger:       #e11d48;
+  --danger-soft:  #ffe4e6;
+  --gold:         #f59e0b;
+
+  /* Tactile depth — hard candy shadows for pressable elements */
+  --shadow-press: 0 4px 0;
+  --shadow-card: 0 2px 0 var(--border), 0 10px 30px -12px rgba(33, 22, 80, 0.18);
+
   /* Input fill */
-  --input-bg: rgba(255,255,255,0.75);
+  --input-bg: #ffffff;
+
+  /* Radii scale — chunky and friendly */
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
 
   color-scheme: light;
 }
@@ -31,32 +57,42 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --font-sans: var(--font-nunito);
+  --font-display: var(--font-baloo);
   --font-mono: var(--font-geist-mono);
 }
 
 /* ─── Dark theme ──────────────────────────────────────────── */
-:root[data-theme="dark"],
 :root[data-theme="dark"] {
   --background: #130d35;     /* deep navy */
-  --surface:    #1e1550;     /* slightly lighter card */
-  --border:     #332776;
+  --surface:    #1e1550;
+  --surface-2:  #251b5e;
+  --border:     #382c7e;
+  --dot:        #251b5c;
 
-  /* Text – white on dark navy ≥ 12:1 */
   --foreground: #f0eeff;
-  --muted:      #a89fd8;     /* 4.6:1 on #130d35 */
+  --muted:      #aaa1da;
 
-  /* Brand */
   --primary:          #c9c0ff; /* light lavender */
   --primary-contrast: #130d35;
-  --accent:           #d4007e; /* use the project's accent pink in dark mode */
-  --accent-contrast:  #ffffff; /* white contrast for the pink */
+  --accent:           #f43fa4; /* brighter pink for dark canvas */
+  --accent-soft:      #ff6ec4;
+  --accent-contrast:  #ffffff;
 
-  /* in dark theme use the bright pink accent for highlights */
+  /* dark theme: pink carries the CTAs */
   --primary-accent: var(--accent);
   --primary-accent-contrast: var(--accent-contrast);
 
-  --input-bg: rgba(255,255,255,0.07);
+  --success:      #4ade80;
+  --success-soft: rgba(34, 197, 94, 0.16);
+  --danger:       #fb7185;
+  --danger-soft:  rgba(244, 63, 94, 0.16);
+  --gold:         #fbbf24;
+
+  --shadow-card: 0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+
+  --input-bg: rgba(255, 255, 255, 0.06);
 
   color-scheme: dark;
 }
@@ -69,26 +105,129 @@
   :root:not([data-theme]) {
     --background: #130d35;
     --surface:    #1e1550;
-    --border:     #332776;
+    --surface-2:  #251b5e;
+    --border:     #382c7e;
+    --dot:        #251b5c;
     --foreground: #f0eeff;
-    --muted:      #a89fd8;
+    --muted:      #aaa1da;
     --primary:          #c9c0ff;
     --primary-contrast: #130d35;
-    --accent:           #ff4bc1;
-    --accent-contrast:  #1b0040;
-    --input-bg: rgba(255,255,255,0.07);
+    --accent:           #f43fa4;
+    --accent-soft:      #ff6ec4;
+    --accent-contrast:  #ffffff;
+    --primary-accent: var(--accent);
+    --primary-accent-contrast: var(--accent-contrast);
+    --success:      #4ade80;
+    --success-soft: rgba(34, 197, 94, 0.16);
+    --danger:       #fb7185;
+    --danger-soft:  rgba(244, 63, 94, 0.16);
+    --gold:         #fbbf24;
+    --shadow-card: 0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.06);
     color-scheme: dark;
   }
 }
 
+/* ─── Base ────────────────────────────────────────────────── */
 body {
-  background: var(--background);
+  background-color: var(--background);
+  /* The brand IS dots — sprinkle the canvas with them */
+  background-image: radial-gradient(var(--dot) 1.5px, transparent 1.5px);
+  background-size: 26px 26px;
   color: var(--foreground);
   font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   transition: background-color 200ms ease, color 200ms ease;
 }
 
+h1, h2, h3, .font-display {
+  font-family: var(--font-baloo), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── Reusable surfaces & controls ────────────────────────── */
+.dots-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Pressable 3-D button base: pair with a --press-color */
+.dots-pressable {
+  --press-color: var(--border);
+  box-shadow: var(--shadow-press) var(--press-color);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 150ms ease;
+}
+.dots-pressable:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.dots-pressable:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--press-color);
+}
+
+/* ─── Motion library ──────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: 200% center; }
   100% { background-position: -200% center; }
+}
+
+@keyframes dots-pop-in {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dots-slide-up {
+  0%   { transform: translateY(14px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes dots-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+@keyframes dots-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-3deg); }
+  75%      { transform: rotate(3deg); }
+}
+
+@keyframes dots-heart-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@keyframes dots-heart-break {
+  0%   { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(1.2) rotate(-8deg); }
+  60%  { transform: scale(0.85) rotate(4deg); }
+  100% { transform: scale(0.7) rotate(0deg); opacity: 0.3; filter: grayscale(1); }
+}
+
+@keyframes dots-pulse-ring {
+  0%   { box-shadow: 0 0 0 0px var(--pulse-color, rgba(212, 0, 126, 0.3)); }
+  50%  { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0px transparent; }
+}
+
+@keyframes dots-star-spin {
+  0%   { transform: scale(1)   rotate(0deg); }
+  50%  { transform: scale(1.2) rotate(180deg); }
+  100% { transform: scale(1)   rotate(360deg); }
+}
+
+@keyframes dots-blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(24px, -18px) scale(1.06); }
+  66%      { transform: translate(-16px, 14px) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import axios from "axios";
-import type { AxiosError, AxiosResponse } from "axios";
+import type { AxiosError } from "axios";
 import { loginService } from "@/services/auth.service";
-import * as moment from "moment";
 import { useAuth } from "@/context/auth-context";
+import api from "@/lib/api-client";
+import Doty from "@/components/ui/doty/doty";
 
 export default function Login() {
   const [user, setUser] = useState("");
@@ -29,7 +29,6 @@ export default function Login() {
     setLoginLoading(true);
     try {
       const response = await loginService(user, password);
-      console.log("response", response);
       if (response && response.token) {
         setIncorrect(false);
         setMsg("");
@@ -37,13 +36,22 @@ export default function Login() {
         window.location.replace("/levels");
       } else {
         setIncorrect(true);
-        const text = (response && (response.message || response.error)) || "Incorrect username or password!";
+        const text =
+          (response && (response.message || response.error)) ||
+          "Incorrect username or password!";
         setMsg(text);
       }
     } catch (e: unknown) {
       setIncorrect(true);
-      const ex = e as { response?: { data?: { message?: string; error?: string } }; message?: string };
-      const errMsg = ex?.response?.data?.message || ex?.response?.data?.error || ex?.message || "Login failed. Please try again.";
+      const ex = e as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
+      const errMsg =
+        ex?.response?.data?.message ||
+        ex?.response?.data?.error ||
+        ex?.message ||
+        "Login failed. Please try again.";
       setMsg(errMsg);
     } finally {
       setLoginLoading(false);
@@ -54,7 +62,7 @@ export default function Login() {
     const keyDownHandler = (event: KeyboardEvent) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        if (password.split("").length > 4) {
+        if (password.length > 4) {
           loginHandler();
         }
       }
@@ -74,8 +82,6 @@ export default function Login() {
       setMsg("Please fill the Last name input!");
     } else if (birthday === "") {
       setMsg("Please fill the Birthday input!");
-    } else if (birthday === "") {
-      setMsg("Please fill the Birthday input!");
     } else if (email !== email2) {
       setMsg("Emails must match!");
     } else if (password.length < 8) {
@@ -85,7 +91,6 @@ export default function Login() {
     } else {
       setMsg("");
       setLogin("loading");
-
       sendNewUser();
     }
   };
@@ -96,79 +101,86 @@ export default function Login() {
       setName("");
       setLastName("");
       setBirthday("");
-      setBirthday("");
       setEmail("");
       setMsg("");
     }
   };
 
-  const sendNewUser = () => {
-    const data = {
-      name: name,
-      lastName: lastName,
-      email: email,
-
-      code: code,
-    };
-    axios
-      .post("/newUser", data)
-      .then(
-        (response: AxiosResponse<{ result: string; username?: string }>) => {
-          if (response.data.result === "OK") {
-            setLogin("username");
-            setNewUsername(String(response.data.username));
-          } else if (response.data.result === "NOK5") {
-            setLogin("wrongcode");
-          }
-        },
-      )
-      .catch((error: AxiosError<{ error?: string }>) => {
-        console.log(error.response);
-        setLogin("error");
-        setErrorMessage(error.response?.data?.error ?? "Unexpected error");
-      });
+  const sendNewUser = async () => {
+    try {
+      const response = await api.post<{ result: string; username?: string }>(
+        "/newUser",
+        { name, lastName, email, code },
+      );
+      if (response.data.result === "OK") {
+        setLogin("username");
+        setNewUsername(String(response.data.username));
+      } else if (response.data.result === "NOK5") {
+        setLogin("wrongcode");
+      }
+    } catch (error) {
+      const err = error as AxiosError<{ error?: string }>;
+      setLogin("error");
+      setErrorMessage(err.response?.data?.error ?? "Unexpected error");
+    }
   };
 
-  // ─── Shared classes — Tailwind v4 CSS-var syntax ──────────────
-  // mapped @theme tokens:  bg-background · text-foreground
-  // unmapped custom vars:  (--surface) · (--border) · (--muted) · (--accent) · (--primary-accent) …
+  /* ─── Shared classes ───────────────────────────────────────── */
   const inputCls =
-    "w-full rounded-2xl border-2 border-(--border) bg-(--input-bg) px-4 py-3 text-base text-foreground placeholder:text-(--muted) outline-none transition-all duration-200 focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/15 focus:bg-(--surface)";
+    "w-full rounded-2xl border-2 border-(--border) bg-(--input-bg) px-4 py-3 text-base text-foreground placeholder:text-(--muted) outline-none transition-all duration-200 focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/15";
 
   const btnPrimary =
-    "w-full rounded-2xl bg-linear-to-r from-(--primary-accent) to-(--accent) px-4 py-3 text-sm font-bold text-(--primary-accent-contrast) shadow-md shadow-(--primary-accent)/20 transition-all duration-200 hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5 active:scale-[.98] active:translate-y-0";
+    "dots-pressable w-full rounded-2xl bg-(--accent) px-4 py-3.5 text-sm font-extrabold tracking-wide text-(--accent-contrast) [--press-color:#9c005d] disabled:opacity-60";
 
   const btnOutline =
-    "w-full rounded-2xl border-2 border-(--border) bg-transparent px-4 py-3 text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/5";
+    "dots-pressable w-full rounded-2xl border-2 border-(--border) bg-(--surface) px-4 py-3 text-sm font-bold text-(--muted) hover:text-(--accent) hover:border-(--accent)";
+
+  const errorBanner = (text: string) => (
+    <p
+      className="rounded-2xl px-4 py-2.5 text-center text-sm font-bold"
+      style={{
+        background: "var(--danger-soft)",
+        color: "var(--danger)",
+        animation: "dots-pop-in 0.3s ease-out both",
+      }}
+    >
+      {text}
+    </p>
+  );
 
   let content = null;
   if (login === "login") {
     content = (
-      <div className="flex w-full max-w-sm flex-col gap-8">
-        {/* Brand */}
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-(--primary)">
+      <div className="flex w-full max-w-sm flex-col gap-7">
+        {/* Brand + mascot */}
+        <div
+          className="flex flex-col items-center gap-2 text-center"
+          style={{ animation: "dots-slide-up 0.5s ease-out both" }}
+        >
+          <div style={{ animation: "dots-float 3.5s ease-in-out infinite" }}>
+            <Doty pose="17" size="smaller" />
+          </div>
+          <h1 className="font-display text-5xl font-extrabold leading-none tracking-tight text-(--accent)">
             dots
           </h1>
-          <p className="text-sm text-(--muted)">
-            Language Online Learning
+          <p className="text-sm font-semibold text-(--muted)">
+            Hi! I&apos;m Doty. Ready to learn something new?
           </p>
         </div>
 
-        {/* Error */}
-        {incorrect && (
-          <p className="rounded-2xl bg-(--primary)/10 px-4 py-2 text-center text-sm font-medium text-(--primary)">
-            {msg}
-          </p>
-        )}
+        {incorrect && errorBanner(msg)}
 
         {/* Form */}
-        <div className="flex flex-col gap-4">
+        <div
+          className="flex flex-col gap-4"
+          style={{ animation: "dots-slide-up 0.5s ease-out 0.1s both" }}
+        >
           <input
             value={user}
             onChange={(e) => setUser(e.target.value)}
             placeholder="Username"
             type="text"
+            autoComplete="username"
             className={inputCls}
           />
           <input
@@ -176,22 +188,31 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             type="password"
+            autoComplete="current-password"
             className={inputCls}
           />
-          <button type="button" onClick={loginHandler} disabled={loginLoading} className={btnPrimary}>
+          <button
+            type="button"
+            onClick={loginHandler}
+            disabled={loginLoading}
+            className={btnPrimary}
+          >
             {loginLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Logging in…
               </span>
             ) : (
-              "Log in"
+              "Let's go!"
             )}
           </button>
         </div>
 
         {/* Secondary links */}
-        <div className="flex flex-col gap-2">
+        <div
+          className="flex flex-col gap-2.5"
+          style={{ animation: "dots-slide-up 0.5s ease-out 0.2s both" }}
+        >
           <button
             type="button"
             onClick={() => window.location.replace("/forgot")}
@@ -204,30 +225,29 @@ export default function Login() {
             onClick={() => newUserHandler(true)}
             className={btnOutline}
           >
-            New to Dots? Create account
+            New to dots? Create account
           </button>
         </div>
       </div>
     );
   } else if (login === "new-user") {
     content = (
-      <div className="flex w-full max-w-2xl flex-col gap-8">
+      <div className="flex w-full max-w-2xl flex-col gap-7">
         {/* Header */}
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-            Create account
+        <div
+          className="flex flex-col items-center gap-2 text-center"
+          style={{ animation: "dots-slide-up 0.5s ease-out both" }}
+        >
+          <Doty pose="13" size="tiny" />
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+            Join the club!
           </h2>
-          <p className="text-sm text-(--muted)">
-            Fill in the form to get started
+          <p className="text-sm font-semibold text-(--muted)">
+            Fill in the form and let&apos;s get started
           </p>
         </div>
 
-        {/* Error */}
-        {msg && (
-          <p className="rounded-2xl bg-(--primary)/10 px-4 py-2 text-center text-sm font-medium text-(--primary)">
-            {msg}
-          </p>
-        )}
+        {msg && errorBanner(msg)}
 
         {/* Fields */}
         <div className="grid gap-4 md:grid-cols-2">
@@ -264,6 +284,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             type="password"
+            autoComplete="new-password"
             className={inputCls}
           />
           <input
@@ -271,6 +292,7 @@ export default function Login() {
             onChange={(e) => setPassword2(e.target.value)}
             placeholder="Confirm password"
             type="password"
+            autoComplete="new-password"
             className={inputCls}
           />
           <input
@@ -299,26 +321,35 @@ export default function Login() {
   } else if (login === "loading") {
     content = (
       <div className="flex flex-col items-center gap-4 text-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
-        <p className="text-sm font-medium text-(--muted)">
+        <div style={{ animation: "dots-float 1.5s ease-in-out infinite" }}>
+          <Doty pose="07" size="tiny" />
+        </div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
+        <p className="text-sm font-bold text-(--muted)">
           Getting things ready…
         </p>
       </div>
     );
   } else if (login === "username") {
     content = (
-      <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
-        <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-          You&apos;re in!
+      <div
+        className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
+        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
+      >
+        <Doty pose="02" size="smaller" />
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+          You&apos;re in! 🎉
         </h2>
-        <p className="text-sm text-(--muted)">
+        <p className="text-sm font-semibold text-(--muted)">
           We sent a confirmation email to{" "}
-          <span className="font-semibold text-foreground">{email}</span>.
+          <span className="font-extrabold text-foreground">{email}</span>.
         </p>
         {newUsername && (
-          <p className="text-sm text-(--muted)">
+          <p className="text-sm font-semibold text-(--muted)">
             Your username:{" "}
-            <span className="font-semibold text-foreground">{newUsername}</span>
+            <span className="font-extrabold text-foreground">
+              {newUsername}
+            </span>
           </p>
         )}
         <button
@@ -332,11 +363,15 @@ export default function Login() {
     );
   } else if (login === "error") {
     content = (
-      <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
-        <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
+      <div
+        className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
+        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
+      >
+        <Doty pose="05" size="smaller" />
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
           Oops!
         </h2>
-        <p className="text-sm text-(--muted)">{errorMessage}</p>
+        <p className="text-sm font-semibold text-(--muted)">{errorMessage}</p>
         <div className="flex w-full flex-col gap-3">
           <button
             type="button"
@@ -356,9 +391,31 @@ export default function Login() {
       </div>
     );
   }
+
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-background px-6 py-12 text-foreground">
-      {content}
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-12 text-foreground">
+      {/* Drifting color blobs behind the card */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-30 blur-3xl"
+        style={{
+          background: "var(--accent)",
+          animation: "dots-blob-drift 14s ease-in-out infinite",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 -bottom-32 h-96 w-96 rounded-full opacity-25 blur-3xl"
+        style={{
+          background: "var(--primary)",
+          animation: "dots-blob-drift 18s ease-in-out infinite reverse",
+        }}
+      />
+
+      {/* Card */}
+      <div className="dots-card relative z-10 flex w-full max-w-3xl items-center justify-center px-6 py-10 md:px-12 md:py-12">
+        {content}
+      </div>
     </div>
   );
 }

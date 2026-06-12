@@ -66,7 +66,7 @@ const LoadBar: React.FC<Props> = ({ streak = null, progress }) => {
         >
           <span className="text-sm">{streak}</span>
           {showFire && (
-            <div className="w-4 h-4 relative" style={{ animation: "prac-heart-pop 1.2s ease-in-out infinite" }}>
+            <div className="w-4 h-4 relative" style={{ animation: "dots-heart-pop 1.2s ease-in-out infinite" }}>
               <Image src="/images/icons/fire.png" alt="fire" fill className="object-contain" />
             </div>
           )}
