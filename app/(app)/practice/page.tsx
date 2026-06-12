@@ -169,18 +169,11 @@ function PracticeClient() {
         answered: s.answered,
         times_wrong: s.times_wrong,
       }));
-    try {
-      const user = JSON.parse(localStorage.getItem("user") ?? "{}");
-      api
-        .put("/sentences/progress", {
-          sentences,
-          level_id: id,
-          user_id: user.id,
-        })
-        .catch(() => {});
-    } catch {
-      /* ignore */
-    }
+    if (sentences.length === 0) return;
+    // the backend resolves the user from the access token
+    api
+      .put("/sentences/progress", { sentences, level_id: Number(id) })
+      .catch(() => {});
   };
 
   const whatsNextHandler = () => {

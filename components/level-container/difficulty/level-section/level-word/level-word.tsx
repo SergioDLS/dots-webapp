@@ -5,15 +5,14 @@ import Image from "next/image";
 import WordImg from "@/components/ui/word-img/word-img";
 
 type LevelWordProps = {
-  on_construction: number;
+  onConstruction?: boolean;
   id: number;
   color?: string;
   name: string;
   src: string;
   animation?: string;
-  available?: boolean;
   unlocked?: boolean;
-  levels_left: number;
+  levels_left?: number;
   progress: number;
   current?: boolean;
   animationIndex?: number;
@@ -43,14 +42,13 @@ const colorMap: Record<
 };
 
 export default function LevelWord({
-  on_construction,
+  onConstruction = false,
   id,
   color,
   name,
   src,
-  available,
   unlocked,
-  levels_left,
+  levels_left = 0,
   progress,
   current = false,
   animationIndex = 0,
@@ -60,12 +58,19 @@ export default function LevelWord({
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const [profile] = useState<string | null>(() =>
-    typeof window !== "undefined" ? localStorage.getItem("profile") : null,
-  );
+  // admins (profile === 1) can open levels that are under construction
+  const [isAdmin] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const user = JSON.parse(localStorage.getItem("user") ?? "{}");
+      return user?.profile === 1;
+    } catch {
+      return false;
+    }
+  });
 
-  const canOpen = on_construction !== 1 || profile === "1";
-  const isUnlocked = unlocked ?? available ?? true;
+  const canOpen = !onConstruction || isAdmin;
+  const isUnlocked = unlocked ?? true;
   const progressClamped = Math.max(0, Math.min(100, Math.round(progress)));
   const isDone = progressClamped >= 100;
   const isLocked = !isUnlocked;

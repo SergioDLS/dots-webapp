@@ -33,6 +33,20 @@ export default function Login() {
         setIncorrect(false);
         setMsg("");
         setAccessToken(response.token);
+        // Persist the profile so components (greeting, admin menu,
+        // profile picture) can render it without refetching.
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: response.id,
+            username: response.username,
+            name: response.name,
+            last_name: response.last_name,
+            profile: response.profile,
+            streak: response.streak,
+            profile_pic: response.profile_picture ?? null,
+          }),
+        );
         window.location.replace("/levels");
       } else {
         setIncorrect(true);

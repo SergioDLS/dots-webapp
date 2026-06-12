@@ -8,7 +8,7 @@ import type { SectionLevel } from "@/types/levels.types";
 interface DifficultyProps {
   idLevel: number;
   pose: string;
-  enabled: number;
+  enabled: boolean;
   name: string;
   sections?: SectionLevel[];
   progress: number;
@@ -154,7 +154,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections, pro
               </span>
             </div>
 
-            {Number(enabled) === 0 && (
+            {!enabled && (
               <p className="text-xs text-(--muted)">Coming soon…</p>
             )}
           </div>
