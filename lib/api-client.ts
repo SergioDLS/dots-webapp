@@ -11,7 +11,9 @@ type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
   headers: { "Content-Type": "application/json" },
-  withCredentials: false, // required for HttpOnly refresh cookie
+  // withCredentials MUST be true so the browser stores/sends the HttpOnly
+  // refresh_token cookie set by the API (cross-site in production).
+  withCredentials: true,
 });
 
 // Single refresh flow guard

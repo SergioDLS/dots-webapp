@@ -23,6 +23,7 @@ import GamesList from "./games-list";
 import ThemeToggle from "../theme-toggle";
 //import { updateProfilePictureService } from "../../services/user.service";
 import { ADMIN_PROFILE, BASE_URL_IMAGES } from "../../constants";
+import { useAuth } from "@/context/auth-context";
 
 type User = {
   id?: number;
@@ -53,6 +54,7 @@ type DialogState = {
 };
 
 export default function InteractiveColumn() {
+  const { logout } = useAuth();
   const [hover, setHover] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(() => {
@@ -176,8 +178,7 @@ export default function InteractiveColumn() {
       text: "Are you sure you want to log out?",
       type: "warning",
       accept: () => {
-        localStorage.removeItem("user");
-        window.location.replace("/login");
+        void logout();
       },
       accept_text: "yes!",
       cancel_text: "nope!",
@@ -287,7 +288,7 @@ export default function InteractiveColumn() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
                   Welcome back
                 </p>
-                <h3 className="text-base font-extrabold leading-tight truncate text-foreground">
+                <h3 className="font-display text-lg font-extrabold leading-tight truncate text-foreground">
                   {user?.name || "there"} 👋
                 </h3>
                 <div className="mt-0.5">
@@ -323,9 +324,8 @@ export default function InteractiveColumn() {
                     {showAdminMenu && (
                       <ul className="absolute right-0 z-30 mt-2 w-44 rounded-2xl overflow-hidden bg-surface border border-(--border) shadow-lg">
                         {[
-                          { label: "Levels", href: "/admin/levels" },
-                          { label: "Readings", href: "/admin/readings" },
-                          { label: "Users", href: "/admin/users" },
+                          { label: "Dashboard", href: "/admin" },
+                          { label: "Levels & Sentences", href: "/admin/levels" },
                         ].map((item) => (
                           <li key={item.href}>
                             <button

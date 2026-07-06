@@ -7,9 +7,28 @@ import LoadBar from "@/components/ui/load-bar/load-bar";
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
+import Confetti from "@/components/ui/confetti/confetti";
 import PracticeContainer from "@/components/practice-container/practice-container";
 import api from "@/lib/api-client";
 import { useAuth } from "@/context/auth-context";
+
+/* DOTY's praise vocabulary — rotates so it never feels canned */
+const PRAISES = [
+  "Awesome!",
+  "You rock!",
+  "Amazing!",
+  "Brilliant!",
+  "Nailed it!",
+  "Super!",
+  "Way to go!",
+  "Fantastic!",
+];
+const ENCOURAGEMENTS = [
+  "Almost! Try the next one!",
+  "You've got this!",
+  "Keep going, champ!",
+  "Don't give up!",
+];
 
 /* ── Inject practice keyframes once ────────────────────────── */
 if (typeof document !== "undefined") {
@@ -90,6 +109,8 @@ function PracticeClient() {
   const [lifes, setLifes] = useState(4);
   const [confirmLabel, setConfirmLabel] = useState("Confirm");
   const [confirmReady, setConfirmReady] = useState(false);
+  const [burst, setBurst] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
 
   // ── Audio ───────────────────────────────────────────────────────────────
   const playSound = (type: "correct" | "wrong") => {
@@ -146,6 +167,8 @@ function PracticeClient() {
         setProgress(Math.floor((newAnswered / totalSentences) * 100));
         setAnsweredCount(newAnswered);
         setArraySentences(updated);
+        setBurst((b) => b + 1);
+        setFeedbackText(PRAISES[Math.floor(Math.random() * PRAISES.length)]);
         playSound("correct");
       } else {
         const updated = [...arraySentences];
@@ -157,6 +180,9 @@ function PracticeClient() {
         playSound("wrong");
         setAnswerState("wrong");
         setDoty("05");
+        setFeedbackText(
+          ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)],
+        );
         setStreak(0);
         setLifes((l) => l - 1);
       }
@@ -205,18 +231,13 @@ function PracticeClient() {
         answered: s.answered,
         times_wrong: s.times_wrong,
       }));
-    try {
-      const user = JSON.parse(localStorage.getItem("user") ?? "{}");
-      api
-        .put("/sentences/progress", {
-          sentences,
-          level_id: id,
-          user_id: user.id,
-        })
-        .catch(() => {});
-    } catch {
-      /* ignore */
-    }
+    // The backend derives the user from the JWT — no user_id needed.
+    api
+      .put("/sentences/progress", {
+        sentences,
+        level_id: id,
+      })
+      .catch(() => {});
   };
 
   const whatsNextHandler = () => {
@@ -304,10 +325,10 @@ function PracticeClient() {
           />
         </div>
 
-        {/* ── Answer feedback flash ── */}
+        {/* ── Answer feedback flash: DOTY reacts ── */}
         {answerState !== "" && !isFinalMode && mode !== "streak" && (
           <div
-            className="flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl text-sm font-extrabold"
+            className="relative flex items-center gap-3 w-full px-5 py-3 rounded-2xl text-base font-extrabold overflow-visible"
             style={{
               animation: "prac-bounce-in 0.35s ease-out both",
               background: answerState === "correct"
@@ -319,13 +340,16 @@ function PracticeClient() {
               color: answerState === "correct" ? "#059669" : "#e11d48",
             }}
           >
-            <span
-              className="text-2xl leading-none"
-              style={{ animation: "prac-bounce-in 0.5s ease-out both" }}
-            >
-              {answerState === "correct" ? "🎉" : "😅"}
+            {answerState === "correct" && <Confetti burstKey={burst} />}
+            <Doty
+              pose={answerState === "correct" ? "02" : "05"}
+              size="micro"
+              animation={answerState === "correct" ? "cheer" : "sad"}
+            />
+            <span className="font-display text-lg">
+              {feedbackText ||
+                (answerState === "correct" ? "Great job!" : "Keep going!")}
             </span>
-            <span>{answerState === "correct" ? "Great job!" : "Keep going!"}</span>
           </div>
         )}
 

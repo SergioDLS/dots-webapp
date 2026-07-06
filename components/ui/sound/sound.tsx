@@ -58,7 +58,12 @@ export default function Sound({
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio(`${BASE_URL_SOUNDS}/${src}`);
+    // Absolute URLs (e.g. Cloudinary uploads from the admin) are used as-is;
+    // legacy relative paths are resolved against BASE_URL_SOUNDS.
+    const resolved = /^https?:\/\//.test(src)
+      ? src
+      : `${BASE_URL_SOUNDS}/${src}`;
+    const audio = new Audio(resolved);
     audioRef.current = audio;
     playedRef.current = false;
 

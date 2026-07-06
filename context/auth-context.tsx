@@ -61,9 +61,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await api.post("/auth/logout");
+    } catch {
+      /* even if the API call fails, clear local session */
     } finally {
       setAccessToken(null);
-      if (typeof window !== "undefined") window.location.replace("/login");
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("user");
+          localStorage.removeItem("streak");
+        } catch {
+          /* ignore */
+        }
+        window.location.replace("/");
+      }
     }
   }, [setAccessToken]);
 

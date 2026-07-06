@@ -94,7 +94,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections, pro
             <div className="flex items-center justify-between gap-2">
               <h3
                 id={`difficulty-${name}`}
-                className="text-xl md:text-2xl font-extrabold leading-tight truncate text-foreground"
+                className="font-display text-xl md:text-2xl font-extrabold leading-tight truncate text-foreground"
               >
                 {prettyName}
               </h3>

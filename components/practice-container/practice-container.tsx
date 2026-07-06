@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Doty from "@/components/ui/doty/doty";
+import Confetti from "@/components/ui/confetti/confetti";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
 
@@ -296,12 +297,11 @@ export default function PracticeContainer({
   if (mode === "streak") {
     return (
       <PanelWrapper>
+        <Confetti burstKey={streak} count={34} />
         <SectionLabel emoji="🔥">Streak</SectionLabel>
-        <div style={{ animation: "pc-float 2s ease-in-out infinite" }}>
-          <Doty pose="02" size="small" />
-        </div>
+        <Doty pose="02" size="small" animation="cheer" say="You're on fire!" />
         <p
-          className="text-5xl font-black"
+          className="font-display text-5xl font-extrabold"
           style={{
             background: "linear-gradient(135deg, var(--accent), #fbbf24, #f97316)",
             WebkitBackgroundClip: "text",
@@ -321,24 +321,23 @@ export default function PracticeContainer({
     const isGameover = mode === "gameover";
     const emoji   = mode === "perfect" ? "🌟" : isGameover ? "💔" : "🎉";
     const title   = mode === "perfect" ? "Perfect!" : isGameover ? "Oh no!" : "Success!";
-    const subtext = mode === "perfect" ? "No mistakes!" : isGameover ? "You ran out of hearts!" : "You completed the level!";
+    const subtext = mode === "perfect" ? "No mistakes! DOTY is SO proud of you!" : isGameover ? "You ran out of hearts!" : "You completed the level!";
+    const dotySays = mode === "perfect" ? "WOW! You're a star!" : isGameover ? "Let's try again together!" : "I knew you could do it!";
     const gradient = isGameover
       ? "linear-gradient(135deg, #f43f5e, #ef4444)"
       : "linear-gradient(135deg, var(--accent), #fbbf24)";
     return (
       <PanelWrapper>
+        {!isGameover && <Confetti burstKey={mode} count={40} />}
         <SectionLabel emoji={emoji}>{title}</SectionLabel>
-        <div style={{ animation: isGameover ? "pc-wiggle 0.6s ease-in-out" : "pc-float 2.5s ease-in-out infinite" }}>
-          <Doty pose={isGameover ? "05" : "02"} size="small" />
-        </div>
-        <span
-          className="text-5xl"
-          style={{ animation: "pc-pop 0.5s ease-out both 0.2s" }}
-        >
-          {emoji}
-        </span>
+        <Doty
+          pose={isGameover ? "05" : mode === "perfect" ? "17" : "02"}
+          size="small"
+          animation={isGameover ? "sad" : "cheer"}
+          say={dotySays}
+        />
         <p
-          className="text-lg font-extrabold"
+          className="font-display text-2xl font-extrabold text-center"
           style={{
             background: gradient,
             WebkitBackgroundClip: "text",
@@ -357,9 +356,7 @@ export default function PracticeContainer({
       <PanelWrapper>
         <SectionLabel emoji="🧩">Build up the sentence!</SectionLabel>
         <div className="flex items-end gap-4">
-          <div style={{ animation: "pc-wiggle 3s ease-in-out infinite" }}>
-            <Doty pose={doty} size="small" />
-          </div>
+          <Doty pose={doty} size="small" animation="bob" />
           <Sound autoplay src={audioSrc} icon className="flex flex-col items-center gap-2">
             <WordImg src={dataSentence.img ?? ""} size="medium" />
           </Sound>
@@ -536,9 +533,7 @@ export default function PracticeContainer({
           className="flex items-end gap-4"
           style={{ animation: "pc-fade-in 0.4s ease-out both" }}
         >
-          <div style={{ animation: "pc-wiggle 3s ease-in-out infinite" }}>
-            <Doty pose={doty} size="small" />
-          </div>
+          <Doty pose={doty} size="small" animation="bob" />
           {soundContent}
         </div>
       )}

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dots-webapp",
+      "runtimeExecutable": "/Users/nicolas.silva/.nvm/versions/node/v22.12.0/bin/node",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

@@ -10,7 +10,11 @@ interface Props {
 }
 
 export default function WordImg({ size, opacity = 1, src, customClass }: Props) {
-  const url = `${BASE_URL_IMAGES}/words/${src}`;
+  // Absolute URLs (e.g. Cloudinary uploads from the admin) are used as-is;
+  // legacy relative paths are resolved against BASE_URL_IMAGES.
+  const url = /^https?:\/\//.test(src)
+    ? src
+    : `${BASE_URL_IMAGES}/words/${src}`;
 
   // Resolve numeric dimensions from semantic size names
   const dim =

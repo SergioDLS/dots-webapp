@@ -1,6 +1,7 @@
 import React from "react";
 
 import LevelContainer from "@/components/level-container/level-container";
+import LevelsHeader from "@/components/level-container/levels-header";
 import InteractiveColumn from "@/components/interactive-column/interactive-column";
 
 function Levels() {
@@ -9,6 +10,7 @@ function Levels() {
       <div className="flex w-full flex-col-reverse md:flex-row md:items-start md:gap-6">
         {/* Main content: takes remaining space on desktop */}
         <main className="w-full md:flex-1">
+          <LevelsHeader />
           <LevelContainer />
         </main>
 

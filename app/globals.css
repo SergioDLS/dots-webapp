@@ -1,29 +1,46 @@
 @import "tailwindcss";
 
+/* ════════════════════════════════════════════════════════════
+   DOTS — design tokens
+   The palette is derived from DOTY himself: his magenta fur is
+   the brand color, and the world around him is a warm, blushing
+   white so he always pops as the protagonist.
+   ════════════════════════════════════════════════════════════ */
+
 /* ─── Light theme ─────────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --background: #e6e6fc;     /* lavender */
-  --surface:    #f5f3ff;     /* white-ish card */
-  --border:     #ccc7f0;
+  --background: #fff7fb;     /* warm blush white — DOTY's world */
+  --surface:    #ffffff;
+  --border:     #f4dcea;
 
-  /* Text – must be ≥ 4.5:1 on both backgrounds above */
-  --foreground: #1b1340;     /* very dark navy  → 12:1 on #e6e6fc */
-  --muted:      #4a4070;     /* subdued text    → 5.2:1 on #e6e6fc */
+  /* Text */
+  --foreground: #3d2352;     /* deep plum, softer than black */
+  --muted:      #8a6a9b;
 
-  /* Brand */
-  --primary:          #211650; /* navy */
+  /* Brand — DOTY's fur */
+  --primary:          #3d2352;
   --primary-contrast: #ffffff;
-  --accent:           #d4007e; /* slightly darker pink → 5.3:1 on white */
+  --accent:           #e5077e; /* DOTY magenta */
+  --accent-soft:      #ff64b4;
   --accent-contrast:  #ffffff;
 
-  /* primary-accent is used for important highlights (buttons). By default
-    it follows --primary; dark theme can override to use --accent (pink). */
-  --primary-accent: var(--primary);
-  --primary-accent-contrast: var(--primary-contrast);
+  /* Supporting cast */
+  --purple:  #7c5cff;          /* practice / secondary actions */
+  --sun:     #ffb020;          /* streaks, stars, XP */
+  --success: #22c55e;
+  --danger:  #f43f5e;
 
-  /* Input fill */
-  --input-bg: rgba(255,255,255,0.75);
+  --primary-accent: var(--accent);
+  --primary-accent-contrast: var(--accent-contrast);
+
+  /* 3D button edge colors (darker step of each tone) */
+  --accent-edge:  #b0005c;
+  --purple-edge:  #5a3fd6;
+  --neutral-edge: #e7cfdd;
+  --success-edge: #16a34a;
+
+  --input-bg: #ffffff;
 
   color-scheme: light;
 }
@@ -31,32 +48,41 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --font-sans: var(--font-nunito);
+  --font-display: var(--font-baloo);
   --font-mono: var(--font-geist-mono);
 }
 
 /* ─── Dark theme ──────────────────────────────────────────── */
-:root[data-theme="dark"],
 :root[data-theme="dark"] {
-  --background: #130d35;     /* deep navy */
-  --surface:    #1e1550;     /* slightly lighter card */
-  --border:     #332776;
+  --background: #1c1030;     /* deep plum night */
+  --surface:    #2a1b45;
+  --border:     #443064;
 
-  /* Text – white on dark navy ≥ 12:1 */
-  --foreground: #f0eeff;
-  --muted:      #a89fd8;     /* 4.6:1 on #130d35 */
+  --foreground: #f8f0ff;
+  --muted:      #bda8d4;
 
-  /* Brand */
-  --primary:          #c9c0ff; /* light lavender */
-  --primary-contrast: #130d35;
-  --accent:           #d4007e; /* use the project's accent pink in dark mode */
-  --accent-contrast:  #ffffff; /* white contrast for the pink */
+  --primary:          #f8f0ff;
+  --primary-contrast: #1c1030;
+  --accent:           #ff3d9e; /* brighter magenta for dark bg */
+  --accent-soft:      #ff77bf;
+  --accent-contrast:  #ffffff;
 
-  /* in dark theme use the bright pink accent for highlights */
+  --purple:  #9b82ff;
+  --sun:     #ffc53d;
+  --success: #34d399;
+  --danger:  #fb7185;
+
   --primary-accent: var(--accent);
   --primary-accent-contrast: var(--accent-contrast);
 
-  --input-bg: rgba(255,255,255,0.07);
+  --accent-edge:  #c1156f;
+  --purple-edge:  #6e55e0;
+  --neutral-edge: #1a0f2e;
+  --success-edge: #14966b;
+
+  --input-bg: rgba(255,255,255,0.06);
 
   color-scheme: dark;
 }
@@ -67,16 +93,27 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --background: #130d35;
-    --surface:    #1e1550;
-    --border:     #332776;
-    --foreground: #f0eeff;
-    --muted:      #a89fd8;
-    --primary:          #c9c0ff;
-    --primary-contrast: #130d35;
-    --accent:           #ff4bc1;
-    --accent-contrast:  #1b0040;
-    --input-bg: rgba(255,255,255,0.07);
+    --background: #1c1030;
+    --surface:    #2a1b45;
+    --border:     #443064;
+    --foreground: #f8f0ff;
+    --muted:      #bda8d4;
+    --primary:          #f8f0ff;
+    --primary-contrast: #1c1030;
+    --accent:           #ff3d9e;
+    --accent-soft:      #ff77bf;
+    --accent-contrast:  #ffffff;
+    --purple:  #9b82ff;
+    --sun:     #ffc53d;
+    --success: #34d399;
+    --danger:  #fb7185;
+    --primary-accent: var(--accent);
+    --primary-accent-contrast: var(--accent-contrast);
+    --accent-edge:  #c1156f;
+    --purple-edge:  #6e55e0;
+    --neutral-edge: #1a0f2e;
+    --success-edge: #14966b;
+    --input-bg: rgba(255,255,255,0.06);
     color-scheme: dark;
   }
 }
@@ -88,7 +125,119 @@ body {
   transition: background-color 200ms ease, color 200ms ease;
 }
 
+/* Display face for headings — chunky & friendly */
+.font-display {
+  font-family: var(--font-baloo), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Motion — DOTY's animation vocabulary
+   ════════════════════════════════════════════════════════════ */
+
 @keyframes shimmer {
   0%   { background-position: 200% center; }
   100% { background-position: -200% center; }
+}
+
+/* Idle: gentle bobbing, like DOTY is breathing */
+@keyframes doty-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(-2deg); }
+}
+
+/* Celebration: the happy jump */
+@keyframes doty-cheer {
+  0%   { transform: translateY(0) scale(1) rotate(0deg); }
+  20%  { transform: translateY(-18px) scale(1.06) rotate(-6deg); }
+  40%  { transform: translateY(0) scale(0.96) rotate(0deg); }
+  58%  { transform: translateY(-12px) scale(1.04) rotate(5deg); }
+  75%  { transform: translateY(0) scale(0.98) rotate(0deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+/* Sad: a slow droop-wobble */
+@keyframes doty-sad {
+  0%   { transform: rotate(0deg) translateY(0); }
+  25%  { transform: rotate(-5deg) translateY(3px); }
+  60%  { transform: rotate(4deg) translateY(3px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+
+/* Wave: greeting tilt */
+@keyframes doty-wave {
+  0%, 100% { transform: rotate(0deg); }
+  15%      { transform: rotate(-7deg); }
+  30%      { transform: rotate(6deg); }
+  45%      { transform: rotate(-4deg); }
+  60%      { transform: rotate(0deg); }
+}
+
+.doty-bob   { animation: doty-bob 3s ease-in-out infinite; }
+.doty-cheer { animation: doty-cheer 0.9s cubic-bezier(.34,1.56,.64,1); }
+.doty-sad   { animation: doty-sad 0.8s ease-in-out; }
+.doty-wave  { animation: doty-wave 2.4s ease-in-out infinite; transform-origin: 70% 90%; }
+
+/* Speech bubble pop */
+@keyframes bubble-pop {
+  0%   { transform: scale(0.4) translateY(6px); opacity: 0; }
+  70%  { transform: scale(1.06) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.bubble-pop { animation: bubble-pop 0.45s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Confetti pieces (used by <Confetti/>) */
+@keyframes confetti-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--cx, 0px), var(--cy, -120px)) rotate(var(--cr, 360deg)) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* Generic pop-in for cards / panels */
+@keyframes pop-in {
+  0%   { transform: scale(0.92); opacity: 0; }
+  60%  { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: pop-in 0.35s cubic-bezier(.34,1.4,.64,1) both; }
+
+/* ════════════════════════════════════════════════════════════
+   Chunky 3D buttons (Duolingo-style "pushable")
+   ════════════════════════════════════════════════════════════ */
+.btn-3d {
+  position: relative;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 150ms ease;
+  will-change: transform;
+}
+.btn-3d:hover { filter: brightness(1.05); }
+.btn-3d:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 0 transparent !important;
+}
+.btn-3d:disabled {
+  opacity: 0.5;
+  filter: grayscale(0.4);
+  pointer-events: none;
+}
+.btn-3d:focus-visible {
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+/* ─── Reduced motion: keep the app calm ───────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
