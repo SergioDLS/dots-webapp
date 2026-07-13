@@ -177,6 +177,8 @@ export default function InteractiveColumn() {
     setDialog({
       text: "Are you sure you want to log out?",
       type: "warning",
+      // logout() revokes the refresh token server-side, clears local
+      // state and redirects to the login page ("/").
       accept: () => {
         void logout();
       },
@@ -230,7 +232,7 @@ export default function InteractiveColumn() {
           <div
             onMouseEnter={() => setUserSettingsHover(true)}
             onMouseLeave={() => setUserSettingsHover(false)}
-            className="rounded-2xl p-4 bg-surface border border-(--border) shadow-sm"
+            className="dots-card p-4"
           >
             <div
               className={`flex ${isMobile ? "flex-row items-center" : "flex-col items-center"} gap-4`}
@@ -345,7 +347,7 @@ export default function InteractiveColumn() {
           </div>
 
           {/* ── Navigation tabs ───────────────────────────────── */}
-          <div className="rounded-2xl p-1.5 bg-surface border border-(--border) shadow-sm">
+          <div className="dots-card p-1.5">
             <div className="grid grid-cols-3 gap-1">
               {menus.map((m, idx) => (
                 <button
@@ -369,7 +371,7 @@ export default function InteractiveColumn() {
 
           {/* ── Carousel ─────────────────────────────────────── */}
           <div
-            className="w-full overflow-hidden rounded-2xl bg-surface border border-(--border) shadow-sm"
+            className="dots-card w-full overflow-hidden"
             style={{ height: isMobile ? "38rem" : "26rem" }}
           >
             <div

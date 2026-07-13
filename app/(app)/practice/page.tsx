@@ -7,64 +7,9 @@ import LoadBar from "@/components/ui/load-bar/load-bar";
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
-import Confetti from "@/components/ui/confetti/confetti";
 import PracticeContainer from "@/components/practice-container/practice-container";
 import api from "@/lib/api-client";
 import { useAuth } from "@/context/auth-context";
-
-/* DOTY's praise vocabulary — rotates so it never feels canned */
-const PRAISES = [
-  "Awesome!",
-  "You rock!",
-  "Amazing!",
-  "Brilliant!",
-  "Nailed it!",
-  "Super!",
-  "Way to go!",
-  "Fantastic!",
-];
-const ENCOURAGEMENTS = [
-  "Almost! Try the next one!",
-  "You've got this!",
-  "Keep going, champ!",
-  "Don't give up!",
-];
-
-/* ── Inject practice keyframes once ────────────────────────── */
-if (typeof document !== "undefined") {
-  const STYLE_ID = "__prac_kf__";
-  if (!document.getElementById(STYLE_ID)) {
-    const s = document.createElement("style");
-    s.id = STYLE_ID;
-    s.textContent = `
-      @keyframes prac-heart-pop {
-        0%   { transform: scale(1); }
-        40%  { transform: scale(1.35); }
-        100% { transform: scale(1); }
-      }
-      @keyframes prac-heart-break {
-        0%   { transform: scale(1) rotate(0deg); }
-        30%  { transform: scale(1.2) rotate(-8deg); }
-        60%  { transform: scale(0.85) rotate(4deg); }
-        100% { transform: scale(0.7) rotate(0deg); opacity: 0.3; filter: grayscale(1); }
-      }
-      @keyframes prac-slide-up {
-        0%   { transform: translateY(12px); opacity: 0; }
-        100% { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes prac-bounce-in {
-        0%   { transform: scale(0.6); opacity: 0; }
-        60%  { transform: scale(1.08); opacity: 1; }
-        100% { transform: scale(1); opacity: 1; }
-      }
-      @keyframes prac-confetti {
-        0%   { background-position: 0% 0%; }
-        100% { background-position: 200% 200%; }
-      }
-    `;
-    document.head.appendChild(s);
-  }
-}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Sentence = {
@@ -109,8 +54,6 @@ function PracticeClient() {
   const [lifes, setLifes] = useState(4);
   const [confirmLabel, setConfirmLabel] = useState("Confirm");
   const [confirmReady, setConfirmReady] = useState(false);
-  const [burst, setBurst] = useState(0);
-  const [feedbackText, setFeedbackText] = useState("");
 
   // ── Audio ───────────────────────────────────────────────────────────────
   const playSound = (type: "correct" | "wrong") => {
@@ -167,8 +110,6 @@ function PracticeClient() {
         setProgress(Math.floor((newAnswered / totalSentences) * 100));
         setAnsweredCount(newAnswered);
         setArraySentences(updated);
-        setBurst((b) => b + 1);
-        setFeedbackText(PRAISES[Math.floor(Math.random() * PRAISES.length)]);
         playSound("correct");
       } else {
         const updated = [...arraySentences];
@@ -180,9 +121,6 @@ function PracticeClient() {
         playSound("wrong");
         setAnswerState("wrong");
         setDoty("05");
-        setFeedbackText(
-          ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)],
-        );
         setStreak(0);
         setLifes((l) => l - 1);
       }
@@ -231,12 +169,10 @@ function PracticeClient() {
         answered: s.answered,
         times_wrong: s.times_wrong,
       }));
-    // The backend derives the user from the JWT — no user_id needed.
+    if (sentences.length === 0) return;
+    // the backend resolves the user from the access token
     api
-      .put("/sentences/progress", {
-        sentences,
-        level_id: id,
-      })
+      .put("/sentences/progress", { sentences, level_id: Number(id) })
       .catch(() => {});
   };
 
@@ -270,14 +206,7 @@ function PracticeClient() {
     content = (
       <>
         {/* ── Top bar: hearts + progress ── */}
-        <div
-          className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl"
-          style={{
-            background: "var(--surface)",
-            border: "2px solid var(--border)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-          }}
-        >
+        <div className="dots-card flex items-center gap-3 w-full px-4 py-3">
           {/* Hearts */}
           <div className="flex items-center gap-1 shrink-0">
             {Array.from({ length: 4 }).map((_, i) => {
@@ -291,9 +220,9 @@ function PracticeClient() {
                     filter: alive ? "none" : "grayscale(1)",
                     opacity: alive ? 1 : 0.25,
                     animation: critical
-                      ? "prac-heart-pop 0.8s ease-in-out infinite"
+                      ? "dots-heart-pop 0.8s ease-in-out infinite"
                       : !alive
-                        ? "prac-heart-break 0.5s ease forwards"
+                        ? "dots-heart-break 0.5s ease forwards"
                         : "none",
                     animationDelay: critical ? `${i * 0.15}s` : "0s",
                   }}
@@ -312,7 +241,7 @@ function PracticeClient() {
 
         {/* ── Practice area ── */}
         <div
-          style={{ animation: "prac-slide-up 0.4s ease-out both" }}
+          style={{ animation: "dots-slide-up 0.4s ease-out both" }}
           className="w-full"
         >
           <PracticeContainer
@@ -325,12 +254,12 @@ function PracticeClient() {
           />
         </div>
 
-        {/* ── Answer feedback flash: DOTY reacts ── */}
+        {/* ── Answer feedback flash ── */}
         {answerState !== "" && !isFinalMode && mode !== "streak" && (
           <div
-            className="relative flex items-center gap-3 w-full px-5 py-3 rounded-2xl text-base font-extrabold overflow-visible"
+            className="flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl text-sm font-extrabold"
             style={{
-              animation: "prac-bounce-in 0.35s ease-out both",
+              animation: "dots-pop-in 0.35s ease-out both",
               background: answerState === "correct"
                 ? "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.08))"
                 : "linear-gradient(135deg, rgba(244,63,94,0.15), rgba(239,68,68,0.08))",
@@ -340,16 +269,13 @@ function PracticeClient() {
               color: answerState === "correct" ? "#059669" : "#e11d48",
             }}
           >
-            {answerState === "correct" && <Confetti burstKey={burst} />}
-            <Doty
-              pose={answerState === "correct" ? "02" : "05"}
-              size="micro"
-              animation={answerState === "correct" ? "cheer" : "sad"}
-            />
-            <span className="font-display text-lg">
-              {feedbackText ||
-                (answerState === "correct" ? "Great job!" : "Keep going!")}
+            <span
+              className="text-2xl leading-none"
+              style={{ animation: "dots-pop-in 0.5s ease-out both" }}
+            >
+              {answerState === "correct" ? "🎉" : "😅"}
             </span>
+            <span>{answerState === "correct" ? "Great job!" : "Keep going!"}</span>
           </div>
         )}
 
@@ -357,7 +283,7 @@ function PracticeClient() {
         {!isFinalMode && (
           <div
             className="flex gap-3 w-full"
-            style={{ animation: "prac-slide-up 0.3s ease-out 0.1s both" }}
+            style={{ animation: "dots-slide-up 0.3s ease-out 0.1s both" }}
           >
             <UIButton tone="neutral" onClick={goToLevels}>
               ← Exit
@@ -375,7 +301,7 @@ function PracticeClient() {
         {isFinalMode && (
           <div
             className="w-full"
-            style={{ animation: "prac-bounce-in 0.4s ease-out both" }}
+            style={{ animation: "dots-pop-in 0.4s ease-out both" }}
           >
             <UIButton tone="accent" onClick={confirmSelectedHandler} fullWidth>
               {confirmLabel}
@@ -388,9 +314,9 @@ function PracticeClient() {
     content = (
       <div
         className="flex flex-col items-center gap-5 py-16"
-        style={{ animation: "prac-bounce-in 0.5s ease-out both" }}
+        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
       >
-        <div style={{ animation: "prac-heart-pop 2s ease-in-out infinite" }}>
+        <div style={{ animation: "dots-heart-pop 2s ease-in-out infinite" }}>
           <Doty pose="05" size="small" />
         </div>
         <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>

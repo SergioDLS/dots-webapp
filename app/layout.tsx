@@ -22,9 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dots — Learn English with DOTY",
+  title: "dots — Language Online Learning",
   description:
-    "Practice English the fun way. DOTY cheers you on through levels, streaks and games — for kids and grown-ups.",
+    "Learn languages the fun way with Doty: bite-sized lessons, streaks and games.",
 };
 
 export default function RootLayout({

@@ -1,262 +1,199 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  loginService,
-  registerService,
-  forgotPasswordService,
-  resetPasswordService,
-} from "@/services/auth.service";
+import { useRouter } from "next/navigation";
+import type { AxiosError } from "axios";
+import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
+import api from "@/lib/api-client";
 import Doty from "@/components/ui/doty/doty";
-import UIButton from "@/components/ui/button/button";
-
-type Screen = "login" | "register" | "forgot" | "reset";
-
-type SessionResponse = {
-  token?: string;
-  name?: string;
-  last_name?: string;
-  profile?: number;
-  profile_picture?: string | null;
-  streak?: number;
-};
-
-const errText = (e: unknown, fallback: string): string => {
-  const ex = e as {
-    response?: { data?: { message?: string; error?: string } };
-    message?: string;
-  };
-  return (
-    ex?.response?.data?.message ||
-    ex?.response?.data?.error ||
-    ex?.message ||
-    fallback
-  );
-};
 
 export default function Login() {
-  const { setAccessToken } = useAuth();
-  const [screen, setScreen] = useState<Screen>("login");
-  const [msg, setMsg] = useState("");
-  const [isError, setIsError] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // login
+  const router = useRouter();
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [login, setLogin] = useState("login");
+  const [incorrect, setIncorrect] = useState(false);
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [birthday, setBirthday] = useState("2022-04-17");
+  const [email, setEmail] = useState("");
+  const [email2, setEmail2] = useState("");
+  const [msg, setMsg] = useState("");
+  const [code] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const { setAccessToken } = useAuth();
 
-  // register
-  const [regName, setRegName] = useState("");
-  const [regLastName, setRegLastName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regUsername, setRegUsername] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regPassword2, setRegPassword2] = useState("");
-  const [regBirthday, setRegBirthday] = useState("");
-
-  // forgot / reset
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetCode, setResetCode] = useState("");
-  const [resetPassword, setResetPasswordVal] = useState("");
-  const [resetPassword2, setResetPassword2] = useState("");
-
-  const goTo = (next: Screen) => {
-    setScreen(next);
-    setMsg("");
-    setIsError(false);
-  };
-
-  const persistAndEnter = useCallback(
-    (response: SessionResponse) => {
-      setAccessToken(response.token ?? null);
-      try {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            name: response.name,
-            last_name: response.last_name,
-            profile: response.profile,
-            profile_pic: response.profile_picture ?? null,
-          }),
-        );
-        localStorage.setItem("streak", String(response.streak ?? 0));
-      } catch {
-        /* storage unavailable — non-fatal */
-      }
-      window.location.replace("/levels");
-    },
-    [setAccessToken],
-  );
-
-  // ── Login ──────────────────────────────────────────────────
   const loginHandler = useCallback(async () => {
-    setLoading(true);
+    setLoginLoading(true);
     try {
       const response = await loginService(user, password);
       if (response && response.token) {
-        persistAndEnter(response);
-      } else {
-        setIsError(true);
-        setMsg(
-          (response && (response.message || response.error)) ||
-            "Incorrect username or password!",
+        setIncorrect(false);
+        setMsg("");
+        setAccessToken(response.token);
+        // Persist the profile so components (greeting, admin menu,
+        // profile picture) can render it without refetching.
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: response.id,
+            username: response.username,
+            name: response.name,
+            last_name: response.last_name,
+            profile: response.profile,
+            streak: response.streak,
+            profile_pic: response.profile_picture ?? null,
+          }),
         );
-        setLoading(false);
+        // Client-side navigation keeps the AuthProvider mounted, so the
+        // access token from the login response stays in memory. The refresh
+        // cookie is only needed as a fallback on full page reloads.
+        router.push("/levels");
+      } else {
+        setIncorrect(true);
+        const text =
+          (response && (response.message || response.error)) ||
+          "Incorrect username or password!";
+        setMsg(text);
       }
     } catch (e: unknown) {
-      setIsError(true);
-      setMsg(errText(e, "Login failed. Please try again."));
-      setLoading(false);
+      setIncorrect(true);
+      const ex = e as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
+      const errMsg =
+        ex?.response?.data?.message ||
+        ex?.response?.data?.error ||
+        ex?.message ||
+        "Login failed. Please try again.";
+      setMsg(errMsg);
+    } finally {
+      setLoginLoading(false);
     }
-  }, [user, password, persistAndEnter]);
+  }, [user, password, setAccessToken, router]);
 
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      if (screen === "login" && password.length > 4) loginHandler();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [screen, password, loginHandler]);
-
-  // ── Register ───────────────────────────────────────────────
-  const registerHandler = async () => {
-    if (!regName.trim()) return fail("Please enter your first name.");
-    if (!regLastName.trim()) return fail("Please enter your last name.");
-    if (!/^\S+@\S+\.\S+$/.test(regEmail)) return fail("Please enter a valid email.");
-    if (regUsername.trim().length < 3)
-      return fail("Username must be at least 3 characters.");
-    if (regPassword.length < 8)
-      return fail("Your password must be 8 or more characters long.");
-    if (regPassword !== regPassword2) return fail("Both passwords must match.");
-
-    setLoading(true);
-    setMsg("");
-    setIsError(false);
-    try {
-      const response = await registerService({
-        name: regName.trim(),
-        lastName: regLastName.trim(),
-        email: regEmail.trim(),
-        username: regUsername.trim(),
-        password: regPassword,
-        birthday: regBirthday || undefined,
-      });
-      if (response && response.token) {
-        persistAndEnter(response);
-      } else {
-        fail("Could not create your account. Please try again.");
-        setLoading(false);
+    const keyDownHandler = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (password.length > 4) {
+          loginHandler();
+        }
       }
-    } catch (e: unknown) {
-      fail(errText(e, "Could not create your account. Please try again."));
-      setLoading(false);
-    }
-  };
+    };
 
-  const fail = (text: string) => {
-    setIsError(true);
-    setMsg(text);
-  };
+    document.addEventListener("keydown", keyDownHandler);
 
-  // ── Forgot password ────────────────────────────────────────
-  const forgotHandler = async () => {
-    if (!/^\S+@\S+\.\S+$/.test(resetEmail))
-      return fail("Please enter a valid email.");
-    setLoading(true);
-    setMsg("");
-    setIsError(false);
-    try {
-      await forgotPasswordService(resetEmail.trim());
-      setLoading(false);
-      goTo("reset");
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+    };
+  }, [password, loginHandler]);
+
+  const signInHandler = () => {
+    if (name === "") {
+      setMsg("Please fill the Name input!");
+    } else if (lastName === "") {
+      setMsg("Please fill the Last name input!");
+    } else if (birthday === "") {
+      setMsg("Please fill the Birthday input!");
+    } else if (email !== email2) {
+      setMsg("Emails must match!");
+    } else if (password.length < 8) {
+      setMsg("Your password must be 8 or more characters long!");
+    } else if (password !== password2) {
+      setMsg("Both passwords must be the same!");
+    } else {
       setMsg("");
-    } catch (e: unknown) {
-      setLoading(false);
-      fail(errText(e, "Something went wrong. Please try again."));
+      setLogin("loading");
+      sendNewUser();
     }
   };
 
-  // ── Reset password ─────────────────────────────────────────
-  const resetHandler = async () => {
-    if (!resetCode.trim()) return fail("Enter the code we sent to your email.");
-    if (resetPassword.length < 8)
-      return fail("Your new password must be 8 or more characters long.");
-    if (resetPassword !== resetPassword2) return fail("Both passwords must match.");
-    setLoading(true);
-    setMsg("");
-    setIsError(false);
+  const newUserHandler = (clean: boolean) => {
+    setLogin("new-user");
+    if (clean) {
+      setName("");
+      setLastName("");
+      setBirthday("");
+      setEmail("");
+      setMsg("");
+    }
+  };
+
+  const sendNewUser = async () => {
     try {
-      await resetPasswordService(
-        resetEmail.trim(),
-        resetCode.trim(),
-        resetPassword,
+      const response = await api.post<{ result: string; username?: string }>(
+        "/newUser",
+        { name, lastName, email, code },
       );
-      setLoading(false);
-      setScreen("login");
-      setIsError(false);
-      setMsg("Password updated! You can log in now.");
-    } catch (e: unknown) {
-      setLoading(false);
-      fail(errText(e, "Could not reset your password. Please try again."));
+      if (response.data.result === "OK") {
+        setLogin("username");
+        setNewUsername(String(response.data.username));
+      } else if (response.data.result === "NOK5") {
+        setLogin("wrongcode");
+      }
+    } catch (error) {
+      const err = error as AxiosError<{ error?: string }>;
+      setLogin("error");
+      setErrorMessage(err.response?.data?.error ?? "Unexpected error");
     }
   };
 
-  // ── Shared styles ──────────────────────────────────────────
+  /* ─── Shared classes ───────────────────────────────────────── */
   const inputCls =
-    "w-full rounded-2xl border-2 border-(--border) bg-(--input-bg) px-4 py-3 text-base font-semibold text-foreground placeholder:text-(--muted) placeholder:font-medium outline-none transition-all duration-200 focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/15";
+    "w-full rounded-2xl border-2 border-(--border) bg-(--input-bg) px-4 py-3 text-base text-foreground placeholder:text-(--muted) outline-none transition-all duration-200 focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/15";
 
-  const linkBtn =
-    "text-sm font-bold text-(--muted) transition-colors hover:text-(--accent) cursor-pointer";
+  const btnPrimary =
+    "dots-pressable w-full rounded-2xl bg-(--accent) px-4 py-3.5 text-sm font-extrabold tracking-wide text-(--accent-contrast) [--press-color:#9c005d] disabled:opacity-60";
 
-  const banner =
-    msg &&
-    (isError ? (
-      <p className="pop-in rounded-2xl border-2 border-(--danger)/30 bg-(--danger)/10 px-4 py-2.5 text-center text-sm font-bold text-(--danger)">
-        {msg}
-      </p>
-    ) : (
-      <p className="pop-in rounded-2xl border-2 border-(--success)/30 bg-(--success)/10 px-4 py-2.5 text-center text-sm font-bold text-(--success)">
-        {msg}
-      </p>
-    ));
+  const btnOutline =
+    "dots-pressable w-full rounded-2xl border-2 border-(--border) bg-(--surface) px-4 py-3 text-sm font-bold text-(--muted) hover:text-(--accent) hover:border-(--accent)";
 
-  const wordmark = (
-    <h1 className="font-display flex items-end justify-center text-6xl font-extrabold leading-none tracking-tight text-foreground">
-      d
-      <span className="relative mx-0.5 inline-flex w-11 items-center justify-center">
-        <span
-          className="inline-block h-10 w-10 rounded-full"
-          style={{ background: "var(--accent)" }}
-        />
-      </span>
-      ts
-    </h1>
+  const errorBanner = (text: string) => (
+    <p
+      className="rounded-2xl px-4 py-2.5 text-center text-sm font-bold"
+      style={{
+        background: "var(--danger-soft)",
+        color: "var(--danger)",
+        animation: "dots-pop-in 0.3s ease-out both",
+      }}
+    >
+      {text}
+    </p>
   );
 
-  let content: React.ReactNode = null;
-
-  if (screen === "login") {
+  let content = null;
+  if (login === "login") {
     content = (
       <div className="flex w-full max-w-sm flex-col gap-7">
-        <div className="flex flex-col items-center gap-4">
-          <Doty
-            pose="02"
-            size="small"
-            animation="wave"
-            say="Hi! I'm DOTY. Ready to learn English?"
-          />
-          {wordmark}
-          <p className="-mt-2 text-sm font-semibold text-(--muted)">
-            Learn English, one dot at a time
+        {/* Brand + mascot */}
+        <div
+          className="flex flex-col items-center gap-2 text-center"
+          style={{ animation: "dots-slide-up 0.5s ease-out both" }}
+        >
+          <div style={{ animation: "dots-float 3.5s ease-in-out infinite" }}>
+            <Doty pose="17" size="smaller" />
+          </div>
+          <h1 className="font-display text-5xl font-extrabold leading-none tracking-tight text-(--accent)">
+            dots
+          </h1>
+          <p className="text-sm font-semibold text-(--muted)">
+            Hi! I&apos;m Doty. Ready to learn something new?
           </p>
         </div>
 
-        {banner}
+        {incorrect && errorBanner(msg)}
 
-        <div className="flex flex-col gap-3.5">
+        {/* Form */}
+        <div
+          className="flex flex-col gap-4"
+          style={{ animation: "dots-slide-up 0.5s ease-out 0.1s both" }}
+        >
           <input
             value={user}
             onChange={(e) => setUser(e.target.value)}
@@ -273,232 +210,201 @@ export default function Login() {
             autoComplete="current-password"
             className={inputCls}
           />
-          <UIButton
-            tone="accent"
+          <button
+            type="button"
             onClick={loginHandler}
-            disabled={loading}
-            fullWidth
-            className="py-4 text-base"
+            disabled={loginLoading}
+            className={btnPrimary}
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2 normal-case">
+            {loginLoading ? (
+              <span className="flex items-center justify-center gap-2">
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Logging in…
               </span>
             ) : (
               "Let's go!"
             )}
-          </UIButton>
+          </button>
         </div>
 
-        <div className="flex items-center justify-center gap-6">
-          <button type="button" onClick={() => goTo("forgot")} className={linkBtn}>
-            Forgot password?
-          </button>
-          <span className="text-(--border)">•</span>
+        {/* Secondary links */}
+        <div
+          className="flex flex-col gap-2.5"
+          style={{ animation: "dots-slide-up 0.5s ease-out 0.2s both" }}
+        >
           <button
             type="button"
-            onClick={() => goTo("register")}
-            className={linkBtn}
+            onClick={() => window.location.replace("/forgot")}
+            className={btnOutline}
           >
-            Create account
+            Forgot password?
+          </button>
+          <button
+            type="button"
+            onClick={() => newUserHandler(true)}
+            className={btnOutline}
+          >
+            New to dots? Create account
           </button>
         </div>
       </div>
     );
-  } else if (screen === "register") {
+  } else if (login === "new-user") {
     content = (
-      <div className="flex w-full max-w-2xl flex-col gap-8">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <Doty pose="06" size="tiny" animation="bob" />
-          <h2 className="font-display text-4xl font-extrabold tracking-tight text-foreground">
+      <div className="flex w-full max-w-2xl flex-col gap-7">
+        {/* Header */}
+        <div
+          className="flex flex-col items-center gap-2 text-center"
+          style={{ animation: "dots-slide-up 0.5s ease-out both" }}
+        >
+          <Doty pose="13" size="tiny" />
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             Join the club!
           </h2>
           <p className="text-sm font-semibold text-(--muted)">
-            Fill in the form and DOTY will be waiting for you
+            Fill in the form and let&apos;s get started
           </p>
         </div>
 
-        {banner}
+        {msg && errorBanner(msg)}
 
+        {/* Fields */}
         <div className="grid gap-4 md:grid-cols-2">
           <input
-            value={regName}
-            onChange={(e) => setRegName(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="First name"
             type="text"
-            autoComplete="given-name"
             className={inputCls}
           />
           <input
-            value={regLastName}
-            onChange={(e) => setRegLastName(e.target.value)}
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             placeholder="Last name"
             type="text"
-            autoComplete="family-name"
             className={inputCls}
           />
           <input
-            value={regEmail}
-            onChange={(e) => setRegEmail(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"
             type="email"
-            autoComplete="email"
-            className={`${inputCls} md:col-span-2`}
+            className={inputCls}
           />
           <input
-            value={regUsername}
-            onChange={(e) => setRegUsername(e.target.value)}
-            placeholder="Choose a username"
-            type="text"
-            autoComplete="username"
-            className={`${inputCls} md:col-span-2`}
+            value={email2}
+            onChange={(e) => setEmail2(e.target.value)}
+            placeholder="Confirm email"
+            type="email"
+            className={inputCls}
           />
           <input
-            value={regPassword}
-            onChange={(e) => setRegPassword(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             type="password"
             autoComplete="new-password"
             className={inputCls}
           />
           <input
-            value={regPassword2}
-            onChange={(e) => setRegPassword2(e.target.value)}
+            value={password2}
+            onChange={(e) => setPassword2(e.target.value)}
             placeholder="Confirm password"
             type="password"
             autoComplete="new-password"
             className={inputCls}
           />
-          <label className="md:col-span-2 flex flex-col gap-1">
-            <span className="px-1 text-xs font-bold text-(--muted)">
-              Birthday (optional)
-            </span>
-            <input
-              value={regBirthday}
-              onChange={(e) => setRegBirthday(e.target.value)}
-              type="date"
-              className={`${inputCls} text-(--muted)`}
-            />
-          </label>
+          <input
+            value={birthday}
+            onChange={(e) => setBirthday(e.target.value)}
+            type="date"
+            className={`${inputCls} md:col-span-2 text-(--muted)`}
+          />
         </div>
 
+        {/* Actions */}
         <div className="flex gap-3">
-          <UIButton tone="neutral" onClick={() => goTo("login")}>
-            Back
-          </UIButton>
-          <UIButton
-            tone="accent"
-            onClick={registerHandler}
-            disabled={loading}
-            fullWidth
-          >
-            {loading ? "Creating…" : "Create account"}
-          </UIButton>
-        </div>
-      </div>
-    );
-  } else if (screen === "forgot") {
-    content = (
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <Doty pose="07" size="tiny" animation="bob" say="No worries, I'll help!" />
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-            Forgot password?
-          </h2>
-          <p className="text-sm font-semibold text-(--muted)">
-            Enter your email and we&apos;ll send you a reset code.
-          </p>
-        </div>
-
-        {banner}
-
-        <input
-          value={resetEmail}
-          onChange={(e) => setResetEmail(e.target.value)}
-          placeholder="Email address"
-          type="email"
-          autoComplete="email"
-          className={inputCls}
-        />
-
-        <div className="flex flex-col gap-3">
-          <UIButton
-            tone="accent"
-            onClick={forgotHandler}
-            disabled={loading}
-            fullWidth
-          >
-            {loading ? "Sending…" : "Send code"}
-          </UIButton>
           <button
             type="button"
-            onClick={() => goTo("login")}
-            className={`${linkBtn} text-center`}
+            onClick={() => setLogin("login")}
+            className={btnOutline}
           >
-            Back to login
+            Back
+          </button>
+          <button type="button" onClick={signInHandler} className={btnPrimary}>
+            Create account
           </button>
         </div>
       </div>
     );
-  } else if (screen === "reset") {
+  } else if (login === "loading") {
     content = (
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <Doty pose="11" size="tiny" animation="bob" />
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-            Check your email
-          </h2>
-          <p className="text-sm font-semibold text-(--muted)">
-            Enter the code we sent to{" "}
-            <span className="font-extrabold text-foreground">
-              {resetEmail || "your email"}
-            </span>{" "}
-            and pick a new password.
-          </p>
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div style={{ animation: "dots-float 1.5s ease-in-out infinite" }}>
+          <Doty pose="07" size="tiny" />
         </div>
-
-        {banner}
-
-        <div className="flex flex-col gap-3.5">
-          <input
-            value={resetCode}
-            onChange={(e) => setResetCode(e.target.value)}
-            placeholder="6-digit code"
-            type="text"
-            inputMode="numeric"
-            className={`${inputCls} text-center tracking-[0.4em]`}
-          />
-          <input
-            value={resetPassword}
-            onChange={(e) => setResetPasswordVal(e.target.value)}
-            placeholder="New password"
-            type="password"
-            autoComplete="new-password"
-            className={inputCls}
-          />
-          <input
-            value={resetPassword2}
-            onChange={(e) => setResetPassword2(e.target.value)}
-            placeholder="Confirm new password"
-            type="password"
-            autoComplete="new-password"
-            className={inputCls}
-          />
-          <UIButton
-            tone="accent"
-            onClick={resetHandler}
-            disabled={loading}
-            fullWidth
-          >
-            {loading ? "Saving…" : "Reset password"}
-          </UIButton>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
+        <p className="text-sm font-bold text-(--muted)">
+          Getting things ready…
+        </p>
+      </div>
+    );
+  } else if (login === "username") {
+    content = (
+      <div
+        className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
+        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
+      >
+        <Doty pose="02" size="smaller" />
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+          You&apos;re in! 🎉
+        </h2>
+        <p className="text-sm font-semibold text-(--muted)">
+          We sent a confirmation email to{" "}
+          <span className="font-extrabold text-foreground">{email}</span>.
+        </p>
+        {newUsername && (
+          <p className="text-sm font-semibold text-(--muted)">
+            Your username:{" "}
+            <span className="font-extrabold text-foreground">
+              {newUsername}
+            </span>
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={() => setLogin("login")}
+          className={btnPrimary}
+        >
+          Go to login
+        </button>
+      </div>
+    );
+  } else if (login === "error") {
+    content = (
+      <div
+        className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
+        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
+      >
+        <Doty pose="05" size="smaller" />
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+          Oops!
+        </h2>
+        <p className="text-sm font-semibold text-(--muted)">{errorMessage}</p>
+        <div className="flex w-full flex-col gap-3">
           <button
             type="button"
-            onClick={() => goTo("forgot")}
-            className={`${linkBtn} text-center`}
+            onClick={() => newUserHandler(false)}
+            className={btnPrimary}
           >
-            Didn&apos;t get a code? Try again
+            Try again
+          </button>
+          <button
+            type="button"
+            onClick={() => setLogin("login")}
+            className={btnOutline}
+          >
+            Back to login
           </button>
         </div>
       </div>
@@ -506,16 +412,29 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background px-6 py-12 text-foreground">
-      {/* Ambient dots — the brand, literally */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <span className="absolute left-[8%] top-[12%] h-6 w-6 rounded-full bg-(--accent)/10" />
-        <span className="absolute right-[12%] top-[22%] h-10 w-10 rounded-full bg-(--purple)/10" />
-        <span className="absolute left-[18%] bottom-[18%] h-8 w-8 rounded-full bg-(--sun)/15" />
-        <span className="absolute right-[20%] bottom-[10%] h-5 w-5 rounded-full bg-(--accent)/10" />
-        <span className="absolute left-[45%] top-[6%] h-4 w-4 rounded-full bg-(--success)/10" />
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-12 text-foreground">
+      {/* Drifting color blobs behind the card */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-30 blur-3xl"
+        style={{
+          background: "var(--accent)",
+          animation: "dots-blob-drift 14s ease-in-out infinite",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 -bottom-32 h-96 w-96 rounded-full opacity-25 blur-3xl"
+        style={{
+          background: "var(--primary)",
+          animation: "dots-blob-drift 18s ease-in-out infinite reverse",
+        }}
+      />
+
+      {/* Card */}
+      <div className="dots-card relative z-10 flex w-full max-w-3xl items-center justify-center px-6 py-10 md:px-12 md:py-12">
+        {content}
       </div>
-      {content}
     </div>
   );
 }

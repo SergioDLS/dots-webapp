@@ -4,19 +4,15 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import WordImg from "@/components/ui/word-img/word-img";
 
-const profile =
-  typeof window !== "undefined" ? localStorage.getItem("profile") : null;
-
 type LevelWordProps = {
-  on_construction: number;
+  onConstruction?: boolean;
   id: number;
   color?: string;
   name: string;
   src: string;
   animation?: string;
-  available?: boolean;
   unlocked?: boolean;
-  levels_left: number;
+  levels_left?: number;
   progress: number;
   current?: boolean;
   animationIndex?: number;
@@ -45,51 +41,14 @@ const colorMap: Record<
   disabled:   { bg: "#f3f4f6", ring: "#e5e7eb", accent: "#9ca3af", text: "#6b7280", dark: { bg: "#1f2937", ring: "#374151", accent: "#6b7280", text: "#9ca3af" } },
 };
 
-/* ── Inject keyframes once ────────────────────────────────── */
-if (typeof document !== "undefined") {
-  const STYLE_ID = "__lw_kf2__";
-  if (!document.getElementById(STYLE_ID)) {
-    const s = document.createElement("style");
-    s.id = STYLE_ID;
-    s.textContent = `
-      @keyframes lw-float {
-        0%,100% { transform: translateY(0) scale(1); }
-        50%     { transform: translateY(-6px) scale(1.05); }
-      }
-      @keyframes lw-pulse-ring {
-        0%   { box-shadow: 0 0 0 0px var(--pulse-color, #3b82f6); }
-        50%  { box-shadow: 0 0 0 8px transparent; }
-        100% { box-shadow: 0 0 0 0px transparent; }
-      }
-      @keyframes lw-pop-in {
-        0%   { transform: translateX(-50%) scale(0.3); opacity: 0; }
-        60%  { transform: translateX(-50%) scale(1.08); opacity: 1; }
-        100% { transform: translateX(-50%) scale(1);    opacity: 1; }
-      }
-      @keyframes lw-wiggle {
-        0%,100% { transform: rotate(0deg); }
-        25%     { transform: rotate(-3deg); }
-        75%     { transform: rotate(3deg); }
-      }
-      @keyframes lw-star-spin {
-        0%   { transform: scale(1)   rotate(0deg); }
-        50%  { transform: scale(1.2) rotate(180deg); }
-        100% { transform: scale(1)   rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(s);
-  }
-}
-
 export default function LevelWord({
-  on_construction,
+  onConstruction = false,
   id,
   color,
   name,
   src,
-  available,
   unlocked,
-  levels_left,
+  levels_left = 0,
   progress,
   current = false,
   animationIndex = 0,
@@ -99,8 +58,19 @@ export default function LevelWord({
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const canOpen = on_construction !== 1 || profile === "1";
-  const isUnlocked = unlocked ?? available ?? true;
+  // admins (profile === 1) can open levels that are under construction
+  const [isAdmin] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const user = JSON.parse(localStorage.getItem("user") ?? "{}");
+      return user?.profile === 1;
+    } catch {
+      return false;
+    }
+  });
+
+  const canOpen = !onConstruction || isAdmin;
+  const isUnlocked = unlocked ?? true;
   const progressClamped = Math.max(0, Math.min(100, Math.round(progress)));
   const isDone = progressClamped >= 100;
   const isLocked = !isUnlocked;
@@ -168,7 +138,7 @@ export default function LevelWord({
       className="flex flex-col items-center gap-1.5"
       style={{
         animation: mounted
-          ? `lw-pop-in 500ms cubic-bezier(.34,1.56,.64,1) ${animationIndex * 90}ms both`
+          ? `dots-pop-in 500ms cubic-bezier(.34,1.56,.64,1) ${animationIndex * 90}ms both`
           : "none",
         opacity: mounted ? undefined : 0,
         width: 156,
@@ -182,7 +152,7 @@ export default function LevelWord({
           height: svgSize,
           cursor: isUnlocked && canOpen ? "pointer" : "default",
           animation: current && !isLocked && !isDone
-            ? `lw-float 2.5s ease-in-out ${(animationIndex % 3) * 0.4}s infinite`
+            ? `dots-float 2.5s ease-in-out ${(animationIndex % 3) * 0.4}s infinite`
             : "none",
         }}
         onClick={() => isUnlocked && canOpen && setOpen((v) => !v)}
@@ -240,7 +210,7 @@ export default function LevelWord({
             className="absolute inset-0 rounded-full"
             style={{
               "--pulse-color": `${accent}44`,
-              animation: "lw-pulse-ring 2s ease-out infinite",
+              animation: "dots-pulse-ring 2s ease-out infinite",
             } as React.CSSProperties}
           />
         )}
@@ -275,7 +245,7 @@ export default function LevelWord({
               opacity: isLocked ? 0.18 : isDone ? 0.7 : 1,
               filter: isLocked ? "grayscale(1)" : "none",
               animation: !isLocked && !isDone && isUnlocked
-                ? `lw-wiggle 3s ease-in-out ${animationIndex * 0.2}s infinite`
+                ? `dots-wiggle 3s ease-in-out ${animationIndex * 0.2}s infinite`
                 : "none",
             }}
           >
@@ -321,7 +291,7 @@ export default function LevelWord({
               style={{
                 fontSize: 15,
                 lineHeight: 1,
-                animation: "lw-star-spin 3s linear infinite",
+                animation: "dots-star-spin 3s linear infinite",
                 display: "inline-block",
               }}
             >

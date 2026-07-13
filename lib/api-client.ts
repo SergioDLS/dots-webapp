@@ -1,44 +1,54 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 let accessTokenMemory: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
   accessTokenMemory = token;
 };
 
+export const getAccessToken = () => accessTokenMemory;
+
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
+  baseURL: API_BASE,
   headers: { "Content-Type": "application/json" },
-  // withCredentials MUST be true so the browser stores/sends the HttpOnly
-  // refresh_token cookie set by the API (cross-site in production).
+  // The refresh token lives in an HttpOnly cookie, so every request must
+  // carry credentials for the backend to be able to rotate/revoke it.
   withCredentials: true,
 });
 
-// Single refresh flow guard
-let isRefreshing = false;
+// Single-flight refresh: concurrent 401s (and the AuthProvider bootstrap)
+// all await the same promise instead of firing parallel /auth/refresh calls.
 let refreshPromise: Promise<string | null> | null = null;
 
-const doRefresh = async (): Promise<string | null> => {
-  try {
-    // Use a plain axios instance (no interceptors) to avoid the response
-    // interceptor catching a 401 on the refresh call itself and recursing.
-    const plain = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
-      headers: { "Content-Type": "application/json" },
-      withCredentials: true,
-      timeout: 8000,
-    });
-    const res = await plain.post("/auth/refresh");
-    // Backend returns { token } (not accessToken)
-    const token: string | null = res.data?.token ?? res.data?.accessToken ?? null;
-    setAccessToken(token);
-    return token;
-  } catch {
-    setAccessToken(null);
-    return null;
+export const refreshAccessToken = (): Promise<string | null> => {
+  if (!refreshPromise) {
+    // Plain axios (no interceptors) so a 401 from /auth/refresh itself
+    // can't recurse back into the response interceptor.
+    refreshPromise = axios
+      .post(`${API_BASE}/auth/refresh`, null, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+        timeout: 8000,
+      })
+      .then((res) => {
+        const token: string | null =
+          res.data?.token ?? res.data?.accessToken ?? null;
+        setAccessToken(token);
+        return token;
+      })
+      .catch(() => {
+        setAccessToken(null);
+        return null;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
   }
+  return refreshPromise;
 };
 
 api.interceptors.request.use((config) => {
@@ -58,16 +68,16 @@ api.interceptors.response.use(
       throw error;
     }
 
-    original._retry = true;
-
-    if (!isRefreshing) {
-      isRefreshing = true;
-      refreshPromise = doRefresh().finally(() => {
-        isRefreshing = false;
-      });
+    // A 401 from the auth endpoints themselves (wrong password, expired
+    // refresh cookie, etc.) means the credentials failed — refreshing and
+    // retrying would be wrong. Only protected-resource 401s go through refresh.
+    if (original.url?.includes("/auth/")) {
+      throw error;
     }
 
-    const newToken = await refreshPromise;
+    original._retry = true;
+
+    const newToken = await refreshAccessToken();
     if (!newToken) {
       // Don't redirect here — let callers (AuthProvider, pages) decide
       // what to do when auth fails. Redirecting from the interceptor

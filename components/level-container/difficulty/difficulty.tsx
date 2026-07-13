@@ -8,7 +8,7 @@ import type { SectionLevel } from "@/types/levels.types";
 interface DifficultyProps {
   idLevel: number;
   pose: string;
-  enabled: number;
+  enabled: boolean;
   name: string;
   sections?: SectionLevel[];
   progress: number;
@@ -67,13 +67,19 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections, pro
 
       {/* ── Banner ─────────────────────────────────────────── */}
       <div
-        className="relative rounded-2xl overflow-hidden"
+        className="relative rounded-3xl overflow-hidden"
         style={{
-          background: `${accentHex}18`,
-          border: `2px solid ${accentHex}55`,
-          boxShadow: `0 2px 10px rgba(0,0,0,0.06)`,
+          background: "var(--surface)",
+          border: `2px solid ${accentHex}66`,
+          boxShadow: `0 4px 0 ${accentHex}44, 0 12px 30px -14px rgba(33,22,80,0.2)`,
         }}
       >
+        {/* Soft tinted wash so each difficulty keeps its color identity */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: `${accentHex}14` }}
+        />
         <div className="relative flex items-start gap-4 p-5 pb-4">
 
           {/* Avatar */}
@@ -82,6 +88,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections, pro
             style={{
               background: `${accentHex}22`,
               border: `2px solid ${accentHex}44`,
+              animation: "dots-float 4s ease-in-out infinite",
             }}
           >
             <Doty size="mini" pose={pose} />
@@ -147,7 +154,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections, pro
               </span>
             </div>
 
-            {Number(enabled) === 0 && (
+            {!enabled && (
               <p className="text-xs text-(--muted)">Coming soon…</p>
             )}
           </div>
