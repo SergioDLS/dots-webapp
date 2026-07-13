@@ -68,6 +68,13 @@ api.interceptors.response.use(
       throw error;
     }
 
+    // A 401 from the auth endpoints themselves (wrong password, expired
+    // refresh cookie, etc.) means the credentials failed — refreshing and
+    // retrying would be wrong. Only protected-resource 401s go through refresh.
+    if (original.url?.includes("/auth/")) {
+      throw error;
+    }
+
     original._retry = true;
 
     const newToken = await refreshAccessToken();

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { AxiosError } from "axios";
 import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
@@ -8,6 +9,7 @@ import api from "@/lib/api-client";
 import Doty from "@/components/ui/doty/doty";
 
 export default function Login() {
+  const router = useRouter();
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -47,7 +49,10 @@ export default function Login() {
             profile_pic: response.profile_picture ?? null,
           }),
         );
-        window.location.replace("/levels");
+        // Client-side navigation keeps the AuthProvider mounted, so the
+        // access token from the login response stays in memory. The refresh
+        // cookie is only needed as a fallback on full page reloads.
+        router.push("/levels");
       } else {
         setIncorrect(true);
         const text =
@@ -70,7 +75,7 @@ export default function Login() {
     } finally {
       setLoginLoading(false);
     }
-  }, [user, password, setAccessToken]);
+  }, [user, password, setAccessToken, router]);
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
