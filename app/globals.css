@@ -49,6 +49,14 @@
   --gold:         #ffb020;
   --gold-edge:    #bf8418;
 
+  /* Sunny yellow — alias of gold, tracks the active theme. Referenced by
+     confetti, the admin WIP badge and the Don't Pop balloon. */
+  --sun: var(--gold);
+
+  /* Game scenery (Don't Pop sky) */
+  --sky-top:    #7ec8f5;
+  --sky-bottom: #cdeafd;
+
   /* Misc */
   --neutral-edge: #e7cfdd;
   --scrim:        rgba(28, 16, 48, 0.5);
@@ -112,6 +120,10 @@
   --gold:         #ffc53d;
   --gold-edge:    #bf942e;
 
+  /* Game scenery: night flight */
+  --sky-top:    #1c2c54;
+  --sky-bottom: #34467a;
+
   --neutral-edge: #1a0f2e;
   --scrim:        rgba(0, 0, 0, 0.6);
 
@@ -154,6 +166,8 @@
     --danger-edge:  #bc5564;
     --gold:         #ffc53d;
     --gold-edge:    #bf942e;
+    --sky-top:    #1c2c54;
+    --sky-bottom: #34467a;
     --neutral-edge: #1a0f2e;
     --scrim:        rgba(0, 0, 0, 0.6);
     --shadow-card: 0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
