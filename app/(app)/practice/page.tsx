@@ -10,6 +10,10 @@ import UIButton from "@/components/ui/button/button";
 import PracticeContainer from "@/components/practice-container/practice-container";
 import api from "@/lib/api-client";
 import { useAuth } from "@/context/auth-context";
+import {
+  putSentencesProgressService,
+  type ProgressReward,
+} from "@/services/engagement.service";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Sentence = {
@@ -54,6 +58,7 @@ function PracticeClient() {
   const [lifes, setLifes] = useState(4);
   const [confirmLabel, setConfirmLabel] = useState("Confirm");
   const [confirmReady, setConfirmReady] = useState(false);
+  const [reward, setReward] = useState<ProgressReward | null>(null);
 
   // ── Audio ───────────────────────────────────────────────────────────────
   const playSound = (type: "correct" | "wrong") => {
@@ -171,8 +176,16 @@ function PracticeClient() {
       }));
     if (sentences.length === 0) return;
     // the backend resolves the user from the access token
-    api
-      .put("/sentences/progress", { sentences, level_id: Number(id) })
+    putSentencesProgressService({ sentences, level_id: Number(id) })
+      .then((res) => {
+        setReward(res);
+        // keep the sidebar streak pill (localStorage-backed) in sync
+        try {
+          localStorage.setItem("streak", String(res.streak));
+        } catch {
+          /* ignore */
+        }
+      })
       .catch(() => {});
   };
 
@@ -251,6 +264,7 @@ function PracticeClient() {
             click={isSelectedHandler}
             answered={answerState}
             streak={streak}
+            reward={reward}
           />
         </div>
 
