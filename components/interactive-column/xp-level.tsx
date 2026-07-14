@@ -1,30 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  getMyStatsService,
-  type MyStats,
-} from "../../services/engagement.service";
+import React from "react";
+import type { MyStats } from "../../services/engagement.service";
 
 /**
  * XP + level progress pill for the sidebar profile card.
  * Renders nothing when stats are unavailable (e.g. not logged in yet).
+ * Stats are fetched once by InteractiveColumn and shared with the
+ * streak-freeze chip and daily-quest card.
  * Level formula (backend contract): level = floor(sqrt(xp / 100)) + 1,
  * so the current level starts at 100 * (level - 1)^2 XP.
  */
-export default function XpLevel() {
-  const [stats, setStats] = useState<MyStats | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    getMyStatsService().then((data) => {
-      if (active && data) setStats(data);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
+export default function XpLevel({ stats }: { stats: MyStats | null }) {
   if (!stats) return null;
 
   const levelStart = 100 * (stats.level - 1) * (stats.level - 1);

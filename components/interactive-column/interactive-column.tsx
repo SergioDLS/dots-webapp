@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 
 import Streak from "./streak/streak";
@@ -18,6 +18,12 @@ const IconEdit = () => <span className="text-xl">✏️</span>;
 import DailyProgress from "./daily-progress/daily-progress";
 import StreakTop from "./streak/streak-top";
 import XpLevel from "./xp-level";
+import DailyQuestCard from "./daily-quest";
+import BadgesCard from "./badges";
+import {
+  getMyStatsService,
+  type MyStats,
+} from "../../services/engagement.service";
 import TopStudents from "./top-students";
 import ReadingsList from "./readings-list";
 import GamesList from "./games-list";
@@ -69,6 +75,7 @@ export default function InteractiveColumn() {
   const [dialog, setDialog] = useState<DialogState>({ show: false });
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState<User>(() => getUserFromStorage() as User);
+  const [stats, setStats] = useState<MyStats | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -82,6 +89,18 @@ export default function InteractiveColumn() {
     { title: "Top streaks", icon: <IconFire /> },
     { title: "Games", icon: <IconGame /> },
   ];
+
+  // engagement stats (xp / level / streak freezes) — shared by the profile
+  // card and refreshed after a daily-quest claim
+  const loadStats = useCallback(() => {
+    getMyStatsService().then((data) => {
+      if (data) setStats(data);
+    });
+  }, []);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   // matchMedia for responsive JS logic (md breakpoint ~768px)
   useEffect(() => {
@@ -294,11 +313,25 @@ export default function InteractiveColumn() {
                 <h3 className="font-display text-lg font-extrabold leading-tight truncate text-foreground">
                   {user?.name || "there"} 👋
                 </h3>
-                <div className="mt-0.5">
+                <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                   <Streak />
+                  {(stats?.streakFreezes ?? 0) > 0 && (
+                    <span
+                      title="Streak freezes — save a missed day"
+                      className="inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-xs font-extrabold"
+                      style={{
+                        background: "rgba(56,189,248,0.14)",
+                        border: "1.5px solid rgba(56,189,248,0.4)",
+                        color: "#0284c7",
+                        animation: "dots-pop-in 0.35s ease-out both",
+                      }}
+                    >
+                      ❄️×{stats!.streakFreezes}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1.5">
-                  <XpLevel />
+                  <XpLevel stats={stats} />
                 </div>
               </div>
             </div>
@@ -349,6 +382,9 @@ export default function InteractiveColumn() {
               </div>
             </div>
           </div>
+
+          {/* ── Daily quest ───────────────────────────────────── */}
+          <DailyQuestCard onClaimed={loadStats} />
 
           {/* ── Navigation tabs ───────────────────────────────── */}
           <div className="dots-card p-1.5">
@@ -423,6 +459,9 @@ export default function InteractiveColumn() {
               />
             ))}
           </div>
+
+          {/* ── Badges ────────────────────────────────────────── */}
+          <BadgesCard />
         </div>
       </div>
 
