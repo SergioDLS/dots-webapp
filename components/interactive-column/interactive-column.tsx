@@ -17,6 +17,7 @@ const IconEdit = () => <span className="text-xl">✏️</span>;
 
 import DailyProgress from "./daily-progress/daily-progress";
 import StreakTop from "./streak/streak-top";
+import XpLevel from "./xp-level";
 import TopStudents from "./top-students";
 import ReadingsList from "./readings-list";
 import GamesList from "./games-list";
@@ -295,6 +296,9 @@ export default function InteractiveColumn() {
                 </h3>
                 <div className="mt-0.5">
                   <Streak />
+                </div>
+                <div className="mt-1.5">
+                  <XpLevel />
                 </div>
               </div>
             </div>
