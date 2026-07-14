@@ -6,20 +6,28 @@ import Doty from "@/components/ui/doty/doty";
 
 const cards = [
   {
-    title: "Levels & Sentences",
-    desc: "Enable levels, edit sentences, add new practice content.",
+    title: "Levels & Content",
+    desc: "Enable levels, edit their sentences and vocabulary words.",
     href: "/admin/levels",
     pose: "07",
     accent: "var(--accent)",
     edge: "var(--accent-edge)",
   },
   {
-    title: "Words",
-    desc: "Review the vocabulary attached to each level.",
-    href: "/admin/levels",
+    title: "Readings",
+    desc: "Create and edit reading passages with audio and quizzes.",
+    href: "/admin/readings",
     pose: "12",
     accent: "var(--purple)",
     edge: "var(--purple-edge)",
+  },
+  {
+    title: "Users",
+    desc: "Search students, edit their details, block or unblock accounts.",
+    href: "/admin/users",
+    pose: "02",
+    accent: "var(--success)",
+    edge: "var(--success-edge)",
   },
 ];
 

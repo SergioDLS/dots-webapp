@@ -113,6 +113,141 @@ export async function deleteSentence(id: number) {
   return data;
 }
 
+export type AdminReadingListItem = {
+  id: number;
+  title: string;
+  unlock: number;
+  enabled: boolean;
+  hasAudio: boolean;
+};
+
+export type AdminReading = {
+  id: number;
+  title: string;
+  text: string;
+  src: string;
+  unlock: number;
+  enabled: boolean;
+};
+
+export type AdminUser = {
+  id: number;
+  name: string;
+  lastName: string;
+  email: string;
+  username: string;
+  profile: number;
+  blocked: boolean;
+  birth: string | null;
+  creationDate: string | null;
+  expires: string | null;
+  lastLog: string | null;
+  xp: number;
+  streak: number;
+  profilePic: string | null;
+};
+
+// ── Words ──────────────────────────────────────────────────────
+
+export async function createWord(payload: {
+  levelId: number;
+  text: string;
+  meaning?: string;
+  audio?: string;
+  img?: string;
+  position?: number;
+}): Promise<AdminWord> {
+  const { data } = await api.post("/admin/words", payload);
+  return data;
+}
+
+export async function updateWord(
+  id: number,
+  payload: Partial<{
+    text: string;
+    meaning: string;
+    audio: string;
+    img: string;
+    position: number;
+  }>,
+): Promise<AdminWord> {
+  const { data } = await api.patch(`/admin/words/${id}`, payload);
+  return data;
+}
+
+export async function deleteWord(id: number) {
+  const { data } = await api.delete(`/admin/words/${id}`);
+  return data;
+}
+
+// ── Readings ───────────────────────────────────────────────────
+
+export async function getReadings(): Promise<AdminReadingListItem[]> {
+  const { data } = await api.get("/admin/readings");
+  return data;
+}
+
+export async function getReading(id: number): Promise<AdminReading> {
+  const { data } = await api.get(`/admin/readings/${id}`);
+  return data;
+}
+
+export async function createReading(payload: {
+  title: string;
+  text: string;
+  src?: string;
+  unlock?: number;
+}): Promise<AdminReading> {
+  const { data } = await api.post("/admin/readings", payload);
+  return data;
+}
+
+export async function updateReading(
+  id: number,
+  payload: Partial<{
+    title: string;
+    text: string;
+    src: string;
+    unlock: number;
+  }>,
+): Promise<AdminReading> {
+  const { data } = await api.patch(`/admin/readings/${id}`, payload);
+  return data;
+}
+
+export async function setReadingEnabled(id: number, enabled: boolean) {
+  const { data } = await api.patch(`/admin/readings/${id}/enabled`, {
+    enabled,
+  });
+  return data;
+}
+
+// ── Users ──────────────────────────────────────────────────────
+
+export async function getUsers(): Promise<AdminUser[]> {
+  const { data } = await api.get("/admin/users");
+  return data;
+}
+
+export async function updateUser(
+  id: number,
+  payload: Partial<{
+    name: string;
+    lastName: string;
+    email: string;
+    birth: string | null;
+    expires: string | null;
+  }>,
+): Promise<AdminUser> {
+  const { data } = await api.patch(`/admin/users/${id}`, payload);
+  return data;
+}
+
+export async function setUserBlocked(id: number, blocked: boolean) {
+  const { data } = await api.patch(`/admin/users/${id}/blocked`, { blocked });
+  return data;
+}
+
 export async function uploadMedia(
   file: File,
   kind: "image" | "audio",

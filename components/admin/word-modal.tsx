@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import UIButton from "@/components/ui/button/button";
 import {
-  createSentence,
-  updateSentence,
+  createWord,
+  updateWord,
   uploadMedia,
-  type AdminSentence,
+  type AdminWord,
 } from "@/services/admin.service";
 import {
   AdminModal,
@@ -20,35 +20,24 @@ import {
 
 interface Props {
   levelId: number;
-  sentence: AdminSentence | null; // null → create
+  word: AdminWord | null; // null → create
   onClose: () => void;
   onSaved: (message: string) => void;
 }
 
-export default function SentenceModal({
-  levelId,
-  sentence,
-  onClose,
-  onSaved,
-}: Props) {
-  const isEdit = Boolean(sentence);
-  const [text, setText] = useState(sentence?.text ?? "");
-  const [mWord, setMWord] = useState(sentence?.mWord ?? "");
-  const [img, setImg] = useState(sentence?.img ?? "");
-  const [imgSound, setImgSound] = useState(sentence?.imgSound ?? "");
+export default function WordModal({ levelId, word, onClose, onSaved }: Props) {
+  const isEdit = Boolean(word);
+  const [text, setText] = useState(word?.text ?? "");
+  const [meaning, setMeaning] = useState(word?.meaning ?? "");
+  const [img, setImg] = useState(word?.img ?? "");
+  const [audio, setAudio] = useState(word?.audio ?? "");
+  const [position, setPosition] = useState<string>(
+    word?.position != null ? String(word.position) : "",
+  );
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
-
-  const validate = (): string => {
-    if (!text.trim()) return "Please write the sentence.";
-    if (!text.includes("__")) return 'The sentence needs "__" for the missing word.';
-    if (text.split("__").length !== 2)
-      return 'The sentence must contain "__" exactly once.';
-    if (!mWord.trim()) return "Please write the missing word.";
-    return "";
-  };
 
   const handleUpload = async (
     file: File | undefined,
@@ -61,7 +50,7 @@ export default function SentenceModal({
     try {
       const { url } = await uploadMedia(file, kind);
       if (kind === "image") setImg(url);
-      else setImgSound(url);
+      else setAudio(url);
     } catch {
       setErr(
         "Upload failed. Media uploads need Cloudinary configured on the server.",
@@ -72,31 +61,36 @@ export default function SentenceModal({
   };
 
   const save = async () => {
-    const problem = validate();
-    if (problem) {
-      setErr(problem);
+    if (!text.trim()) {
+      setErr("Please write the word.");
+      return;
+    }
+    if (position !== "" && (!/^\d+$/.test(position) || Number(position) < 0)) {
+      setErr("Position must be a positive number.");
       return;
     }
     setSaving(true);
     setErr("");
     try {
-      if (isEdit && sentence) {
-        await updateSentence(sentence.id, {
+      if (isEdit && word) {
+        await updateWord(word.id, {
           text: text.trim(),
-          mWord: mWord.trim(),
+          meaning: meaning.trim(),
           img,
-          imgSound,
+          audio,
+          ...(position !== "" ? { position: Number(position) } : {}),
         });
-        onSaved("Sentence updated.");
+        onSaved("Word updated.");
       } else {
-        await createSentence({
+        await createWord({
           levelId,
           text: text.trim(),
-          mWord: mWord.trim(),
+          meaning: meaning.trim() || undefined,
           img: img || undefined,
-          imgSound: imgSound || undefined,
+          audio: audio || undefined,
+          ...(position !== "" ? { position: Number(position) } : {}),
         });
-        onSaved("Sentence created.");
+        onSaved("Word created.");
       }
     } catch (e: unknown) {
       const ex = e as { response?: { data?: { message?: string } } };
@@ -105,11 +99,9 @@ export default function SentenceModal({
     }
   };
 
-  const preview = text ? text.replace("__", mWord || "_____") : "";
-
   return (
     <AdminModal
-      title={isEdit ? "Edit sentence" : "New sentence"}
+      title={isEdit ? "Edit word" : "New word"}
       onClose={onClose}
       footer={
         <>
@@ -121,48 +113,42 @@ export default function SentenceModal({
             onClick={save}
             disabled={saving || uploadingImg || uploadingAudio}
           >
-            {saving ? "Saving…" : isEdit ? "Save changes" : "Create sentence"}
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Create word"}
           </UIButton>
         </>
       }
     >
       <ModalError text={err} />
 
-      <Field
-        label={
-          <>
-            Sentence (use <code className="text-(--accent)">__</code> for the
-            missing word)
-          </>
-        }
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Word">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="apple"
+            className={modalInputCls}
+          />
+        </Field>
+
+        <Field label="Meaning (optional)">
+          <input
+            value={meaning}
+            onChange={(e) => setMeaning(e.target.value)}
+            placeholder="manzana"
+            className={modalInputCls}
+          />
+        </Field>
+      </div>
+
+      <Field label="Position (optional — order inside the level)">
         <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="The cat is __"
+          value={position}
+          onChange={(e) => setPosition(e.target.value)}
+          placeholder="Auto"
+          inputMode="numeric"
           className={modalInputCls}
         />
       </Field>
-
-      <Field label="Missing word">
-        <input
-          value={mWord}
-          onChange={(e) => setMWord(e.target.value)}
-          placeholder="black"
-          className={modalInputCls}
-        />
-      </Field>
-
-      {preview && (
-        <div className="rounded-2xl bg-(--background) px-4 py-3 text-center">
-          <span className="text-xs font-bold uppercase tracking-wide text-(--muted)">
-            Preview
-          </span>
-          <p className="font-display text-lg font-extrabold text-foreground">
-            {preview}
-          </p>
-        </div>
-      )}
 
       {/* Media uploads */}
       <div className="grid grid-cols-2 gap-3">
@@ -176,13 +162,13 @@ export default function SentenceModal({
           preview={resolveImageUrl(img)}
         />
         <UploadTile
-          label="Word audio"
+          label="Audio"
           accept="audio/*"
           uploading={uploadingAudio}
-          hasValue={Boolean(imgSound)}
+          hasValue={Boolean(audio)}
           onFile={(f) => handleUpload(f, "audio")}
-          onClear={() => setImgSound("")}
-          preview={resolveAudioUrl(imgSound)}
+          onClear={() => setAudio("")}
+          preview={resolveAudioUrl(audio)}
         />
       </div>
     </AdminModal>

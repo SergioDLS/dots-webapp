@@ -4,20 +4,29 @@ import React, { useCallback, useEffect, useState } from "react";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
 import SentenceModal from "@/components/admin/sentence-modal";
+import WordModal from "@/components/admin/word-modal";
+import {
+  Toggle,
+  ToastBanner,
+  useToast,
+} from "@/components/admin/ui";
 import {
   getDifficulties,
   getStructure,
   getSentences,
+  getWords,
   setLevelEnabled,
   setSentenceEnabled,
   deleteSentence,
+  deleteWord,
   type AdminDifficulty,
   type AdminStructure,
   type AdminLevel,
   type AdminSentence,
+  type AdminWord,
 } from "@/services/admin.service";
 
-type Toast = { text: string; kind: "ok" | "error" } | null;
+type LevelTab = "sentences" | "words";
 
 export default function AdminLevelsPage() {
   const [difficulties, setDifficulties] = useState<AdminDifficulty[]>([]);
@@ -27,18 +36,8 @@ export default function AdminLevelsPage() {
   const [loadingStructure, setLoadingStructure] = useState(false);
 
   const [selectedLevel, setSelectedLevel] = useState<AdminLevel | null>(null);
-  const [sentences, setSentences] = useState<AdminSentence[]>([]);
-  const [loadingSentences, setLoadingSentences] = useState(false);
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<AdminSentence | null>(null);
-  const [toast, setToast] = useState<Toast>(null);
+  const [toast, flash] = useToast();
   const [error, setError] = useState<string | null>(null);
-
-  const flash = (text: string, kind: "ok" | "error" = "ok") => {
-    setToast({ text, kind });
-    setTimeout(() => setToast(null), 2600);
-  };
 
   const loadStructure = useCallback((id: number) => {
     setDifficultyId(id);
@@ -59,20 +58,6 @@ export default function AdminLevelsPage() {
       })
       .catch(() => setError("Could not load difficulties."));
   }, [loadStructure]);
-
-  const openLevel = useCallback((level: AdminLevel) => {
-    setSelectedLevel(level);
-    setLoadingSentences(true);
-    getSentences(level.id)
-      .then(setSentences)
-      .catch(() => flash("Could not load sentences.", "error"))
-      .finally(() => setLoadingSentences(false));
-  }, []);
-
-  const refreshSentences = useCallback(() => {
-    if (!selectedLevel) return;
-    getSentences(selectedLevel.id).then(setSentences).catch(() => {});
-  }, [selectedLevel]);
 
   const toggleLevel = async (level: AdminLevel) => {
     try {
@@ -96,28 +81,6 @@ export default function AdminLevelsPage() {
     }
   };
 
-  const toggleSentence = async (s: AdminSentence) => {
-    try {
-      await setSentenceEnabled(s.id, !s.enabled);
-      setSentences((prev) =>
-        prev.map((x) => (x.id === s.id ? { ...x, enabled: !x.enabled } : x)),
-      );
-    } catch {
-      flash("Could not update the sentence.", "error");
-    }
-  };
-
-  const removeSentence = async (s: AdminSentence) => {
-    if (!confirm(`Delete this sentence?\n\n"${s.text}"`)) return;
-    try {
-      await deleteSentence(s.id);
-      setSentences((prev) => prev.filter((x) => x.id !== s.id));
-      flash("Sentence deleted.");
-    } catch {
-      flash("Could not delete the sentence.", "error");
-    }
-  };
-
   if (error) {
     return (
       <div className="rounded-2xl border-2 border-(--danger)/30 bg-(--danger)/10 px-5 py-4 text-sm font-bold text-(--danger)">
@@ -126,132 +89,16 @@ export default function AdminLevelsPage() {
     );
   }
 
-  // ── Sentence editor view ─────────────────────────────────────
   if (selectedLevel) {
     return (
-      <div className="flex flex-col gap-5">
-        <button
-          onClick={() => setSelectedLevel(null)}
-          className="self-start text-sm font-bold text-(--muted) transition-colors hover:text-(--accent)"
-        >
-          ← Back to levels
-        </button>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-2xl font-extrabold capitalize text-foreground">
-            {selectedLevel.name}
-          </h1>
-          <UIButton
-            tone="accent"
-            onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
-          >
-            + New sentence
-          </UIButton>
-        </div>
-
-        {loadingSentences ? (
-          <div className="py-16">
-            <Spinner title="Loading sentences…" />
-          </div>
-        ) : sentences.length === 0 ? (
-          <p className="rounded-2xl border-2 border-dashed border-(--border) px-5 py-8 text-center text-sm font-semibold text-(--muted)">
-            No sentences yet. Add the first one!
-          </p>
-        ) : (
-          <div className="overflow-hidden rounded-2xl border-2 border-(--border)">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-(--surface) text-(--muted)">
-                <tr className="text-xs font-extrabold uppercase tracking-wide">
-                  <th className="px-4 py-3">Sentence</th>
-                  <th className="px-4 py-3">Missing word</th>
-                  <th className="px-4 py-3">Media</th>
-                  <th className="px-4 py-3 text-center">Enabled</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sentences.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="border-t border-(--border) align-middle"
-                  >
-                    <td className="px-4 py-3 font-semibold text-foreground">
-                      {s.text}
-                    </td>
-                    <td className="px-4 py-3 font-bold text-(--accent)">
-                      {s.mWord}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="flex items-center gap-1.5 text-xs font-bold text-(--muted)">
-                        {s.img ? "🖼️" : "—"} {s.imgSound ? "🔊" : ""}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => toggleSentence(s)}
-                        className="inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-colors"
-                        style={{
-                          background: s.enabled
-                            ? "var(--success)"
-                            : "var(--border)",
-                        }}
-                        aria-pressed={s.enabled}
-                        title={s.enabled ? "Enabled" : "Disabled"}
-                      >
-                        <span
-                          className="h-5 w-5 rounded-full bg-white transition-transform"
-                          style={{
-                            transform: s.enabled
-                              ? "translateX(20px)"
-                              : "translateX(0)",
-                          }}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            setEditing(s);
-                            setModalOpen(true);
-                          }}
-                          className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => removeSentence(s)}
-                          className="rounded-lg border-2 border-(--danger)/40 px-2.5 py-1 text-xs font-bold text-(--danger) transition-colors hover:bg-(--danger)/10"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {modalOpen && selectedLevel && (
-          <SentenceModal
-            levelId={selectedLevel.id}
-            sentence={editing}
-            onClose={() => setModalOpen(false)}
-            onSaved={(msg) => {
-              setModalOpen(false);
-              refreshSentences();
-              flash(msg);
-            }}
-          />
-        )}
-
+      <>
+        <LevelDetail
+          level={selectedLevel}
+          onBack={() => setSelectedLevel(null)}
+          flash={flash}
+        />
         {toast && <ToastBanner toast={toast} />}
-      </div>
+      </>
     );
   }
 
@@ -265,7 +112,7 @@ export default function AdminLevelsPage() {
   return (
     <div className="flex flex-col gap-5">
       <h1 className="font-display text-2xl font-extrabold text-foreground">
-        Levels &amp; Sentences
+        Levels &amp; Content
       </h1>
 
       {/* Filters */}
@@ -313,7 +160,7 @@ export default function AdminLevelsPage() {
                     <tr className="text-xs font-extrabold uppercase tracking-wide">
                       <th className="px-4 py-3">Level</th>
                       <th className="px-4 py-3 text-center">Enabled</th>
-                      <th className="px-4 py-3 text-right">Sentences</th>
+                      <th className="px-4 py-3 text-right">Content</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -331,28 +178,16 @@ export default function AdminLevelsPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <button
+                          <Toggle
+                            on={level.enabled}
                             onClick={() => toggleLevel(level)}
-                            className="inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-colors"
-                            style={{
-                              background: level.enabled
-                                ? "var(--success)"
-                                : "var(--border)",
-                            }}
-                            aria-pressed={level.enabled}
-                          >
-                            <span
-                              className="h-5 w-5 rounded-full bg-white transition-transform"
-                              style={{
-                                transform: level.enabled
-                                  ? "translateX(20px)"
-                                  : "translateX(0)",
-                              }}
-                            />
-                          </button>
+                          />
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <UIButton tone="neutral" onClick={() => openLevel(level)}>
+                          <UIButton
+                            tone="neutral"
+                            onClick={() => setSelectedLevel(level)}
+                          >
                             Manage →
                           </UIButton>
                         </td>
@@ -386,15 +221,302 @@ export default function AdminLevelsPage() {
   );
 }
 
-function ToastBanner({ toast }: { toast: NonNullable<Toast> }) {
+// ── Level detail: Sentences | Words tabs ──────────────────────
+function LevelDetail({
+  level,
+  onBack,
+  flash,
+}: {
+  level: AdminLevel;
+  onBack: () => void;
+  flash: (text: string, kind?: "ok" | "error") => void;
+}) {
+  const [tab, setTab] = useState<LevelTab>("sentences");
+
+  const [sentences, setSentences] = useState<AdminSentence[]>([]);
+  const [loadingSentences, setLoadingSentences] = useState(true);
+  const [sentenceModalOpen, setSentenceModalOpen] = useState(false);
+  const [editingSentence, setEditingSentence] = useState<AdminSentence | null>(
+    null,
+  );
+
+  const [words, setWords] = useState<AdminWord[]>([]);
+  const [loadingWords, setLoadingWords] = useState(true);
+  const [wordModalOpen, setWordModalOpen] = useState(false);
+  const [editingWord, setEditingWord] = useState<AdminWord | null>(null);
+
+  useEffect(() => {
+    getSentences(level.id)
+      .then(setSentences)
+      .catch(() => flash("Could not load sentences.", "error"))
+      .finally(() => setLoadingSentences(false));
+    getWords(level.id)
+      .then(setWords)
+      .catch(() => flash("Could not load words.", "error"))
+      .finally(() => setLoadingWords(false));
+  }, [level.id, flash]);
+
+  const refreshSentences = useCallback(() => {
+    getSentences(level.id).then(setSentences).catch(() => {});
+  }, [level.id]);
+
+  const refreshWords = useCallback(() => {
+    getWords(level.id).then(setWords).catch(() => {});
+  }, [level.id]);
+
+  const toggleSentence = async (s: AdminSentence) => {
+    try {
+      await setSentenceEnabled(s.id, !s.enabled);
+      setSentences((prev) =>
+        prev.map((x) => (x.id === s.id ? { ...x, enabled: !x.enabled } : x)),
+      );
+    } catch {
+      flash("Could not update the sentence.", "error");
+    }
+  };
+
+  const removeSentence = async (s: AdminSentence) => {
+    if (!confirm(`Delete this sentence?\n\n"${s.text}"`)) return;
+    try {
+      await deleteSentence(s.id);
+      setSentences((prev) => prev.filter((x) => x.id !== s.id));
+      flash("Sentence deleted.");
+    } catch {
+      flash("Could not delete the sentence.", "error");
+    }
+  };
+
+  const removeWord = async (w: AdminWord) => {
+    if (!confirm(`Delete this word?\n\n"${w.text ?? ""}"`)) return;
+    try {
+      await deleteWord(w.id);
+      setWords((prev) => prev.filter((x) => x.id !== w.id));
+      flash("Word deleted.");
+    } catch {
+      flash("Could not delete the word.", "error");
+    }
+  };
+
+  const tabCls = (active: boolean) =>
+    `rounded-xl px-4 py-2 text-sm font-extrabold transition-colors ${
+      active
+        ? "bg-(--accent) text-white"
+        : "text-(--muted) hover:bg-(--accent)/10 hover:text-(--accent)"
+    }`;
+
   return (
-    <div
-      className="pop-in fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-5 py-3 text-sm font-extrabold text-white shadow-lg"
-      style={{
-        background: toast.kind === "ok" ? "var(--success)" : "var(--danger)",
-      }}
-    >
-      {toast.text}
+    <div className="flex flex-col gap-5">
+      <button
+        onClick={onBack}
+        className="self-start text-sm font-bold text-(--muted) transition-colors hover:text-(--accent)"
+      >
+        ← Back to levels
+      </button>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <h1 className="font-display text-2xl font-extrabold capitalize text-foreground">
+            {level.name}
+          </h1>
+          <div className="flex gap-1 rounded-2xl border-2 border-(--border) bg-(--surface) p-1">
+            <button
+              onClick={() => setTab("sentences")}
+              className={tabCls(tab === "sentences")}
+            >
+              Sentences{" "}
+              <span className="opacity-70">({sentences.length})</span>
+            </button>
+            <button
+              onClick={() => setTab("words")}
+              className={tabCls(tab === "words")}
+            >
+              Words <span className="opacity-70">({words.length})</span>
+            </button>
+          </div>
+        </div>
+
+        {tab === "sentences" ? (
+          <UIButton
+            tone="accent"
+            onClick={() => {
+              setEditingSentence(null);
+              setSentenceModalOpen(true);
+            }}
+          >
+            + New sentence
+          </UIButton>
+        ) : (
+          <UIButton
+            tone="accent"
+            onClick={() => {
+              setEditingWord(null);
+              setWordModalOpen(true);
+            }}
+          >
+            + New word
+          </UIButton>
+        )}
+      </div>
+
+      {tab === "sentences" ? (
+        loadingSentences ? (
+          <div className="py-16">
+            <Spinner title="Loading sentences…" />
+          </div>
+        ) : sentences.length === 0 ? (
+          <p className="rounded-2xl border-2 border-dashed border-(--border) px-5 py-8 text-center text-sm font-semibold text-(--muted)">
+            No sentences yet. Add the first one!
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border-2 border-(--border)">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-(--surface) text-(--muted)">
+                <tr className="text-xs font-extrabold uppercase tracking-wide">
+                  <th className="px-4 py-3">Sentence</th>
+                  <th className="px-4 py-3">Missing word</th>
+                  <th className="px-4 py-3">Media</th>
+                  <th className="px-4 py-3 text-center">Enabled</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sentences.map((s) => (
+                  <tr
+                    key={s.id}
+                    className="border-t border-(--border) align-middle"
+                  >
+                    <td className="px-4 py-3 font-semibold text-foreground">
+                      {s.text}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-(--accent)">
+                      {s.mWord}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-(--muted)">
+                        {s.img ? "🖼️" : "—"} {s.imgSound ? "🔊" : ""}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Toggle on={s.enabled} onClick={() => toggleSentence(s)} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <RowActions
+                        onEdit={() => {
+                          setEditingSentence(s);
+                          setSentenceModalOpen(true);
+                        }}
+                        onDelete={() => removeSentence(s)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : loadingWords ? (
+        <div className="py-16">
+          <Spinner title="Loading words…" />
+        </div>
+      ) : words.length === 0 ? (
+        <p className="rounded-2xl border-2 border-dashed border-(--border) px-5 py-8 text-center text-sm font-semibold text-(--muted)">
+          No words yet. Add the first one!
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border-2 border-(--border)">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-(--surface) text-(--muted)">
+              <tr className="text-xs font-extrabold uppercase tracking-wide">
+                <th className="px-4 py-3">#</th>
+                <th className="px-4 py-3">Word</th>
+                <th className="px-4 py-3">Meaning</th>
+                <th className="px-4 py-3">Media</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {words.map((w) => (
+                <tr key={w.id} className="border-t border-(--border) align-middle">
+                  <td className="px-4 py-3 text-xs font-bold text-(--muted)">
+                    {w.position ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 font-bold text-foreground">
+                    {w.text}
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-(--muted)">
+                    {w.meaning || "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-(--muted)">
+                      {w.img ? "🖼️" : "—"} {w.audio ? "🔊" : ""}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <RowActions
+                      onEdit={() => {
+                        setEditingWord(w);
+                        setWordModalOpen(true);
+                      }}
+                      onDelete={() => removeWord(w)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {sentenceModalOpen && (
+        <SentenceModal
+          levelId={level.id}
+          sentence={editingSentence}
+          onClose={() => setSentenceModalOpen(false)}
+          onSaved={(msg) => {
+            setSentenceModalOpen(false);
+            refreshSentences();
+            flash(msg);
+          }}
+        />
+      )}
+
+      {wordModalOpen && (
+        <WordModal
+          levelId={level.id}
+          word={editingWord}
+          onClose={() => setWordModalOpen(false)}
+          onSaved={(msg) => {
+            setWordModalOpen(false);
+            refreshWords();
+            flash(msg);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RowActions({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <button
+        onClick={onEdit}
+        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
+      >
+        Edit
+      </button>
+      <button
+        onClick={onDelete}
+        className="rounded-lg border-2 border-(--danger)/40 px-2.5 py-1 text-xs font-bold text-(--danger) transition-colors hover:bg-(--danger)/10"
+      >
+        Delete
+      </button>
     </div>
   );
 }
