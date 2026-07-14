@@ -12,6 +12,11 @@ import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getDotaxiService, type DotaxiQuestion } from "@/services/games.service";
+import {
+  submitGameScoreService,
+  type ScoreResult,
+} from "@/services/engagement.service";
+import XpReward from "@/components/ui/xp-reward";
 
 // ── Tunables ──────────────────────────────────────────────────────────────────
 const LANES = 3;
@@ -217,6 +222,8 @@ export default function DotaxiPage() {
   const [pose, setPose] = useState("13");
   const [outcome, setOutcome] = useState<"none" | "pass" | "crash">("none");
   const [muted, setMuted] = useState(false);
+  const [reward, setReward] = useState<ScoreResult | null>(null);
+  const scoreSubmittedRef = useRef(false);
 
   const engine = useEngine();
 
@@ -249,6 +256,17 @@ export default function DotaxiPage() {
     () => (question ? question.options.indexOf(question.correct) : -1),
     [question],
   );
+
+  // fire-and-forget: sync the run's score when the ride ends,
+  // then show "+N XP" / "New high score!" if the response arrives
+  useEffect(() => {
+    if ((phase === "win" || phase === "gameover") && !scoreSubmittedRef.current) {
+      scoreSubmittedRef.current = true;
+      submitGameScoreService("dotaxi", score)
+        .then(setReward)
+        .catch(() => {});
+    }
+  }, [phase, score]);
 
   // reflect progress into engine pitch + mute
   useEffect(() => {
@@ -379,6 +397,8 @@ export default function DotaxiPage() {
     setPose("13");
     setOutcome("none");
     resolvedRef.current = false;
+    scoreSubmittedRef.current = false;
+    setReward(null);
     setPhase("driving");
   };
 
@@ -673,6 +693,7 @@ export default function DotaxiPage() {
                 <p className="text-sm font-bold text-(--muted)">
                   Score: {score} · {correctCount}/{WIN_CORRECT} correct
                 </p>
+                <XpReward reward={reward} />
                 <div className="flex w-full max-w-xs flex-col gap-3">
                   <UIButton tone="accent" fullWidth onClick={startGame}>
                     Drive again
@@ -696,6 +717,7 @@ export default function DotaxiPage() {
                 <p className="text-sm font-bold text-(--muted)">
                   You got {correctCount}/{WIN_CORRECT} · Score: {score}
                 </p>
+                <XpReward reward={reward} />
                 <div className="flex w-full max-w-xs flex-col gap-3">
                   <UIButton tone="accent" fullWidth onClick={startGame}>
                     Try again

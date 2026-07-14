@@ -6,6 +6,11 @@ import WordImg from "@/components/ui/word-img/word-img";
 import UIButton from "@/components/ui/button/button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getFlashcardsService, type Flashcard } from "@/services/games.service";
+import {
+  submitGameScoreService,
+  type ScoreResult,
+} from "@/services/engagement.service";
+import XpReward from "@/components/ui/xp-reward";
 
 const TIME_TRIAL_SECONDS = 60;
 const ENDURANCE_LIMIT = 360;
@@ -34,11 +39,21 @@ export default function FlashcardsPage() {
   const [result, setResult] = useState("");
   const [finalTime, setFinalTime] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [reward, setReward] = useState<ScoreResult | null>(null);
 
   const secondsRef = useRef(seconds);
   useEffect(() => {
     secondsRef.current = seconds;
   }, [seconds]);
+
+  const doneCount = cards.filter(isCardDone).length;
+
+  // read inside endgame (a stable callback) without re-creating the timer
+  const doneRef = useRef(doneCount);
+  useEffect(() => {
+    doneRef.current = doneCount;
+  }, [doneCount]);
+  const scoreSubmittedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -53,13 +68,18 @@ export default function FlashcardsPage() {
     };
   }, []);
 
-  const doneCount = cards.filter(isCardDone).length;
-
   const endgame = useCallback(
     (reason: "success" | "timeout" | "quit") => {
       const elapsed =
         mode === "trial" ? TIME_TRIAL_SECONDS - secondsRef.current : seconds;
       setFinalTime(elapsed);
+      // fire-and-forget: sync cleared-card count, show "+N XP" if it arrives
+      if (reason !== "quit" && !scoreSubmittedRef.current) {
+        scoreSubmittedRef.current = true;
+        submitGameScoreService("flashcards", doneRef.current)
+          .then(setReward)
+          .catch(() => {});
+      }
       setResult(
         reason === "timeout"
           ? "Time's up! ⏰"
@@ -109,6 +129,8 @@ export default function FlashcardsPage() {
     );
     setPosition(0);
     setPose("14");
+    scoreSubmittedRef.current = false;
+    setReward(null);
     setPlace("game");
   };
 
@@ -294,6 +316,7 @@ export default function FlashcardsPage() {
                 Cleared: {doneCount}/{cards.length}
               </span>
             </div>
+            <XpReward reward={reward} />
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <UIButton tone="accent" fullWidth onClick={() => setPlace("start")}>
                 Play again

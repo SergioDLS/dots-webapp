@@ -7,6 +7,11 @@ import WordImg from "@/components/ui/word-img/word-img";
 import UIButton from "@/components/ui/button/button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getDontPopService, type GameWord } from "@/services/games.service";
+import {
+  submitGameScoreService,
+  type ScoreResult,
+} from "@/services/engagement.service";
+import XpReward from "@/components/ui/xp-reward";
 
 const Balloon = "/images/PopIt/balloon.png";
 const Explosion = "/images/PopIt/explotion.gif";
@@ -31,6 +36,11 @@ export default function DontPopPage() {
   const [data, setData] = useState<GameWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [won, setWon] = useState(false);
+  const [reward, setReward] = useState<ScoreResult | null>(null);
+
+  // score = words cleared this run; ref because endgame() resets `data`
+  const scoreRef = useRef(0);
+  const scoreSubmittedRef = useRef(false);
 
   // size is read inside the interval; keep a ref so the effect stays stable
   const sizeRef = useRef(size);
@@ -58,6 +68,13 @@ export default function DontPopPage() {
     setPose(didWin ? "02" : "05");
     setPlace("endgame");
     setData((prev) => prev.map((d) => ({ ...d, answered: false })));
+    // fire-and-forget: sync the run's score, then show "+N XP" if it arrives
+    if (!scoreSubmittedRef.current) {
+      scoreSubmittedRef.current = true;
+      submitGameScoreService("dont-pop", scoreRef.current)
+        .then(setReward)
+        .catch(() => {});
+    }
   }, []);
 
   // Build the next round: find an unanswered word, pair it with a distractor.
@@ -122,6 +139,9 @@ export default function DontPopPage() {
     setSize(1);
     setIndex(-1);
     setPose("14");
+    scoreRef.current = 0;
+    scoreSubmittedRef.current = false;
+    setReward(null);
     setData((prev) => prev.map((d) => ({ ...d, answered: false })));
     setPlace("game");
     // kick off the first round after state resets
@@ -135,6 +155,7 @@ export default function DontPopPage() {
 
     if (optId === current.id) {
       setPose("02");
+      scoreRef.current += 1;
       setData((prev) => {
         const copy = [...prev];
         copy[index] = { ...copy[index], answered: true };
@@ -275,6 +296,7 @@ export default function DontPopPage() {
               {text}
             </h2>
             <Doty pose={pose} size="small" />
+            <XpReward reward={reward} />
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <UIButton tone="accent" onClick={start} fullWidth>
                 Play again

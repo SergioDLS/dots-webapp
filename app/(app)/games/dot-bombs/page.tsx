@@ -7,6 +7,11 @@ import WordImg from "@/components/ui/word-img/word-img";
 import UIButton from "@/components/ui/button/button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getGameWordsService, type GameWord } from "@/services/games.service";
+import {
+  submitGameScoreService,
+  type ScoreResult,
+} from "@/services/engagement.service";
+import XpReward from "@/components/ui/xp-reward";
 
 const BombImg = "/images/DotBombs/bomb.png";
 const ExplosionImg = "/images/DotBombs/bomb-explosion.png";
@@ -60,6 +65,8 @@ export default function DotBombsPage() {
   const [dotyPose, setDotyPose] = useState("14");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reward, setReward] = useState<ScoreResult | null>(null);
+  const scoreSubmittedRef = useRef(false);
 
   // mutable engine state read inside the tick loop
   const words = useRef<GameWord[]>([]);
@@ -97,6 +104,13 @@ export default function DotBombsPage() {
     setResult(text);
     setDotyPose(pose);
     setPlace("endgame");
+    // fire-and-forget: sync the run's score, then show "+N XP" if it arrives
+    if (!scoreSubmittedRef.current) {
+      scoreSubmittedRef.current = true;
+      submitGameScoreService("dot-bombs", scoreRef.current)
+        .then(setReward)
+        .catch(() => {});
+    }
   }, []);
 
   // pick a word not already shown on another active bomb
@@ -206,6 +220,8 @@ export default function DotBombsPage() {
     };
     livesRef.current = START_LIVES;
     scoreRef.current = 0;
+    scoreSubmittedRef.current = false;
+    setReward(null);
     setMode(selectedMode);
     if (selectedDifficulty) setDifficulty(selectedDifficulty);
     setLives(START_LIVES);
@@ -457,6 +473,7 @@ export default function DotBombsPage() {
                 {mode === "normal" ? ` · ${difficulty}` : ""}
               </span>
             </div>
+            <XpReward reward={reward} />
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <UIButton tone="accent" fullWidth onClick={() => setPlace("start")}>
                 Play again
