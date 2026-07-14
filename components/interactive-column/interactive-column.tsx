@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 import Streak from "./streak/streak";
 import Doty from "../ui/doty/doty";
@@ -71,12 +72,10 @@ export default function InteractiveColumn() {
   const [hoverPhoto, setHoverPhoto] = useState(false);
   const [userHover, setUserHover] = useState(false);
   const [userSettingsHover, setUserSettingsHover] = useState(false);
-  const [showAdminMenu, setShowAdminMenu] = useState(false);
   const [dialog, setDialog] = useState<DialogState>({ show: false });
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState<User>(() => getUserFromStorage() as User);
   const [stats, setStats] = useState<MyStats | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef<number>(0);
@@ -129,16 +128,6 @@ export default function InteractiveColumn() {
     }, 8000);
     return () => clearInterval(interval);
   }, [hover, menus.length]);
-
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowAdminMenu(false);
-      }
-    };
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, []);
 
   // keyboard navigation for accessibility (left/right arrows)
   useEffect(() => {
@@ -350,34 +339,12 @@ export default function InteractiveColumn() {
                 </button>
 
                 {user?.profile === ADMIN_PROFILE && (
-                  <div className="relative" ref={menuRef}>
-                    <button
-                      onClick={() => setShowAdminMenu((s) => !s)}
-                      className="w-full rounded-xl border border-(--border) px-4 py-2 text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/8 focus:outline-none"
-                      aria-expanded={showAdminMenu}
-                      aria-haspopup="menu"
-                    >
-                      Admin ⚙️
-                    </button>
-
-                    {showAdminMenu && (
-                      <ul className="absolute right-0 z-30 mt-2 w-44 rounded-2xl overflow-hidden bg-surface border border-(--border) shadow-lg">
-                        {[
-                          { label: "Dashboard", href: "/admin" },
-                          { label: "Levels & Sentences", href: "/admin/levels" },
-                        ].map((item) => (
-                          <li key={item.href}>
-                            <button
-                              onClick={() => (window.location.href = item.href)}
-                              className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-(--accent)/10 hover:text-(--accent) transition-colors"
-                            >
-                              {item.label}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                  <Link
+                    href="/admin"
+                    className="block w-full rounded-xl border border-(--border) px-4 py-2 text-center text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/8 focus:outline-none"
+                  >
+                    Admin ⚙️
+                  </Link>
                 )}
               </div>
             </div>
