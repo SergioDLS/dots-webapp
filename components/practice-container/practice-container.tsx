@@ -355,7 +355,11 @@ export default function PracticeContainer({
         </p>
 
         {/* ── Engagement reward (arrives async from PUT /sentences/progress) ── */}
-        {reward && (reward.xpGained > 0 || reward.streakUp) && (
+        {reward &&
+          (reward.xpGained > 0 ||
+            reward.streakUp ||
+            reward.freezeUsed ||
+            reward.freezeEarned) && (
           <div
             className="flex flex-col items-center gap-2"
             style={{ animation: "dots-pop-in 0.4s ease-out both" }}
@@ -383,6 +387,30 @@ export default function PracticeContainer({
                   }}
                 >
                   🔥 Day {reward.streak}
+                </span>
+              )}
+              {reward.freezeUsed && (
+                <span
+                  className="rounded-full px-4 py-1.5 text-sm font-black"
+                  style={{
+                    background: "rgba(56,189,248,0.14)",
+                    border: "2px solid rgba(56,189,248,0.4)",
+                    color: "#0284c7",
+                  }}
+                >
+                  ❄️ A streak freeze saved your streak!
+                </span>
+              )}
+              {reward.freezeEarned && (
+                <span
+                  className="rounded-full px-4 py-1.5 text-sm font-black"
+                  style={{
+                    background: "rgba(56,189,248,0.14)",
+                    border: "2px solid rgba(56,189,248,0.4)",
+                    color: "#0284c7",
+                  }}
+                >
+                  ❄️ +1 streak freeze earned!
                 </span>
               )}
             </div>
