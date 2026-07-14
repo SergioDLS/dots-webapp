@@ -38,8 +38,8 @@ export default function ReadingsList() {
             onClick={() => item.unlocked && window.location.replace(`/readings/${item.id}`)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[.98]"
             style={{
-              background: hover === item.id ? "rgba(212,0,126,0.10)" : "var(--background)",
-              border: hover === item.id ? "1.5px solid rgba(212,0,126,0.35)" : "1.5px solid var(--border)",
+              background: hover === item.id ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "var(--background)",
+              border: hover === item.id ? "1.5px solid color-mix(in srgb, var(--accent) 35%, transparent)" : "1.5px solid var(--border)",
             }}
           >
             {!item.unlocked && (

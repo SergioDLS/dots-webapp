@@ -3,6 +3,7 @@
 import React from "react";
 import LevelWord from "./level-word/level-word";
 import type { Level } from "@/types/levels.types";
+import { DIFFICULTY_COLOR_NAMES, DIFFICULTY_COLOR_HEX } from "@/lib/difficulty-palette";
 
 interface LevelSectionProps {
   id: number;
@@ -34,18 +35,7 @@ export default function LevelSection({
 }: LevelSectionProps) {
   const list = levels ?? [];
   const accent = (colors && colors.length > 0 ? colors[0] : "pink") || "pink";
-  const colorHexMap: Record<string, string> = {
-    pink: "#F472B6",
-    orangered: "#F97316",
-    blue: "#1D4ED8",
-    pale_blue: "#7DD3FC",
-    opal: "#5EEAD4",
-    orange: "#FBBF24",
-    pale_green: "#BEF264",
-    yellow: "#FACC15",
-    green: "#34D399",
-  };
-  const accentHex = colorHexMap[accent] ?? colorHexMap.pink;
+  const accentHex = DIFFICULTY_COLOR_HEX[accent] ?? DIFFICULTY_COLOR_HEX.pink;
 
   // Compute node center positions for the SVG connector path
   const totalH =
@@ -138,19 +128,7 @@ export default function LevelSection({
           {/* Nodes */}
           {list.map((item, index) => {
             const palette =
-              colors && colors.length > 0
-                ? colors
-                : [
-                    "pink",
-                    "orangered",
-                    "blue",
-                    "pale_blue",
-                    "opal",
-                    "orange",
-                    "pale_green",
-                    "yellow",
-                    "green",
-                  ];
+              colors && colors.length > 0 ? colors : [...DIFFICULTY_COLOR_NAMES];
             const color = palette[index % palette.length] ?? palette[0];
             const xPct = zigzagX(index);
             const yPx = index * (NODE_SIZE + ROW_GAP);

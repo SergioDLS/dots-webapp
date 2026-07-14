@@ -4,6 +4,7 @@ import React from "react";
 import Doty from "../../ui/doty/doty";
 import LevelSection from "./level-section/level-section";
 import type { SectionLevel } from "@/types/levels.types";
+import { DIFFICULTY_COLOR_NAMES, DIFFICULTY_COLOR_HEX } from "@/lib/difficulty-palette";
 
 interface DifficultyProps {
   idLevel: number;
@@ -27,10 +28,7 @@ const motivational = (pct: number): { msg: string; emoji: string } => {
 export default function Difficulty({ idLevel, pose, enabled, name, sections, progress }: DifficultyProps) {
   const list = sections ?? [];
 
-  const baseColors = [
-    "pink", "orangered", "blue", "pale_blue", "opal",
-    "orange", "pale_green", "yellow", "green",
-  ];
+  const baseColors = [...DIFFICULTY_COLOR_NAMES];
   const shift = (idLevel ?? 0) % baseColors.length;
   const colors = [...baseColors.slice(shift), ...baseColors.slice(0, shift)];
 
@@ -47,18 +45,7 @@ export default function Difficulty({ idLevel, pose, enabled, name, sections, pro
   const combo = 0;
 
   const accent = colors[0] ?? "pink";
-  const colorHexMap: Record<string, string> = {
-    pink:       "#F472B6",
-    orangered:  "#F97316",
-    blue:       "#1D4ED8",
-    pale_blue:  "#7DD3FC",
-    opal:       "#5EEAD4",
-    orange:     "#FBBF24",
-    pale_green: "#BEF264",
-    yellow:     "#FACC15",
-    green:      "#34D399",
-  };
-  const accentHex  = colorHexMap[accent] ?? colorHexMap.pink;
+  const accentHex = DIFFICULTY_COLOR_HEX[accent] ?? DIFFICULTY_COLOR_HEX.pink;
 
   const { msg, emoji } = motivational(progress);
 

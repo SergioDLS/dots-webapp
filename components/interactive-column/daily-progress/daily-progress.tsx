@@ -72,7 +72,11 @@ export default function DailyProgress() {
           <span
             key={chip.label}
             className="rounded-full px-3 py-1 text-xs font-extrabold"
-            style={{ background: "rgba(212,0,126,0.12)", color: "#d4007e", border: "1.5px solid rgba(212,0,126,0.25)" }}
+            style={{
+              background: "color-mix(in srgb, var(--accent) 12%, transparent)",
+              color: "var(--accent)",
+              border: "1.5px solid color-mix(in srgb, var(--accent) 25%, transparent)",
+            }}
           >
             {chip.label}
           </span>

@@ -9,17 +9,17 @@ interface Props {
 const LoadBar: React.FC<Props> = ({ streak = null, progress }) => {
   const showFire = (streak ?? 0) > 2;
 
-  /* gradient color based on progress */
+  /* gradient color based on progress (intermediate stops are artistic, not tokens) */
   const progressGradient =
     progress >= 100
-      ? "linear-gradient(90deg, #22c55e, #10b981)"
+      ? "linear-gradient(90deg, var(--success), #10b981)"
       : progress >= 80
-        ? "linear-gradient(90deg, #34d399, #22c55e)"
+        ? "linear-gradient(90deg, #34d399, var(--success))"
         : progress >= 50
-          ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
+          ? "linear-gradient(90deg, #fbbf24, var(--gold))"
           : progress >= 20
             ? "linear-gradient(90deg, #fb923c, #f97316)"
-            : "linear-gradient(90deg, var(--accent), #f472b6)";
+            : "linear-gradient(90deg, var(--accent), var(--accent-soft))";
 
   return (
     <div className="w-full flex items-center gap-2.5">
@@ -36,7 +36,10 @@ const LoadBar: React.FC<Props> = ({ streak = null, progress }) => {
             width: `${Math.max(progress, 2)}%`,
             background: progressGradient,
             transition: "width 0.6s cubic-bezier(0.34,1.56,0.64,1)",
-            boxShadow: progress > 0 ? "0 0 8px rgba(var(--accent), 0.3)" : "none",
+            boxShadow:
+              progress > 0
+                ? "0 0 8px color-mix(in srgb, var(--accent) 30%, transparent)"
+                : "none",
           }}
         >
           {/* Shimmer highlight */}

@@ -15,7 +15,7 @@ const toneStyles: Record<ButtonTone, React.CSSProperties> = {
     background: "var(--accent)",
     color: "var(--accent-contrast)",
     border: "none",
-    ["--press-color" as string]: "#9c005d",
+    ["--press-color" as string]: "var(--accent-edge)",
   },
   primary: {
     background: "var(--primary)",

@@ -266,7 +266,7 @@ function PracticeClient() {
               border: answerState === "correct"
                 ? "2px solid rgba(34,197,94,0.4)"
                 : "2px solid rgba(244,63,94,0.4)",
-              color: answerState === "correct" ? "#059669" : "#e11d48",
+              color: answerState === "correct" ? "var(--success)" : "var(--danger)",
             }}
           >
             <span

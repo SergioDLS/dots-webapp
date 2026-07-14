@@ -64,11 +64,11 @@ export default function GamesList() {
               style={{
                 background:
                   hover === item.id && !locked
-                    ? "rgba(212,0,126,0.10)"
+                    ? "color-mix(in srgb, var(--accent) 10%, transparent)"
                     : "var(--background)",
                 border:
                   hover === item.id && !locked
-                    ? "2px solid rgba(212,0,126,0.35)"
+                    ? "2px solid color-mix(in srgb, var(--accent) 35%, transparent)"
                     : "2px solid var(--border)",
               }}
             >

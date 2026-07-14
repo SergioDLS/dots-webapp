@@ -124,7 +124,7 @@ const optionStyles: Record<OptionState, React.CSSProperties> = {
     background: "var(--surface)",
     border: "2px solid var(--accent)",
     color: "var(--accent)",
-    boxShadow: "0 0 0 3px rgba(212,0,126,0.15)",
+    boxShadow: "0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)",
   },
   correct: {
     background: "linear-gradient(135deg, #22c55e, #10b981)",
@@ -395,8 +395,8 @@ export default function PracticeContainer({
               onClick={() => selectHandler(i, word)}
               className={`${baseOptionCls} px-3 py-1.5 text-sm`}
               style={{
-                background: "rgba(212,0,126,0.1)",
-                border: "2px solid rgba(212,0,126,0.3)",
+                background: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                border: "2px solid color-mix(in srgb, var(--accent) 30%, transparent)",
                 color: "var(--accent)",
                 animation: flyingId === word.id && flyDir === "to-tray"
                   ? "pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both"

@@ -15,7 +15,7 @@ export default function Streak() {
       <div className="w-4 h-4 relative shrink-0">
         <Image src={Fire} alt="fire" fill className="object-contain animate-pulse" />
       </div>
-      <span className="text-xs font-extrabold" style={{ color: "#b45309" }}>
+      <span className="text-xs font-extrabold" style={{ color: "var(--gold-edge)" }}>
         {streak} {day} streak!
       </span>
     </div>

@@ -27,7 +27,7 @@ export default async function LevelContainer() {
         </p>
         <Link
           href="/"
-          className="dots-pressable rounded-2xl bg-(--accent) px-6 py-3 text-sm font-extrabold text-(--accent-contrast) [--press-color:#9c005d]"
+          className="dots-pressable rounded-2xl bg-(--accent) px-6 py-3 text-sm font-extrabold text-(--accent-contrast) [--press-color:var(--accent-edge)]"
         >
           Go to login
         </Link>

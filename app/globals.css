@@ -3,41 +3,55 @@
 /* ════════════════════════════════════════════════════════════
    dots — design system
    Personality: candy-soft, tactile, mascot-driven.
-   Navy + bubblegum pink brand, lavender canvas sprinkled with
+   Purple + bubblegum pink brand, blush canvas sprinkled with
    the brand's own polka dots. Chunky rounded shapes, pressable
    3-D buttons, springy motion.
    ════════════════════════════════════════════════════════════ */
 
 /* ─── Light theme ─────────────────────────────────────────── */
+/* Palette is canonical and mirrored in dots-app/lib/theme.ts — keep both in sync. */
 :root {
   /* Backgrounds */
-  --background: #ece9fd;     /* soft lavender */
-  --surface:    #ffffff;     /* cards pop on the lavender canvas */
-  --surface-2:  #f7f5ff;     /* nested / subtle panels */
-  --border:     #d8d2f4;
-  --dot:        #d6cff5;     /* polka-dot sprinkle on the canvas */
+  --background: #fff7fb;     /* blush canvas */
+  --surface:    #ffffff;     /* cards pop on the blush canvas */
+  --surface-2:  #fff0f7;     /* nested / subtle panels */
+  --border:     #f4dcea;
+  --dot:        #f4dcea;     /* polka-dot sprinkle on the canvas */
 
   /* Text – ≥ 4.5:1 on both backgrounds above */
-  --foreground: #1b1340;     /* very dark navy */
-  --muted:      #5d5384;     /* subdued text */
+  --foreground: #3d2352;     /* deep plum */
+  --muted:      #8a6a9b;     /* subdued text */
 
   /* Brand */
-  --primary:          #211650; /* navy */
+  --primary:          #7c5cff; /* purple */
   --primary-contrast: #ffffff;
-  --accent:           #d4007e; /* bubblegum pink */
-  --accent-soft:      #ff4bc1;
+  --primary-edge:     #5a3fd6;
+  --accent:           #e5077e; /* bubblegum pink */
+  --accent-soft:      #ff64b4;
   --accent-contrast:  #ffffff;
+  --accent-edge:      #b0005c;
 
-  /* Important highlights (CTA buttons). Light theme: navy. */
+  /* Aliases (admin & decorative surfaces reference these) */
+  --purple:      var(--primary);
+  --purple-edge: var(--primary-edge);
+
+  /* Important highlights (CTA buttons). Light theme: primary. */
   --primary-accent: var(--primary);
   --primary-accent-contrast: var(--primary-contrast);
 
   /* Feedback */
-  --success:      #16a34a;
+  --success:      #22c55e;
   --success-soft: #dcfce7;
-  --danger:       #e11d48;
+  --success-edge: #16a34a;
+  --danger:       #f43f5e;
   --danger-soft:  #ffe4e6;
-  --gold:         #f59e0b;
+  --danger-edge:  #b72f47;
+  --gold:         #ffb020;
+  --gold-edge:    #bf8418;
+
+  /* Misc */
+  --neutral-edge: #e7cfdd;
+  --scrim:        rgba(28, 16, 48, 0.5);
 
   /* Tactile depth — hard candy shadows for pressable elements */
   --shadow-press: 0 4px 0;
@@ -65,30 +79,41 @@
 
 /* ─── Dark theme ──────────────────────────────────────────── */
 :root[data-theme="dark"] {
-  --background: #130d35;     /* deep navy */
-  --surface:    #1e1550;
-  --surface-2:  #251b5e;
-  --border:     #382c7e;
-  --dot:        #251b5c;
+  --background: #1c1030;     /* deep plum */
+  --surface:    #2a1b45;
+  --surface-2:  #26183d;
+  --border:     #443064;
+  --dot:        #26183d;
 
-  --foreground: #f0eeff;
-  --muted:      #aaa1da;
+  --foreground: #f8f0ff;
+  --muted:      #bda8d4;
 
-  --primary:          #c9c0ff; /* light lavender */
-  --primary-contrast: #130d35;
-  --accent:           #f43fa4; /* brighter pink for dark canvas */
-  --accent-soft:      #ff6ec4;
+  --primary:          #9b82ff; /* lighter purple for dark canvas */
+  --primary-contrast: #ffffff;
+  --primary-edge:     #6e55e0;
+  --accent:           #ff3d9e; /* brighter pink for dark canvas */
+  --accent-soft:      #ff77bf;
   --accent-contrast:  #ffffff;
+  --accent-edge:      #c1156f;
+
+  --purple:      var(--primary);
+  --purple-edge: var(--primary-edge);
 
   /* dark theme: pink carries the CTAs */
   --primary-accent: var(--accent);
   --primary-accent-contrast: var(--accent-contrast);
 
-  --success:      #4ade80;
-  --success-soft: rgba(34, 197, 94, 0.16);
+  --success:      #34d399;
+  --success-soft: rgba(52, 211, 153, 0.16);
+  --success-edge: #14966b;
   --danger:       #fb7185;
-  --danger-soft:  rgba(244, 63, 94, 0.16);
-  --gold:         #fbbf24;
+  --danger-soft:  rgba(251, 113, 133, 0.16);
+  --danger-edge:  #bc5564;
+  --gold:         #ffc53d;
+  --gold-edge:    #bf942e;
+
+  --neutral-edge: #1a0f2e;
+  --scrim:        rgba(0, 0, 0, 0.6);
 
   --shadow-card: 0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
 
@@ -103,25 +128,34 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --background: #130d35;
-    --surface:    #1e1550;
-    --surface-2:  #251b5e;
-    --border:     #382c7e;
-    --dot:        #251b5c;
-    --foreground: #f0eeff;
-    --muted:      #aaa1da;
-    --primary:          #c9c0ff;
-    --primary-contrast: #130d35;
-    --accent:           #f43fa4;
-    --accent-soft:      #ff6ec4;
+    --background: #1c1030;
+    --surface:    #2a1b45;
+    --surface-2:  #26183d;
+    --border:     #443064;
+    --dot:        #26183d;
+    --foreground: #f8f0ff;
+    --muted:      #bda8d4;
+    --primary:          #9b82ff;
+    --primary-contrast: #ffffff;
+    --primary-edge:     #6e55e0;
+    --accent:           #ff3d9e;
+    --accent-soft:      #ff77bf;
     --accent-contrast:  #ffffff;
+    --accent-edge:      #c1156f;
+    --purple:      var(--primary);
+    --purple-edge: var(--primary-edge);
     --primary-accent: var(--accent);
     --primary-accent-contrast: var(--accent-contrast);
-    --success:      #4ade80;
-    --success-soft: rgba(34, 197, 94, 0.16);
+    --success:      #34d399;
+    --success-soft: rgba(52, 211, 153, 0.16);
+    --success-edge: #14966b;
     --danger:       #fb7185;
-    --danger-soft:  rgba(244, 63, 94, 0.16);
-    --gold:         #fbbf24;
+    --danger-soft:  rgba(251, 113, 133, 0.16);
+    --danger-edge:  #bc5564;
+    --gold:         #ffc53d;
+    --gold-edge:    #bf942e;
+    --neutral-edge: #1a0f2e;
+    --scrim:        rgba(0, 0, 0, 0.6);
     --shadow-card: 0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
     --input-bg: rgba(255, 255, 255, 0.06);
     color-scheme: dark;
@@ -207,7 +241,7 @@ h1, h2, h3, .font-display {
 }
 
 @keyframes dots-pulse-ring {
-  0%   { box-shadow: 0 0 0 0px var(--pulse-color, rgba(212, 0, 126, 0.3)); }
+  0%   { box-shadow: 0 0 0 0px var(--pulse-color, color-mix(in srgb, var(--accent) 30%, transparent)); }
   50%  { box-shadow: 0 0 0 10px transparent; }
   100% { box-shadow: 0 0 0 0px transparent; }
 }
