@@ -5,6 +5,7 @@ import Doty from "../ui/doty/doty";
 import {
   getLeaderboardService,
   type LeaderboardEntry,
+  type LeaderboardPeriod,
 } from "../../services/engagement.service";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -16,23 +17,32 @@ const displayName = (entry: LeaderboardEntry) => {
   return initial ? `${first} ${initial.toUpperCase()}.` : first;
 };
 
+const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
+  { key: "week", label: "This week" },
+  { key: "all", label: "All time" },
+];
+
 export default function TopStudents() {
-  const [ranking, setRanking] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<LeaderboardPeriod>("week");
+  // keep the fetched rows tagged with their period so switching tabs
+  // shows a spinner instead of the previous tab's list
+  const [loaded, setLoaded] = useState<{
+    period: LeaderboardPeriod;
+    rows: LeaderboardEntry[];
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
-    getLeaderboardService()
-      .then((data) => {
-        if (active) setRanking(data.slice(0, 10));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    getLeaderboardService(period).then((data) => {
+      if (active) setLoaded({ period, rows: data.slice(0, 10) });
+    });
     return () => {
       active = false;
     };
-  }, []);
+  }, [period]);
+
+  const loading = loaded === null || loaded.period !== period;
+  const ranking = loading ? [] : loaded.rows;
 
   return (
     <div className="w-full h-full overflow-auto flex flex-col gap-4 p-5">
@@ -42,6 +52,30 @@ export default function TopStudents() {
         <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
           Top students
         </span>
+      </div>
+
+      {/* Period tabs */}
+      <div
+        className="flex gap-1 rounded-full p-1 shrink-0"
+        style={{ background: "var(--background)", border: "1.5px solid var(--border)" }}
+        role="tablist"
+        aria-label="Leaderboard period"
+      >
+        {PERIOD_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            role="tab"
+            aria-selected={period === tab.key}
+            onClick={() => setPeriod(tab.key)}
+            className={`flex-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition-all duration-200 ${
+              period === tab.key
+                ? "bg-(--accent) text-white shadow-sm"
+                : "text-(--muted) hover:text-(--accent)"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* List */}
