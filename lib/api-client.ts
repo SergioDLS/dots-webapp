@@ -28,8 +28,11 @@ export const refreshAccessToken = (): Promise<string | null> => {
   if (!refreshPromise) {
     // Plain axios (no interceptors) so a 401 from /auth/refresh itself
     // can't recurse back into the response interceptor.
+    // Body must be a JSON object: axios serializes `null` to the literal
+    // string "null", which Express' strict JSON parser rejects with 400
+    // before the request ever reaches the auth controller.
     refreshPromise = axios
-      .post(`${API_BASE}/auth/refresh`, null, {
+      .post(`${API_BASE}/auth/refresh`, {}, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
         timeout: 8000,

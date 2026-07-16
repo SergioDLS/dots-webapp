@@ -33,8 +33,10 @@ export function createServerApi(cookieHeader?: string) {
   let refreshPromise: Promise<string | null> | null = null;
   const refresh = (): Promise<string | null> => {
     if (!refreshPromise) {
+      // `{}` (not null): axios serializes null to the string "null", which
+      // Express' strict JSON parser rejects with 400 before the controller.
       refreshPromise = axios
-        .post(`${API_BASE}/auth/refresh`, null, {
+        .post(`${API_BASE}/auth/refresh`, {}, {
           headers: {
             "Content-Type": "application/json",
             ...(cookieHeader ? { Cookie: cookieHeader } : {}),
