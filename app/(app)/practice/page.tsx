@@ -3,38 +3,22 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-import LoadBar from "@/components/ui/load-bar/load-bar";
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
 import PracticeContainer from "@/components/practice-container/practice-container";
+import LessonTopBar from "@/components/lesson/lesson-top-bar";
+import AnswerFlash from "@/components/lesson/answer-flash";
+import LessonFooter from "@/components/lesson/lesson-footer";
 import api from "@/lib/api-client";
+import { playSound } from "@/lib/feedback-sounds";
 import { useAuth } from "@/context/auth-context";
+import type { PracticeSentence } from "@/types/practice.types";
 import {
   putSentencesProgressService,
   type ProgressReward,
 } from "@/services/engagement.service";
 
-// ── Types ────────────────────────────────────────────────────────────────────
-type Sentence = {
-  id: number;
-  text: string;
-  mode: string;
-  img?: string;
-  img_sound?: string;
-  sentence_extension?: string;
-  options: Array<{
-    id: number;
-    word: string;
-    correct: boolean;
-    img?: string;
-    img_sound?: string;
-    selected?: boolean;
-    order?: number;
-  }>;
-  answered?: boolean;
-  times_wrong: number;
-};
 // Move the client-side logic into a Suspense-wrapped inner component so
 // that hooks like `useSearchParams()` are isolated and can be rendered
 // inside a Suspense boundary. This addresses cases where router-read
@@ -46,7 +30,7 @@ function PracticeClient() {
 
   const [progress, setProgress] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [arraySentences, setArraySentences] = useState<Sentence[]>([]);
+  const [arraySentences, setArraySentences] = useState<PracticeSentence[]>([]);
   const [doty, setDoty] = useState("07");
   const [indexSentence, setIndexSentence] = useState(0);
   const [noSentences, setNoSentences] = useState(false);
@@ -60,20 +44,11 @@ function PracticeClient() {
   const [confirmReady, setConfirmReady] = useState(false);
   const [reward, setReward] = useState<ProgressReward | null>(null);
 
-  // ── Audio ───────────────────────────────────────────────────────────────
-  const playSound = (type: "correct" | "wrong") => {
-    const src =
-      type === "correct"
-        ? "/sounds/answers/correct.wav"
-        : "/sounds/answers/wrong.wav";
-    new Audio(src).play().catch(() => {});
-  };
-
   // ── Fetch ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (isBootstrapping) return; // wait for auth to finish before calling API
     api
-      .get<Sentence[]>(`/sentences/practice/${id}`)
+      .get<PracticeSentence[]>(`/sentences/practice/${id}`)
       .then((res) => {
         if (res.data.length > 0) {
           setArraySentences(res.data);
@@ -219,38 +194,11 @@ function PracticeClient() {
     content = (
       <>
         {/* ── Top bar: hearts + progress ── */}
-        <div className="dots-card flex items-center gap-3 w-full px-4 py-3">
-          {/* Hearts */}
-          <div className="flex items-center gap-1 shrink-0">
-            {Array.from({ length: 4 }).map((_, i) => {
-              const alive = i < lifes;
-              const critical = lifes <= 2 && alive;
-              return (
-                <span
-                  key={i}
-                  className="text-xl leading-none select-none"
-                  style={{
-                    filter: alive ? "none" : "grayscale(1)",
-                    opacity: alive ? 1 : 0.25,
-                    animation: critical
-                      ? "dots-heart-pop 0.8s ease-in-out infinite"
-                      : !alive
-                        ? "dots-heart-break 0.5s ease forwards"
-                        : "none",
-                    animationDelay: critical ? `${i * 0.15}s` : "0s",
-                  }}
-                >
-                  ❤️
-                </span>
-              );
-            })}
-          </div>
-
-          {/* Progress bar */}
-          <div className="flex-1">
-            <LoadBar progress={progress} streak={streak} />
-          </div>
-        </div>
+        <LessonTopBar
+          progress={progress}
+          streak={streak}
+          hearts={{ lifes, total: 4 }}
+        />
 
         {/* ── Practice area ── */}
         <div
@@ -269,59 +217,18 @@ function PracticeClient() {
         </div>
 
         {/* ── Answer feedback flash ── */}
-        {answerState !== "" && !isFinalMode && mode !== "streak" && (
-          <div
-            className="flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl text-sm font-extrabold"
-            style={{
-              animation: "dots-pop-in 0.35s ease-out both",
-              background: answerState === "correct"
-                ? "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.08))"
-                : "linear-gradient(135deg, rgba(244,63,94,0.15), rgba(239,68,68,0.08))",
-              border: answerState === "correct"
-                ? "2px solid rgba(34,197,94,0.4)"
-                : "2px solid rgba(244,63,94,0.4)",
-              color: answerState === "correct" ? "var(--success)" : "var(--danger)",
-            }}
-          >
-            <span
-              className="text-2xl leading-none"
-              style={{ animation: "dots-pop-in 0.5s ease-out both" }}
-            >
-              {answerState === "correct" ? "🎉" : "😅"}
-            </span>
-            <span>{answerState === "correct" ? "Great job!" : "Keep going!"}</span>
-          </div>
+        {!isFinalMode && mode !== "streak" && (
+          <AnswerFlash state={answerState} />
         )}
 
         {/* ── Action buttons ── */}
-        {!isFinalMode && (
-          <div
-            className="flex gap-3 w-full"
-            style={{ animation: "dots-slide-up 0.3s ease-out 0.1s both" }}
-          >
-            <UIButton tone="neutral" onClick={goToLevels}>
-              ← Exit
-            </UIButton>
-            <UIButton
-              tone="accent"
-              onClick={confirmSelectedHandler}
-              disabled={!confirmReady && answerState === ""}
-              fullWidth
-            >
-              {confirmLabel}
-            </UIButton>
-          </div>
-        )}
-        {isFinalMode && (
-          <div
-            className="w-full"
-            style={{ animation: "dots-pop-in 0.4s ease-out both" }}
-          >
-            <UIButton tone="accent" onClick={confirmSelectedHandler} fullWidth>
-              {confirmLabel}
-            </UIButton>
-          </div>
-        )}
+        <LessonFooter
+          finalMode={isFinalMode}
+          confirmLabel={confirmLabel}
+          confirmDisabled={!confirmReady && answerState === ""}
+          onExit={goToLevels}
+          onConfirm={confirmSelectedHandler}
+        />
       </>
     );
   } else if (noSentences) {

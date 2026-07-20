@@ -11,20 +11,13 @@ import {
   type ScoreResult,
 } from "@/services/engagement.service";
 import XpReward from "@/components/ui/xp-reward";
+import { playSound } from "@/lib/feedback-sounds";
 
 const TIME_TRIAL_SECONDS = 60;
 const ENDURANCE_LIMIT = 360;
 
 type Place = "start" | "game" | "endgame";
 type GameMode = "trial" | "endurance";
-
-const playSound = (type: "correct" | "wrong") => {
-  const src =
-    type === "correct"
-      ? "/sounds/answers/correct.wav"
-      : "/sounds/answers/wrong.wav";
-  new Audio(src).play().catch(() => {});
-};
 
 const isCardDone = (card: Flashcard) =>
   card.options[card.correct - 1]?.marked ?? false;

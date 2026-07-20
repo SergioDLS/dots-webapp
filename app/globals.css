@@ -272,6 +272,62 @@ h1, h2, h3, .font-display {
   66%      { transform: translate(-16px, 14px) scale(0.96); }
 }
 
+/* ─── Practice / lesson keyframes ─────────────────────────── */
+@keyframes pc-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.06); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+@keyframes pc-fade-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes pc-wiggle {
+  0%,100% { transform: rotate(0deg); }
+  25%     { transform: rotate(-4deg); }
+  75%     { transform: rotate(4deg); }
+}
+@keyframes pc-float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+@keyframes pc-streak-glow {
+  0%   { text-shadow: 0 0 8px rgba(251,191,36,0.6); }
+  50%  { text-shadow: 0 0 20px rgba(251,191,36,0.9), 0 0 40px rgba(249,115,22,0.4); }
+  100% { text-shadow: 0 0 8px rgba(251,191,36,0.6); }
+}
+@keyframes pc-option-in {
+  0%   { transform: scale(0.85) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes pc-fly-to-tray {
+  0%   { transform: scale(1) translateY(0); opacity: 1; }
+  40%  { transform: scale(0.8) translateY(-10px); opacity: 0.6; }
+  100% { transform: scale(0) translateY(-32px); opacity: 0; }
+}
+@keyframes pc-fly-from-pool {
+  0%   { transform: scale(0.5) translateY(18px); opacity: 0; }
+  60%  { transform: scale(1.1) translateY(-3px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes pc-fly-back-from-tray {
+  0%   { transform: scale(1) translateY(0); opacity: 1; }
+  40%  { transform: scale(0.8) translateY(10px); opacity: 0.6; }
+  100% { transform: scale(0) translateY(28px); opacity: 0; }
+}
+@keyframes pc-correct-flash {
+  0%   { box-shadow: 0 0 0 0px rgba(34,197,94,0.5); }
+  50%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0px rgba(34,197,94,0); }
+}
+@keyframes pc-wrong-shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-6px); }
+  40%     { transform: translateX(6px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+
 /* ─── Dotaxi game ─────────────────────────────────────────── */
 /* lane dashes scrolling toward the player to fake forward motion */
 @keyframes dotaxi-road {
