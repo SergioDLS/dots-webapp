@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Doty from "../../ui/doty/doty";
 import Image from "next/image";
-import { BASE_URL_IMAGES } from "../../../constants";
+import { resolveAvatarUrl } from "../../../constants";
 const GoldCup = "/images/cups/gold_cup.png";
 const SilverCup = "/images/cups/silver_cup.png";
 const bronzeCup = "/images/cups/bronze_cup.png";
@@ -62,7 +62,7 @@ export default function StreakTop() {
             {item.profile_pic ? (
               <div className="w-9 h-9 rounded-full overflow-hidden relative shrink-0">
                 <Image
-                  src={`${BASE_URL_IMAGES}/users/${item.profile_pic}`}
+                  src={resolveAvatarUrl(item.profile_pic)}
                   alt={item.name}
                   fill
                   className="object-cover"

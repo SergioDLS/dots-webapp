@@ -6,6 +6,7 @@ import Confetti from "@/components/ui/confetti/confetti";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
 import type { ProgressReward } from "@/services/engagement.service";
+import { resolveSentenceSoundUrl } from "@/constants";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Option = {
@@ -298,7 +299,7 @@ export default function PracticeContainer({
     sentenceText = dataSentence.text.replace("__", chosen);
   }
   const correctWord = options.find((o) => o.correct)?.word ?? "";
-  const audioSrc = `sentences/${dataSentence.id}.${dataSentence.sentence_extension}`;
+  const audioSrc = resolveSentenceSoundUrl(dataSentence.id, dataSentence.sentence_extension);
 
   // ── Streak ────────────────────────────────────────────────────────────────
   if (mode === "streak") {

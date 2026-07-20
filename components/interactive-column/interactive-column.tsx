@@ -30,7 +30,7 @@ import ReadingsList from "./readings-list";
 import GamesList from "./games-list";
 import ThemeToggle from "../theme-toggle";
 //import { updateProfilePictureService } from "../../services/user.service";
-import { ADMIN_PROFILE, BASE_URL_IMAGES } from "../../constants";
+import { ADMIN_PROFILE, resolveAvatarUrl } from "../../constants";
 import { useAuth } from "@/context/auth-context";
 
 type User = {
@@ -67,7 +67,7 @@ export default function InteractiveColumn() {
   const [currentSection, setCurrentSection] = useState(0);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(() => {
     const u = getUserFromStorage();
-    return u?.profile_pic ? BASE_URL_IMAGES + "/users/" + u.profile_pic : null;
+    return u?.profile_pic ? resolveAvatarUrl(u.profile_pic) : null;
   });
   const [hoverPhoto, setHoverPhoto] = useState(false);
   const [userHover, setUserHover] = useState(false);

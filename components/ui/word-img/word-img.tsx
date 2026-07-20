@@ -46,7 +46,6 @@ export default function WordImg({ size, opacity = 1, src, customClass }: Props) 
           fill
           className="object-cover"
           loading="lazy"
-          unoptimized={!process.env.REACT_APP_BACKEND}
         />
       </span>
     );
@@ -61,7 +60,6 @@ export default function WordImg({ size, opacity = 1, src, customClass }: Props) 
         height={dim}
         className="object-cover w-full h-full"
         loading="lazy"
-        unoptimized={!process.env.REACT_APP_BACKEND}
       />
     </span>
   );
