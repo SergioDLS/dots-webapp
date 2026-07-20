@@ -299,7 +299,9 @@ export default function PracticeContainer({
     sentenceText = dataSentence.text.replace("__", chosen);
   }
   const correctWord = options.find((o) => o.correct)?.word ?? "";
-  const audioSrc = resolveSentenceSoundUrl(dataSentence.id, dataSentence.sentence_extension);
+  const audioSrc = dataSentence.sentence_extension
+    ? resolveSentenceSoundUrl(dataSentence.id, dataSentence.sentence_extension)
+    : "";
 
   // ── Streak ────────────────────────────────────────────────────────────────
   if (mode === "streak") {
