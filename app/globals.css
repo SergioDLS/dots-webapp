@@ -19,14 +19,18 @@
   --dot:        #f4dcea;     /* polka-dot sprinkle on the canvas */
 
   /* Text – ≥ 4.5:1 on both backgrounds above */
-  --foreground: #3d2352;     /* deep plum */
-  --muted:      #8a6a9b;     /* subdued text */
+  --foreground: #201a4d;     /* navy (logo) */
+  --muted:      #6a6690;     /* subdued navy-gray */
 
-  /* Brand */
-  --primary:          #7c5cff; /* purple */
+  /* Brand — navy (logo wordmark) estructura, rosa acento/CTA */
+  --navy:       #201a4d;   /* wordmark del logo */
+  --navy-2:     #2c2560;   /* navy elevado */
+  --navy-edge:  #14102f;
+
+  --primary:          var(--navy);
   --primary-contrast: #ffffff;
-  --primary-edge:     #5a3fd6;
-  --accent:           #e5077e; /* bubblegum pink */
+  --primary-edge:     var(--navy-edge);
+  --accent:           #e5077e; /* bubblegum pink (logo) */
   --accent-soft:      #ff64b4;
   --accent-contrast:  #ffffff;
   --accent-edge:      #b0005c;
@@ -35,9 +39,9 @@
   --purple:      var(--primary);
   --purple-edge: var(--primary-edge);
 
-  /* Important highlights (CTA buttons). Light theme: primary. */
-  --primary-accent: var(--primary);
-  --primary-accent-contrast: var(--primary-contrast);
+  /* CTA highlight — rosa en ambos temas */
+  --primary-accent: var(--accent);
+  --primary-accent-contrast: var(--accent-contrast);
 
   /* Feedback */
   --success:      #22c55e;
@@ -48,6 +52,10 @@
   --danger-edge:  #b72f47;
   --gold:         #ffb020;
   --gold-edge:    #bf8418;
+  --gem:        #12b5c9;   /* joya cian — moneda del juego */
+  --gem-edge:   #0c8a99;
+  --flame:      #ff7a1a;   /* llama de racha */
+  --flame-edge: #d95f00;
 
   /* Sunny yellow — alias of gold, tracks the active theme. Referenced by
      confetti, the admin WIP badge and the Don't Pop balloon. */
@@ -87,19 +95,23 @@
 
 /* ─── Dark theme ──────────────────────────────────────────── */
 :root[data-theme="dark"] {
-  --background: #1c1030;     /* deep plum */
-  --surface:    #2a1b45;
-  --surface-2:  #26183d;
-  --border:     #443064;
-  --dot:        #26183d;
+  --background: #14122e;     /* deep navy */
+  --surface:    #201a4d;
+  --surface-2:  #1b1640;
+  --border:     #332c66;
+  --dot:        #1b1640;
 
-  --foreground: #f8f0ff;
-  --muted:      #bda8d4;
+  --foreground: #f4f2ff;
+  --muted:      #b6aee0;
 
-  --primary:          #9b82ff; /* lighter purple for dark canvas */
+  --navy:       #201a4d;
+  --navy-2:     #2c2560;
+  --navy-edge:  #14102f;
+
+  --primary:          #6a5cff; /* navy-índigo claro para lienzo oscuro */
   --primary-contrast: #ffffff;
-  --primary-edge:     #6e55e0;
-  --accent:           #ff3d9e; /* brighter pink for dark canvas */
+  --primary-edge:     #4a3fd0;
+  --accent:           #ff3d9e; /* rosa más brillante en oscuro */
   --accent-soft:      #ff77bf;
   --accent-contrast:  #ffffff;
   --accent-edge:      #c1156f;
@@ -119,6 +131,10 @@
   --danger-edge:  #bc5564;
   --gold:         #ffc53d;
   --gold-edge:    #bf942e;
+  --gem:        #35d0e2;
+  --gem-edge:   #159fb0;
+  --flame:      #ff9540;
+  --flame-edge: #e06a10;
 
   /* Game scenery: night flight */
   --sky-top:    #1c2c54;
@@ -140,16 +156,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --background: #1c1030;
-    --surface:    #2a1b45;
-    --surface-2:  #26183d;
-    --border:     #443064;
-    --dot:        #26183d;
-    --foreground: #f8f0ff;
-    --muted:      #bda8d4;
-    --primary:          #9b82ff;
+    --background: #14122e;
+    --surface:    #201a4d;
+    --surface-2:  #1b1640;
+    --border:     #332c66;
+    --dot:        #1b1640;
+    --foreground: #f4f2ff;
+    --muted:      #b6aee0;
+    --navy:       #201a4d;
+    --navy-2:     #2c2560;
+    --navy-edge:  #14102f;
+    --primary:          #6a5cff;
     --primary-contrast: #ffffff;
-    --primary-edge:     #6e55e0;
+    --primary-edge:     #4a3fd0;
     --accent:           #ff3d9e;
     --accent-soft:      #ff77bf;
     --accent-contrast:  #ffffff;
@@ -166,6 +185,10 @@
     --danger-edge:  #bc5564;
     --gold:         #ffc53d;
     --gold-edge:    #bf942e;
+    --gem:        #35d0e2;
+    --gem-edge:   #159fb0;
+    --flame:      #ff9540;
+    --flame-edge: #e06a10;
     --sky-top:    #1c2c54;
     --sky-bottom: #34467a;
     --neutral-edge: #1a0f2e;
