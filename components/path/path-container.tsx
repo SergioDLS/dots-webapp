@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Doty from "@/components/ui/doty/doty";
 import PathDifficulty from "./path-difficulty";
@@ -34,6 +35,7 @@ export default function PathContainer() {
   // Client-side fetch: the session cookie belongs to the API host, so only
   // the browser (shared api client + refresh flow) can call the API.
   const { isBootstrapping } = useAuth();
+  const router = useRouter();
   const [path, setPath] = useState<PathResponse | null>(null);
   const [error, setError] = useState(false);
   const scrolledRef = useRef(false);
@@ -62,8 +64,13 @@ export default function PathContainer() {
     };
   }, [isBootstrapping]);
 
-  // NOTE: path.placementPending queda accesible aquí; la redirección a
-  // /onboarding se implementará en una fase posterior.
+  // Brand-new accounts (no placement record, zero progress) go through
+  // onboarding first. Fail-open by design: the adapter fallback and any
+  // error path leave placementPending=false, so existing users are never
+  // trapped in onboarding.
+  useEffect(() => {
+    if (path?.placementPending) router.replace("/onboarding");
+  }, [path?.placementPending, router]);
 
   // Auto-scroll to the current node once the path is rendered
   useEffect(() => {

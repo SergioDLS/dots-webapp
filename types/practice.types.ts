@@ -15,6 +15,8 @@ export type Sentence = {
   img?: string;
   img_sound?: string;
   sentence_extension?: string;
+  // Narration character key (absent for the default Doty voice)
+  voice_key?: string;
   options: SentenceOption[];
 };
 

@@ -106,7 +106,11 @@ export default function PracticeContainer({
   }
   const correctWord = options.find((o) => o.correct)?.word ?? "";
   const audioSrc = dataSentence.sentence_extension
-    ? resolveSentenceSoundUrl(dataSentence.id, dataSentence.sentence_extension)
+    ? resolveSentenceSoundUrl(
+        dataSentence.id,
+        dataSentence.sentence_extension,
+        dataSentence.voice_key,
+      )
     : "";
 
   // ── Streak ────────────────────────────────────────────────────────────────

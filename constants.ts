@@ -17,7 +17,15 @@ export const resolveAvatarUrl = (src: string) =>
 // dots-backend/scripts/migrate-media-to-cloudinary.js). Without the env var
 // we fall back to the legacy relative path resolved against BASE_URL_SOUNDS.
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-export const resolveSentenceSoundUrl = (id: number | string, ext: string) =>
-    CLOUDINARY_CLOUD_NAME !== undefined
-        ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/dots/sounds/sentences/${id}.${ext}`
-        : `sentences/${id}.${ext}`;
+// voiceKey: narration character subfolder (dots-backend characters.key). The
+// default character (Doty) keeps the legacy path and sends no voice_key.
+export const resolveSentenceSoundUrl = (
+    id: number | string,
+    ext: string,
+    voiceKey?: string,
+) => {
+    const segment = voiceKey ? `${voiceKey}/` : "";
+    return CLOUDINARY_CLOUD_NAME !== undefined
+        ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/dots/sounds/sentences/${segment}${id}.${ext}`
+        : `sentences/${segment}${id}.${ext}`;
+};
