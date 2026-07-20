@@ -1,4 +1,5 @@
 import api from "../lib/api-client";
+import type { PathResponse } from "@/types/path.types";
 
 async function getLevelsService() {
   try {
@@ -10,4 +11,9 @@ async function getLevelsService() {
   }
 }
 
-export { getLevelsService };
+async function getPathService(): Promise<PathResponse> {
+  const response = await api.get("/path");
+  return response.data;
+}
+
+export { getLevelsService, getPathService };

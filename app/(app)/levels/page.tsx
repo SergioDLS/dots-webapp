@@ -1,6 +1,6 @@
 import React from "react";
 
-import LevelContainer from "@/components/level-container/level-container";
+import PathContainer from "@/components/path/path-container";
 import InteractiveColumn from "@/components/interactive-column/interactive-column";
 
 function Levels() {
@@ -9,7 +9,7 @@ function Levels() {
       <div className="flex w-full flex-col-reverse md:flex-row md:items-start md:gap-8">
         {/* Main content: takes remaining space on desktop */}
         <main className="w-full min-w-0 md:flex-1">
-          <LevelContainer />
+          <PathContainer />
         </main>
 
         {/* Sidebar: full width on mobile, fixed width on md+ */}
