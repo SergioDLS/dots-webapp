@@ -57,6 +57,8 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
   // Correction state: null = not showing, string = the highlighted sentence
   const [correction, setCorrection] = useState<string | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Blocks re-entrant taps between a correct answer and the next question's render.
+  const advancingRef = useRef(false);
 
   // Per-question timer: fires when 7s expire (= timeout → wrong)
   const handleTimeUp = useCallback(() => {
@@ -122,6 +124,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     if (phase !== "playing") return;
     if (correction !== null) return;
     if (questionIndex >= items.length) return;
+    advancingRef.current = false;
     startTimer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, questionIndex, correction]);
@@ -153,6 +156,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
       clearTimeout(correctionTimerRef.current);
       correctionTimerRef.current = null;
     }
+    advancingRef.current = false;
     setQuestionIndex(0);
     setScore(0);
     setCorrection(null);
@@ -164,10 +168,11 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   const tapOption = useCallback(
     (option: string) => {
-      if (correction !== null) return;
+      if (correction !== null || advancingRef.current) return;
       const item = items[questionIndex];
       if (!item) return;
 
+      advancingRef.current = true;
       stopTimer();
 
       if (option === item.correct) {
