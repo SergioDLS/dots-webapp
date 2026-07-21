@@ -158,6 +158,9 @@ export async function getWordTowerService(
   seed?: number,
 ): Promise<TowerRound[]> {
   const params = seed !== undefined ? { params: { seed } } : {};
-  const { data } = await api.get<TowerRound[]>("/games/word-tower", params);
-  return data;
+  const { data } = await api.get<{ rounds: TowerRound[] }>(
+    "/games/word-tower",
+    params,
+  );
+  return data.rounds;
 }

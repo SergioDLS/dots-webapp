@@ -82,6 +82,9 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
   // Ref guards
   const resolvedRef = useRef(false); // prevents tap + landing race
+  // Mirror of roundIndex so advanceRound can run its side effects outside a
+  // setState updater (updaters must stay pure — StrictMode double-invokes them).
+  const roundIndexRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // advanceRound + handleMissStable refs so callbacks/effects can call the
   // latest version without stale closures.
@@ -161,26 +164,25 @@ function WordTowerInner({ seed }: { seed?: number }) {
   useTicker(TICKER_FPS, onTick, tickerRunning);
 
   const advanceRound = useCallback(() => {
-    setRoundIndex((prev) => {
-      const next = prev + 1;
-      if (next >= TOTAL_ROUNDS) {
-        setPhase("result");
-        return prev;
-      }
-      // reset for the next round
-      const nextRound = rounds[next];
-      if (nextRound) {
-        setLaneOptions(shuffled(nextRound.options));
-        setCorrectLabel("");
-      }
-      resolvedRef.current = false;
-      setProgress(0);
-      setRoundPhase("between");
-      timerRef.current = setTimeout(() => {
-        setRoundPhase("falling");
-      }, BETWEEN_ROUNDS_MS);
-      return next;
-    });
+    const next = roundIndexRef.current + 1;
+    if (next >= TOTAL_ROUNDS) {
+      setPhase("result");
+      return;
+    }
+    roundIndexRef.current = next;
+    // reset for the next round
+    const nextRound = rounds[next];
+    if (nextRound) {
+      setLaneOptions(shuffled(nextRound.options));
+      setCorrectLabel("");
+    }
+    resolvedRef.current = false;
+    setProgress(0);
+    setRoundIndex(next);
+    setRoundPhase("between");
+    timerRef.current = setTimeout(() => {
+      setRoundPhase("falling");
+    }, BETWEEN_ROUNDS_MS);
   }, [rounds]);
 
   // keep ref in sync
@@ -259,6 +261,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
   const startGame = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     const firstRound = rounds[0];
+    roundIndexRef.current = 0;
     setRoundIndex(0);
     setLives(MAX_LIVES);
     setScore(0);
