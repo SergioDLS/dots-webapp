@@ -17,6 +17,7 @@ import {
   type BuilderSentence,
 } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 
@@ -55,6 +56,7 @@ function SentenceBuilderGame() {
 function SentenceBuilderInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("sentence-builder");
+  const { submitTournamentScore } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [sentences, setSentences] = useState<BuilderSentence[]>([]);
@@ -121,6 +123,11 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
       if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
     };
   }, []);
+
+  // Submit tournament score once when result phase is reached
+  useEffect(() => {
+    if (phase === "result") submitTournamentScore(score);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Initialize chips when sentence changes ────────────────────────────────
 

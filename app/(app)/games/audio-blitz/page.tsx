@@ -18,6 +18,7 @@ import {
 } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 
@@ -47,6 +48,7 @@ function AudioBlitzGame() {
 function AudioBlitzInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("audio-blitz");
+  const { submitTournamentScore } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [items, setItems] = useState<AudioBlitzItem[]>([]);
@@ -165,6 +167,11 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     setPhase("playing");
     // timer starts via the phase/questionIndex effect above
   }, []);
+
+  // Submit tournament score once when result phase is reached
+  useEffect(() => {
+    if (phase === "result") submitTournamentScore(score);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Tap an option ────────────────────────────────────────────────────────
 

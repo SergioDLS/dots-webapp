@@ -14,6 +14,7 @@ import Spinner from "@/components/ui/Spinner/Spinner";
 import { getMatchPairsService, type MatchPair } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ function DotMatchGame() {
 function DotMatchInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("dot-match");
+  const { submitTournamentScore } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [allPairs, setAllPairs] = useState<MatchPair[]>([]);
@@ -397,6 +399,11 @@ function DotMatchInner({ seed }: { seed?: number }) {
         : "var(--accent)";
 
   const finalScore = score + maxCombo * SCORE_MAX_COMBO;
+
+  // Submit tournament score once when result phase is reached
+  useEffect(() => {
+    if (phase === "result") submitTournamentScore(finalScore);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (

@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import DailyQuestCard from "@/components/interactive-column/daily-quest";
 import TopStudents from "@/components/interactive-column/top-students";
+import TournamentCard from "@/components/quests/tournament-card";
 
 export default function QuestsPage() {
   return (
@@ -12,6 +14,12 @@ export default function QuestsPage() {
           Completa tu misión del día y sube en la tabla.
         </p>
       </header>
+
+      <div className="mx-auto w-full max-w-md">
+        <Suspense fallback={null}>
+          <TournamentCard />
+        </Suspense>
+      </div>
 
       <div className="mx-auto w-full max-w-md">
         <DailyQuestCard />

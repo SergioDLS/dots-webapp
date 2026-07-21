@@ -14,6 +14,7 @@ import Spinner from "@/components/ui/Spinner/Spinner";
 import WordImg from "@/components/ui/word-img/word-img";
 import { getMemoryPairsService, type MemoryPair } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -81,6 +82,7 @@ type Phase = "intro" | "playing" | "result";
 function MemoryInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("memory");
+  const { submitTournamentScore } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [pairs, setPairs] = useState<MemoryPair[]>([]);
@@ -154,9 +156,11 @@ function MemoryInner({ seed }: { seed?: number }) {
   // Set final score when transitioning to result phase (using ref to avoid timing issues)
   useEffect(() => {
     if (phase === "result") {
-      setFinalScore(calcScore(finalSecondsRef.current, moves));
+      const computed = calcScore(finalSecondsRef.current, moves);
+      setFinalScore(computed);
+      submitTournamentScore(computed);
     }
-  }, [phase, moves]);
+  }, [phase, moves]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = useCallback(() => {
     // Clean up any pending timers from a previous run

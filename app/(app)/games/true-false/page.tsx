@@ -17,6 +17,7 @@ import {
 } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -47,6 +48,7 @@ function TrueFalseGame() {
 function TrueFalseInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("true-false");
+  const { submitTournamentScore } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [cards, setCards] = useState<TrueFalseCard[]>([]);
@@ -196,6 +198,11 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setDragging(false);
     setDragX(0);
   }, []);
+
+  // Submit tournament score once when result phase is reached
+  useEffect(() => {
+    if (phase === "result") submitTournamentScore(score);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Derived display values ────────────────────────────────────────────────
 

@@ -17,6 +17,7 @@ import {
 } from "@/services/games.service";
 import { useTicker } from "@/hooks/use-ticker";
 import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ function shuffled<T>(arr: T[]): T[] {
 function WordTowerInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("word-tower");
+  const { submitTournamentScore } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [rounds, setRounds] = useState<TowerRound[]>([]);
@@ -138,6 +140,11 @@ function WordTowerInner({ seed }: { seed?: number }) {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  // Submit tournament score once when result phase is reached
+  useEffect(() => {
+    if (phase === "result") submitTournamentScore(score);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fall duration for the current round ─────────────────────────────────
 
