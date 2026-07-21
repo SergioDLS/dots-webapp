@@ -15,6 +15,15 @@ const gameVisual = (path: string): { img?: string; emoji?: string } => {
   if (path === "/flashcards") return { emoji: "🎴" };
   if (path === "/dotaxi") return { emoji: "🚕" };
   if (path === "/speed-round") return { emoji: "⚡" };
+  if (path === "/dot-match") return { emoji: "🔗" };
+  if (path === "/true-false") return { emoji: "🃏" };
+  if (path === "/memory") return { emoji: "🧠" };
+  if (path === "/audio-blitz") return { emoji: "🎧" };
+  if (path === "/word-tower") return { emoji: "🗼" };
+  if (path === "/sentence-builder") return { emoji: "🧱" };
+  if (path === "/wordle") return { emoji: "🟩" };
+  if (path === "/crossword") return { emoji: "✏️" };
+  if (path === "/ghost-race") return { emoji: "👻" };
   return { emoji: "🎮" };
 };
 
