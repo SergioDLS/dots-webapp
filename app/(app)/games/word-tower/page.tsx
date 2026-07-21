@@ -65,7 +65,7 @@ function shuffled<T>(arr: T[]): T[] {
 function WordTowerInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("word-tower");
-  const { submitTournamentScore } = useTournamentMode();
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [rounds, setRounds] = useState<TowerRound[]>([]);
@@ -141,9 +141,11 @@ function WordTowerInner({ seed }: { seed?: number }) {
     };
   }, []);
 
-  // Submit tournament score once when result phase is reached
+  // Modo torneo: envía el score una vez al llegar a "result"; al salir
+  // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
     if (phase === "result") submitTournamentScore(score);
+    else resetTournamentSubmit();
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fall duration for the current round ─────────────────────────────────

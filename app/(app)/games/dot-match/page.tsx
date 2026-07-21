@@ -77,7 +77,7 @@ function DotMatchGame() {
 function DotMatchInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("dot-match");
-  const { submitTournamentScore } = useTournamentMode();
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [allPairs, setAllPairs] = useState<MatchPair[]>([]);
@@ -400,9 +400,11 @@ function DotMatchInner({ seed }: { seed?: number }) {
 
   const finalScore = score + maxCombo * SCORE_MAX_COMBO;
 
-  // Submit tournament score once when result phase is reached
+  // Modo torneo: envía el score una vez al llegar a "result"; al salir
+  // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
     if (phase === "result") submitTournamentScore(finalScore);
+    else resetTournamentSubmit();
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {

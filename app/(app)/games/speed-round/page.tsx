@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -10,6 +17,7 @@ import {
   type ScoreResult,
 } from "@/services/engagement.service";
 import XpReward from "@/components/ui/xp-reward";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
 
 const ROUND_SECONDS = 60;
 const TICK_MS = 100;
@@ -34,6 +42,23 @@ const shuffle = <T,>(arr: T[]): T[] => {
 };
 
 export default function SpeedRoundPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Spinner title="Loading game..." />
+        </div>
+      }
+    >
+      <SpeedRoundInner />
+    </Suspense>
+  );
+}
+
+// El torneo llega con ?tournament=1 (y un seed que este juego legado ignora:
+// su mazo se baraja en cliente). useSearchParams exige el Suspense de arriba.
+function SpeedRoundInner() {
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
   const [place, setPlace] = useState<Place>("start");
   const [questions, setQuestions] = useState<DotaxiQuestion[]>([]);
   const [deck, setDeck] = useState<DotaxiQuestion[]>([]);
@@ -68,8 +93,10 @@ export default function SpeedRoundPage() {
       submitGameScoreService("speed-round", scoreRef.current)
         .then(setReward)
         .catch(() => {});
+      // en modo torneo, la misma partida también puntúa en el torneo
+      submitTournamentScore(scoreRef.current);
     }
-  }, []);
+  }, [submitTournamentScore]);
 
   // countdown
   useEffect(() => {
@@ -97,6 +124,7 @@ export default function SpeedRoundPage() {
     setPose("13");
     scoreRef.current = 0;
     scoreSubmittedRef.current = false;
+    resetTournamentSubmit();
     setReward(null);
     setPlace("game");
   };

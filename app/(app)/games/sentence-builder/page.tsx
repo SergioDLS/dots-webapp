@@ -56,7 +56,7 @@ function SentenceBuilderGame() {
 function SentenceBuilderInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("sentence-builder");
-  const { submitTournamentScore } = useTournamentMode();
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [sentences, setSentences] = useState<BuilderSentence[]>([]);
@@ -124,9 +124,11 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     };
   }, []);
 
-  // Submit tournament score once when result phase is reached
+  // Modo torneo: envía el score una vez al llegar a "result"; al salir
+  // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
     if (phase === "result") submitTournamentScore(score);
+    else resetTournamentSubmit();
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Initialize chips when sentence changes ────────────────────────────────

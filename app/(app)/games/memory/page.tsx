@@ -82,7 +82,7 @@ type Phase = "intro" | "playing" | "result";
 function MemoryInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("memory");
-  const { submitTournamentScore } = useTournamentMode();
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [pairs, setPairs] = useState<MemoryPair[]>([]);
@@ -153,12 +153,16 @@ function MemoryInner({ seed }: { seed?: number }) {
     setSeconds(finalSeconds);
   }, []);
 
-  // Set final score when transitioning to result phase (using ref to avoid timing issues)
+  // Set final score when transitioning to result phase (using ref to avoid
+  // timing issues). Tournament mode submits once here; leaving "result"
+  // (retry) re-arms the guard so the next run counts too.
   useEffect(() => {
     if (phase === "result") {
       const computed = calcScore(finalSecondsRef.current, moves);
       setFinalScore(computed);
       submitTournamentScore(computed);
+    } else {
+      resetTournamentSubmit();
     }
   }, [phase, moves]); // eslint-disable-line react-hooks/exhaustive-deps
 

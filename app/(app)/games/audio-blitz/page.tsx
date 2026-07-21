@@ -48,7 +48,7 @@ function AudioBlitzGame() {
 function AudioBlitzInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("audio-blitz");
-  const { submitTournamentScore } = useTournamentMode();
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [items, setItems] = useState<AudioBlitzItem[]>([]);
@@ -168,9 +168,11 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     // timer starts via the phase/questionIndex effect above
   }, []);
 
-  // Submit tournament score once when result phase is reached
+  // Modo torneo: envía el score una vez al llegar a "result"; al salir
+  // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
     if (phase === "result") submitTournamentScore(score);
+    else resetTournamentSubmit();
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Tap an option ────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   getTournamentService,
@@ -24,9 +24,9 @@ export default function TournamentCard() {
   const router = useRouter();
   const [data, setData] = useState<TournamentData | null>(null);
   const [loading, setLoading] = useState(true);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownRef = useRef<string>("");
-  const [countdownTick, setCountdownTick] = useState(0);
+  // El texto del countdown se deriva en render; este tick solo fuerza el
+  // re-render cada minuto (sin setState síncrono en el cuerpo del efecto).
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -42,22 +42,10 @@ export default function TournamentCard() {
     };
   }, []);
 
-  // Countdown ticker — update every minute
   useEffect(() => {
-    if (!data?.endsAt) return;
-
-    // Set initial value immediately via ref (no setState needed inside effect body)
-    countdownRef.current = formatCountdown(data.endsAt);
-
-    intervalRef.current = setInterval(() => {
-      countdownRef.current = formatCountdown(data.endsAt);
-      setCountdownTick((n) => n + 1); // trigger re-render
-    }, 60_000);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [data?.endsAt]);
+    const id = setInterval(() => setTick((n) => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   if (loading) {
     return (
@@ -71,10 +59,7 @@ export default function TournamentCard() {
   if (!data) return null;
 
   const { gameName, gamePath, seed, top, me } = data;
-  // Compute countdown inline for initial render and after each tick
-  const countdown = data.endsAt ? formatCountdown(data.endsAt) : "";
-  // suppress unused warning for countdownTick
-  void countdownTick;
+  const countdown = formatCountdown(data.endsAt);
 
   const handlePlay = () => {
     router.push(`/games${gamePath}?tournament=1&seed=${seed}`);
@@ -172,7 +157,7 @@ export default function TournamentCard() {
 
       {/* CTA */}
       <button
-        onPointerUp={handlePlay}
+        onClick={handlePlay}
         className="dots-pressable w-full rounded-2xl py-2.5 text-sm font-bold"
         style={{
           background: "var(--accent)",

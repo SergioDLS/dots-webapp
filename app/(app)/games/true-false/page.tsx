@@ -48,7 +48,7 @@ function TrueFalseGame() {
 function TrueFalseInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("true-false");
-  const { submitTournamentScore } = useTournamentMode();
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [cards, setCards] = useState<TrueFalseCard[]>([]);
@@ -199,9 +199,11 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setDragX(0);
   }, []);
 
-  // Submit tournament score once when result phase is reached
+  // Modo torneo: envía el score una vez al llegar a "result"; al salir
+  // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
     if (phase === "result") submitTournamentScore(score);
+    else resetTournamentSubmit();
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Derived display values ────────────────────────────────────────────────

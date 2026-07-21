@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import api from "@/lib/api-client";
+
+export type TournamentTopEntry = { name: string; score: number };
+export type TournamentMe = { rank: number; best: number; plays: number };
 
 export interface TournamentData {
   week: string;
@@ -7,25 +10,21 @@ export interface TournamentData {
   gamePath: string;
   seed: number;
   endsAt: string;
-  top: { name: string; score: number }[];
-  me: { rank: number; best: number; plays: number } | null;
+  top: TournamentTopEntry[];
+  me: TournamentMe | null;
 }
 
+/** Estado del torneo semanal; null si no hay sesión o el backend no responde. */
 export async function getTournamentService(): Promise<TournamentData | null> {
   try {
-    const res = await fetch(`${API_URL}/tournament`, { credentials: "include" });
-    if (!res.ok) return null;
-    return res.json();
+    const { data } = await api.get<TournamentData>("/tournament");
+    return data;
   } catch {
     return null;
   }
 }
 
+/** Sube el score de una partida al torneo de la semana actual. */
 export async function postTournamentScoreService(score: number): Promise<void> {
-  await fetch(`${API_URL}/tournament/score`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ score }),
-  });
+  await api.post("/tournament/score", { score });
 }
