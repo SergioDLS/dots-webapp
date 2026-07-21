@@ -164,3 +164,28 @@ export async function getWordTowerService(
   );
   return data.rounds;
 }
+
+// ── Constructor (sentence-builder) ────────────────────────────────────────────
+
+export type BuilderSentence = {
+  id: number;
+  /** sentence_extension to build the Cloudinary audio URL */
+  ext: string;
+  /** narration character key — undefined for default (Doty) voice */
+  voiceKey?: string;
+  /** ordered answer tokens */
+  answer: string[];
+  /** answer + 2 distractors, shuffled — the chip pool */
+  chips: string[];
+};
+
+export async function getSentenceBuilderService(
+  seed?: number,
+): Promise<BuilderSentence[]> {
+  const params = seed !== undefined ? { params: { seed } } : {};
+  const { data } = await api.get<{ sentences: BuilderSentence[] }>(
+    "/games/sentence-builder",
+    params,
+  );
+  return data.sentences;
+}
