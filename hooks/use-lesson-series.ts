@@ -37,7 +37,6 @@ export function useLessonSeries<T>({
   const [streak, setStreak] = useState(0);
   const [lifes, setLifes] = useState(hearts ?? Infinity);
   const [correctCount, setCorrectCount] = useState(0);
-  const [answeredCount, setAnsweredCount] = useState(0);
   // Unique items cleared from the queue (drives the progress bar).
   const [doneCount, setDoneCount] = useState(0);
 
@@ -50,7 +49,6 @@ export function useLessonSeries<T>({
     (correct: boolean) => {
       if (!silent) playSound(correct ? "correct" : "wrong");
       setAnswerState(correct ? "correct" : "wrong");
-      setAnsweredCount((n) => n + 1);
       if (correct) {
         setStreak((s) => s + 1);
       } else {

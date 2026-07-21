@@ -51,7 +51,7 @@ const SLOT_LABEL: Record<string, string> = {
 
 export default function ProfilePage() {
   const { logout } = useAuth();
-  const [user, setUser] = useState<StoredUser>({});
+  const [user] = useState<StoredUser>(readUser);
   const [stats, setStats] = useState<MyStats | null>(null);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
 
@@ -60,7 +60,6 @@ export default function ProfilePage() {
   }, []);
 
   useEffect(() => {
-    setUser(readUser());
     getMyStatsService().then((d) => d && setStats(d));
     loadInventory();
   }, [loadInventory]);
