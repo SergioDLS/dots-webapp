@@ -18,8 +18,8 @@ const displayName = (entry: LeaderboardEntry) => {
 };
 
 const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
-  { key: "week", label: "This week" },
-  { key: "all", label: "All time" },
+  { key: "week", label: "Esta semana" },
+  { key: "all", label: "Histórico" },
 ];
 
 export default function TopStudents() {
@@ -50,7 +50,7 @@ export default function TopStudents() {
       <div className="flex items-center gap-2 shrink-0">
         <Doty pose="17" size="mini" />
         <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
-          Top students
+          Ranking
         </span>
       </div>
 
@@ -129,7 +129,7 @@ export default function TopStudents() {
           <div className="flex flex-col items-center gap-3 py-8 opacity-50">
             <Doty pose="17" size="small" />
             <p className="text-sm text-(--muted) text-center">
-              Rankings coming soon!
+              ¡Ranking muy pronto!
             </p>
           </div>
         )}

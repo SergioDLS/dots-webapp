@@ -63,7 +63,7 @@ export default function DailyQuestCard({
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
-          🗓️ Daily quest
+          🗓️ Misión del día
         </span>
         <span className="text-[10px] font-extrabold text-(--muted) tabular-nums">
           {Math.min(quest.progress, quest.goal)}/{quest.goal}
@@ -98,7 +98,7 @@ export default function DailyQuestCard({
       {/* State line */}
       {quest.claimed ? (
         <p className="text-xs font-extrabold text-(--success)">
-          Done for today! ✅
+          ¡Listo por hoy! ✅
           {justClaimed !== null && justClaimed > 0 && (
             <span
               className="ml-2 text-(--gold-edge)"
@@ -124,11 +124,11 @@ export default function DailyQuestCard({
               : "dots-pulse-ring 1.6s ease-out infinite",
           }}
         >
-          {claiming ? "Claiming..." : `Claim +${quest.reward} XP 🎁`}
+          {claiming ? "Reclamando..." : `Reclamar +${quest.reward} XP 🎁`}
         </button>
       ) : (
         <p className="text-xs font-bold text-(--muted)">
-          Keep going — a reward is waiting! 🎁
+          ¡Sigue! Te espera un premio 🎁
         </p>
       )}
     </div>

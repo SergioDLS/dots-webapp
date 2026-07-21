@@ -33,12 +33,12 @@ export default function ReadingsList() {
       {/* Header */}
       <div className="flex items-center gap-2 shrink-0">
         <Doty pose="17" size="mini" />
-        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Let&apos;s read!</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">¡A leer!</span>
       </div>
 
       <div className="flex flex-col gap-2">
         {!loading && readings.length === 0 && (
-          <p className="text-xs text-(--muted) text-center pt-6">No readings available yet.</p>
+          <p className="text-xs text-(--muted) text-center pt-6">Aún no hay lecturas.</p>
         )}
         {loading && (
           <div className="flex justify-center py-8">
@@ -67,12 +67,12 @@ export default function ReadingsList() {
               <span className="text-sm font-semibold text-foreground truncate">{item.title}</span>
               {!item.unlocked ? (
                 <span className="text-[10px] font-bold text-(--muted)">
-                  🔒 Unlocks at level {item.unlock}
+                  🔒 Se abre en el nivel {item.unlock}
                 </span>
               ) : item.completed ? (
-                <span className="text-[10px] font-bold text-(--success)">✅ Completed</span>
+                <span className="text-[10px] font-bold text-(--success)">✅ Completada</span>
               ) : (
-                <span className="text-[10px] font-bold text-(--accent)">Read now →</span>
+                <span className="text-[10px] font-bold text-(--accent)">Leer →</span>
               )}
             </div>
           </button>

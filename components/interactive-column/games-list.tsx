@@ -43,7 +43,7 @@ export default function GamesList() {
       <div className="flex items-center gap-2 shrink-0">
         <Doty pose="12" size="mini" />
         <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
-          Let&apos;s play!
+          ¡A jugar!
         </span>
       </div>
 
@@ -100,12 +100,12 @@ export default function GamesList() {
                 </span>
                 {locked ? (
                   <span className="text-[11px] font-bold text-(--muted)">
-                    🔒 {item.levelsLeft} more level
-                    {item.levelsLeft === 1 ? "" : "s"} to unlock
+                    🔒 {item.levelsLeft} nivel
+                    {item.levelsLeft === 1 ? "" : "es"} más para abrir
                   </span>
                 ) : (
                   <span className="text-[11px] font-bold text-(--accent)">
-                    Play now →
+                    ¡Jugar! →
                   </span>
                 )}
               </div>
@@ -118,7 +118,7 @@ export default function GamesList() {
           <div className="flex flex-col items-center gap-3 py-8 opacity-60">
             <Doty pose="01" size="small" />
             <p className="text-sm text-(--muted) text-center">
-              Games coming soon!
+              ¡Juegos muy pronto!
             </p>
           </div>
         )}
