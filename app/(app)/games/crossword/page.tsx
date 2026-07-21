@@ -305,16 +305,17 @@ export default function CrosswordPage() {
 
   // ── Load ──────────────────────────────────────────────────────────────────
 
-  const loadState = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
+  // Initial load + Reintentar share this effect; the retry handler bumps
+  // fetchAttempt (setState resets live in the handler, not the effect body).
+  const [fetchAttempt, setFetchAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
     getCrosswordService()
       .then((s) => {
+        if (!active) return;
         setState(s);
         // Restore server cells
-        setLocalCells(
-          s.cells.map((row) => [...row]),
-        );
+        setLocalCells(s.cells.map((row) => [...row]));
         setCorrectGrid(
           Array.from({ length: GRID_SIZE }, () =>
             new Array<boolean | null>(GRID_SIZE).fill(null),
@@ -323,26 +324,19 @@ export default function CrosswordPage() {
         setLoading(false);
       })
       .catch(() => {
+        if (!active) return;
         setLoadError(true);
         setLoading(false);
       });
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [fetchAttempt]);
 
-  useEffect(() => {
-    let active = true;
-    getCrosswordService()
-      .then((s) => {
-        if (!active) return;
-        setState(s);
-        setLocalCells(s.cells.map((row) => [...row]));
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!active) return;
-        setLoadError(true);
-        setLoading(false);
-      });
-    return () => { active = false; };
+  const retryLoad = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
+    setFetchAttempt((n) => n + 1);
   }, []);
 
   // Countdown when done
@@ -355,10 +349,6 @@ export default function CrosswordPage() {
     countdownRef.current = id;
     return () => { clearInterval(id); clearTimeout(initId); };
   }, [isDone]);
-
-  useEffect(() => {
-    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
-  }, []);
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
@@ -540,7 +530,7 @@ export default function CrosswordPage() {
           Revisa tu conexión e inténtalo de nuevo.
         </p>
         <button
-          onPointerUp={loadState}
+          onPointerUp={retryLoad}
           style={{
             background: "var(--accent)",
             color: "var(--accent-foreground)",
