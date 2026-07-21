@@ -13,6 +13,7 @@ import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getMatchPairsService, type MatchPair } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ function DotMatchGame() {
 
 function DotMatchInner({ seed }: { seed?: number }) {
   const router = useRouter();
+  const { record, throne } = useGameRecords("dot-match");
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [allPairs, setAllPairs] = useState<MatchPair[]>([]);
@@ -464,8 +466,8 @@ function DotMatchInner({ seed }: { seed?: number }) {
               "Si te equivocas: combo roto y un pequeño temblor.",
               "3 rondas con más pares cada vez. ¡Combo máximo suma puntos al final!",
             ]}
-            record={null}
-            throne={null}
+            record={record}
+            throne={throne}
             onStart={startGame}
           />
         </>

@@ -42,6 +42,10 @@ export type ScoreResult = {
   isNewHighScore: boolean;
   xpGained: number;
   xp: number;
+  /** Whether this score took the global throne for this game key. */
+  tookThrone: boolean;
+  /** Name of the player who was dethroned, or null if no prior holder. */
+  dethronedName: string | null;
 };
 
 export type GameScore = {

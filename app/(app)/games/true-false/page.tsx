@@ -16,6 +16,7 @@ import {
   type TrueFalseCard,
 } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -45,6 +46,7 @@ function TrueFalseGame() {
 
 function TrueFalseInner({ seed }: { seed?: number }) {
   const router = useRouter();
+  const { record, throne } = useGameRecords("true-false");
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [cards, setCards] = useState<TrueFalseCard[]>([]);
@@ -261,8 +263,8 @@ function TrueFalseInner({ seed }: { seed?: number }) {
               "Desliza a la izquierda si la traducción es FALSA (trampa).",
               "Cada respuesta correcta suma puntos — ¡la racha multiplica!",
             ]}
-            record={null}
-            throne={null}
+            record={record}
+            throne={throne}
             onStart={startGame}
           />
         </>

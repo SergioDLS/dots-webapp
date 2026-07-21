@@ -1,5 +1,25 @@
 import api from "@/lib/api-client";
 
+// ── Global records (trono por juego) ─────────────────────────────────────────
+
+export type GameRecord = {
+  gameKey: string;
+  holderName: string;
+  holderId: number;
+  highScore: number;
+};
+
+export async function getGameRecordsService(): Promise<GameRecord[]> {
+  try {
+    const { data } = await api.get<GameRecord[]>("/games/records");
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+// ── Games list ────────────────────────────────────────────────────────────────
+
 export type Game = {
   id: number;
   name: string;

@@ -17,6 +17,7 @@ import {
   type AudioBlitzItem,
 } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 
@@ -45,6 +46,7 @@ function AudioBlitzGame() {
 
 function AudioBlitzInner({ seed }: { seed?: number }) {
   const router = useRouter();
+  const { record, throne } = useGameRecords("audio-blitz");
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [items, setItems] = useState<AudioBlitzItem[]>([]);
@@ -275,8 +277,8 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
               "Más rápido = más puntos (7 segundos por pregunta).",
               "12 frases. ¡Oídos listos!",
             ]}
-            record={null}
-            throne={null}
+            record={record}
+            throne={throne}
             onStart={startGame}
           />
         </>

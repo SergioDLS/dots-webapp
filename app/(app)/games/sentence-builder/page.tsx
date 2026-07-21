@@ -16,6 +16,7 @@ import {
   getSentenceBuilderService,
   type BuilderSentence,
 } from "@/services/games.service";
+import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 
@@ -53,6 +54,7 @@ function SentenceBuilderGame() {
 
 function SentenceBuilderInner({ seed }: { seed?: number }) {
   const router = useRouter();
+  const { record, throne } = useGameRecords("sentence-builder");
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [sentences, setSentences] = useState<BuilderSentence[]>([]);
@@ -336,8 +338,8 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
               "Toca 'Comprobar' cuando estés listo.",
               "Acierto sin fallos = +120 pts. ¡8 frases!",
             ]}
-            record={null}
-            throne={null}
+            record={record}
+            throne={throne}
             onStart={startGame}
           />
         </>

@@ -13,6 +13,7 @@ import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import WordImg from "@/components/ui/word-img/word-img";
 import { getMemoryPairsService, type MemoryPair } from "@/services/games.service";
+import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -79,6 +80,7 @@ type Phase = "intro" | "playing" | "result";
 
 function MemoryInner({ seed }: { seed?: number }) {
   const router = useRouter();
+  const { record, throne } = useGameRecords("memory");
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [pairs, setPairs] = useState<MemoryPair[]>([]);
@@ -335,8 +337,8 @@ function MemoryInner({ seed }: { seed?: number }) {
               "Si no coinciden, se voltean de nuevo después de 800 ms.",
               "¡Encuentra los 8 pares lo antes posible para maximizar tu puntuación!",
             ]}
-            record={null}
-            throne={null}
+            record={record}
+            throne={throne}
             onStart={startGame}
           />
         </>

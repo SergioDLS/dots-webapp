@@ -44,9 +44,9 @@ export default function GameResult({
       });
   }, [gameKey, score]);
 
-  // Determinar si el backend reportó robo de trono (campo futuro, acceso defensivo)
-  const tookThrone = (result as (ScoreResult & { tookThrone?: boolean; dethronedName?: string }) | null)?.tookThrone ?? false;
-  const dethronedName = (result as (ScoreResult & { tookThrone?: boolean; dethronedName?: string }) | null)?.dethronedName ?? null;
+  // Throne fields are now typed on ScoreResult
+  const tookThrone = result?.tookThrone ?? false;
+  const dethronedName = result?.dethronedName ?? null;
 
   const isNewRecord = result?.isNewHighScore ?? false;
   const dotyPose = isNewRecord ? "07" : "02";

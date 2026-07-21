@@ -16,6 +16,7 @@ import {
   type TowerRound,
 } from "@/services/games.service";
 import { useTicker } from "@/hooks/use-ticker";
+import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ function shuffled<T>(arr: T[]): T[] {
 
 function WordTowerInner({ seed }: { seed?: number }) {
   const router = useRouter();
+  const { record, throne } = useGameRecords("word-tower");
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [rounds, setRounds] = useState<TowerRound[]>([]);
@@ -350,8 +352,8 @@ function WordTowerInner({ seed }: { seed?: number }) {
               "Acierta → +100 × combo 🔥. Falla o deja aterrizar → pierde una vida ❤️.",
               "3 vidas fuera = fin. ¡Sobrevive las 20 rondas!",
             ]}
-            record={null}
-            throne={null}
+            record={record}
+            throne={throne}
             onStart={startGame}
           />
         </>
