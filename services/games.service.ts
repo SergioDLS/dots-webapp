@@ -142,3 +142,22 @@ export async function getAudioBlitzService(
   const { data } = await api.get<AudioBlitzItem[]>("/games/audio-blitz", params);
   return data;
 }
+
+// ── Torre de Palabras ─────────────────────────────────────────────────────────
+
+export type TowerRound = {
+  /** English word falling from the top. */
+  word: string;
+  /** Title of the pack this word belongs to (correct answer). */
+  correct: string;
+  /** 3 pack titles (correct + 2 decoys) — already shuffled by server. */
+  options: string[];
+};
+
+export async function getWordTowerService(
+  seed?: number,
+): Promise<TowerRound[]> {
+  const params = seed !== undefined ? { params: { seed } } : {};
+  const { data } = await api.get<TowerRound[]>("/games/word-tower", params);
+  return data;
+}
