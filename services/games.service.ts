@@ -189,3 +189,39 @@ export async function getSentenceBuilderService(
   );
   return data.sentences;
 }
+
+// ── Palabra del Día (wordle diario) ──────────────────────────────────────────
+
+export type Mark = "hit" | "present" | "miss";
+
+export type WordleGuess = {
+  word: string;
+  marks: Mark[];
+};
+
+export type WordleState = {
+  day: string;
+  length: number;
+  maxTries: number;
+  guesses: WordleGuess[];
+  done: boolean;
+  won: boolean;
+  /** Spanish meaning hint — revealed after 3rd guess or when done. */
+  hintEs: string | null;
+  /** The answer word — only non-null when done. */
+  answer: string | null;
+};
+
+export async function getWordleService(): Promise<WordleState> {
+  const { data } = await api.get<WordleState>("/games/wordle");
+  return data;
+}
+
+export async function postWordleGuessService(
+  guess: string,
+): Promise<WordleState> {
+  const { data } = await api.post<WordleState>("/games/wordle/guess", {
+    guess,
+  });
+  return data;
+}
