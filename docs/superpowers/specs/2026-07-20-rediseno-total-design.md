@@ -24,6 +24,22 @@ Rediseño total de la cara estudiante: UI mucho más intuitiva, divertida y visu
 
 Anti-decisiones (respaldadas por evidencia): sin corazones globales (backlash Energy 2025; la web de Duolingo nunca los tuvo), sin encadenamiento infinito de lecciones (bingers churnean más), máximo 1 notificación/día (cuando exista, en la app RN), gamificación premia — nunca castiga el aprender.
 
+## Estado actual — capa de engagement que YA existe (hallazgo 2026-07-20)
+
+Al explorar el código antes de construir se encontró que gran parte de la capa de retención YA está implementada y probada, pero hoy vive escondida en un carrusel rotatorio del sidebar (`components/interactive-column/`). **Decisión del usuario: reutilizarla tal cual y solo construir lo que falta; sacarla a la luz en el HUD y los tabs nuevos.**
+
+Endpoints existentes (contratos congelados en `services/engagement.service.ts`, backend en `modules/me/` y `modules/leaderboard/`):
+- `GET /me/stats` → `{ xp, streak, level (=floor(sqrt(xp/100))+1), xpForNextLevel, highScores, readingsCompleted, streakFreezes, bestStreak, xpWeek }`
+- `GET /me/quest` + `POST /me/quest/claim` → misión diaria única con `{ key, title, goal, progress, completed, claimed, reward }`
+- `GET /me/badges` → badges con progreso/goal/earned
+- `GET /leaderboard?period=all|week` → ranking `{ rank, name, xp, streak }` (all-time y semanal)
+- `POST /games/score`, `GET /games/scores`; readings `GET /readings`, `/readings/:id`, `/readings/:id/complete`
+- Racha + escudos ya se ganan/gastan (`ProgressReward.freezeUsed/freezeEarned`); `users.streak_freezes` existe.
+
+**Se reutiliza (no se reconstruye):** XP/niveles, racha+escudos, misión diaria (1/día), badges, leaderboard all/semanal, juegos, lecturas.
+**Genuinamente nuevo (lo que este rediseño construye):** gemas + ledger + tienda + cosméticos/gestos de Doty + boost XP + rescate; SRS; layout/tabs/HUD/home; celebración por etapas + explicar-fallo + teclado + infinito; Doty custom + CEFR.
+**Descartado por ahora (reusar lo existente basta):** misiones 3/día + cofres (se queda la 1/día actual); liga con divisiones/cohortes (se muestra el leaderboard semanal existente; divisiones cuando crezca la base).
+
 ## A. Identidad visual
 
 - **Paleta**: navy profundo como base dark (primera clase), blanco cálido como light, rosa del logo como acento/CTA. Tokens CSS en `app/globals.css` (extiende `--accent`, `--surface`, etc. — mismo mecanismo actual, valores nuevos + tokens de semántica de juego: `--gold`, `--gem`, `--flame`).
@@ -56,11 +72,9 @@ Secuencia por etapas en `result-screen.tsx` renovado: confetti → XP contando h
 - Aviso "racha en peligro": en la web, banner/estado visible al abrir; el push a la hora habitual lo hará la app RN (sección F).
 - Dato guía: rachas con escudos promedian +48% de duración; día 10 = punto de inflexión de abandono.
 
-### C3. Misiones diarias
-- 3 misiones/día por usuario, deterministas (seed usuario+fecha), de plantillas: "gana N XP", "acierta N seguidas", "completa 1 lección de pronunciación", "juega 1 partida en Zona de juego", "haz tu repaso"...
-- Cada misión → cofre (gemas o boost); las 3 → cofre bonus. Animación de apertura.
-- Progreso engancha en los endpoints de progreso existentes + `daily_use` (sin instrumentación nueva en el cliente).
-- Tablas: `quest_templates` (key, metric, target, reward jsonb, enabled) + `user_quests` (user_id, template_id, date, progress, completed_at, claimed_at; UNIQUE(user_id, template_id, date)).
+### C3. Misiones diarias — REUSAR la existente (no construir 3+cofres ahora)
+- Ya existe una misión diaria (`GET /me/quest` + `POST /me/quest/claim`). Este rediseño la **saca a la luz** en el tab Retos con UI atractiva (barra de progreso, recompensa, botón reclamar), en vez de esconderla en el carrusel del sidebar.
+- La expansión a 3 misiones/día + cofres queda descartada por ahora (decisión del usuario: reusar lo existente). Diseño futuro si se retoma: `quest_templates` + `user_quests` deterministas por seed usuario+fecha, cada una → cofre, las 3 → cofre bonus.
 
 ### C4. Economía de gemas
 - **Ganar**: ~10-15/lección, cofres 20-50, hitos de racha más grandes. **Gastar**: escudo 200, boost XP x2 15min 150, rescate en stakes 250, cosméticos 300-800, gestos 400-1000 (valores iniciales, tunables en un solo módulo de constantes).
@@ -74,11 +88,9 @@ Secuencia por etapas en `result-screen.tsx` renovado: confetti → XP contando h
 - **Checkpoints y juegos arcade**: 3 vidas. A 0 → modal Doty preocupado: "Continúa por 250 gemas" / "Reiniciar gratis".
 - Modo desafío descartado en el grilling: repetir lección por XP x1.5 es farmeo y no enseña nada nuevo.
 
-### C6. Liga semanal (fase tardía — necesita economía XP viva)
-- Cohortes de ~30 usuarios por semana y división (Bronce → Plata → Oro al inicio), ranking por XP semanal, top 10 asciende / bottom 5 desciende, opt-out en ajustes.
-- Tablas: `league_cohorts` (week, tier) + `league_members` (cohort_id, user_id, xp_week). Asignación al primer XP de la semana; cierre por cron domingo noche (job NestJS `@Cron`).
-- **Base pequeña (<50 usuarios, caso actual)**: es la ÚLTIMA fase. Con pocos activos, cohorte única con los usuarios reales que haya (sin bots que mientan); si no hay masa suficiente, la fase se pospone sin bloquear nada anterior.
-- Dato guía: +17% tiempo de estudio, 3x usuarios altamente comprometidos.
+### C6. Leaderboard semanal — REUSAR el existente (sin divisiones ahora)
+- Ya existe `GET /leaderboard?period=all|week` (ranking por XP; `xpWeek` trackeado en `/me/stats`). Este rediseño lo **saca a la luz** en el tab Retos: leaderboard semanal con tu posición destacada, avatar y racha.
+- Divisiones/cohortes (Bronce/Plata/Oro, ascenso/descenso) descartadas por ahora (decisión del usuario + base <50). Diseño futuro: `league_cohorts` + `league_members` sobre el `xpWeek` existente, cierre por cron `@Cron` domingo. Dato guía: +17% tiempo de estudio.
 
 ### C7. Teclado en lecciones (web/desktop)
 Enter = confirmar/continuar · 1-9 = opción n · Ctrl+Space = replay audio · Space = continuar en pantallas de fin. Hook `use-lesson-keys.ts` + hints visuales sutiles. Aplica a práctica, lecciones nuevas, checkpoint, repaso.
@@ -122,20 +134,20 @@ Nuevas: `quest_templates`, `user_quests`, `gem_ledger`, `shop_items`, `user_item
 
 ## Fases (cada una deployable, backend y frontend por fase)
 
-| # | Fase | Contenido |
-|---|---|---|
-| 0 | Base | Merge `redesign/learning-path` → main (ambos repos); rama nueva `redesign/total`; `migrate-redesign.js` |
-| 1 | UI kit | Tokens rosa/navy, fuentes, botones 3D, dark mode, Doty poses — re-pinta lo existente sin cambiar estructura |
-| 2 | Layout | Bottom tabs + sidebar iconos + header HUD + camino-como-home + Zona de juego hub (crea `(app)/layout.tsx` compartido) |
-| 3 | Juego seguro + explicar-fallo | Celebración por etapas, re-encolado sin vidas, combo x5, **explicación al fallar (C8)**, teclado |
-| 4 | Repaso SRS | `review_items` + tab Repaso — adelantado por ser el lever educativo |
-| 5 | Economía | Gemas + ledger + tienda + escudos + boost + rescate en checkpoints/arcade |
-| 6 | Misiones | Plantillas + asignación diaria + cofres + UI Retos |
-| 7 | Perfil + Doty | Perfil nuevo + Doty custom (cosméticos/gestos) + CEFR score |
-| 8 | Liga (última) | Cohortes reales + cron semanal + gate por tamaño mínimo (sin bots) + UI en Retos |
+| # | Fase | Contenido | Estado |
+|---|---|---|---|
+| 0 | Base | Merge `redesign/learning-path` → main (ambos repos, FF local); rama `redesign/total`. Migraciones por fase, no monolítica | ✅ hecho |
+| 1 | UI kit | Paleta navy + rosa del logo (retira morado) + tokens `--gem`/`--flame`; fuentes/botón 3D/dark ya existían | ✅ hecho |
+| 2 | Layout + surfacing | Bottom tabs + sidebar iconos + header HUD + camino-como-home + hub Zona de juego; crea `(app)/layout.tsx`. **HUD y tab Retos cablean a `/me/stats`, `/me/quest`, `/me/badges`, `/leaderboard` existentes** | — |
+| 3 | Juego seguro + explicar-fallo | Celebración por etapas, re-encolado sin vidas, combo x5, **explicación al fallar (C8)**, teclado | — |
+| 4 | Repaso SRS | `review_items` + tab Repaso — nuevo, lever educativo | — |
+| 5 | Economía | Gemas + ledger + tienda + cosméticos/gestos + boost + rescate en checkpoints/arcade — único gran build de mecánica | — |
+| 6 | Perfil + Doty | Perfil nuevo + Doty custom (cosméticos/gestos) + CEFR (reusa `/me/stats` y `/me/badges`) | — |
 
-**Primera tanda (construyo y luego paro para tu OK)**: fases 0-4 — piel nueva + layout + juego seguro/explicar-fallo + SRS. Es el corte "se siente nuevo + educativo". Después economía → misiones → perfil → liga, cada una con tu visto bueno.
+**Primera tanda (construyo y luego paro para tu OK)**: fases 0-4 — piel + layout/surfacing + juego seguro/explicar-fallo + SRS. Fases 0 y 1 ya hechas.
 
+**Reusado, no reconstruido**: XP/niveles, racha+escudos, misión diaria (1/día), badges, leaderboard all/semanal, juegos, lecturas (ver "Estado actual").
+**Descartado por ahora**: misiones 3/día + cofres, liga con divisiones (basta reusar lo existente).
 **Diferido (fuera de este rediseño)**: historias con personajes (espera elenco + `ELEVENLABS_API_KEY`); PWA/push (lo asume la futura app React Native).
 
 ## Riesgos
