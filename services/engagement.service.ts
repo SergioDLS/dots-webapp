@@ -6,7 +6,16 @@ export type GameKey =
   | "dont-pop"
   | "flashcards"
   | "dotaxi"
-  | "speed-round";
+  | "speed-round"
+  | "dot-match"
+  | "true-false"
+  | "memory"
+  | "audio-blitz"
+  | "word-tower"
+  | "sentence-builder"
+  | "wordle"
+  | "crossword"
+  | "ghost-race";
 
 /** Enriched response of PUT /sentences/progress */
 export type ProgressReward = {

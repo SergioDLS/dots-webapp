@@ -64,3 +64,20 @@ export async function getDotaxiService(): Promise<DotaxiQuestion[]> {
   const { data } = await api.get<DotaxiQuestion[]>("/games/dotaxi");
   return data;
 }
+
+// ── True-False (¿Verdad o Trampa?) ────────────────────────────────────────────
+
+export type TrueFalseCard = {
+  id: number;
+  en: string;
+  es: string;
+  isCorrect: boolean;
+};
+
+export async function getTrueFalseService(
+  seed?: number,
+): Promise<TrueFalseCard[]> {
+  const params = seed !== undefined ? { params: { seed } } : {};
+  const { data } = await api.get<TrueFalseCard[]>("/games/true-false", params);
+  return data;
+}
