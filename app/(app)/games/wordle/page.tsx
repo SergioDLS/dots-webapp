@@ -66,11 +66,12 @@ function bestMark(a: Mark | undefined, b: Mark): Mark | undefined {
 type TileProps = {
   letter: string;
   mark: Mark | null;
-  revealed: boolean; // true = this row was submitted (flip animation)
+  revealed: boolean; // true = this row was submitted (renders colored)
+  animate: boolean; // true = row submitted THIS session (flip animation)
   colIndex: number; // for staggered delay
 };
 
-function Tile({ letter, mark, revealed, colIndex }: TileProps) {
+function Tile({ letter, mark, revealed, animate, colIndex }: TileProps) {
   const delay = `${colIndex * 120}ms`;
 
   const bg = revealed && mark ? markColor(mark) : "var(--surface)";
@@ -99,7 +100,10 @@ function Tile({ letter, mark, revealed, colIndex }: TileProps) {
         fontFamily: "var(--font-display, sans-serif)",
         userSelect: "none",
         transform: revealed && mark ? "rotateX(0deg)" : undefined,
-        animation: revealed && mark ? `wordle-flip 0.4s ease ${delay} both` : undefined,
+        animation:
+          revealed && mark && animate
+            ? `wordle-flip 0.4s ease ${delay} both`
+            : undefined,
         transition: "background 0.1s, border-color 0.1s",
       }}
     >
@@ -168,6 +172,10 @@ export default function WordlePage() {
   // Current row typing
   const [currentWord, setCurrentWord] = useState("");
 
+  // Rows already on the board when it loaded — they render colored but do
+  // NOT replay the flip animation (only rows submitted this session flip).
+  const [preloadedRows, setPreloadedRows] = useState(0);
+
   // Shake animation on bad submit
   const [shaking, setShaking] = useState(false);
   const shakeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -187,6 +195,7 @@ export default function WordlePage() {
     getWordleService()
       .then((s) => {
         setState(s);
+        setPreloadedRows(s.guesses.length);
         setCurrentWord("");
       })
       .catch(() => setLoadError(true))
@@ -200,6 +209,7 @@ export default function WordlePage() {
       .then((s) => {
         if (active) {
           setState(s);
+          setPreloadedRows(s.guesses.length);
           setCurrentWord("");
           setLoading(false);
         }
@@ -411,9 +421,10 @@ export default function WordlePage() {
     <>
       {/* Flip animation keyframes injected once */}
       <style>{`
+        /* transform-only (RN/Reanimated-portable) */
         @keyframes wordle-flip {
           0% { transform: rotateX(0deg); }
-          50% { transform: rotateX(-90deg); background: var(--surface); }
+          50% { transform: rotateX(-90deg); }
           100% { transform: rotateX(0deg); }
         }
         @keyframes wordle-shake {
@@ -533,6 +544,7 @@ export default function WordlePage() {
                       letter={letter}
                       mark={mark}
                       revealed={row.revealed}
+                      animate={row.revealed && rIdx >= preloadedRows}
                       colIndex={cIdx}
                     />
                   );
