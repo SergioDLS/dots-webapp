@@ -46,6 +46,40 @@ export default function PathDifficulty({ difficulty }: PathDifficultyProps) {
   const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
   const { msg, emoji } = motivational(pct);
 
+  // Una dificultad está desbloqueada si alguna sección lo está (o fue superada
+  // por test). Un usuario nuevo solo tiene Beginner abierta; el resto se
+  // muestran como bloques bloqueados hasta llegar a ellas por el camino.
+  const unlocked =
+    skipped || sections.some((s) => s.unlocked || s.skipped);
+
+  if (!unlocked) {
+    return (
+      <div
+        className="flex w-full items-center gap-4 rounded-3xl p-5 opacity-90"
+        style={{ background: "var(--surface)", border: "2px dashed var(--border)" }}
+        aria-labelledby={`path-difficulty-${id}`}
+      >
+        <div
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+          style={{ background: "var(--surface-2)", border: "2px solid var(--border)" }}
+        >
+          <span className="text-2xl">🔒</span>
+        </div>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h3
+            id={`path-difficulty-${id}`}
+            className="truncate font-display text-lg font-extrabold text-(--muted)"
+          >
+            {prettyName}
+          </h3>
+          <p className="text-xs font-bold text-(--muted)">
+            Completa el nivel anterior para desbloquear
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-full flex-col gap-4" aria-labelledby={`path-difficulty-${id}`}>
 
