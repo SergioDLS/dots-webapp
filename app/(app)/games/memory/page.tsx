@@ -83,6 +83,8 @@ function MemoryInner({ seed }: { seed?: number }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [pairs, setPairs] = useState<MemoryPair[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
 
   // Game state
   const [cards, setCards] = useState<Card[]>([]);
@@ -97,6 +99,7 @@ function MemoryInner({ seed }: { seed?: number }) {
   const flipBackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedAtRef = useRef<number>(0);
+  const finalSecondsRef = useRef<number>(0); // stable final time for score calculation
 
   // Load pairs once
   useEffect(() => {
@@ -105,7 +108,9 @@ function MemoryInner({ seed }: { seed?: number }) {
       .then((data) => {
         if (active) setPairs(data);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
       .finally(() => {
         if (active) setLoading(false);
       });
@@ -137,9 +142,18 @@ function MemoryInner({ seed }: { seed?: number }) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
-    // Capture final elapsed time
-    setSeconds(Math.floor((Date.now() - startedAtRef.current) / 1000));
+    // Capture final elapsed time into ref and state (for display stability)
+    const finalSeconds = Math.floor((Date.now() - startedAtRef.current) / 1000);
+    finalSecondsRef.current = finalSeconds;
+    setSeconds(finalSeconds);
   }, []);
+
+  // Set final score when transitioning to result phase (using ref to avoid timing issues)
+  useEffect(() => {
+    if (phase === "result") {
+      setFinalScore(calcScore(finalSecondsRef.current, moves));
+    }
+  }, [phase, moves]);
 
   const startGame = useCallback(() => {
     // Clean up any pending timers from a previous run
@@ -221,13 +235,71 @@ function MemoryInner({ seed }: { seed?: number }) {
 
   const isCardMatched = (card: Card) => matched.has(card.key);
 
-  // Score is computed from the FINAL seconds/moves at result phase
-  const finalScore = calcScore(seconds, moves);
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner title="Cargando cartas…" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full opacity-20 blur-3xl"
+          style={{ background: "var(--accent)" }}
+        />
+        <div className="z-10 w-full max-w-sm">
+          <div
+            className="dots-card flex flex-col items-center justify-center gap-6 p-6"
+          >
+            <div className="text-4xl">⚠️</div>
+            <div className="flex flex-col items-center gap-2">
+              <p
+                className="text-sm font-bold text-center"
+                style={{ color: "var(--foreground)" }}
+              >
+                No se pudieron cargar las cartas
+              </p>
+              <p
+                className="text-xs text-center"
+                style={{ color: "var(--muted)" }}
+              >
+                Intenta de nuevo o vuelve al menú
+              </p>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => {
+                  setLoadError(false);
+                  setLoading(true);
+                  setPhase("intro");
+                  window.location.reload();
+                }}
+                className="flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-colors"
+                style={{
+                  background: "var(--accent)",
+                  color: "var(--accent-foreground)",
+                }}
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={() => router.push("/play")}
+                className="flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-colors"
+                style={{
+                  background: "var(--border)",
+                  color: "var(--foreground)",
+                }}
+              >
+                Volver
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -356,7 +428,7 @@ function MemoryInner({ seed }: { seed?: number }) {
                 <button
                   key={card.key}
                   onClick={() => handleCardTap(card)}
-                  disabled={faceUp && !isMatched ? false : isMatched}
+                  disabled={isMatched}
                   className="relative select-none"
                   style={{
                     aspectRatio: "1 / 1",
