@@ -99,3 +99,22 @@ export async function getTrueFalseService(
   const { data } = await api.get<TrueFalseCard[]>("/games/true-false", params);
   return data;
 }
+
+// ── Memoria Relámpago ─────────────────────────────────────────────────────────
+
+export type MemoryPair = {
+  /** Shared id — links the word-card to its image-card. */
+  id: number;
+  /** English word text shown on the word-card. */
+  word: string;
+  /** Cloudinary (or legacy) image URL shown on the image-card. */
+  img: string;
+};
+
+export async function getMemoryPairsService(
+  seed?: number,
+): Promise<MemoryPair[]> {
+  const params = seed !== undefined ? { params: { seed } } : {};
+  const { data } = await api.get<MemoryPair[]>("/games/memory", params);
+  return data;
+}
