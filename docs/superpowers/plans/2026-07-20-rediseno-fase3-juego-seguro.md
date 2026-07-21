@@ -30,7 +30,10 @@
 - [ ] Wire: los 3 flujos del camino usan `mode:"requeue"`; checkpoint/arcade siguen con `hearts`.
 - [ ] Verificar (fallar un ítem → reaparece; acertar todo → termina) + build. Commit `feat(lesson): fallo re-encola en el camino, sin gameover`.
 
-## Task 4: Explicar al fallar (C8, lever educativo) — PENDIENTE
+## Task 4: Explicar al fallar (C8, lever educativo) — ✅ HECHO (commits 8b395b7 backend, bdea7b6 frontend)
+Alcance entregado: gramática + pronunciación (donde hay regla/contraste explicable). Backend deriva `hint` (grammar: bloque tip/example de la píldora; pronunciation: palabra + sonido del par mínimo) y lo expone en `node-content` + `path.dto`. Frontend: `ExplanationHint` (panel 💡); grammar-pill lo muestra bajo el feedback antes de "Continuar"; pronunciation-drill se detiene al fallar, muestra el hint y espera "Continuar" (el acierto sigue avanzando rápido). Vocab (matching) queda fuera: el emparejamiento se explica solo. Practice (oraciones) queda para una pasada futura (máquina de estados propia; hint = traducción).
+
+### Detalle original (referencia)
 **Files (backend):** `dots-backend/src/modules/path/node-content.service.ts` + DTOs — añadir `hint?: string` por ítem (derivado): grammar → bloque `tip`/`example` de la píldora; sentence/practice → traducción; vocab → significado+ejemplo; pronunciation → contraste del par mínimo templado. **Files (frontend):** `components/lesson/answer-flash.tsx` o un panel nuevo `explanation-hint.tsx`; consumir en los flujos.
 - [ ] Backend: extender el contenido de nodo con `hint` opcional por ítem (degradar a "Respuesta correcta: X" si no hay). Tests del derivador.
 - [ ] Frontend: al `answerState==="wrong"`, mostrar panel breve con el hint + respuesta correcta; cerrar con Enter/tap. No bloquea el ritmo.
