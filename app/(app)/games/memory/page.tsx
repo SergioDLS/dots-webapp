@@ -15,6 +15,7 @@ import WordImg from "@/components/ui/word-img/word-img";
 import { getMemoryPairsService, type MemoryPair } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
+import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ function MemoryInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("memory");
   const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
+  const { submitChallengeScore } = useChallengeMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [pairs, setPairs] = useState<MemoryPair[]>([]);
@@ -161,6 +163,7 @@ function MemoryInner({ seed }: { seed?: number }) {
       const computed = calcScore(finalSecondsRef.current, moves);
       setFinalScore(computed);
       submitTournamentScore(computed);
+      submitChallengeScore(computed);
     } else {
       resetTournamentSubmit();
     }

@@ -15,6 +15,7 @@ import { getMatchPairsService, type MatchPair } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
+import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("dot-match");
   const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
+  const { submitChallengeScore } = useChallengeMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [allPairs, setAllPairs] = useState<MatchPair[]>([]);
@@ -403,8 +405,12 @@ function DotMatchInner({ seed }: { seed?: number }) {
   // Modo torneo: envía el score una vez al llegar a "result"; al salir
   // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
-    if (phase === "result") submitTournamentScore(finalScore);
-    else resetTournamentSubmit();
+    if (phase === "result") {
+      submitTournamentScore(finalScore);
+      submitChallengeScore(finalScore);
+    } else {
+      resetTournamentSubmit();
+    }
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {

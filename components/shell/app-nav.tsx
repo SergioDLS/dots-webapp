@@ -2,11 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { NAV_ITEMS } from "./nav-items";
+import { getChallengesService } from "@/services/challenges.service";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
+}
+
+/** Puntito con contador para el tab Retos cuando hay retos 1v1 por jugar. */
+function ChallengeBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      aria-label={`${count} retos pendientes`}
+      className="absolute -top-1 -right-1 grid min-w-4 h-4 place-items-center rounded-full px-1 text-[9px] font-black leading-none"
+      style={{
+        background: "var(--accent)",
+        color: "var(--accent-contrast, #fff)",
+      }}
+    >
+      {count > 9 ? "9+" : count}
+    </span>
+  );
 }
 
 /**
@@ -15,6 +34,23 @@ function isActive(pathname: string, href: string): boolean {
  */
 export default function AppNav() {
   const pathname = usePathname() || "";
+
+  // Retos 1v1 entrantes → badge en el tab Retos. Fetch único al montar
+  // (resiliente: 0 si no hay sesión); una leve obsolescencia es aceptable.
+  const [incomingCount, setIncomingCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    getChallengesService().then((data) => {
+      if (active) setIncomingCount(data.incoming.length);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const badgeFor = (href: string) =>
+    href === "/quests" ? <ChallengeBadge count={incomingCount} /> : null;
 
   return (
     <>
@@ -43,7 +79,10 @@ export default function AppNav() {
                   : "text-(--muted) hover:bg-(--accent)/8 hover:text-(--accent)"
               }`}
             >
-              <span className="text-2xl leading-none">{item.icon}</span>
+              <span className="relative text-2xl leading-none">
+                {item.icon}
+                {badgeFor(item.href)}
+              </span>
               <span className="text-[10px] font-extrabold tracking-wide">
                 {item.label}
               </span>
@@ -68,7 +107,10 @@ export default function AppNav() {
                 active ? "text-(--accent)" : "text-(--muted)"
               }`}
             >
-              <span className="text-xl leading-none">{item.icon}</span>
+              <span className="relative text-xl leading-none">
+                {item.icon}
+                {badgeFor(item.href)}
+              </span>
               <span className="text-[10px] font-extrabold tracking-tight">
                 {item.label}
               </span>

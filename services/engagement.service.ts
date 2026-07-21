@@ -87,6 +87,8 @@ export type ReadingResult = {
 
 export type LeaderboardEntry = {
   rank: number;
+  /** user id — para acciones sociales (retar 1v1); puede faltar en backends viejos */
+  id?: number;
   name: string;
   last_name: string;
   xp: number;

@@ -18,6 +18,7 @@ import {
 import { useTicker } from "@/hooks/use-ticker";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
+import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -66,6 +67,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("word-tower");
   const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
+  const { submitChallengeScore } = useChallengeMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [rounds, setRounds] = useState<TowerRound[]>([]);
@@ -144,8 +146,12 @@ function WordTowerInner({ seed }: { seed?: number }) {
   // Modo torneo: envía el score una vez al llegar a "result"; al salir
   // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
-    if (phase === "result") submitTournamentScore(score);
-    else resetTournamentSubmit();
+    if (phase === "result") {
+      submitTournamentScore(score);
+      submitChallengeScore(score);
+    } else {
+      resetTournamentSubmit();
+    }
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fall duration for the current round ─────────────────────────────────

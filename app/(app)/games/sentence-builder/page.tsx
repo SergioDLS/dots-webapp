@@ -18,6 +18,7 @@ import {
 } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
+import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 
@@ -57,6 +58,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   const router = useRouter();
   const { record, throne } = useGameRecords("sentence-builder");
   const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
+  const { submitChallengeScore } = useChallengeMode();
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [sentences, setSentences] = useState<BuilderSentence[]>([]);
@@ -127,8 +129,12 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   // Modo torneo: envía el score una vez al llegar a "result"; al salir
   // (reintentar) rearma el guard para que la próxima partida también cuente.
   useEffect(() => {
-    if (phase === "result") submitTournamentScore(score);
-    else resetTournamentSubmit();
+    if (phase === "result") {
+      submitTournamentScore(score);
+      submitChallengeScore(score);
+    } else {
+      resetTournamentSubmit();
+    }
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Initialize chips when sentence changes ────────────────────────────────
