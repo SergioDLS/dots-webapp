@@ -16,6 +16,7 @@ import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ExplanationHint from "@/components/lesson/explanation-hint";
 import ResultScreen from "@/components/lesson/result-screen";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
+import { useLessonKeys } from "@/hooks/use-lesson-keys";
 import {
   putNodeProgressService,
   type NodeProgressReward,
@@ -42,9 +43,43 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
   const series = useLessonSeries({
     items: content.items,
     confirmMode: "instant",
+    mode: "requeue",
   });
 
   const goToPath = () => router.push("/levels");
+
+  const advance = () => {
+    setSelectedWord(null);
+    series.next();
+  };
+
+  const tap = (word: string, correct: boolean) => {
+    const cur = series.current;
+    if (!cur || series.answerState !== "") return;
+    setSelectedWord(word);
+    series.select(correct);
+    if (!correct) {
+      wrongByItem.current.set(cur.id, (wrongByItem.current.get(cur.id) ?? 0) + 1);
+    }
+    answeredByItem.current.set(cur.id, correct);
+    // Al acertar, avanza solo (ritmo rápido). Al fallar, se detiene para
+    // mostrar la explicación; el usuario continúa cuando la leyó.
+    if (correct) setTimeout(advance, ADVANCE_DELAY_MS);
+  };
+
+  // Teclado (desktop): 1-2 elige opción; Enter continúa tras fallar.
+  useLessonKeys({
+    enabled: stage === "play" && !series.finished,
+    onSelect: (i) => {
+      const cur = series.current;
+      if (!cur || series.answerState !== "") return;
+      const o = cur.options[i];
+      if (o) tap(o.word, o.correct);
+    },
+    onEnter: () => {
+      if (series.answerState === "wrong") advance();
+    },
+  });
 
   // Report progress exactly once when the series ends.
   useEffect(() => {
@@ -124,24 +159,6 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
 
   const item = series.current;
   if (!item) return null;
-
-  const advance = () => {
-    setSelectedWord(null);
-    series.next();
-  };
-
-  const tap = (word: string, correct: boolean) => {
-    if (series.answerState !== "") return;
-    setSelectedWord(word);
-    series.select(correct);
-    if (!correct) {
-      wrongByItem.current.set(item.id, (wrongByItem.current.get(item.id) ?? 0) + 1);
-    }
-    answeredByItem.current.set(item.id, correct);
-    // Al acertar, avanza solo (ritmo rápido). Al fallar, se detiene para
-    // mostrar la explicación; el usuario continúa cuando la leyó.
-    if (correct) setTimeout(advance, ADVANCE_DELAY_MS);
-  };
 
   return (
     <div className="flex flex-col gap-4 w-full">

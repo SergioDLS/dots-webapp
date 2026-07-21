@@ -16,6 +16,7 @@ import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ResultScreen from "@/components/lesson/result-screen";
 import ExplanationCard from "@/components/lesson/grammar/explanation-card";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
+import { useLessonKeys } from "@/hooks/use-lesson-keys";
 import {
   putNodeProgressService,
   type GrammarContent,
@@ -40,9 +41,41 @@ export default function GrammarPill({ nodeId, content }: Props) {
   const series = useLessonSeries({
     items: content.items,
     confirmMode: "confirm",
+    mode: "requeue",
   });
 
   const goToPath = () => router.push("/levels");
+
+  // Teclado (desktop): 1-9 elige opción; Enter confirma / continúa.
+  useLessonKeys({
+    enabled: stage === "practice" && !series.finished,
+    onSelect: (i) => {
+      if (series.answerState !== "") return;
+      const cur = series.current;
+      const o = cur?.options[i];
+      if (o) {
+        setSelectedWord(o.word);
+        series.select(o.correct);
+      }
+    },
+    onEnter: () => {
+      const cur = series.current;
+      if (!cur) return;
+      if (series.answerState !== "") {
+        setSelectedWord(null);
+        series.next();
+        return;
+      }
+      if (selectedWord === null) return;
+      const correct =
+        cur.options.find((o) => o.word === selectedWord)?.correct ?? false;
+      if (!correct) {
+        wrongByItem.current.set(cur.id, (wrongByItem.current.get(cur.id) ?? 0) + 1);
+      }
+      answeredByItem.current.set(cur.id, correct);
+      series.confirm();
+    },
+  });
 
   // Report progress exactly once when the series ends.
   useEffect(() => {
