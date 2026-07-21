@@ -101,7 +101,8 @@ function MemoryInner({ seed }: { seed?: number }) {
   const startedAtRef = useRef<number>(0);
   const finalSecondsRef = useRef<number>(0); // stable final time for score calculation
 
-  // Load pairs once
+  // Load pairs (re-runs on retry via fetchAttempt)
+  const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
     let active = true;
     getMemoryPairsService(seed)
@@ -117,7 +118,7 @@ function MemoryInner({ seed }: { seed?: number }) {
     return () => {
       active = false;
     };
-  }, [seed]);
+  }, [seed, fetchAttempt]);
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -274,10 +275,9 @@ function MemoryInner({ seed }: { seed?: number }) {
             <div className="flex gap-3 w-full">
               <button
                 onClick={() => {
-                  setLoadError(false);
                   setLoading(true);
-                  setPhase("intro");
-                  window.location.reload();
+                  setLoadError(false);
+                  setFetchAttempt((n) => n + 1);
                 }}
                 className="flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-colors"
                 style={{
