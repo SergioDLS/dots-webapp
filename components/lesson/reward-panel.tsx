@@ -52,7 +52,7 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
     color: string;
     content: string;
   };
-  const chips: (Chip | false | undefined)[] = [
+  const chipDefs: (Chip | false | undefined)[] = [
     reward.xpGained > 0 && {
       key: "xp",
       background: "color-mix(in srgb, var(--gold) 18%, transparent)",
@@ -81,7 +81,8 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
       color: "#0284c7",
       content: "❄️ ¡Ganaste un escudo de racha!",
     },
-  ].filter((c): c is Chip => Boolean(c));
+  ];
+  const chips = chipDefs.filter((c): c is Chip => Boolean(c));
 
   return (
     <div className="flex flex-col items-center gap-2">
