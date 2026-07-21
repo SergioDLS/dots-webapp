@@ -119,6 +119,8 @@ export type MyStats = {
   streakFreezes: number;
   bestStreak: number;
   xpWeek: number;
+  /** Gemas (moneda del juego); puede faltar si la economía aún no se migró. */
+  gems?: number;
 };
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────

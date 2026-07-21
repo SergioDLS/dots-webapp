@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { getMyStatsService, type MyStats } from "@/services/engagement.service";
 
@@ -45,6 +46,21 @@ export default function AppHeader() {
         <span className="text-base leading-none">🔥</span>
         <span className="text-sm">{stats?.streak ?? 0}</span>
       </div>
+
+      {/* Gemas → tienda */}
+      <Link
+        href="/shop"
+        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 font-black tabular-nums transition-transform active:scale-95"
+        style={{
+          background: "color-mix(in srgb, var(--gem) 15%, transparent)",
+          border: "1.5px solid color-mix(in srgb, var(--gem) 40%, transparent)",
+          color: "var(--gem-edge)",
+        }}
+        title="Tienda"
+      >
+        <span className="text-base leading-none">💎</span>
+        <span className="text-sm">{stats?.gems ?? 0}</span>
+      </Link>
 
       {/* Nivel + XP */}
       <div className="flex min-w-0 flex-1 items-center gap-2">
