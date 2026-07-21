@@ -27,6 +27,11 @@ export const NODE_META: Record<PathNodeType, NodeMeta> = {
     label: "Vocabulario",
     route: (n) => `/lesson/vocab?id=${n.id}`,
   },
+  reading: {
+    icon: "📚",
+    label: "Lectura",
+    route: (n) => `/readings/${n.readingId ?? n.id}`,
+  },
   checkpoint: {
     icon: "🏁",
     label: "Checkpoint",

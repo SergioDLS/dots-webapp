@@ -3,6 +3,7 @@ export type PathNodeType =
   | "pronunciation"
   | "grammar"
   | "vocab"
+  | "reading"
   | "checkpoint";
 
 export type PathNode = {
@@ -12,6 +13,7 @@ export type PathNode = {
   title: string;
   sectionId: number;
   levelId?: number;
+  readingId?: number;
   src?: string | null;
   itemCount?: number;
   progress: number;

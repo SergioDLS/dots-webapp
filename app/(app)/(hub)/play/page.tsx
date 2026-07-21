@@ -1,5 +1,4 @@
 import GamesList from "@/components/interactive-column/games-list";
-import ReadingsList from "@/components/interactive-column/readings-list";
 
 export default function PlayPage() {
   return (
@@ -9,18 +8,14 @@ export default function PlayPage() {
           Zona de juego
         </h1>
         <p className="text-sm font-semibold text-(--muted)">
-          Juega y lee para practicar sin darte cuenta.
+          Juega para practicar sin darte cuenta. Las lecturas ahora aparecen en
+          tu camino, entre los niveles.
         </p>
       </header>
 
-      <div className="grid gap-5 md:grid-cols-2">
-        <section className="overflow-hidden rounded-2xl border border-(--border) bg-(--surface)">
-          <GamesList />
-        </section>
-        <section className="overflow-hidden rounded-2xl border border-(--border) bg-(--surface)">
-          <ReadingsList />
-        </section>
-      </div>
+      <section className="overflow-hidden rounded-2xl border border-(--border) bg-(--surface)">
+        <GamesList />
+      </section>
     </div>
   );
 }
