@@ -225,3 +225,53 @@ export async function postWordleGuessService(
   });
   return data;
 }
+
+// ── Mini Crucigrama (crossword diario) ───────────────────────────────────────
+
+export type CrosswordSlot = {
+  id: number;
+  dir: "A" | "D";
+  row: number;
+  col: number;
+  len: number;
+  clueEs: string;
+};
+
+export type CrosswordAnswer = {
+  id: number;
+  answer: string;
+};
+
+export type CrosswordState = {
+  day: string;
+  size: 5;
+  slots: CrosswordSlot[];
+  /** 5×5 grid: user letters or null (includes black cells). */
+  cells: (string | null)[][];
+  checksUsed: number;
+  maxChecks: 5;
+  done: boolean;
+  won: boolean;
+  /** Non-null only when done. */
+  answers: CrosswordAnswer[] | null;
+};
+
+export type CrosswordCheckResponse = CrosswordState & {
+  /** 5×5: true where user letter matches solution; false elsewhere. */
+  correct: boolean[][];
+};
+
+export async function getCrosswordService(): Promise<CrosswordState> {
+  const { data } = await api.get<CrosswordState>("/games/crossword");
+  return data;
+}
+
+export async function postCrosswordCheckService(
+  cells: (string | null)[][],
+): Promise<CrosswordCheckResponse> {
+  const { data } = await api.post<CrosswordCheckResponse>(
+    "/games/crossword/check",
+    { cells: cells.map((row) => row.map((c) => c ?? "")) },
+  );
+  return data;
+}
