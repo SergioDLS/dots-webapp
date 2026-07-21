@@ -76,6 +76,22 @@ export type TrueFalseCard = {
   realEs?: string;
 };
 
+// ── Dot Match (parejas contrarreloj) ─────────────────────────────────────────
+
+export type MatchPair = {
+  id: number;
+  en: string;
+  es: string;
+};
+
+export async function getMatchPairsService(
+  seed?: number,
+): Promise<MatchPair[]> {
+  const params = seed !== undefined ? { params: { seed } } : {};
+  const { data } = await api.get<MatchPair[]>("/games/match", params);
+  return data;
+}
+
 export async function getTrueFalseService(
   seed?: number,
 ): Promise<TrueFalseCard[]> {
