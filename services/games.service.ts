@@ -72,6 +72,8 @@ export type TrueFalseCard = {
   en: string;
   es: string;
   isCorrect: boolean;
+  /** Real Spanish meaning — only present on trap cards. */
+  realEs?: string;
 };
 
 export async function getTrueFalseService(

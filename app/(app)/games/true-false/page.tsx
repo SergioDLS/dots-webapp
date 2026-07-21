@@ -55,7 +55,6 @@ function TrueFalseInner({ seed }: { seed?: number }) {
   const [multiplier, setMultiplier] = useState(1);
   const [correction, setCorrection] = useState<string | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scoreSubmittedRef = useRef(false);
 
   // Swipe state
   const [dragX, setDragX] = useState(0);
@@ -101,7 +100,6 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setStreak(0);
     setMultiplier(1);
     setCorrection(null);
-    scoreSubmittedRef.current = false;
     setPhase("playing");
     startCountdown();
   }, [startCountdown]);
@@ -122,14 +120,11 @@ function TrueFalseInner({ seed }: { seed?: number }) {
 
       if (isRight) {
         playSound("correct");
-        setStreak((s) => {
-          const newStreak = s + 1;
-          setMultiplier(
-            Math.min(MAX_MULTIPLIER, Math.floor(newStreak / STREAK_STEP) + 1),
-          );
-          return newStreak;
-        });
-        setScore((sc) => sc + 10 * multiplier);
+        const newStreak = streak + 1;
+        const newMultiplier = Math.min(MAX_MULTIPLIER, Math.floor(newStreak / STREAK_STEP) + 1);
+        setStreak(newStreak);
+        setMultiplier(newMultiplier);
+        setScore((sc) => sc + 10 * newMultiplier);
         advance();
       } else {
         playSound("wrong");
@@ -143,7 +138,8 @@ function TrueFalseInner({ seed }: { seed?: number }) {
           correctionText = `¡Verdad! "${card.en}" sí significa "${card.es}"`;
         } else {
           // Player said "verdad" but it was a trap — show real meaning
-          correctionText = `¡Trampa! "${card.en}" = ${card.es.includes(" ") || card.es.length > 8 ? card.es : `"${card.es}"`} era falso`;
+          const real = card.realEs ?? card.es;
+          correctionText = `Trampa: "${card.en}" = ${real}`;
         }
         setCorrection(correctionText);
 
@@ -153,7 +149,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
         }, CORRECTION_MS);
       }
     },
-    [cards, cardIndex, correction, multiplier, advance],
+    [cards, cardIndex, correction, streak, advance],
   );
 
   // ── Pointer events (swipe) ────────────────────────────────────────────────
