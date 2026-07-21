@@ -352,7 +352,13 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
             style={{ marginBottom: "0.75rem" }}
           >
             <button
-              onPointerUp={() => setPhase("result")}
+              onPointerUp={() => {
+                if (advanceTimerRef.current) {
+                  clearTimeout(advanceTimerRef.current);
+                  advanceTimerRef.current = null;
+                }
+                setPhase("result");
+              }}
               className="text-sm font-bold transition-colors"
               style={{ color: "var(--muted)" }}
             >
