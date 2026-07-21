@@ -11,10 +11,7 @@ const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100];
 function useCountUp(target: number, durationMs = 900): number {
   const [value, setValue] = useState(0);
   useEffect(() => {
-    if (target <= 0) {
-      setValue(0);
-      return;
-    }
+    if (target <= 0) return;
     let raf = 0;
     let start: number | null = null;
     const tick = (ts: number) => {
@@ -27,7 +24,7 @@ function useCountUp(target: number, durationMs = 900): number {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [target, durationMs]);
-  return value;
+  return target <= 0 ? 0 : value;
 }
 
 const chipCls = "rounded-full px-4 py-1.5 text-sm font-black";
@@ -46,68 +43,63 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
     return null;
   }
 
-  let delay = 0;
-  const nextDelay = () => {
-    const d = delay;
-    delay += 0.12;
-    return `${d}s`;
+  // Chips visibles en orden, para escalonar la animación por índice sin
+  // mutar variables durante el render (regla del compiler de React).
+  type Chip = {
+    key: string;
+    background: string;
+    border: string;
+    color: string;
+    content: string;
   };
+  const chips: (Chip | false | undefined)[] = [
+    reward.xpGained > 0 && {
+      key: "xp",
+      background: "color-mix(in srgb, var(--gold) 18%, transparent)",
+      border: "2px solid color-mix(in srgb, var(--gold) 45%, transparent)",
+      color: "var(--gold-edge)",
+      content: `✨ +${xp} XP`,
+    },
+    reward.streakUp && {
+      key: "streak",
+      background: "color-mix(in srgb, var(--flame) 16%, transparent)",
+      border: "2px solid color-mix(in srgb, var(--flame) 40%, transparent)",
+      color: "var(--flame-edge)",
+      content: `🔥 Día ${reward.streak}`,
+    },
+    reward.freezeUsed && {
+      key: "freeze-used",
+      background: "rgba(56,189,248,0.14)",
+      border: "2px solid rgba(56,189,248,0.4)",
+      color: "#0284c7",
+      content: "❄️ ¡Un escudo salvó tu racha!",
+    },
+    reward.freezeEarned && {
+      key: "freeze-earned",
+      background: "rgba(56,189,248,0.14)",
+      border: "2px solid rgba(56,189,248,0.4)",
+      color: "#0284c7",
+      content: "❄️ ¡Ganaste un escudo de racha!",
+    },
+  ].filter((c): c is Chip => Boolean(c));
 
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {reward.xpGained > 0 && (
+        {chips.map((chip, i) => (
           <span
+            key={chip.key}
             className={chipCls}
             style={{
-              background: "color-mix(in srgb, var(--gold) 18%, transparent)",
-              border: "2px solid color-mix(in srgb, var(--gold) 45%, transparent)",
-              color: "var(--gold-edge)",
-              animation: `dots-pop-in 0.4s ease-out ${nextDelay()} both`,
+              background: chip.background,
+              border: chip.border,
+              color: chip.color,
+              animation: `dots-pop-in 0.4s ease-out ${i * 0.12}s both`,
             }}
           >
-            ✨ +{xp} XP
+            {chip.content}
           </span>
-        )}
-        {reward.streakUp && (
-          <span
-            className={chipCls}
-            style={{
-              background: "color-mix(in srgb, var(--flame) 16%, transparent)",
-              border: "2px solid color-mix(in srgb, var(--flame) 40%, transparent)",
-              color: "var(--flame-edge)",
-              animation: `dots-pop-in 0.4s ease-out ${nextDelay()} both`,
-            }}
-          >
-            🔥 Día {reward.streak}
-          </span>
-        )}
-        {reward.freezeUsed && (
-          <span
-            className={chipCls}
-            style={{
-              background: "rgba(56,189,248,0.14)",
-              border: "2px solid rgba(56,189,248,0.4)",
-              color: "#0284c7",
-              animation: `dots-pop-in 0.4s ease-out ${nextDelay()} both`,
-            }}
-          >
-            ❄️ ¡Un escudo salvó tu racha!
-          </span>
-        )}
-        {reward.freezeEarned && (
-          <span
-            className={chipCls}
-            style={{
-              background: "rgba(56,189,248,0.14)",
-              border: "2px solid rgba(56,189,248,0.4)",
-              color: "#0284c7",
-              animation: `dots-pop-in 0.4s ease-out ${nextDelay()} both`,
-            }}
-          >
-            ❄️ ¡Ganaste un escudo de racha!
-          </span>
-        )}
+        ))}
       </div>
       {reward.streakUp && STREAK_MILESTONES.includes(reward.streak) && (
         <p
