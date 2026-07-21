@@ -78,6 +78,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [allPairs, setAllPairs] = useState<MatchPair[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Round state
   const [round, setRound] = useState(0); // 0-indexed
@@ -91,7 +92,9 @@ function DotMatchInner({ seed }: { seed?: number }) {
   const [rightCol, setRightCol] = useState<Slot[]>([]);
   const [selLeft, setSelLeft] = useState<number | null>(null); // index in leftCol
   const [selRight, setSelRight] = useState<number | null>(null); // index in rightCol
-  const [shakeSide, setShakeSide] = useState<"left" | "right" | null>(null);
+  // shake holds the indices of both slots involved in a wrong match
+  const [shake, setShake] = useState<{ left: number; right: number } | null>(null);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Queue pointer (we consume from a shuffled queue)
   const queueRef = useRef<MatchPair[]>([]);
@@ -103,6 +106,9 @@ function DotMatchInner({ seed }: { seed?: number }) {
 
   // Prevent double-processing during animations
   const processingRef = useRef(false);
+
+  // Tracks pairIds currently visible on the board (used by nextPair recycler)
+  const onBoardIdsRef = useRef<Set<number>>(new Set());
 
   // ── Countdown (changes per round) ────────────────────────────────────────
   const currentRound = ROUNDS[Math.min(round, ROUNDS.length - 1)];
@@ -124,7 +130,9 @@ function DotMatchInner({ seed }: { seed?: number }) {
       .then((data) => {
         if (active) setAllPairs(data);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
       .finally(() => {
         if (active) setLoading(false);
       });
@@ -135,20 +143,36 @@ function DotMatchInner({ seed }: { seed?: number }) {
   useEffect(() => {
     return () => {
       if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
     };
   }, []);
 
+  // Keep on-board id set in sync with the left column (pairIds are shared across both columns)
+  useEffect(() => {
+    onBoardIdsRef.current = new Set(leftCol.map((s) => s.pairId));
+  }, [leftCol]);
+
   // ── Queue helpers ─────────────────────────────────────────────────────────
 
-  /** Get next pair from queue, recycling if exhausted. */
+  /** Get next pair from queue, recycling if exhausted.
+   *  On recycle, excludes pairs whose pairId is still on the board
+   *  to avoid dealing the same word twice simultaneously. */
   const nextPair = useCallback((): MatchPair => {
     const q = queueRef.current;
     if (queueIdxRef.current >= q.length) {
-      // Recycle: reshuffle consumed pairs back
-      shuffleInPlace(q);
+      // Derive currently-displayed pairIds from the left column state.
+      // We use a functional updater form to read the latest leftCol without
+      // capturing it in the closure (avoids stale-closure issues).
+      // Instead, store on-board ids in a ref updated each render.
+      const onBoardIds = onBoardIdsRef.current;
+      const filtered = q.filter((p) => !onBoardIds.has(p.id));
+      // Fall back to full queue if exclusion empties the pool (tiny pool edge case)
+      const recyclePool = filtered.length > 0 ? filtered : [...q];
+      shuffleInPlace(recyclePool);
+      queueRef.current = recyclePool;
       queueIdxRef.current = 0;
     }
-    return q[queueIdxRef.current++];
+    return queueRef.current[queueIdxRef.current++];
   }, []);
 
   // ── Board initialization ──────────────────────────────────────────────────
@@ -159,15 +183,10 @@ function DotMatchInner({ seed }: { seed?: number }) {
     queueRef.current = q;
     queueIdxRef.current = 0;
 
-    // Pull first 5 pairs for initial board
+    // Pull first BOARD_ROWS pairs for initial board
+    // (pool is guaranteed >= BOARD_ROWS by service contract; no recycle needed here)
     const initialPairs: MatchPair[] = [];
     for (let i = 0; i < BOARD_ROWS; i++) {
-      initialPairs.push(q[queueIdxRef.current++]);
-    }
-    // Ensure we have enough (recycle if needed)
-    while (initialPairs.length < BOARD_ROWS) {
-      shuffleInPlace(q);
-      queueIdxRef.current = 0;
       initialPairs.push(q[queueIdxRef.current++]);
     }
 
@@ -185,11 +204,21 @@ function DotMatchInner({ seed }: { seed?: number }) {
 
   const startGame = useCallback(() => {
     if (allPairs.length === 0) return;
+    // Clear any in-flight banner timer from a previous run
+    if (bannerTimerRef.current) {
+      clearTimeout(bannerTimerRef.current);
+      bannerTimerRef.current = null;
+    }
+    if (shakeTimerRef.current) {
+      clearTimeout(shakeTimerRef.current);
+      shakeTimerRef.current = null;
+    }
     setRound(0);
     setScore(0);
     setCombo(0);
     setMaxCombo(0);
     setRoundMatches(0);
+    setShake(null);
     initBoard(allPairs);
     setPhase("playing");
     // Countdown starts via effect below when phase changes to "playing"
@@ -290,9 +319,14 @@ function DotMatchInner({ seed }: { seed?: number }) {
         playSound("wrong");
         setCombo(0);
 
-        // Shake animation
-        setShakeSide("left");
-        setTimeout(() => setShakeSide(null), SHAKE_MS);
+        // Shake animation: store the tapped indices so JSX can gate on them
+        // independently of selection state (which we clear immediately below)
+        setShake({ left: lIdx, right: rIdx });
+        if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+        shakeTimerRef.current = setTimeout(() => {
+          setShake(null);
+          shakeTimerRef.current = null;
+        }, SHAKE_MS);
 
         setSelLeft(null);
         setSelRight(null);
@@ -366,6 +400,36 @@ function DotMatchInner({ seed }: { seed?: number }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner title="Cargando parejas…" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+          No se pudieron cargar las parejas.
+        </p>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Comprueba tu conexión e inténtalo de nuevo.
+        </p>
+        <button
+          onPointerUp={() => {
+            setLoadError(false);
+            setLoading(true);
+            getMatchPairsService(seed)
+              .then((data) => setAllPairs(data))
+              .catch(() => setLoadError(true))
+              .finally(() => setLoading(false));
+          }}
+          className="dots-pressable rounded-2xl px-6 py-3 text-sm font-bold"
+          style={{
+            background: "var(--accent)",
+            color: "var(--accent-foreground)",
+          }}
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -489,7 +553,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             <div className="flex flex-1 flex-col gap-2">
               {leftCol.map((slot, idx) => {
                 const selected = selLeft === idx;
-                const shaking = shakeSide !== null && selected;
+                const shaking = shake !== null && shake.left === idx;
                 return (
                   <button
                     key={`left-${idx}-${slot.pairId}`}
@@ -529,7 +593,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             <div className="flex flex-1 flex-col gap-2">
               {rightCol.map((slot, idx) => {
                 const selected = selRight === idx;
-                const shaking = shakeSide !== null && selected;
+                const shaking = shake !== null && shake.right === idx;
                 return (
                   <button
                     key={`right-${idx}-${slot.pairId}`}
