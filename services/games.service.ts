@@ -118,3 +118,27 @@ export async function getMemoryPairsService(
   const { data } = await api.get<MemoryPair[]>("/games/memory", params);
   return data;
 }
+
+// ── Escucha Rápida (audio blitz) ─────────────────────────────────────────────
+
+export type AudioBlitzItem = {
+  id: number;
+  /** sentence_extension to build the Cloudinary audio URL */
+  ext: string;
+  /** narration character key — undefined for default (Doty) voice */
+  voiceKey?: string;
+  /** full sentence text with "__" blank; used for correction overlay */
+  text: string;
+  /** correct m_word (clean()ed) */
+  correct: string;
+  /** correct + 3 distractors, shuffled */
+  options: string[];
+};
+
+export async function getAudioBlitzService(
+  seed?: number,
+): Promise<AudioBlitzItem[]> {
+  const params = seed !== undefined ? { params: { seed } } : {};
+  const { data } = await api.get<AudioBlitzItem[]>("/games/audio-blitz", params);
+  return data;
+}
