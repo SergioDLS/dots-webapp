@@ -17,7 +17,7 @@ export type PronunciationContent = {
   descriptionEs?: string | null;
   soundA?: string | null;
   soundB?: string | null;
-  items: { id: number; audio: string; options: NodeOption[] }[];
+  items: { id: number; audio: string; options: NodeOption[]; hint?: string }[];
 };
 
 export type GrammarContent = {
@@ -29,6 +29,7 @@ export type GrammarContent = {
     mode: "complete" | "select";
     text: string;
     options: NodeOption[];
+    hint?: string;
   }[];
 };
 

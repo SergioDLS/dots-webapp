@@ -13,6 +13,7 @@ import {
   optionStyles,
 } from "@/components/lesson/option-styles";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
+import ExplanationHint from "@/components/lesson/explanation-hint";
 import ResultScreen from "@/components/lesson/result-screen";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
 import {
@@ -124,6 +125,11 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
   const item = series.current;
   if (!item) return null;
 
+  const advance = () => {
+    setSelectedWord(null);
+    series.next();
+  };
+
   const tap = (word: string, correct: boolean) => {
     if (series.answerState !== "") return;
     setSelectedWord(word);
@@ -132,10 +138,9 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
       wrongByItem.current.set(item.id, (wrongByItem.current.get(item.id) ?? 0) + 1);
     }
     answeredByItem.current.set(item.id, correct);
-    setTimeout(() => {
-      setSelectedWord(null);
-      series.next();
-    }, ADVANCE_DELAY_MS);
+    // Al acertar, avanza solo (ritmo rápido). Al fallar, se detiene para
+    // mostrar la explicación; el usuario continúa cuando la leyó.
+    if (correct) setTimeout(advance, ADVANCE_DELAY_MS);
   };
 
   return (
@@ -170,10 +175,20 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
             </button>
           ))}
         </div>
+        {series.answerState === "wrong" && (
+          <div className="flex w-full flex-col gap-3">
+            <ExplanationHint hint={item.hint} />
+            <UIButton tone="accent" onClick={advance} fullWidth>
+              Continuar
+            </UIButton>
+          </div>
+        )}
       </PanelWrapper>
-      <UIButton tone="neutral" onClick={goToPath}>
-        ← Salir
-      </UIButton>
+      {series.answerState !== "wrong" && (
+        <UIButton tone="neutral" onClick={goToPath}>
+          ← Salir
+        </UIButton>
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   optionStyles,
 } from "@/components/lesson/option-styles";
 import AnswerFlash from "@/components/lesson/answer-flash";
+import ExplanationHint from "@/components/lesson/explanation-hint";
 import LessonFooter from "@/components/lesson/lesson-footer";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ResultScreen from "@/components/lesson/result-screen";
@@ -161,6 +162,7 @@ export default function GrammarPill({ nodeId, content }: Props) {
         </div>
       </PanelWrapper>
       <AnswerFlash state={series.answerState} />
+      {series.answerState === "wrong" && <ExplanationHint hint={item.hint} />}
       <LessonFooter
         confirmLabel={answered ? "Continuar" : "Confirmar"}
         confirmDisabled={!answered && selectedWord === null}
