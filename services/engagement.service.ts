@@ -133,6 +133,8 @@ export type RivalNeighbor = {
 export type RivalData = {
   above: RivalNeighbor | null;
   below: RivalNeighbor | null;
+  /** Caller's 1-based position in the weekly leaderboard; null when unranked. */
+  rank: number | null;
 };
 
 /** Response of GET /me/stats (level = floor(sqrt(xp/100)) + 1) */

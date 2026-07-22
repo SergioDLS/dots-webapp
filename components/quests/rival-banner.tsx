@@ -37,7 +37,7 @@ export default function RivalBanner() {
 
   const { above, below } = rival;
 
-  // User is #1 — no one above
+  // User is unranked this week — no neighbours on either side
   if (!above && !below) return null;
 
   return (

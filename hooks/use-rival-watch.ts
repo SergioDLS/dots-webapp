@@ -6,10 +6,8 @@ import { getRivalService } from "@/services/engagement.service";
 // ── localStorage snapshot ─────────────────────────────────────────────────────
 
 interface RankSnapshot {
-  /** The user's rank (position) in the weekly leaderboard at last visit. */
-  rank: number;
-  /** Name of the rival who was above the user at last visit (for the toast). */
-  aboveName: string | null;
+  /** The user's 1-based rank in the weekly leaderboard at last visit. */
+  rank: number | null;
 }
 
 function snapshotKey(userId: number): string {
@@ -36,8 +34,12 @@ function writeSnapshot(userId: number, snap: RankSnapshot): void {
 
 // ── Toast helper ──────────────────────────────────────────────────────────────
 
-function showOvertakeToast(message: string): void {
-  if (typeof document === "undefined") return;
+/**
+ * Shows a self-dismissing toast and returns a cleanup function that cancels
+ * the auto-dismiss timer and removes the DOM node if still attached.
+ */
+function showOvertakeToast(message: string): () => void {
+  if (typeof document === "undefined") return () => {};
 
   const el = document.createElement("div");
   el.textContent = message;
@@ -75,8 +77,11 @@ function showOvertakeToast(message: string): void {
     });
   });
 
-  // Dismiss on tap or after 4s
+  let dismissed = false;
+
   const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
     el.style.opacity = "0";
     el.style.transform = "translateX(-50%) translateY(20px)";
     setTimeout(() => {
@@ -85,7 +90,13 @@ function showOvertakeToast(message: string): void {
   };
 
   el.addEventListener("click", dismiss);
-  setTimeout(dismiss, 4000);
+  const timerId = setTimeout(dismiss, 4000);
+
+  // Return cleanup: cancel the timer and remove the node immediately
+  return () => {
+    clearTimeout(timerId);
+    if (el.parentNode) el.parentNode.removeChild(el);
+  };
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -100,10 +111,14 @@ function showOvertakeToast(message: string): void {
 export function useRivalWatch(): void {
   // Prevent double-fire in React StrictMode
   const ranRef = useRef(false);
+  // Holds the cleanup for any toast that was shown during this mount
+  const toastCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (ranRef.current) return;
     ranRef.current = true;
+
+    let active = true;
 
     // Resolve user id from localStorage (same pattern as use-game-records.ts)
     const userId: number | null = (() => {
@@ -122,56 +137,35 @@ export function useRivalWatch(): void {
     const prevSnap = readSnapshot(userId);
 
     getRivalService().then((rival) => {
+      if (!active) return;
       if (!rival) return;
 
-      // Determine current rank:
-      // - above !== null → user is ranked (not #1 if also below !== null, or #1 if above=null)
-      // - If user is in the leaderboard at all, we can estimate rank from
-      //   position context: above=null means rank=1; above=something means rank>1.
-      // We store a numeric rank approximation based on what we know.
-      // Since the endpoint gives neighbours, not the user's own rank directly,
-      // we use a proxy: if above is null, rank=1; otherwise rank=prev_rank (unknown).
-      // Better: we track improvement as "above changed to null" (overtook the rival).
+      const { rank } = rival;
 
-      const currentAboveName = rival.above?.name ?? null;
-
-      // Detect overtake: previous session had an above-rival, now they're gone
-      // (above is null = user is #1) OR the above.name changed (user climbed past).
-      if (prevSnap !== null) {
-        const hadRival = prevSnap.aboveName !== null;
-        const lostRival =
-          hadRival &&
-          (currentAboveName === null ||
-            currentAboveName !== prevSnap.aboveName);
-
-        if (lostRival) {
-          if (currentAboveName === null) {
-            // User is now #1
-            showOvertakeToast(`🎉 ¡Superaste a ${prevSnap.aboveName} y eres el #1!`);
-          } else {
-            // Climbed past the old rival (now chasing someone else)
-            showOvertakeToast(`😤 ¡Superaste a ${prevSnap.aboveName}! Sigue subiendo.`);
-          }
-        } else if (
-          prevSnap.rank !== undefined &&
-          rival.above === null &&
-          prevSnap.rank > 1
-        ) {
-          // Fallback: if we stored a rank > 1 before and now above is null
-          showOvertakeToast(`🎉 ¡Llegaste al puesto #1 de la semana!`);
-        }
+      // Fire toast only when rank genuinely improved (lower number = better rank).
+      // First-ever load (prevSnap === null) never toasts.
+      if (
+        prevSnap !== null &&
+        prevSnap.rank != null &&
+        rank != null &&
+        rank < prevSnap.rank
+      ) {
+        toastCleanupRef.current = showOvertakeToast(
+          `🎉 ¡Subiste al puesto #${rank} de la semana!`,
+        );
       }
 
-      // Compute current rank estimate for next visit.
-      // above=null and the leaderboard has rows → rank 1.
-      // above=something → we don't know exact rank, carry prev rank or default high.
-      const currentRank = rival.above === null ? 1 : (prevSnap?.rank ?? 999);
-
-      writeSnapshot(userId, {
-        rank: currentRank,
-        aboveName: currentAboveName,
-      });
+      // Always persist the current rank (even when null = unranked)
+      writeSnapshot(userId, { rank });
     });
-    // No cleanup needed — fire-and-forget
+
+    return () => {
+      active = false;
+      // Clear the auto-dismiss timer and remove the toast node on unmount
+      if (toastCleanupRef.current) {
+        toastCleanupRef.current();
+        toastCleanupRef.current = null;
+      }
+    };
   }, []);
 }
