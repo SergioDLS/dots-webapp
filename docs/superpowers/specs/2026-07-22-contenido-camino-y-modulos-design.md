@@ -124,11 +124,12 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Frontend:** uniones `PathNodeType` (`types/path.types.ts` + `services/admin.service.ts`) y `NodeContent` (`services/lessons.service.ts`) `+= letters|numbers`; `NODE_META` (icono + ruta `/lesson/letters|numbers?id=`); editor de camino (`NODE_TYPES` + dropdowns de packs + `PATH_NODE_TYPES` del DTO admin); **2 tabs (Letters/Numbers)** en `/admin/foundations` reusando el patrón de managers; páginas `lesson/letters` y `lesson/numbers` (RN-safe, `useSearchParams` en `<Suspense>`, **degradan sin media**); **upgrade de `lesson/vocab`** para mostrar imagen (el backend ya devuelve `img` — solo display).
 - **Entregable:** admin donde se crean packs de letras/números y se colocan en el camino; lecciones que renderizan (aún sin audio/imágenes). Verificación: `tsc`+build (back), `lint`+`build` (front), preview.
 
-#### F3b — Re-encaje de la sección 1 (migración de datos, con backup)
+#### F3b — Re-encaje de la sección 1 (migración de datos, con backup) — ✅ hecho 2026-07-22
 **Meta:** que alphabet, numbers y los ~23 temas de vocabulario usen su módulo natural.
-- Crear `vocab_packs`/`items` desde los `words` existentes; crear el contenido de `letters`/`numbers` (**rango de números por decidir** — §7).
-- Reescribir los `path_nodes` de la sección 1 para usar `vocab`/`letters`/`numbers` en vez de `practice`; retirar las oraciones-acróstico obsoletas (**borrar vs archivar por decidir** — §7).
+- Crear `vocab_packs`/`items` desde los `words` existentes; crear el contenido de `letters`/`numbers` (rango **1–20 + decenas hasta 100**).
+- Reescribir los `path_nodes` de la sección 1 para usar `vocab`/`letters`/`numbers` en vez de `practice`; retirar las oraciones obsoletas **archivándolas** (`enabled=false`, reversible).
 - Todo con backup + rollback (patrón `seed-foundations.js`).
+- **✅ Ejecutado 2026-07-22:** seed idempotente `seed:modules` (`scripts/seed-modules-content.js` + `scripts/seed-data/modules.json`). Aplicado a prod: 26 packs + 415 items (26 letras, 28 números, 361 vocab-items derivados de `words`); 25 nodos `practice` de la sección 1 reescritos a módulo + 1 nodo `numbers-tens`; **269 oraciones archivadas** (`enabled=false`). Sección 1 quedó con 0 `practice`. Backup: `scripts/out/backup-modules-content-1784754263982.json` (rollback: `npm run seed:modules -- --rollback <backup>`). `verbs` (L8) → vocab, como decidido.
 
 #### F3c — Diferidos de F1 (contenido/camino)
 - Colocar fundamentos en las secciones 2–12 (placement en `path_nodes`, usando el editor de F2).
