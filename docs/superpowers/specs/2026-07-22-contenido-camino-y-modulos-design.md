@@ -135,8 +135,15 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Engrosar vocab flacos ≥10:** ✅ hecho donde es posible. `seed:vocab-topup` (`scripts/seed-vocab-topup.js`) aplicado a prod: `vocab-shapes` 6→10 (+STAR, OVAL, PENTAGON, HEXAGON) y `vocab-daytime` 8→10 (+dawn, dusk). Las **categorías cerradas se aceptan** bajo la barra: `days`=7, `seasons`=4, `meals`=5 (no se pueden inflar sin meter ruido). Backup: `scripts/out/backup-vocab-topup-*.json`.
 - **Colocar fundamentos en secciones 2–12:** ⏸️ **diferido.** El inventario mostró **0 fundamentos sin colocar** (pronunciation 9/9, grammar 11/11, vocab 32/32 ya referenciados). Interlazar 2–12 exige **autorear fundamentos nuevos** (grammar pills / pronunciation / vocab por sección) — una fase de contenido propia con su spec/plan; no se hizo en esta tanda.
 
+#### F3d — Oído + dominio (rediseño de lecciones, audio copiado) — decidido 2026-07-22
+**Origen:** feedback del usuario al verificar F3b: "el abecedario debería ser escuchar el sonido y seleccionar la letra; el resto (con traducción) escuchar y seleccionar + emparejar, y repetir hasta ~90% — es vocabulario vital".
+**Hallazgo clave:** `words` de la sección 1 tiene **audio al 100%** (Cloudinary), y el seed F3b ya lo copió a `vocab_items` (361/367). Letras A–Z y números one–ten tienen clip en `words` → se **copian** a `letter_items`/`number_items`. **Sin ElevenLabs** (decidido: no generar los ~24 faltantes; eleven–twenty/decenas y 6 vocab de F3c degradan a modo visual).
+- **Audio:** seed idempotente que copia `words.audio` → `letter_items` (por letra, 26/26) y `number_items` (por palabra, 10/28). Solo llena NULL; backup + rollback.
+- **Lecciones:** letras = presentación → **escucha-y-selecciona** (suena el nombre → eliges entre 4 letras); números = escucha-y-selecciona (con audio) / palabra→numeral (sin) + ronda de emparejar numeral↔palabra; vocab = presentar + **escucha-y-selecciona** (oyes EN → eliges traducción) + emparejar. **Bucle de dominio** en las tres: fallos re-encolados hasta responder todo bien (~90%); `times_wrong` sigue viajando igual.
+- **Piloto sección 2 (nota):** pills de profundidad variable; **verb to be la más amplia** (vital y complicado).
+
 #### F-media — ⏸️ diferida (sin correr)
-Audio (ElevenLabs → Cloudinary, **gasta créditos**) e imágenes: **no ejecutado**; se retoma en sesión aparte con presupuesto. Los módulos degradan sin media (texto/significado), estado actual.
+Audio ElevenLabs (los ~24 clips faltantes de números/vocab nuevos) e imágenes: **no ejecutado**; se retoma con presupuesto. Con F3d, la sección 1 ya tiene escucha-y-selecciona con el audio existente.
 
 ### F-media — Audio + imágenes (diferida, aprobación aparte)
 - Audio de words/letters/numbers/fundamentos nuevos vía `generate-narrations.js` (ElevenLabs → Cloudinary; **cuesta créditos**).
