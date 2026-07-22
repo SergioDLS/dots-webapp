@@ -1,8 +1,8 @@
 # Contenido del camino, editable en admin, y módulos por tipo — Diseño
 
 - **Fecha:** 2026-07-22
-- **Rama:** `redesign/total` (ambos repos)
-- **Estado:** propuesta — pendiente de aprobación
+- **Rama:** `redesign/contenido-camino` (ambos repos)
+- **Estado:** en ejecución — F0/F1/F2 hechos (2026-07-22); F3 en planificación (dividida en F3a/F3b/F3c)
 - **Repos:** `dots-webapp` (front) + `dots-backend` (API/seed). BD PostgreSQL **compartida de producción**.
 
 ## 1. Problema
@@ -81,6 +81,8 @@ Toda pieza nueva cumple **reglas RN-safe** (solo tap/pointer; sin keydown como i
 
 Nota: se eligen **2 tipos nuevos** (`letters`, `numbers`) + **1 upgrade** (`vocab`) + **1 limpieza** (`practice`). Los otros 23 temas de vocabulario van a **vocab-visual** (reusan `vocab`), no a tipos nuevos — así "4 arquetipos" queda construible.
 
+**Almacenamiento (refinado en F3a, 2026-07-22):** `letters`/`numbers` se guardan como **packs+items** (igual que `vocab`: `letter_packs`/`letter_items`, `number_packs`/`number_items`), no como tablas planas; un nodo del camino apunta a un pack vía `ref_id`. Así el resolver, el CRUD admin y el editor de camino reusan 1:1 el patrón de los fundamentos (ver §5 F3a).
+
 ## 5. Fases
 
 Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejecuta gateada. Todo cambio de datos pasa por backend/seed con **backup previo** (patrón `seed-foundations.js`). Verificación por fase: `npm run lint` + `npx next build` (front), `npx tsc --noEmit`/build (back), y preview manual — no hay test runner de componentes.
@@ -102,20 +104,35 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Entregable:** contenido a la barra, cargado vía seed/backend. Audio/imágenes NO (fase media).
 - **✅ Ejecutado 2026-07-22:** Batch A (371 significados), Batch B (29 oraciones → gramática ≥8 + Opposites reformateado), chunk 1 (L21 4→20, 9 typos, `stations`→`seasons`), Batch C (+36 fundamentos). Reporte: [2026-07-22-f1-expansion-reporte.md](../plans/2026-07-22-f1-expansion-reporte.md). Nota: "extender fundamentos a otras secciones" (placement en path_nodes) se difiere a **F3** (edición de camino); los niveles vocab flacos también van a F3. `s-inicial` queda en 6 (intencional).
 
-### F2 — Admin CRUD de fundamentos + estructura
+### F2 — Admin CRUD de fundamentos + estructura — ✅ hecho 2026-07-22
 **Meta:** que el usuario edite todo el contenido desde el admin (la BD pasa a ser la fuente de verdad).
 - Backend: endpoints CRUD para `pronunciation_units/items`, `grammar_pills/items`, `vocab_packs/items`, **espejando** el patrón de `words`/`sentences` (nuevos DTOs en `admin.dto.ts`, métodos en `admin.service.ts`, rutas en `admin.controller.ts`). Reusar `AdminGuard` y `narration.service` (audio ya cableado).
 - Backend: elevar `levels` a CRUD (hoy solo enable/disable) y exponer **edición de `path_nodes`** (crear/mover/borrar nodos, reordenar posición) — es lo que permite "colocar" contenido en el camino desde el admin.
 - Frontend: páginas admin nuevas (`app/(app)/admin/foundations/`, `app/(app)/admin/path/`) + fetchers en `services/admin.service.ts`, siguiendo `admin/levels/page.tsx`.
 - **Fuente de la verdad:** tras F2, la BD manda. `foundations.json` se documenta como import inicial (one-shot); se agrega una nota en `seed-foundations.js` para no re-pisar ediciones del admin (o se retira del flujo normal).
 - **Entregable:** admin donde se crea/edita/borra fundamentos y se arma el camino.
+- **✅ Ejecutado 2026-07-22:** CRUD backend de los 6 fundamentos + `levels` create/update + `path_nodes` (colisión de posición + limpieza de `node_progress`); front `/admin/foundations` (3 managers) y `/admin/path` + nav/dashboard; nota de fuente de la verdad en `seed-foundations.js`. Alcance: `levels` quedó con create/update (sin delete, por el arrastre de words/sentences/progress). Verificado: `tsc`+boot+35 rutas (back), `lint`+`build` (front). Commits en ambos repos.
 
-### F3 — Módulos nuevos + re-encaje
+### F3 — Módulos nuevos + re-encaje — **dividido en F3a / F3b / F3c** (2026-07-22)
 **Meta:** letras/números/vocabulario en su módulo natural.
-- Backend: `PathNodeType += 'letters' | 'numbers'` (`path_node.entity.ts`); tablas `dots.letters` y `dots.numbers` + entidades; el resolver de `GET /path/nodes/{id}` devuelve `LettersContent`/`NumbersContent`; CRUD admin para ambas (extiende F2).
-- Frontend: `types/path.types.ts` union += `letters|numbers`; `lib/path-node-meta.ts` += rutas e íconos; páginas `lesson/letters/page.tsx` y `lesson/numbers/page.tsx`; tipos `LettersContent`/`NumbersContent` + manejo en `getNodeContentService`; upgrade de `lesson/vocab` para mostrar imagen.
-- Migración de re-encaje (con backup): crear `vocab_packs`+`vocab_items` desde los `words` de los 23 temas de vocabulario; crear contenido de `letters`/`numbers`; **reescribir `path_nodes` de la sección 1** para que esos temas usen `vocab`/`letters`/`numbers` en vez de `practice`; retirar (desactivar/borrar) las oraciones-acróstico que quedan obsoletas.
-- **Entregable:** camino de la sección 1 con módulos correctos por tema.
+**Decisiones (2026-07-22):** se **divide** F3 y se hace **F3a (código) primero**; el contenido de letras/números se modela como **packs+items** (igual que vocab), no como tablas planas.
+
+#### F3a — Módulos nuevos (solo código + DDL aditivo)
+**Meta:** que existan los tipos `letters` y `numbers` end-to-end (datos → resolver → admin → lección), **sin mutar** contenido de prod.
+- **Datos (espeja vocab):** `letter_packs`/`letter_items` (`letter, name, sound_ipa, example_word, example_meaning, img, audio, position, enabled`) y `number_packs`/`number_items` (`value, word, img, audio, position, enabled`). Migración **aditiva** (patrón idempotente + backup de `migrate-learning-path.js`) que crea las 4 tablas vacías.
+- **Backend:** entidades + repos; `PathNodeType += 'letters' | 'numbers'` (`path_node.entity.ts`); CRUD admin espejando vocab (`/admin/letter-packs*`, `/admin/letter-items*`, `/admin/number-packs*`, `/admin/number-items*`); resolver `NodeContentService += letters|numbers` con `LettersNodeContentDto`/`NumbersNodeContentDto` (registrar repos en `path.module`); `itemCount` en `GET /path`. Audio/img por **subida manual** (`/admin/upload`, como el modal de words); la generación ElevenLabs de letras/números va a **F-media**.
+- **Frontend:** uniones `PathNodeType` (`types/path.types.ts` + `services/admin.service.ts`) y `NodeContent` (`services/lessons.service.ts`) `+= letters|numbers`; `NODE_META` (icono + ruta `/lesson/letters|numbers?id=`); editor de camino (`NODE_TYPES` + dropdowns de packs + `PATH_NODE_TYPES` del DTO admin); **2 tabs (Letters/Numbers)** en `/admin/foundations` reusando el patrón de managers; páginas `lesson/letters` y `lesson/numbers` (RN-safe, `useSearchParams` en `<Suspense>`, **degradan sin media**); **upgrade de `lesson/vocab`** para mostrar imagen (el backend ya devuelve `img` — solo display).
+- **Entregable:** admin donde se crean packs de letras/números y se colocan en el camino; lecciones que renderizan (aún sin audio/imágenes). Verificación: `tsc`+build (back), `lint`+`build` (front), preview.
+
+#### F3b — Re-encaje de la sección 1 (migración de datos, con backup)
+**Meta:** que alphabet, numbers y los ~23 temas de vocabulario usen su módulo natural.
+- Crear `vocab_packs`/`items` desde los `words` existentes; crear el contenido de `letters`/`numbers` (**rango de números por decidir** — §7).
+- Reescribir los `path_nodes` de la sección 1 para usar `vocab`/`letters`/`numbers` en vez de `practice`; retirar las oraciones-acróstico obsoletas (**borrar vs archivar por decidir** — §7).
+- Todo con backup + rollback (patrón `seed-foundations.js`).
+
+#### F3c — Diferidos de F1 (contenido/camino)
+- Colocar fundamentos en las secciones 2–12 (placement en `path_nodes`, usando el editor de F2).
+- Engrosar los niveles de vocabulario flacos a la barra (≥10).
 
 ### F-media — Audio + imágenes (diferida, aprobación aparte)
 - Audio de words/letters/numbers/fundamentos nuevos vía `generate-narrations.js` (ElevenLabs → Cloudinary; **cuesta créditos**).
@@ -130,9 +147,9 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 
 ## 7. Abierto / para revisión
 - ~~**¿Por qué están `enabled=false` esas ~18 secciones?**~~ **RESUELTO (F0):** el contenido era correcto y on-topic; no estaban apagadas por malas. 14 niveles revividos (139 oraciones). La excepción real fue L55 "Opposites" (formato roto → F1).
-- **Rango de números:** propuesto 1–20 + decenas hasta 100. Confirmar.
+- **Rango de números:** propuesto 1–20 + decenas hasta 100. Confirmar. **(decisión de F3b — no bloquea F3a).**
 - ~~**L32 vs L24 "reflexive pronouns":**~~ **RESUELTO (F0):** L32 está vacío (0/0) y L24 tiene el contenido bueno (8 oraciones) → L32 es duplicado; consolidar/retirar su nodo en F3.
-- **Oraciones retiradas en F3:** ¿borrar definitivo o archivar desactivadas?
+- **Oraciones retiradas en F3:** ¿borrar definitivo o archivar desactivadas? **(decisión de F3b — no bloquea F3a).**
 - **Imágenes:** fuente (banco propio, generadas, libres) — se define en F-media.
 
 ## 8. Fuera de alcance
