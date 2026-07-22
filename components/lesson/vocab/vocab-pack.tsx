@@ -8,6 +8,7 @@ import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ResultScreen from "@/components/lesson/result-screen";
 import WordCard from "@/components/lesson/vocab/word-card";
+import ListenQuiz from "@/components/lesson/vocab/listen-quiz";
 import MatchQuiz from "@/components/lesson/vocab/match-quiz";
 import {
   putNodeProgressService,
@@ -23,7 +24,9 @@ interface Props {
 /** Vocab pack: browse the words (tap each one) → match quiz → summary. */
 export default function VocabPack({ nodeId, content }: Props) {
   const router = useRouter();
-  const [stage, setStage] = useState<"present" | "quiz" | "summary">("present");
+  const [stage, setStage] = useState<
+    "present" | "listen" | "quiz" | "summary"
+  >("present");
   const [seen, setSeen] = useState<Set<number>>(new Set());
   const [progress, setProgress] = useState(0);
   const [reward, setReward] = useState<NodeProgressReward | null>(null);
@@ -33,6 +36,7 @@ export default function VocabPack({ nodeId, content }: Props) {
 
   const goToPath = () => router.push("/levels");
   const allSeen = seen.size === content.items.length;
+  const listenable = content.items.filter((i) => i.audio).length;
 
   // Report progress exactly once when the quiz completes. Matching always
   // finishes every pair, so answered=true; wrong picks feed times_wrong.
@@ -88,13 +92,41 @@ export default function VocabPack({ nodeId, content }: Props) {
           </UIButton>
           <UIButton
             tone="accent"
-            onClick={() => setStage("quiz")}
+            onClick={() => setStage(listenable >= 4 ? "listen" : "quiz")}
             disabled={!allSeen}
             fullWidth
           >
             {allSeen ? "Practicar" : "Conócelas todas primero"}
           </UIButton>
         </div>
+      </div>
+    );
+  }
+
+  if (stage === "listen") {
+    return (
+      <div className="flex flex-col gap-4 w-full">
+        <LessonTopBar progress={progress} />
+        <PanelWrapper>
+          <SectionLabel emoji="👂">{content.title}</SectionLabel>
+          <ListenQuiz
+            items={content.items}
+            onWrong={(itemId) =>
+              wrongByItem.current.set(
+                itemId,
+                (wrongByItem.current.get(itemId) ?? 0) + 1,
+              )
+            }
+            onProgress={setProgress}
+            onComplete={() => {
+              setProgress(0);
+              setStage("quiz");
+            }}
+          />
+        </PanelWrapper>
+        <UIButton tone="neutral" onClick={goToPath}>
+          ← Salir
+        </UIButton>
       </div>
     );
   }
