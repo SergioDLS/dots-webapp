@@ -673,8 +673,12 @@ function GhostRaceInner() {
           beatGhost={beatGhost}
           ghostName={ghostName}
           onReplay={() => {
+            // Fresh race: new seed + latest ghost (a rival may have posted a
+            // better run since). fetchAll reloads data; the intro re-shows and
+            // the player taps Empezar to run the new deck.
             runSubmittedRef.current = false;
-            startGame();
+            fetchAll();
+            setPhase("intro");
           }}
           onExit={() => router.push("/play")}
         />
