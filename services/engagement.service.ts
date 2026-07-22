@@ -123,6 +123,18 @@ export type Badge = {
   goal: number;
 };
 
+/** One neighbour in the weekly XP leaderboard. */
+export type RivalNeighbor = {
+  name: string;
+  delta: number;
+};
+
+/** Response of GET /me/rival */
+export type RivalData = {
+  above: RivalNeighbor | null;
+  below: RivalNeighbor | null;
+};
+
 /** Response of GET /me/stats (level = floor(sqrt(xp/100)) + 1) */
 export type MyStats = {
   xp: number;
@@ -233,6 +245,16 @@ export async function getMyBadgesService(): Promise<Badge[]> {
 export async function getMyStatsService(): Promise<MyStats | null> {
   try {
     const { data } = await api.get<MyStats>("/me/stats");
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/** Fetches the current user's immediate rivals in the weekly leaderboard. */
+export async function getRivalService(): Promise<RivalData | null> {
+  try {
+    const { data } = await api.get<RivalData>("/me/rival");
     return data;
   } catch {
     return null;
