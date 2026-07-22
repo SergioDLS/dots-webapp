@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-07-22
 - **Rama:** `redesign/contenido-camino` (ambos repos)
-- **Estado:** en ejecución — F0/F1/F2 hechos (2026-07-22); F3 en planificación (dividida en F3a/F3b/F3c)
+- **Estado:** F0/F1/F2/F3a/F3b hechos y aplicados a prod (2026-07-22); F3c parcial (engrosado de vocab hecho; fundamentos en 2–12 diferidos por requerir autoría nueva); F-media diferida (créditos).
 - **Repos:** `dots-webapp` (front) + `dots-backend` (API/seed). BD PostgreSQL **compartida de producción**.
 
 ## 1. Problema
@@ -131,9 +131,12 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - Todo con backup + rollback (patrón `seed-foundations.js`).
 - **✅ Ejecutado 2026-07-22:** seed idempotente `seed:modules` (`scripts/seed-modules-content.js` + `scripts/seed-data/modules.json`). Aplicado a prod: 26 packs + 415 items (26 letras, 28 números, 361 vocab-items derivados de `words`); 25 nodos `practice` de la sección 1 reescritos a módulo + 1 nodo `numbers-tens`; **269 oraciones archivadas** (`enabled=false`). Sección 1 quedó con 0 `practice`. Backup: `scripts/out/backup-modules-content-1784754263982.json` (rollback: `npm run seed:modules -- --rollback <backup>`). `verbs` (L8) → vocab, como decidido.
 
-#### F3c — Diferidos de F1 (contenido/camino)
-- Colocar fundamentos en las secciones 2–12 (placement en `path_nodes`, usando el editor de F2).
-- Engrosar los niveles de vocabulario flacos a la barra (≥10).
+#### F3c — Diferidos de F1 (contenido/camino) — ⚠️ parcial 2026-07-22
+- **Engrosar vocab flacos ≥10:** ✅ hecho donde es posible. `seed:vocab-topup` (`scripts/seed-vocab-topup.js`) aplicado a prod: `vocab-shapes` 6→10 (+STAR, OVAL, PENTAGON, HEXAGON) y `vocab-daytime` 8→10 (+dawn, dusk). Las **categorías cerradas se aceptan** bajo la barra: `days`=7, `seasons`=4, `meals`=5 (no se pueden inflar sin meter ruido). Backup: `scripts/out/backup-vocab-topup-*.json`.
+- **Colocar fundamentos en secciones 2–12:** ⏸️ **diferido.** El inventario mostró **0 fundamentos sin colocar** (pronunciation 9/9, grammar 11/11, vocab 32/32 ya referenciados). Interlazar 2–12 exige **autorear fundamentos nuevos** (grammar pills / pronunciation / vocab por sección) — una fase de contenido propia con su spec/plan; no se hizo en esta tanda.
+
+#### F-media — ⏸️ diferida (sin correr)
+Audio (ElevenLabs → Cloudinary, **gasta créditos**) e imágenes: **no ejecutado**; se retoma en sesión aparte con presupuesto. Los módulos degradan sin media (texto/significado), estado actual.
 
 ### F-media — Audio + imágenes (diferida, aprobación aparte)
 - Audio de words/letters/numbers/fundamentos nuevos vía `generate-narrations.js` (ElevenLabs → Cloudinary; **cuesta créditos**).
