@@ -5,13 +5,22 @@ import { ToastBanner, useToast } from "@/components/admin/ui";
 import PronunciationManager from "@/components/admin/foundations/pronunciation-manager";
 import GrammarManager from "@/components/admin/foundations/grammar-manager";
 import VocabManager from "@/components/admin/foundations/vocab-manager";
+import LettersManager from "@/components/admin/foundations/letters-manager";
+import NumbersManager from "@/components/admin/foundations/numbers-manager";
 
-type FoundationType = "pronunciation" | "grammar" | "vocab";
+type FoundationType =
+  | "pronunciation"
+  | "grammar"
+  | "vocab"
+  | "letters"
+  | "numbers";
 
 const TABS: { key: FoundationType; label: string; hint: string }[] = [
   { key: "pronunciation", label: "Pronunciation", hint: "Minimal pairs" },
   { key: "grammar", label: "Grammar", hint: "Pills & drills" },
   { key: "vocab", label: "Vocab", hint: "Word packs" },
+  { key: "letters", label: "Letters", hint: "Alphabet" },
+  { key: "numbers", label: "Numbers", hint: "Counting" },
 ];
 
 export default function AdminFoundationsPage() {
@@ -53,6 +62,8 @@ export default function AdminFoundationsPage() {
       {type === "pronunciation" && <PronunciationManager flash={flash} />}
       {type === "grammar" && <GrammarManager flash={flash} />}
       {type === "vocab" && <VocabManager flash={flash} />}
+      {type === "letters" && <LettersManager flash={flash} />}
+      {type === "numbers" && <NumbersManager flash={flash} />}
 
       {toast && <ToastBanner toast={toast} />}
     </div>
