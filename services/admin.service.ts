@@ -588,6 +588,8 @@ export type PathNodeType =
   | "pronunciation"
   | "grammar"
   | "vocab"
+  | "letters"
+  | "numbers"
   | "reading"
   | "checkpoint";
 
@@ -636,5 +638,184 @@ export async function updatePathNode(
 
 export async function deletePathNode(id: number) {
   const { data } = await api.delete(`/admin/path-nodes/${id}`);
+  return data;
+}
+
+// ── Modules: letters ───────────────────────────────────────────
+
+export type AdminLetterPack = {
+  id: number;
+  key: string;
+  title: string;
+  enabled: boolean;
+};
+
+export type AdminLetterItem = {
+  id: number;
+  packId: number;
+  letter: string;
+  name: string;
+  soundIpa: string;
+  exampleWord: string;
+  exampleMeaning: string;
+  img: string;
+  audio: string;
+  position: number;
+  enabled: boolean;
+};
+
+export async function getLetterPacks(): Promise<AdminLetterPack[]> {
+  const { data } = await api.get("/admin/letter-packs");
+  return data;
+}
+
+export async function createLetterPack(payload: {
+  key: string;
+  title: string;
+}): Promise<AdminLetterPack> {
+  const { data } = await api.post("/admin/letter-packs", payload);
+  return data;
+}
+
+export async function updateLetterPack(
+  id: number,
+  payload: Partial<{ title: string; enabled: boolean }>,
+): Promise<AdminLetterPack> {
+  const { data } = await api.patch(`/admin/letter-packs/${id}`, payload);
+  return data;
+}
+
+export async function deleteLetterPack(id: number) {
+  const { data } = await api.delete(`/admin/letter-packs/${id}`);
+  return data;
+}
+
+export async function getLetterItems(
+  packId: number,
+): Promise<AdminLetterItem[]> {
+  const { data } = await api.get(`/admin/letter-packs/${packId}/items`);
+  return data;
+}
+
+export async function createLetterItem(payload: {
+  packId: number;
+  letter: string;
+  name?: string;
+  soundIpa?: string;
+  exampleWord?: string;
+  exampleMeaning?: string;
+  img?: string;
+  audio?: string;
+  position?: number;
+}): Promise<AdminLetterItem> {
+  const { data } = await api.post("/admin/letter-items", payload);
+  return data;
+}
+
+export async function updateLetterItem(
+  id: number,
+  payload: Partial<{
+    letter: string;
+    name: string;
+    soundIpa: string;
+    exampleWord: string;
+    exampleMeaning: string;
+    img: string;
+    audio: string;
+    position: number;
+    enabled: boolean;
+  }>,
+): Promise<AdminLetterItem> {
+  const { data } = await api.patch(`/admin/letter-items/${id}`, payload);
+  return data;
+}
+
+export async function deleteLetterItem(id: number) {
+  const { data } = await api.delete(`/admin/letter-items/${id}`);
+  return data;
+}
+
+// ── Modules: numbers ───────────────────────────────────────────
+
+export type AdminNumberPack = {
+  id: number;
+  key: string;
+  title: string;
+  enabled: boolean;
+};
+
+export type AdminNumberItem = {
+  id: number;
+  packId: number;
+  value: number;
+  word: string;
+  img: string;
+  audio: string;
+  position: number;
+  enabled: boolean;
+};
+
+export async function getNumberPacks(): Promise<AdminNumberPack[]> {
+  const { data } = await api.get("/admin/number-packs");
+  return data;
+}
+
+export async function createNumberPack(payload: {
+  key: string;
+  title: string;
+}): Promise<AdminNumberPack> {
+  const { data } = await api.post("/admin/number-packs", payload);
+  return data;
+}
+
+export async function updateNumberPack(
+  id: number,
+  payload: Partial<{ title: string; enabled: boolean }>,
+): Promise<AdminNumberPack> {
+  const { data } = await api.patch(`/admin/number-packs/${id}`, payload);
+  return data;
+}
+
+export async function deleteNumberPack(id: number) {
+  const { data } = await api.delete(`/admin/number-packs/${id}`);
+  return data;
+}
+
+export async function getNumberItems(
+  packId: number,
+): Promise<AdminNumberItem[]> {
+  const { data } = await api.get(`/admin/number-packs/${packId}/items`);
+  return data;
+}
+
+export async function createNumberItem(payload: {
+  packId: number;
+  value: number;
+  word: string;
+  img?: string;
+  audio?: string;
+  position?: number;
+}): Promise<AdminNumberItem> {
+  const { data } = await api.post("/admin/number-items", payload);
+  return data;
+}
+
+export async function updateNumberItem(
+  id: number,
+  payload: Partial<{
+    value: number;
+    word: string;
+    img: string;
+    audio: string;
+    position: number;
+    enabled: boolean;
+  }>,
+): Promise<AdminNumberItem> {
+  const { data } = await api.patch(`/admin/number-items/${id}`, payload);
+  return data;
+}
+
+export async function deleteNumberItem(id: number) {
+  const { data } = await api.delete(`/admin/number-items/${id}`);
   return data;
 }

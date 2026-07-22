@@ -3,6 +3,8 @@ export type PathNodeType =
   | "pronunciation"
   | "grammar"
   | "vocab"
+  | "letters"
+  | "numbers"
   | "reading"
   | "checkpoint";
 

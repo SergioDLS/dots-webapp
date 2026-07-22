@@ -51,11 +51,40 @@ export type PracticeContent = {
   levelId: number;
 };
 
+export type LettersContent = {
+  type: "letters";
+  title: string;
+  items: {
+    id: number;
+    letter: string;
+    name?: string | null;
+    soundIpa?: string | null;
+    exampleWord?: string | null;
+    exampleMeaning?: string | null;
+    img?: string | null;
+    audio?: string | null;
+  }[];
+};
+
+export type NumbersContent = {
+  type: "numbers";
+  title: string;
+  items: {
+    id: number;
+    value: number;
+    word: string;
+    img?: string | null;
+    audio?: string | null;
+  }[];
+};
+
 export type NodeContent =
   | PronunciationContent
   | GrammarContent
   | VocabContent
-  | PracticeContent;
+  | PracticeContent
+  | LettersContent
+  | NumbersContent;
 
 export const getNodeContentService = async (
   nodeId: number | string,
