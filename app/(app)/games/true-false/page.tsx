@@ -55,6 +55,8 @@ function TrueFalseInner({ seed }: { seed?: number }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [cards, setCards] = useState<TrueFalseCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [fetchAttempt, setFetchAttempt] = useState(0);
   const [cardIndex, setCardIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -77,21 +79,23 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     handleTimeUp,
   );
 
-  // Load cards once on mount
+  // Load cards on mount; re-runs on retry via fetchAttempt.
   useEffect(() => {
     let active = true;
     getTrueFalseService(seed)
       .then((data) => {
         if (active) setCards(data);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
       .finally(() => {
         if (active) setLoading(false);
       });
     return () => {
       active = false;
     };
-  }, [seed]);
+  }, [seed, fetchAttempt]);
 
   // Clean up correction timer on unmount
   useEffect(() => {
@@ -243,6 +247,36 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner title="Cargando cartas..." />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6">
+        <p className="text-center text-lg font-extrabold text-foreground">
+          No pudimos cargar las cartas
+        </p>
+        <div className="flex gap-3">
+          <button
+            onPointerUp={() => {
+              setLoading(true);
+              setLoadError(false);
+              setFetchAttempt((n) => n + 1);
+            }}
+            className="rounded-xl px-5 py-2.5 text-sm font-black text-white"
+            style={{ background: "var(--accent)" }}
+          >
+            Reintentar
+          </button>
+          <button
+            onPointerUp={() => router.push("/play")}
+            className="rounded-xl px-5 py-2.5 text-sm font-black"
+            style={{ background: "var(--border)", color: "var(--foreground)" }}
+          >
+            Salir
+          </button>
+        </div>
       </div>
     );
   }
