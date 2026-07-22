@@ -14,6 +14,22 @@ const cards = [
     edge: "var(--accent-edge)",
   },
   {
+    title: "Foundations",
+    desc: "Pronunciation pairs, grammar pills and vocab packs.",
+    href: "/admin/foundations",
+    pose: "09",
+    accent: "var(--gem)",
+    edge: "var(--gem-edge)",
+  },
+  {
+    title: "Learning path",
+    desc: "Order the nodes learners walk through, section by section.",
+    href: "/admin/path",
+    pose: "11",
+    accent: "var(--flame)",
+    edge: "var(--flame-edge)",
+  },
+  {
     title: "Readings",
     desc: "Create and edit reading passages with audio and quizzes.",
     href: "/admin/readings",

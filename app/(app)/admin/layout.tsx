@@ -13,6 +13,8 @@ type Access = "checking" | "granted" | "denied";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", exact: true },
   { label: "Levels", href: "/admin/levels" },
+  { label: "Foundations", href: "/admin/foundations" },
+  { label: "Path", href: "/admin/path" },
   { label: "Readings", href: "/admin/readings" },
   { label: "Users", href: "/admin/users" },
 ];
