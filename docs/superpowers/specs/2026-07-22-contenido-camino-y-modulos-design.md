@@ -85,13 +85,14 @@ Nota: se eligen **2 tipos nuevos** (`letters`, `numbers`) + **1 upgrade** (`voca
 
 Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejecuta gateada. Todo cambio de datos pasa por backend/seed con **backup previo** (patrón `seed-foundations.js`). Verificación por fase: `npm run lint` + `npx next build` (front), `npx tsc --noEmit`/build (back), y preview manual — no hay test runner de componentes.
 
-### F0 — Triage de contenido (rápido, los 95 niveles)
+### F0 — Triage de contenido (rápido, los 95 niveles) — ✅ hecho 2026-07-22
 **Meta:** que ningún nivel esté vacío o con basura; dejar el camino "sano".
 - Borrar las 13 oraciones basura (backup antes).
 - Auditar los **~18 niveles con 0 habilitadas**: por cada uno, decidir re-habilitar (si el contenido es correcto), corregir+habilitar, o marcar para reescritura en F1. **Requiere criterio caso a caso** (ver §7 — abierto: por qué se apagaron).
 - Resolver vacíos: L32 (definir si es duplicado de L24 y consolidar), y decidir el módulo de daytime/furniture/house/body/school (van a vocab-visual en F3; en F0 solo se marca).
 - Fix de typos y duplicados evidentes; normalizar `GREY/GRAY`.
 - **Entregable:** informe de estado por nivel + BD sin basura ni niveles muertos. Reversible.
+- **✅ Ejecutado 2026-07-22:** `deleted=12, dedup=16, enabled=139` (14 niveles muertos revividos), `17` fixes. Reporte: [2026-07-22-f0-triage-reporte.md](../plans/2026-07-22-f0-triage-reporte.md). Backup para rollback: `dots-backend/scripts/out/backup-triage-1784737020582.json`. Pendiente para F1: revividos aún <8 (complements, irregular past, comparatives, imperative, since/for, reciprocal…).
 
 ### F1 — Expansión + significados (los 95 niveles)
 **Meta:** cada módulo alcanza la barra (≥8 práctica / ≥10 vocab / ≥8 fundamentos) con contenido **acorde al tema**.
@@ -127,9 +128,9 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Volumen de autoría:** ~397 significados + oraciones de ~35 niveles flacos + 18 apagados. Se entrega por lotes revisables en admin, no de una.
 
 ## 7. Abierto / para revisión
-- **¿Por qué están `enabled=false` esas ~18 secciones?** No se pudo inferir del esquema. F0 asume revisión caso a caso; si el usuario sabe la causa (contenido en QA, bug de un disable masivo), acelera la decisión re-habilitar vs reescribir.
+- ~~**¿Por qué están `enabled=false` esas ~18 secciones?**~~ **RESUELTO (F0):** el contenido era correcto y on-topic; no estaban apagadas por malas. 14 niveles revividos (139 oraciones). La excepción real fue L55 "Opposites" (formato roto → F1).
 - **Rango de números:** propuesto 1–20 + decenas hasta 100. Confirmar.
-- **L32 vs L24 "reflexive pronouns":** ¿duplicado a consolidar o dos temas distintos?
+- ~~**L32 vs L24 "reflexive pronouns":**~~ **RESUELTO (F0):** L32 está vacío (0/0) y L24 tiene el contenido bueno (8 oraciones) → L32 es duplicado; consolidar/retirar su nodo en F3.
 - **Oraciones retiradas en F3:** ¿borrar definitivo o archivar desactivadas?
 - **Imágenes:** fuente (banco propio, generadas, libres) — se define en F-media.
 
