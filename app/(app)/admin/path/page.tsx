@@ -22,6 +22,8 @@ import {
   getPronunciationUnits,
   getGrammarPills,
   getVocabPacks,
+  getLetterPacks,
+  getNumberPacks,
   getReadings,
   type AdminDifficulty,
   type AdminStructure,
@@ -36,6 +38,8 @@ const NODE_TYPES: { key: PathNodeType; label: string; color: string }[] = [
   { key: "pronunciation", label: "Pronunciation", color: "var(--gem)" },
   { key: "grammar", label: "Grammar", color: "var(--primary)" },
   { key: "vocab", label: "Vocab", color: "var(--success)" },
+  { key: "letters", label: "Letters", color: "var(--gold)" },
+  { key: "numbers", label: "Numbers", color: "var(--navy)" },
   { key: "reading", label: "Reading", color: "var(--flame)" },
   { key: "checkpoint", label: "Checkpoint", color: "var(--danger)" },
 ];
@@ -62,6 +66,8 @@ export default function AdminPathPage() {
   const [pronunciation, setPronunciation] = useState<RefOption[]>([]);
   const [grammar, setGrammar] = useState<RefOption[]>([]);
   const [vocab, setVocab] = useState<RefOption[]>([]);
+  const [letters, setLetters] = useState<RefOption[]>([]);
+  const [numbers, setNumbers] = useState<RefOption[]>([]);
   const [readings, setReadings] = useState<RefOption[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -115,6 +121,12 @@ export default function AdminPathPage() {
     getVocabPacks()
       .then((p) => setVocab(p.map((x) => ({ id: x.id, label: x.title }))))
       .catch(() => {});
+    getLetterPacks()
+      .then((p) => setLetters(p.map((x) => ({ id: x.id, label: x.title }))))
+      .catch(() => {});
+    getNumberPacks()
+      .then((p) => setNumbers(p.map((x) => ({ id: x.id, label: x.title }))))
+      .catch(() => {});
     getReadings()
       .then((r) => setReadings(r.map((x) => ({ id: x.id, label: x.title }))))
       .catch(() => {});
@@ -146,13 +158,17 @@ export default function AdminPathPage() {
           return grammar;
         case "vocab":
           return vocab;
+        case "letters":
+          return letters;
+        case "numbers":
+          return numbers;
         case "reading":
           return readings;
         default:
           return [];
       }
     },
-    [levelOptions, pronunciation, grammar, vocab, readings],
+    [levelOptions, pronunciation, grammar, vocab, letters, numbers, readings],
   );
 
   const refLabel = useCallback(
