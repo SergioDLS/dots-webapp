@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
+import { BASE_URL_SOUNDS } from "@/constants";
 import { useAuth } from "@/context/auth-context";
 import {
   getNodeContentService,
@@ -12,9 +13,25 @@ import {
   type LettersContent,
 } from "@/services/lessons.service";
 
+// ── Audio (absolute Cloudinary URLs pass through; legacy paths resolve) ───────
+
+const resolveAudio = (src: string) =>
+  /^https?:\/\//.test(src) ? src : `${BASE_URL_SOUNDS}/${src}`;
+
+/** Call ONLY from tap handlers — the gesture legalizes the playback. */
+const playAudio = (src: string) => {
+  void new Audio(resolveAudio(src)).play().catch(() => {});
+};
+
 // ── Drill (inline; RN-safe: tap-only, no keyboard/drag/inputs) ────────────────
+//
+// Ear-first flow: stage "present" (tap every letter to hear it) → stage
+// "drill" (hear a clip, pick the letter; wrong answers re-queue until every
+// letter is mastered) → stage "done" (submit once, show first-try score).
 
 type ItemResult = { times_wrong: number; answered: boolean };
+type Stage = "present" | "drill" | "done";
+type Feedback = "idle" | "correct" | "wrong";
 
 /** Fisher–Yates on a copy — pure, safe to call inside useMemo. */
 function shuffle<T>(arr: T[]): T[] {
@@ -27,6 +44,23 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const ADVANCE_DELAY_MS = 500;
+const WRONG_DELAY_MS = 800;
+
+const CORRECT_STYLE: React.CSSProperties = {
+  background: "color-mix(in srgb, var(--accent) 18%, transparent)",
+  borderColor: "var(--accent)",
+  color: "var(--accent)",
+};
+const WRONG_STYLE: React.CSSProperties = {
+  background: "color-mix(in srgb, #ef4444 14%, transparent)",
+  borderColor: "#ef4444",
+  color: "#ef4444",
+};
+const NEUTRAL_STYLE: React.CSSProperties = {
+  background: "var(--surface)",
+  borderColor: "var(--border)",
+  color: "var(--foreground)",
+};
 
 interface DrillProps {
   nodeId: number;
@@ -37,55 +71,76 @@ function LettersDrill({ nodeId, content }: DrillProps) {
   const router = useRouter();
   const items = content.items;
 
-  const [idx, setIdx] = useState(0);
+  const [stage, setStage] = useState<Stage>("present");
+  // Present stage: which letters the learner already tapped/heard.
+  const [seen, setSeen] = useState<Set<number>>(() => new Set());
+  // Drill stage: ids pending mastery (head = current turn).
+  const [queue, setQueue] = useState<number[]>([]);
   const [results, setResults] = useState<Record<number, ItemResult>>(() => {
     const seed: Record<number, ItemResult> = {};
     for (const it of items) seed[it.id] = { times_wrong: 0, answered: false };
     return seed;
   });
-  // Per-tap feedback: which letter was picked and whether it was right/wrong.
-  const [picked, setPicked] = useState<{ letter: string; correct: boolean } | null>(
-    null,
-  );
-  const [done, setDone] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback>("idle");
+  const [picked, setPicked] = useState<string | null>(null);
+  // Blocks option taps while the correct/wrong flash is on screen.
+  const advancingRef = useRef(false);
   const sentRef = useRef(false);
 
   const goToPath = () => router.push("/levels");
 
-  const target = items[idx];
+  const targetId = queue[0];
+  const target = items.find((it) => it.id === targetId);
 
-  // Options: the correct letter + up to 3 distinct distractor letters. Shuffled
-  // once per question (memo keyed on idx) so re-renders don't reshuffle.
+  // Options: the correct letter + up to 3 distinct distractor letters, shuffled
+  // once per turn (memo keyed on the target id + queue length so a re-queue of
+  // the same letter later still reshuffles).
   const options = useMemo(() => {
     if (!target) return [] as string[];
     const distractors: string[] = [];
-    const seen = new Set<string>([target.letter]);
+    const dedupe = new Set<string>([target.letter]);
     for (const it of items) {
-      if (seen.has(it.letter)) continue;
-      seen.add(it.letter);
+      if (dedupe.has(it.letter)) continue;
+      dedupe.add(it.letter);
       distractors.push(it.letter);
     }
     const picks = shuffle(distractors).slice(0, 3);
     return shuffle([target.letter, ...picks]);
-    // idx drives the question change; items/target are stable per node.
+    // targetId + queue.length drive the turn change; target derives from them.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, items]);
+  }, [targetId, queue.length, items]);
 
   const submitOnce = (finalResults: Record<number, ItemResult>) => {
     if (sentRef.current) return;
     sentRef.current = true;
     putNodeProgressService(
       nodeId,
-      Object.entries(finalResults).map(([id, r]) => ({
-        id: Number(id),
-        times_wrong: r.times_wrong,
-        answered: r.answered,
+      items.map((it) => ({
+        id: it.id,
+        times_wrong: finalResults[it.id]?.times_wrong ?? 0,
+        answered: true,
       })),
     ).catch(console.error);
   };
 
+  // Present stage: tap a card → hear the letter (if it has audio) + mark seen.
+  const onPresentTap = (item: LettersContent["items"][number]) => {
+    if (item.audio) playAudio(item.audio);
+    setSeen((prev) => new Set(prev).add(item.id));
+  };
+
+  // Practicar: audio items first (shuffled); audio-less stragglers go last as
+  // a visual queue (their prompt is text instead of a clip).
+  const startDrill = () => {
+    const withAudio = items.filter((it) => it.audio).map((it) => it.id);
+    const withoutAudio = items.filter((it) => !it.audio).map((it) => it.id);
+    setQueue([...shuffle(withAudio), ...shuffle(withoutAudio)]);
+    setStage("drill");
+  };
+
   const onPick = (letter: string) => {
-    if (!target || picked?.correct) return; // ignore taps mid-advance
+    if (!target || advancingRef.current) return;
+    advancingRef.current = true;
 
     if (letter === target.letter) {
       const next = {
@@ -93,29 +148,41 @@ function LettersDrill({ nodeId, content }: DrillProps) {
         [target.id]: { ...results[target.id], answered: true },
       };
       setResults(next);
-      setPicked({ letter, correct: true });
-      const isLast = idx >= items.length - 1;
-      // Short "correct" highlight, then advance (or finish). setTimeout lives in
-      // an event handler, never in a useEffect body.
+      setPicked(letter);
+      setFeedback("correct");
+      const isLast = queue.length <= 1;
+      // Short flash, then advance (or finish). setTimeout lives in an event
+      // handler, never in a useEffect body.
       setTimeout(() => {
+        advancingRef.current = false;
         if (isLast) {
           submitOnce(next);
-          setDone(true);
+          setStage("done");
         } else {
-          setIdx((i) => i + 1);
+          setQueue((q) => q.slice(1));
+          setFeedback("idle");
           setPicked(null);
         }
       }, ADVANCE_DELAY_MS);
     } else {
-      setResults((prev) => ({
-        ...prev,
+      // One attempt per turn: brief red flash, then the letter goes to the END
+      // of the queue — the lesson only ends when every letter is answered.
+      const next = {
+        ...results,
         [target.id]: {
-          ...prev[target.id],
-          times_wrong: prev[target.id].times_wrong + 1,
+          ...results[target.id],
+          times_wrong: results[target.id].times_wrong + 1,
         },
-      }));
-      setPicked({ letter, correct: false });
-      // No advance — let the learner tap again.
+      };
+      setResults(next);
+      setPicked(letter);
+      setFeedback("wrong");
+      setTimeout(() => {
+        advancingRef.current = false;
+        setQueue((q) => [...q.slice(1), q[0]]);
+        setFeedback("idle");
+        setPicked(null);
+      }, WRONG_DELAY_MS);
     }
   };
 
@@ -133,13 +200,16 @@ function LettersDrill({ nodeId, content }: DrillProps) {
     );
   }
 
-  if (done) {
+  if (stage === "done") {
+    const firstTry = items.filter(
+      (it) => (results[it.id]?.times_wrong ?? 0) === 0,
+    ).length;
     return (
       <div className="dots-card flex flex-col items-center gap-4 p-8 text-center">
         <span className="text-5xl">🎉</span>
         <h2 className="text-xl font-extrabold text-(--accent)">¡Listo!</h2>
         <p className="text-sm text-(--muted)">
-          Completaste la lección de letras.
+          {firstTry}/{items.length} a la primera
         </p>
         <UIButton tone="accent" onClick={goToPath} fullWidth>
           Volver al camino
@@ -148,67 +218,108 @@ function LettersDrill({ nodeId, content }: DrillProps) {
     );
   }
 
+  if (stage === "present") {
+    const allSeen = seen.size >= items.length;
+    return (
+      <div className="flex w-full flex-col gap-4">
+        <h1 className="text-center text-lg font-extrabold text-(--foreground)">
+          {content.title}
+        </h1>
+        <p className="text-center text-xs font-bold text-(--muted)">
+          Toca cada letra para oírla ({seen.size}/{items.length})
+        </p>
+
+        <div className="grid grid-cols-4 gap-2">
+          {items.map((it) => {
+            const isSeen = seen.has(it.id);
+            return (
+              <button
+                key={it.id}
+                type="button"
+                onClick={() => onPresentTap(it)}
+                className="dots-pressable flex flex-col items-center gap-1 rounded-2xl border-2 px-1 py-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2"
+                style={isSeen ? CORRECT_STYLE : NEUTRAL_STYLE}
+              >
+                <span className="text-3xl font-extrabold">{it.letter}</span>
+                <span className="text-[11px] font-bold text-(--muted)">
+                  {isSeen ? "✓" : "🔊"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <UIButton
+          tone="accent"
+          fullWidth
+          disabled={!allSeen}
+          onClick={startDrill}
+        >
+          Practicar
+        </UIButton>
+        <UIButton tone="ghost" onClick={goToPath}>
+          ← Salir
+        </UIButton>
+      </div>
+    );
+  }
+
   if (!target) return null;
 
-  const example = target.exampleWord
-    ? `${target.exampleWord}${target.exampleMeaning ? ` — ${target.exampleMeaning}` : ""}`
-    : null;
-  const prompt = target.name || target.exampleWord || "esta letra";
+  const answeredCount = Object.values(results).filter((r) => r.answered).length;
+  const textPrompt = target.name || target.exampleWord || target.letter;
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* Progress: n de N */}
+      {/* Mastery progress */}
       <p className="text-center text-xs font-bold text-(--muted)">
-        {idx + 1} de {items.length}
+        Dominadas {answeredCount} de {items.length}
       </p>
 
-      {/* Letter card */}
+      {/* Prompt: hear the clip (tap to replay) — or text if the item lacks audio */}
       <div className="dots-card flex flex-col items-center gap-3 p-6 text-center">
-        <span className="text-6xl font-extrabold text-(--accent)">
-          {target.letter}
-        </span>
-        <span className="text-lg font-bold text-(--foreground)">
-          {target.name}
-        </span>
-        {example && <span className="text-sm text-(--muted)">{example}</span>}
-        {target.audio && (
-          <UIButton
-            tone="neutral"
-            onClick={() => {
-              // Tap gesture legalizes the autoplay.
-              void new Audio(target.audio as string).play().catch(() => {});
-            }}
-          >
-            🔊 Escuchar
-          </UIButton>
+        {target.audio ? (
+          <>
+            <button
+              type="button"
+              onClick={() => playAudio(target.audio as string)}
+              className="dots-pressable flex h-24 w-24 items-center justify-center rounded-full text-4xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2"
+              style={{
+                background: "var(--accent)",
+                color: "var(--accent-contrast)",
+              }}
+            >
+              🔊
+            </button>
+            <p className="text-sm font-bold text-(--foreground)">
+              ¿Qué letra escuchaste?
+            </p>
+            <p className="text-xs text-(--muted)">
+              Toca el altavoz para repetir el audio.
+            </p>
+          </>
+        ) : (
+          <>
+            <span className="text-2xl font-extrabold text-(--accent)">
+              {textPrompt}
+            </span>
+            <p className="text-sm font-bold text-(--foreground)">
+              ¿Qué letra corresponde?
+            </p>
+          </>
         )}
       </div>
 
-      {/* Prompt + letter options */}
-      <p className="text-center text-sm font-bold text-(--foreground)">
-        ¿Qué letra corresponde a{" "}
-        <span className="text-(--accent)">{prompt}</span>?
-      </p>
+      {/* Letter options */}
       <div className="grid grid-cols-2 gap-3">
         {options.map((letter) => {
-          const isPicked = picked?.letter === letter;
-          const style: React.CSSProperties = isPicked
-            ? picked.correct
-              ? {
-                  background: "color-mix(in srgb, var(--accent) 18%, transparent)",
-                  borderColor: "var(--accent)",
-                  color: "var(--accent)",
-                }
-              : {
-                  background: "color-mix(in srgb, #ef4444 14%, transparent)",
-                  borderColor: "#ef4444",
-                  color: "#ef4444",
-                }
-            : {
-                background: "var(--surface)",
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-              };
+          const isPicked = picked === letter;
+          const style: React.CSSProperties =
+            isPicked && feedback === "correct"
+              ? CORRECT_STYLE
+              : isPicked && feedback === "wrong"
+                ? WRONG_STYLE
+                : NEUTRAL_STYLE;
           return (
             <button
               key={letter}
@@ -223,10 +334,13 @@ function LettersDrill({ nodeId, content }: DrillProps) {
         })}
       </div>
 
-      {picked && !picked.correct && (
+      {feedback === "wrong" && (
         <p className="text-center text-sm font-bold" style={{ color: "#ef4444" }}>
-          Casi. Inténtalo de nuevo.
+          Casi — esta letra volverá a salir.
         </p>
+      )}
+      {feedback === "correct" && (
+        <p className="text-center text-sm font-bold text-(--accent)">¡Bien!</p>
       )}
 
       <UIButton tone="ghost" onClick={goToPath}>
