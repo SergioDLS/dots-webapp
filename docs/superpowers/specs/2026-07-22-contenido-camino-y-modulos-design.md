@@ -94,12 +94,13 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Entregable:** informe de estado por nivel + BD sin basura ni niveles muertos. Reversible.
 - **✅ Ejecutado 2026-07-22:** `deleted=12, dedup=16, enabled=139` (14 niveles muertos revividos), `17` fixes. Reporte: [2026-07-22-f0-triage-reporte.md](../plans/2026-07-22-f0-triage-reporte.md). Backup para rollback: `dots-backend/scripts/out/backup-triage-1784737020582.json`. Pendiente para F1: revividos aún <8 (complements, irregular past, comparatives, imperative, since/for, reciprocal…).
 
-### F1 — Expansión + significados (los 95 niveles)
+### F1 — Expansión + significados (los 95 niveles) — ✅ hecho 2026-07-22
 **Meta:** cada módulo alcanza la barra (≥8 práctica / ≥10 vocab / ≥8 fundamentos) con contenido **acorde al tema**.
 - Autorear oraciones nuevas donde falten, **temáticas del nivel** (nada de acrósticos ni relleno).
 - Autorear los **~397 significados en español** de `words` (necesarios para vocab-visual).
 - Extender fundamentos: hoy solo en sección 1; sembrar pronunciation/grammar/vocab también en las secciones que lo pidan (intermediate/advanced), interlazados.
 - **Entregable:** contenido a la barra, cargado vía seed/backend. Audio/imágenes NO (fase media).
+- **✅ Ejecutado 2026-07-22:** Batch A (371 significados), Batch B (29 oraciones → gramática ≥8 + Opposites reformateado), chunk 1 (L21 4→20, 9 typos, `stations`→`seasons`), Batch C (+36 fundamentos). Reporte: [2026-07-22-f1-expansion-reporte.md](../plans/2026-07-22-f1-expansion-reporte.md). Nota: "extender fundamentos a otras secciones" (placement en path_nodes) se difiere a **F3** (edición de camino); los niveles vocab flacos también van a F3. `s-inicial` queda en 6 (intencional).
 
 ### F2 — Admin CRUD de fundamentos + estructura
 **Meta:** que el usuario edite todo el contenido desde el admin (la BD pasa a ser la fuente de verdad).
