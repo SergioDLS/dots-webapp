@@ -333,7 +333,7 @@ function PackDetail({
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => genAudio(item)}
-                        disabled={generatingId === item.id}
+                        disabled={generatingId != null}
                         className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent) disabled:opacity-50"
                       >
                         {generatingId === item.id ? "…" : "Generate audio"}
