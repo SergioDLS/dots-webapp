@@ -1,16 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { baseOptionCls, optionStyles } from "@/components/lesson/option-styles";
-import { BASE_URL_SOUNDS } from "@/constants";
 import { playSound } from "@/lib/feedback-sounds";
 import type { VocabContent } from "@/services/lessons.service";
 
 type VocabItem = VocabContent["items"][number];
 
 interface Props {
+  /** Ítems de esta sesión (tramo); los sin audio se saltan esta ronda. */
   items: VocabItem[];
+  /** Pool de distractores (el pack completo). Default: items. */
+  pool?: VocabItem[];
+  /** Reproductor compartido de la lección (useLessonAudio). */
+  play: (src?: string | null) => void;
   /** Called once per wrong meaning pick (feeds times_wrong). */
   onWrong: (itemId: number) => void;
   /** Reports overall progress 0-100 as items are mastered. */
@@ -19,8 +23,9 @@ interface Props {
   onComplete: () => void;
 }
 
-const resolveAudio = (src: string) =>
-  /^https?:\/\//.test(src) ? src : `${BASE_URL_SOUNDS}/${src}`;
+// El acierto repite el clip como refuerzo: el avance espera a que se oiga.
+const CORRECT_MS = 800;
+const WRONG_MS = 450;
 
 function shuffle<T>(arr: T[]): T[] {
   const out = [...arr];
@@ -32,7 +37,14 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /** Ear-first round: hear the EN word, pick its ES meaning. Wrong picks re-queue. */
-export default function ListenQuiz({ items, onWrong, onProgress, onComplete }: Props) {
+export default function ListenQuiz({
+  items,
+  pool,
+  play,
+  onWrong,
+  onProgress,
+  onComplete,
+}: Props) {
   // Items still to master; wrong answers move to the end until answered right.
   const [queue, setQueue] = useState<VocabItem[]>(() =>
     shuffle(items.filter((item) => item.audio)),
@@ -43,33 +55,40 @@ export default function ListenQuiz({ items, onWrong, onProgress, onComplete }: P
   const lockRef = useRef(false);
 
   const target = queue[0];
+  const targetId = target?.id;
+  const targetAudio = target?.audio ?? null;
+  const distractorPool = pool ?? items;
 
-  // Target meaning + up to 3 distractor meanings (deduped by text), reshuffled per turn.
+  // Autoplay: el clip del turno suena al entrar (la activación de usuario
+  // viene del tap de "Practicar"). Solo reproduce — sin setState.
+  useEffect(() => {
+    if (targetId == null) return;
+    if (targetAudio) play(targetAudio);
+  }, [targetId, targetAudio, play]);
+
+  // Target meaning + up to 3 distractor meanings from the pool (deduped by
+  // text), reshuffled per turn.
   const options = useMemo(() => {
     if (!target) return [];
     const picked = [target];
     const seenMeanings = new Set([target.meaning]);
-    for (const item of shuffle(items)) {
+    for (const item of shuffle(distractorPool)) {
       if (picked.length >= 4) break;
       if (item.id === target.id || seenMeanings.has(item.meaning)) continue;
       seenMeanings.add(item.meaning);
       picked.push(item);
     }
     return shuffle(picked);
-  }, [target, items]);
+  }, [target, distractorPool]);
 
   if (!target) return null;
-
-  const play = () => {
-    if (!target.audio) return;
-    new Audio(resolveAudio(target.audio)).play().catch(() => {});
-  };
 
   const answer = (option: VocabItem) => {
     if (lockRef.current) return;
     lockRef.current = true;
     if (option.id === target.id) {
-      playSound("correct");
+      // Refuerzo: se repite el clip al acertar.
+      if (target.audio) play(target.audio);
       const nextMastered = new Set(mastered).add(target.id);
       setMastered(nextMastered);
       onProgress(Math.floor((nextMastered.size / total) * 100));
@@ -80,7 +99,7 @@ export default function ListenQuiz({ items, onWrong, onProgress, onComplete }: P
         setFeedback(null);
         setQueue(rest);
         if (rest.length === 0) onComplete();
-      }, 450);
+      }, CORRECT_MS);
     } else {
       playSound("wrong");
       onWrong(target.id);
@@ -90,7 +109,7 @@ export default function ListenQuiz({ items, onWrong, onProgress, onComplete }: P
         lockRef.current = false;
         setFeedback(null);
         setQueue(requeued);
-      }, 450);
+      }, WRONG_MS);
     }
   };
 
@@ -113,9 +132,9 @@ export default function ListenQuiz({ items, onWrong, onProgress, onComplete }: P
           border: "2px solid var(--accent)",
           color: "var(--accent)",
         }}
-        onClick={play}
+        onClick={() => play(target.audio)}
       >
-        🔊 Escuchar
+        🔊 Escuchar de nuevo
       </button>
       <div className="flex flex-col gap-2 w-full">
         {options.map((option) => (

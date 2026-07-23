@@ -5,6 +5,13 @@ import type { ProgressReward } from "./engagement.service";
 
 export type NodeOption = { word: string; correct: boolean };
 
+/** Dominio del usuario sobre un ítem (null/ausente = nunca practicado). */
+export type ItemMastery = {
+  done: boolean;
+  streak: number;
+  timesWrong: number;
+};
+
 export type GrammarBlock = {
   type: "p" | "example" | "tip";
   text: string;
@@ -42,6 +49,7 @@ export type VocabContent = {
     meaning: string;
     img?: string | null;
     audio?: string | null;
+    progress?: ItemMastery | null;
   }[];
 };
 
@@ -63,6 +71,7 @@ export type LettersContent = {
     exampleMeaning?: string | null;
     img?: string | null;
     audio?: string | null;
+    progress?: ItemMastery | null;
   }[];
 };
 
@@ -75,6 +84,7 @@ export type NumbersContent = {
     word: string;
     img?: string | null;
     audio?: string | null;
+    progress?: ItemMastery | null;
   }[];
 };
 
@@ -101,7 +111,11 @@ export type NodeItemResult = {
   answered: boolean;
 };
 
-export type NodeProgressReward = ProgressReward & { nodeProgress: number };
+export type NodeProgressReward = ProgressReward & {
+  nodeProgress: number;
+  /** % de ítems del pack dominados (corona al llegar a 100). */
+  mastery?: number;
+};
 
 export const putNodeProgressService = async (
   nodeId: number | string,

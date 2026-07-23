@@ -5,32 +5,28 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
-import { BASE_URL_SOUNDS } from "@/constants";
+import AudioChoiceQuiz, {
+  type AudioChoice,
+} from "@/components/lesson/shared/audio-choice-quiz";
 import { useAuth } from "@/context/auth-context";
+import { useLessonAudio } from "@/hooks/use-lesson-audio";
+import { useLessonSession } from "@/hooks/use-lesson-session";
 import {
   getNodeContentService,
   putNodeProgressService,
   type LettersContent,
+  type NodeProgressReward,
 } from "@/services/lessons.service";
 
-// ── Audio (absolute Cloudinary URLs pass through; legacy paths resolve) ───────
-
-const resolveAudio = (src: string) =>
-  /^https?:\/\//.test(src) ? src : `${BASE_URL_SOUNDS}/${src}`;
-
-/** Call ONLY from tap handlers — the gesture legalizes the playback. */
-const playAudio = (src: string) => {
-  void new Audio(resolveAudio(src)).play().catch(() => {});
-};
-
-// ── Drill (inline; RN-safe: tap-only, no keyboard/drag/inputs) ────────────────
+// ── Sesión por tramos (F3e) ───────────────────────────────────────────────────
 //
-// Ear-first flow: stage "present" (tap every letter to hear it) → stage
-// "drill" (hear a clip, pick the letter; wrong answers re-queue until every
-// letter is mastered) → stage "done" (submit once, show first-try score).
+// Cada sesión toma 6–7 letras (a-reforzar → nuevas → 1–2 de repaso):
+// presentación SOLO de las nuevas → ronda directa (escucha con autoplay →
+// elige la letra) → ronda inversa (ve la letra → elige el audio) → cierre con
+// "Seguir practicando". Fallos re-encolados hasta responder todo (dominio).
 
 type ItemResult = { times_wrong: number; answered: boolean };
-type Stage = "present" | "drill" | "done";
+type Stage = "present" | "direct" | "inverse" | "done";
 type Feedback = "idle" | "correct" | "wrong";
 
 /** Fisher–Yates on a copy — pure, safe to call inside useMemo. */
@@ -43,7 +39,8 @@ function shuffle<T>(arr: T[]): T[] {
   return out;
 }
 
-const ADVANCE_DELAY_MS = 500;
+// El acierto repite el clip como refuerzo: el avance espera a que se oiga.
+const ADVANCE_DELAY_MS = 800;
 const WRONG_DELAY_MS = 800;
 
 const CORRECT_STYLE: React.CSSProperties = {
@@ -65,77 +62,115 @@ const NEUTRAL_STYLE: React.CSSProperties = {
 interface DrillProps {
   nodeId: number;
   content: LettersContent;
+  /** Re-fetchea el contenido → nueva sesión con otro tramo. */
+  onRestart: () => void;
 }
 
-function LettersDrill({ nodeId, content }: DrillProps) {
+function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
   const router = useRouter();
-  const items = content.items;
+  const play = useLessonAudio();
+  const session = useLessonSession(content.items);
+  const tramo = session.tramo;
 
-  const [stage, setStage] = useState<Stage>("present");
-  // Present stage: which letters the learner already tapped/heard.
+  const [stage, setStage] = useState<Stage>(() =>
+    session.newItems.length > 0 ? "present" : "direct",
+  );
+  // Present stage: which NEW letters the learner already tapped/heard.
   const [seen, setSeen] = useState<Set<number>>(() => new Set());
-  // Drill stage: ids pending mastery (head = current turn).
-  const [queue, setQueue] = useState<number[]>([]);
+  // Direct stage: ids pending mastery (head = current turn).
+  const [queue, setQueue] = useState<number[]>(() => {
+    const withAudio = tramo.filter((it) => it.audio).map((it) => it.id);
+    const withoutAudio = tramo.filter((it) => !it.audio).map((it) => it.id);
+    return [...shuffle(withAudio), ...shuffle(withoutAudio)];
+  });
   const [results, setResults] = useState<Record<number, ItemResult>>(() => {
     const seed: Record<number, ItemResult> = {};
-    for (const it of items) seed[it.id] = { times_wrong: 0, answered: false };
+    for (const it of tramo) seed[it.id] = { times_wrong: 0, answered: false };
     return seed;
   });
   const [feedback, setFeedback] = useState<Feedback>("idle");
   const [picked, setPicked] = useState<string | null>(null);
+  const [reward, setReward] = useState<NodeProgressReward | null>(null);
+  // Aciertos a la primera, congelados al cerrar la sesión (los refs no se
+  // leen durante render — regla del compiler).
+  const [firstTry, setFirstTry] = useState(0);
   // Blocks option taps while the correct/wrong flash is on screen.
   const advancingRef = useRef(false);
   const sentRef = useRef(false);
+  const wrongByItem = useRef<Map<number, number>>(new Map());
 
   const goToPath = () => router.push("/levels");
 
   const targetId = queue[0];
-  const target = items.find((it) => it.id === targetId);
+  const target = tramo.find((it) => it.id === targetId);
+  const targetAudio = target?.audio ?? null;
 
-  // Options: the correct letter + up to 3 distinct distractor letters, shuffled
-  // once per turn (memo keyed on the target id + queue length so a re-queue of
-  // the same letter later still reshuffles).
+  // Autoplay: el clip del turno suena al entrar (la activación viene del tap
+  // de "Practicar"/respuestas previas). Solo reproduce — sin setState.
+  useEffect(() => {
+    if (stage !== "direct" || targetId == null) return;
+    if (targetAudio) play(targetAudio);
+  }, [stage, targetId, targetAudio, play]);
+
+  // Ronda inversa: ítems del tramo con audio; distractores del pack completo.
+  const inverseItems = useMemo<AudioChoice[]>(
+    () =>
+      tramo
+        .filter((it) => it.audio)
+        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio! })),
+    [tramo],
+  );
+  const inversePool = useMemo<AudioChoice[]>(
+    () =>
+      content.items
+        .filter((it) => it.audio)
+        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio! })),
+    [content.items],
+  );
+  const hasInverse = inverseItems.length >= 2;
+
+  // Options: the correct letter + up to 3 distinct distractors from the WHOLE
+  // pack, shuffled once per turn.
   const options = useMemo(() => {
     if (!target) return [] as string[];
     const distractors: string[] = [];
     const dedupe = new Set<string>([target.letter]);
-    for (const it of items) {
+    for (const it of shuffle(content.items)) {
       if (dedupe.has(it.letter)) continue;
       dedupe.add(it.letter);
       distractors.push(it.letter);
     }
-    const picks = shuffle(distractors).slice(0, 3);
+    const picks = distractors.slice(0, 3);
     return shuffle([target.letter, ...picks]);
     // targetId + queue.length drive the turn change; target derives from them.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetId, queue.length, items]);
+  }, [targetId, queue.length, content.items]);
 
-  const submitOnce = (finalResults: Record<number, ItemResult>) => {
+  // Envía SOLO los ítems del tramo, una vez (guard con ref).
+  const finishSession = (finalResults: Record<number, ItemResult>) => {
+    setStage("done");
     if (sentRef.current) return;
     sentRef.current = true;
-    putNodeProgressService(
-      nodeId,
-      items.map((it) => ({
-        id: it.id,
-        times_wrong: finalResults[it.id]?.times_wrong ?? 0,
-        answered: true,
-      })),
-    ).catch(console.error);
+    const payload = tramo.map((it) => ({
+      id: it.id,
+      times_wrong:
+        (finalResults[it.id]?.times_wrong ?? 0) +
+        (wrongByItem.current.get(it.id) ?? 0),
+      answered: true,
+    }));
+    setFirstTry(payload.filter((it) => it.times_wrong === 0).length);
+    putNodeProgressService(nodeId, payload).then(setReward).catch(console.error);
   };
 
-  // Present stage: tap a card → hear the letter (if it has audio) + mark seen.
+  const endDirectRound = (finalResults: Record<number, ItemResult>) => {
+    if (hasInverse) setStage("inverse");
+    else finishSession(finalResults);
+  };
+
+  // Present stage: tap a card → hear the letter + mark seen.
   const onPresentTap = (item: LettersContent["items"][number]) => {
-    if (item.audio) playAudio(item.audio);
+    if (item.audio) play(item.audio);
     setSeen((prev) => new Set(prev).add(item.id));
-  };
-
-  // Practicar: audio items first (shuffled); audio-less stragglers go last as
-  // a visual queue (their prompt is text instead of a clip).
-  const startDrill = () => {
-    const withAudio = items.filter((it) => it.audio).map((it) => it.id);
-    const withoutAudio = items.filter((it) => !it.audio).map((it) => it.id);
-    setQueue([...shuffle(withAudio), ...shuffle(withoutAudio)]);
-    setStage("drill");
   };
 
   const onPick = (letter: string) => {
@@ -143,6 +178,8 @@ function LettersDrill({ nodeId, content }: DrillProps) {
     advancingRef.current = true;
 
     if (letter === target.letter) {
+      // Refuerzo: se repite el clip al acertar.
+      if (target.audio) play(target.audio);
       const next = {
         ...results,
         [target.id]: { ...results[target.id], answered: true },
@@ -155,18 +192,17 @@ function LettersDrill({ nodeId, content }: DrillProps) {
       // handler, never in a useEffect body.
       setTimeout(() => {
         advancingRef.current = false;
+        setFeedback("idle");
+        setPicked(null);
         if (isLast) {
-          submitOnce(next);
-          setStage("done");
+          endDirectRound(next);
         } else {
           setQueue((q) => q.slice(1));
-          setFeedback("idle");
-          setPicked(null);
         }
       }, ADVANCE_DELAY_MS);
     } else {
       // One attempt per turn: brief red flash, then the letter goes to the END
-      // of the queue — the lesson only ends when every letter is answered.
+      // of the queue — the round only ends when every letter is answered.
       const next = {
         ...results,
         [target.id]: {
@@ -187,7 +223,7 @@ function LettersDrill({ nodeId, content }: DrillProps) {
   };
 
   // Empty lesson — friendly state, do NOT submit progress.
-  if (items.length === 0) {
+  if (content.items.length === 0) {
     return (
       <div className="dots-card flex flex-col items-center gap-4 p-6 text-center">
         <p className="text-sm text-(--muted)">
@@ -201,17 +237,33 @@ function LettersDrill({ nodeId, content }: DrillProps) {
   }
 
   if (stage === "done") {
-    const firstTry = items.filter(
-      (it) => (results[it.id]?.times_wrong ?? 0) === 0,
-    ).length;
+    const learnedNow =
+      reward?.mastery != null
+        ? Math.round((reward.mastery / 100) * session.packTotal)
+        : null;
     return (
       <div className="dots-card flex flex-col items-center gap-4 p-8 text-center">
         <span className="text-5xl">🎉</span>
-        <h2 className="text-xl font-extrabold text-(--accent)">¡Listo!</h2>
+        <h2 className="text-xl font-extrabold text-(--accent)">
+          {session.isReview ? "¡Repaso completo!" : "¡Sesión lista!"}
+        </h2>
         <p className="text-sm text-(--muted)">
-          {firstTry}/{items.length} a la primera
+          {firstTry}/{tramo.length} a la primera
         </p>
-        <UIButton tone="accent" onClick={goToPath} fullWidth>
+        {learnedNow != null && (
+          <p className="text-sm font-bold text-(--foreground)">
+            👑 Aprendidas {learnedNow} de {session.packTotal}
+          </p>
+        )}
+        {reward && (
+          <p className="text-xs font-bold text-(--muted)">
+            +{reward.xpGained} XP
+          </p>
+        )}
+        <UIButton tone="accent" onClick={onRestart} fullWidth>
+          Seguir practicando
+        </UIButton>
+        <UIButton tone="ghost" onClick={goToPath} fullWidth>
           Volver al camino
         </UIButton>
       </div>
@@ -219,18 +271,20 @@ function LettersDrill({ nodeId, content }: DrillProps) {
   }
 
   if (stage === "present") {
-    const allSeen = seen.size >= items.length;
+    const newItems = session.newItems;
+    const allSeen = seen.size >= newItems.length;
     return (
       <div className="flex w-full flex-col gap-4">
         <h1 className="text-center text-lg font-extrabold text-(--foreground)">
           {content.title}
         </h1>
         <p className="text-center text-xs font-bold text-(--muted)">
-          Toca cada letra para oírla ({seen.size}/{items.length})
+          Letras nuevas de esta sesión — toca cada una para oírla ({seen.size}/
+          {newItems.length})
         </p>
 
         <div className="grid grid-cols-4 gap-2">
-          {items.map((it) => {
+          {newItems.map((it) => {
             const isSeen = seen.has(it.id);
             return (
               <button
@@ -253,10 +307,38 @@ function LettersDrill({ nodeId, content }: DrillProps) {
           tone="accent"
           fullWidth
           disabled={!allSeen}
-          onClick={startDrill}
+          onClick={() => setStage("direct")}
         >
           Practicar
         </UIButton>
+        <UIButton tone="ghost" onClick={goToPath}>
+          ← Salir
+        </UIButton>
+      </div>
+    );
+  }
+
+  if (stage === "inverse") {
+    return (
+      <div className="flex w-full flex-col gap-4">
+        <p className="text-center text-xs font-bold text-(--muted)">
+          Aprendidas {session.learnedBefore} de {session.packTotal} · ahora al
+          revés
+        </p>
+        <div className="dots-card p-5">
+          <AudioChoiceQuiz
+            items={inverseItems}
+            pool={inversePool}
+            play={play}
+            onWrong={(itemId) =>
+              wrongByItem.current.set(
+                itemId,
+                (wrongByItem.current.get(itemId) ?? 0) + 1,
+              )
+            }
+            onComplete={() => finishSession(results)}
+          />
+        </div>
         <UIButton tone="ghost" onClick={goToPath}>
           ← Salir
         </UIButton>
@@ -271,18 +353,19 @@ function LettersDrill({ nodeId, content }: DrillProps) {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* Mastery progress */}
+      {/* Session + pack progress */}
       <p className="text-center text-xs font-bold text-(--muted)">
-        Dominadas {answeredCount} de {items.length}
+        Aprendidas {session.learnedBefore} de {session.packTotal} · sesión{" "}
+        {answeredCount}/{tramo.length}
       </p>
 
-      {/* Prompt: hear the clip (tap to replay) — or text if the item lacks audio */}
+      {/* Prompt: the clip autoplays (tap to replay) — or text if no audio */}
       <div className="dots-card flex flex-col items-center gap-3 p-6 text-center">
         {target.audio ? (
           <>
             <button
               type="button"
-              onClick={() => playAudio(target.audio as string)}
+              onClick={() => play(target.audio)}
               className="dots-pressable flex h-24 w-24 items-center justify-center rounded-full text-4xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2"
               style={{
                 background: "var(--accent)",
@@ -399,7 +482,19 @@ function LettersClient() {
     );
   }
 
-  return <LettersDrill nodeId={nodeId} content={content} />;
+  return (
+    <LettersDrill
+      // Remount per fetch: cada sesión arma su propio tramo desde cero.
+      key={attempt}
+      nodeId={nodeId}
+      content={content}
+      onRestart={() => {
+        // "Seguir practicando": re-fetch → dominio fresco → tramo nuevo.
+        setContent(null);
+        setAttempt((a) => a + 1);
+      }}
+    />
+  );
 }
 
 export default function LettersPage() {

@@ -24,6 +24,15 @@ interface PathNodeProps {
   popoverAlign: "left" | "center" | "right";
 }
 
+/** Módulos con dominio por ítem: la corona exige mastery 100, no solo completar. */
+const MASTERY_TYPES = new Set([
+  "letters",
+  "numbers",
+  "vocab",
+  "pronunciation",
+  "grammar",
+]);
+
 export default function PathNode({
   node,
   accentHex,
@@ -39,6 +48,11 @@ export default function PathNode({
   const isLocked = false;
   const progress = Math.max(0, Math.min(100, Math.round(node.progress)));
   const isDone = node.completed;
+  // Dos niveles (F3e): completado = respondiste todo 1× (check verde);
+  // corona = pack dominado. Nodos sin ítems conservan corona al completar.
+  const isMastered = MASTERY_TYPES.has(node.type)
+    ? (node.mastery ?? 0) >= 100
+    : isDone;
   const isCurrent = node.current && !isLocked && !isDone;
   const isTestable =
     isCheckpoint && node.unlocked && !node.completed && checkpointAvailable;
@@ -285,8 +299,8 @@ export default function PathNode({
           </div>
         )}
 
-        {/* ── Badge: done crown (checkpoints wear it too) ───── */}
-        {isDone && !isLocked && (
+        {/* ── Badge: mastery crown (checkpoints wear it on done) ── */}
+        {isMastered && !isLocked && (
           <div
             className="absolute flex items-center justify-center"
             style={{

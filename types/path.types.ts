@@ -19,6 +19,8 @@ export type PathNode = {
   src?: string | null;
   itemCount?: number;
   progress: number;
+  /** % de ítems dominados (corona al llegar a 100). Solo módulos con ítems. */
+  mastery?: number;
   completed: boolean;
   unlocked: boolean;
   current: boolean;

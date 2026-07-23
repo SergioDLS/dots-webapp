@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
+import UIButton from "@/components/ui/button/button";
 import VocabPack from "@/components/lesson/vocab/vocab-pack";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -18,6 +19,7 @@ function VocabClient() {
 
   const [content, setContent] = useState<VocabContent | null>(null);
   const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (isBootstrapping || !nodeId) return;
@@ -27,13 +29,25 @@ function VocabClient() {
         else setError(true);
       })
       .catch(() => setError(true));
-  }, [nodeId, isBootstrapping]);
+  }, [nodeId, isBootstrapping, attempt]);
 
   if (error) {
     return (
-      <p className="text-center py-10" style={{ color: "var(--muted)" }}>
-        No pudimos cargar este vocabulario. Vuelve a intentarlo.
-      </p>
+      <div className="flex flex-col items-center gap-4 py-10">
+        <p className="text-center" style={{ color: "var(--muted)" }}>
+          No pudimos cargar este vocabulario.
+        </p>
+        <UIButton
+          tone="accent"
+          onClick={() => {
+            // fetchAttempt retry: bump the counter, the effect re-fetches.
+            setError(false);
+            setAttempt((a) => a + 1);
+          }}
+        >
+          Reintentar
+        </UIButton>
+      </div>
     );
   }
   if (!content) {
@@ -43,7 +57,19 @@ function VocabClient() {
       </div>
     );
   }
-  return <VocabPack nodeId={nodeId} content={content} />;
+  return (
+    <VocabPack
+      // Remount per fetch: cada sesión arma su propio tramo desde cero.
+      key={attempt}
+      nodeId={nodeId}
+      content={content}
+      onRestart={() => {
+        // "Seguir practicando": re-fetch → dominio fresco → tramo nuevo.
+        setContent(null);
+        setAttempt((a) => a + 1);
+      }}
+    />
+  );
 }
 
 export default function VocabPage() {

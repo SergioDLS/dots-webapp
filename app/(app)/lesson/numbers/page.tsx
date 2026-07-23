@@ -4,11 +4,16 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
-import { BASE_URL_SOUNDS } from "@/constants";
+import AudioChoiceQuiz, {
+  type AudioChoice,
+} from "@/components/lesson/shared/audio-choice-quiz";
 import { useAuth } from "@/context/auth-context";
+import { useLessonAudio } from "@/hooks/use-lesson-audio";
+import { useLessonSession } from "@/hooks/use-lesson-session";
 import {
   getNodeContentService,
   putNodeProgressService,
+  type NodeProgressReward,
   type NumbersContent,
 } from "@/services/lessons.service";
 
@@ -58,7 +63,18 @@ function NumbersClient() {
       </div>
     );
   }
-  return <NumbersDrill nodeId={nodeId} content={content} />;
+  return (
+    <NumbersDrill
+      // Remount per fetch: cada sesión arma su propio tramo desde cero.
+      key={attempt}
+      nodeId={nodeId}
+      content={content}
+      onRestart={() => {
+        setContent(null);
+        setAttempt((n) => n + 1);
+      }}
+    />
+  );
 }
 
 export default function NumbersPage() {
@@ -77,24 +93,16 @@ export default function NumbersPage() {
   );
 }
 
-// ── Drill: ronda 1 escucha→numeral (cola de dominio) + ronda 2 empareja ───────
+// ── Drill por tramos (F3e): escucha→numeral (autoplay) + inversa + emparejar ──
 // Tap-only, RN-safe. Animación solo transform/opacity.
 
 type NumberItem = NumbersContent["items"][number];
 type ItemResult = { times_wrong: number; answered: boolean };
 
 const OPTION_COUNT = 4;
-const FEEDBACK_MS = 500;
+// El acierto repite el clip como refuerzo: el avance espera a que se oiga.
+const FEEDBACK_MS = 800;
 const MATCH_CHUNK = 5;
-
-/** Audio 1–10 viene como URL absoluta (Cloudinary); rutas legacy son relativas. */
-const resolveAudio = (src: string) =>
-  /^https?:\/\//.test(src) ? src : `${BASE_URL_SOUNDS}/${src}`;
-
-/** Reproducir SOLO dentro de handlers de tap (gesto de usuario = autoplay legal). */
-const playAudio = (src: string) => {
-  new Audio(resolveAudio(src)).play().catch(() => {});
-};
 
 /** Fisher–Yates. */
 function shuffle<T>(arr: T[]): T[] {
@@ -109,66 +117,103 @@ function shuffle<T>(arr: T[]): T[] {
 function NumbersDrill({
   nodeId,
   content,
+  onRestart,
 }: {
   nodeId: number;
   content: NumbersContent;
+  /** Re-fetchea el contenido → nueva sesión con otro tramo. */
+  onRestart: () => void;
 }) {
   const router = useRouter();
-  const items = content.items;
+  const play = useLessonAudio();
+  const session = useLessonSession(content.items);
+  const tramo = session.tramo;
 
-  const [phase, setPhase] = useState<"recognize" | "match" | "done">(
+  const [phase, setPhase] = useState<"recognize" | "inverse" | "match" | "done">(
     "recognize",
   );
-  // Cola de dominio: ids por responder; los fallados vuelven al final.
+  // Cola de dominio: ids del tramo por responder; los fallados vuelven al final.
   const [queue, setQueue] = useState<number[]>(() =>
-    shuffle(items.map((it) => it.id)),
+    shuffle(tramo.map((it) => it.id)),
   );
   const [results, setResults] = useState<Record<number, ItemResult>>(() => {
     const seed: Record<number, ItemResult> = {};
-    for (const it of items) seed[it.id] = { times_wrong: 0, answered: false };
+    for (const it of tramo) seed[it.id] = { times_wrong: 0, answered: false };
     return seed;
   });
   const [feedback, setFeedback] = useState<{
     value: number;
     kind: "correct" | "wrong";
   } | null>(null);
+  const [reward, setReward] = useState<NodeProgressReward | null>(null);
+  // Aciertos a la primera, congelados al cerrar la sesión (los refs no se
+  // leen durante render — regla del compiler).
+  const [firstTry, setFirstTry] = useState(0);
   const lockRef = useRef(false); // bloquea taps mientras se muestra feedback
   const sentRef = useRef(false);
+  const wrongExtra = useRef<Map<number, number>>(new Map());
 
   const goToPath = () => router.push("/levels");
 
   const targetId = queue[0];
-  const target = items.find((it) => it.id === targetId);
+  const target = tramo.find((it) => it.id === targetId);
+  const targetAudio = target?.audio ?? null;
 
-  // Opciones: valor objetivo + hasta 3 distractores únicos, barajadas por turno.
+  // Autoplay del turno (la activación de usuario viene de taps previos).
+  useEffect(() => {
+    if (phase !== "recognize" || targetId == null) return;
+    if (targetAudio) play(targetAudio);
+  }, [phase, targetId, targetAudio, play]);
+
+  // Ronda inversa: numeral → elige el audio. Distractores del pack completo.
+  const inverseItems = useMemo<AudioChoice[]>(
+    () =>
+      tramo
+        .filter((it) => it.audio)
+        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio! })),
+    [tramo],
+  );
+  const inversePool = useMemo<AudioChoice[]>(
+    () =>
+      content.items
+        .filter((it) => it.audio)
+        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio! })),
+    [content.items],
+  );
+  const hasInverse = inverseItems.length >= 2;
+
+  // Opciones: valor objetivo + hasta 3 distractores únicos del pack completo.
   const options = useMemo(() => {
-    const t = items.find((it) => it.id === targetId);
+    const t = tramo.find((it) => it.id === targetId);
     if (!t) return [] as number[];
     const seen = new Set<number>([t.value]);
     const pool: number[] = [];
-    for (const it of items) {
+    for (const it of content.items) {
       if (seen.has(it.value)) continue;
       seen.add(it.value);
       pool.push(it.value);
     }
     const distractors = shuffle(pool).slice(0, OPTION_COUNT - 1);
     return shuffle([t.value, ...distractors]);
-  }, [items, targetId]);
+  }, [tramo, content.items, targetId]);
 
-  // Envía el progreso exactamente una vez al terminar ambas rondas.
-  useEffect(() => {
-    if (phase !== "done" || sentRef.current) return;
+  // Envía SOLO los ítems del tramo, una vez (guard con ref).
+  const finishSession = () => {
+    setPhase("done");
+    if (sentRef.current) return;
     sentRef.current = true;
-    const payload = items.map((it) => ({
+    const payload = tramo.map((it) => ({
       id: it.id,
-      times_wrong: results[it.id]?.times_wrong ?? 0,
+      times_wrong:
+        (results[it.id]?.times_wrong ?? 0) + (wrongExtra.current.get(it.id) ?? 0),
       answered: true,
     }));
-    putNodeProgressService(nodeId, payload).catch(console.error);
-  }, [phase, results, items, nodeId]);
+    setFirstTry(payload.filter((it) => it.times_wrong === 0).length);
+    putNodeProgressService(nodeId, payload).then(setReward).catch(console.error);
+  };
 
   // Vacío: pantalla amable, sin submit.
-  if (items.length === 0) {
+  if (content.items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-10">
         <p className="text-center text-(--muted)">
@@ -185,23 +230,64 @@ function NumbersDrill({
   }
 
   if (phase === "done") {
-    const firstTry = items.filter(
-      (it) => (results[it.id]?.times_wrong ?? 0) === 0,
-    ).length;
+    const learnedNow =
+      reward?.mastery != null
+        ? Math.round((reward.mastery / 100) * session.packTotal)
+        : null;
     return (
       <div className="flex flex-col items-center gap-4 py-10">
-        <p className="text-3xl font-extrabold">¡Listo!</p>
+        <p className="text-3xl font-extrabold">
+          {session.isReview ? "¡Repaso completo!" : "¡Sesión lista!"}
+        </p>
         <p className="text-center font-semibold">
-          {firstTry}/{items.length} a la primera
+          {firstTry}/{tramo.length} a la primera
         </p>
-        <p className="text-center text-(--muted)">
-          Completaste el ejercicio de números.
-        </p>
+        {learnedNow != null && (
+          <p className="text-center font-semibold">
+            👑 Aprendidos {learnedNow} de {session.packTotal}
+          </p>
+        )}
+        {reward && (
+          <p className="text-center text-sm text-(--muted)">
+            +{reward.xpGained} XP
+          </p>
+        )}
         <button
           className="rounded-2xl bg-(--accent) px-6 py-3 font-bold text-white"
-          onClick={goToPath}
+          onClick={onRestart}
         >
+          Seguir practicando
+        </button>
+        <button className="text-sm text-(--muted)" onClick={goToPath}>
           Volver al camino
+        </button>
+      </div>
+    );
+  }
+
+  if (phase === "inverse") {
+    return (
+      <div className="flex flex-col gap-4 w-full">
+        <p className="text-center text-sm text-(--muted)">
+          Aprendidos {session.learnedBefore} de {session.packTotal} · ahora al
+          revés
+        </p>
+        <div className="dots-card p-5">
+          <AudioChoiceQuiz
+            items={inverseItems}
+            pool={inversePool}
+            play={play}
+            onWrong={(itemId) =>
+              wrongExtra.current.set(
+                itemId,
+                (wrongExtra.current.get(itemId) ?? 0) + 1,
+              )
+            }
+            onComplete={() => setPhase("match")}
+          />
+        </div>
+        <button className="text-sm text-(--muted)" onClick={goToPath}>
+          ← Salir
         </button>
       </div>
     );
@@ -214,7 +300,7 @@ function NumbersDrill({
           Empareja el número con su palabra
         </p>
         <MatchRound
-          items={items}
+          items={tramo}
           onWrong={(itemId) =>
             setResults((prev) => ({
               ...prev,
@@ -224,7 +310,7 @@ function NumbersDrill({
               },
             }))
           }
-          onComplete={() => setPhase("done")}
+          onComplete={finishSession}
         />
         <button className="text-sm text-(--muted)" onClick={goToPath}>
           ← Salir
@@ -242,6 +328,8 @@ function NumbersDrill({
     if (lockRef.current) return;
     lockRef.current = true;
     if (value === target.value) {
+      // Refuerzo: se repite el clip al acertar.
+      if (audioSrc) play(audioSrc);
       setFeedback({ value, kind: "correct" });
       setResults((prev) => ({
         ...prev,
@@ -251,8 +339,12 @@ function NumbersDrill({
       setTimeout(() => {
         lockRef.current = false;
         setFeedback(null);
-        setQueue((q) => q.slice(1));
-        if (isLast) setPhase("match");
+        if (isLast) {
+          setQueue([]);
+          setPhase(hasInverse ? "inverse" : "match");
+        } else {
+          setQueue((q) => q.slice(1));
+        }
       }, FEEDBACK_MS);
     } else {
       setFeedback({ value, kind: "wrong" });
@@ -275,16 +367,19 @@ function NumbersDrill({
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="text-center text-sm text-(--muted)">
-        Dominados {mastered} de {items.length}
+        Aprendidos {session.learnedBefore} de {session.packTotal} · sesión{" "}
+        {mastered}/{tramo.length}
       </div>
 
       <div className="dots-card flex flex-col items-center gap-3 p-5">
         {audioSrc ? (
           <>
-            <span className="text-sm text-(--muted)">Toca para escuchar</span>
+            <span className="text-sm text-(--muted)">
+              Suena solo — toca para repetir
+            </span>
             <button
               className="rounded-3xl bg-(--accent) px-8 py-5 text-2xl font-extrabold text-white transition-transform active:scale-95"
-              onClick={() => playAudio(audioSrc)}
+              onClick={() => play(audioSrc)}
             >
               🔊 Escuchar
             </button>
@@ -346,7 +441,7 @@ function NumbersDrill({
   );
 }
 
-// ── Ronda 2: emparejar numeral ↔ palabra en grupos de hasta 5 pares ──────────
+// ── Emparejar numeral ↔ palabra en grupos de hasta 5 pares (solo el tramo) ───
 
 function MatchRound({
   items,

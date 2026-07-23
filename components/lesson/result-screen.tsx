@@ -17,6 +17,9 @@ interface ResultScreenProps {
   /** Overrides the per-mode default CTA label */
   ctaLabel?: string;
   onCta: () => void;
+  /** Optional second action rendered under the CTA (ghost tone). */
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 }
 
 /**
@@ -30,6 +33,8 @@ export default function ResultScreen({
   subtext,
   ctaLabel,
   onCta,
+  secondaryLabel,
+  onSecondary,
 }: ResultScreenProps) {
   const isGameover = mode === "gameover";
   const emoji = mode === "perfect" ? "🌟" : isGameover ? "💔" : "🎉";
@@ -79,10 +84,18 @@ export default function ResultScreen({
         </p>
         <RewardPanel reward={reward} />
       </PanelWrapper>
-      <div style={{ animation: "dots-pop-in 0.4s ease-out 0.55s both" }}>
+      <div
+        className="flex flex-col gap-2"
+        style={{ animation: "dots-pop-in 0.4s ease-out 0.55s both" }}
+      >
         <UIButton tone="accent" onClick={onCta} fullWidth>
           {ctaLabel ?? (isGameover ? "Reintentar" : "Continuar")}
         </UIButton>
+        {secondaryLabel && onSecondary && (
+          <UIButton tone="ghost" onClick={onSecondary} fullWidth>
+            {secondaryLabel}
+          </UIButton>
+        )}
       </div>
     </div>
   );

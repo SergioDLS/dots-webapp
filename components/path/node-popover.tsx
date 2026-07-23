@@ -12,6 +12,15 @@ interface NodePopoverProps {
   onClose: () => void;
 }
 
+/** Módulos con dominio por ítem (F3e). */
+const MASTERY_TYPES = new Set([
+  "letters",
+  "numbers",
+  "vocab",
+  "pronunciation",
+  "grammar",
+]);
+
 export default function NodePopover({
   node,
   accentHex,
@@ -21,6 +30,9 @@ export default function NodePopover({
   const router = useRouter();
   const meta = NODE_META[node.type];
   const progress = Math.max(0, Math.min(100, Math.round(node.progress)));
+  const mastery = MASTERY_TYPES.has(node.type)
+    ? Math.max(0, Math.min(100, Math.round(node.mastery ?? 0)))
+    : null;
 
   const cta = node.completed
     ? "Repasar"
@@ -94,6 +106,21 @@ export default function NodePopover({
           }}
         />
       </div>
+
+      {/* Mastery (dos niveles): dominado = corona */}
+      {mastery != null && (
+        <p
+          className="text-[10px] font-black tabular-nums"
+          style={{
+            color:
+              mastery >= 100
+                ? "var(--gold, #f59e0b)"
+                : "var(--muted)",
+          }}
+        >
+          👑 Dominado {mastery}%
+        </p>
+      )}
 
       {/* CTA */}
       <button
