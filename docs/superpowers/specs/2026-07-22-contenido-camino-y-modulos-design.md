@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-07-22
 - **Rama:** `redesign/contenido-camino` (ambos repos)
-- **Estado:** F0/F1/F2/F3a/F3b/F3d hechos y aplicados a prod (2026-07-22); F3c parcial (engrosado vocab hecho; fundamentos 2–12 diferidos — requieren autoría nueva); **F3e pendiente** (sesiones por tramos + autoplay + ronda inversa; incluye fix del progreso de letters/numbers); piloto gramática sección 2 diseñado, sin arrancar; F-media diferida (créditos).
+- **Estado:** F0/F1/F2/F3a/F3b/F3d hechos y aplicados a prod (2026-07-22); F3c parcial (engrosado vocab hecho; fundamentos 2–12 diferidos — requieren autoría nueva); **F3e con diseño completo, pendiente de implementar** (dominio por ítem + sesiones por tramos + autoplay + ronda inversa; incluye fix del progreso de letters/numbers); piloto gramática sección 2 diseñado, sin arrancar; F-media diferida (créditos).
 - **Repos:** `dots-webapp` (front) + `dots-backend` (API/seed). BD PostgreSQL **compartida de producción**.
 
 ## 1. Problema
@@ -143,11 +143,29 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Piloto sección 2 (nota):** pills de profundidad variable; **verb to be la más amplia** (vital y complicado).
 - **✅ Ejecutado 2026-07-22:** audio copiado a prod (`audio:copy-modules`, letters 26/26, numbers 10/28; backup `scripts/out/backup-copy-audio-*.json`) y las 3 lecciones rediseñadas y verificadas por el usuario en preview ("está mejor"): letras = presentación con audio por tap → escucha-y-selecciona; números = escucha→numeral + emparejar; vocab = etapa `listen` nueva (`listen-quiz.tsx`) entre presentar y emparejar. Re-encolado de fallos en las tres. Commits `5d84723` (back) y `6145bdc`/`6d0e5f4`/`95e4f14` (front).
 
-#### F3e — Sesiones por tramos + autoplay + ronda inversa — 📋 diseño capturado 2026-07-22 (pendiente)
-**Feedback del usuario tras probar F3d:** (1) no pedir todas las letras de golpe — **½ o ⅓ de los ítems por sesión**; (2) **autoplay** del audio al cambiar de pregunta o responder bien (el gesto de "Practicar" ya legaliza el autoplay); (3) **ronda inversa**: ver la letra/numeral/palabra y **elegir el audio correcto** entre opciones. Aplica a letters, numbers y **todas** las lecciones tipo vocabulario (months, days, seasons…).
-**Hallazgos técnicos (leídos en `node-progress.service.ts`, condicionan el diseño):**
+#### F3e — Dominio por ítem + sesiones por tramos + autoplay + ronda inversa — 📐 diseño completo 2026-07-22 (pendiente implementación)
+**Feedback del usuario (dos tandas tras probar F3d):** (1) no pedir todas las letras de golpe — **⅓–½ de los ítems por sesión**; (2) **autoplay** del audio al cambiar de pregunta o al responder bien (el gesto de "Practicar" ya legaliza el autoplay); (3) **ronda inversa**: ver la letra/numeral/palabra y **elegir el audio correcto** entre opciones; (4) aplica a letters, numbers y **todas** las lecciones tipo vocabulario (months, days, seasons… — todas ya son vocab packs que renderiza `lesson/vocab`, así que cubrir las 3 páginas cubre todo); (5) beginner necesita **mucha repetición y entrega progresiva** del contenido, con todo; (6) **sistema de progreso de práctica por ítem**: saber qué ítems el alumno ya responde bien (**"aprendida"**) y en cuáles falla, para **reforzar**.
+
+**Hallazgos técnicos (condicionan el diseño):**
 - 🐞 **Bug real pendiente:** `NodeProgressService.ITEM_TABLES` solo cubre pronunciation/grammar/vocab — **`letters` y `numbers` NO están** → `PUT /path/nodes/:id/progress` responde 400 para esos nodos y el progreso de las lecciones nuevas **no se persiste hoy** (el front lo traga con `.catch`). Fix chico: agregar `letters: { table: 'letter_items', fk: 'pack_id' }` y `numbers: { table: 'number_items', fk: 'pack_id' }`.
-- **El chunking necesita backend:** el progreso por nodo se guarda como `max(progress previo, answered/total de la sesión)` — enviar ⅓ de los ítems da 33% y un segundo tercio vuelve a dar 33% (max no acumula tramos distintos). Para "⅓ por sesión" hay que acumular por ítem o sumar tramos (y decidir cómo elegir el tramo de cada sesión, p. ej. por `progress` actual).
+- **El chunking necesita backend:** el progreso por nodo se guarda como `max(progress previo, answered/total de la sesión)` — enviar ⅓ de los ítems da 33% y un segundo tercio vuelve a dar 33% (max no acumula tramos distintos). Se resuelve computando el progreso desde el dominio por ítem (punto 3 del diseño).
+- **El patrón por-ítem ya existe en el repo:** `sentences_progress` guarda por (usuario, oración) `times_correct / times_wrong / streak / done`, con `done = streak≥2 || times_correct≥3`, y el progreso del nivel se recalcula contando `done` (`sentences.service.ts:244-337`). F3e generaliza ese patrón a ítems de módulo — no se inventa semántica nueva.
+- `GET /path/nodes/:id` ya exige JWT pero el resolver no recibe al usuario (`path.controller.ts:46-52`, `node-content.service.ts:41`) — hay que pasarle `@CurrentUser()` para adjuntar el dominio por ítem.
+- Letters hoy manda **todos** los ítems con `answered:true` al terminar (`lesson/letters/page.tsx:113-124`); con tramos se envía solo lo practicado (punto 8).
+
+**Diseño:**
+1. **Datos — `dots.item_progress` (tabla nueva, espejo de `sentences_progress`):** `user_id, item_type ('letters'|'numbers'|'vocab'|'pronunciation'|'grammar'), item_id, times_correct, times_wrong, streak, done, created_at, updated_at`, única por `(user_id, item_type, item_id)`. Migración **aditiva** idempotente con backup (patrón `migrate-learning-path.js`). Genérica a propósito: cubre también fundamentos (grammar/pronunciation) sin tabla nueva, aunque F3e solo cablea letters/numbers/vocab.
+2. **Definición de "aprendida" / "a reforzar":** `done = streak ≥ 2 || times_correct ≥ 3` (misma barra que oraciones). "A reforzar" = `times_wrong > 0 && !done`. "Nueva" = sin registro.
+3. **Backend — progreso (`NodeProgressService`):** (a) fix `ITEM_TABLES += letters|numbers`; (b) upsert de `item_progress` por cada ítem enviado (misma actualización que oraciones: correct++/wrong+=n, streak resetea con fallo, done al cruzar la barra); (c) `node_progress.progress` deja de ser `answered/total` de la sesión y pasa a **`floor(done/total_habilitados × 100)` leído de `item_progress`** — los tramos **acumulan** entre sesiones; se conserva el `max()` para no bajar progreso ya mostrado a usuarios existentes. XP sin cambios (10/ítem respondido + 20 flawless de la sesión).
+4. **Backend — contenido (`NodeContentService`):** `getNodeContent(nodeId, user)` adjunta a cada ítem de letters/numbers/vocab su dominio (`done, streak, timesWrong` vía LEFT JOIN a `item_progress`). Un solo fetch: el front no necesita endpoint nuevo.
+5. **Front — selección de tramo (hook compartido `use-lesson-session`):** tamaño `clamp(ceil(total/3), 4, 9)` (26 letras → 9 por sesión; packs chicos como seasons=4 entran completos). Composición por prioridad: **a-reforzar primero, luego nuevas**, y 1–2 **ya-aprendidas** mezcladas como repaso (la repetición que pide beginner). Pack 100% dominado → sesión de repaso con tramo aleatorio: el nodo nunca "se agota".
+6. **Front — sesión (las 3 lecciones, mismo motor):** presentación **solo de los ítems nuevos** del tramo → ronda directa (escucha → elige texto, la existente) → **ronda inversa** (texto grande como prompt → 3–4 botones 🔊; tap = reproduce Y selecciona; botón **Comprobar** valida — RN-safe, solo tap) → emparejar (numbers/vocab, acotado al tramo). El bucle de dominio intra-sesión se mantiene (fallos re-encolados hasta responder todo). Ítems sin audio quedan fuera de la inversa; si el pack tiene <2 clips, la inversa se salta entera (degrada como hoy).
+7. **Front — autoplay:** un único elemento `Audio` reutilizado por ref (evita clips solapados); se reproduce **al montar cada turno** de la ronda directa y **como refuerzo al acertar**. El tap de "Practicar" y cada respuesta mantienen viva la activación de usuario — mismo principio que `GameIntro`.
+8. **Front — envío y cierre:** se envían **solo los ítems del tramo** con su `times_wrong` real y `answered` (se corrige el "todos answered:true" de letters). Pantalla final: "Aprendidas X de Y" del pack completo (con las del tramo recién ganadas destacadas) + botón **"Seguir practicando"** que re-selecciona otro tramo sin volver al camino.
+
+**Entregable:** progreso por ítem persistente y visible; lecciones por tramos con autoplay y ronda inversa en letters/numbers/vocab (cubre months/days/seasons y todo vocab pack sin trabajo por tema). Verificación: `tsc`+build (back), `lint`+`build` (front), preview manual: dos sesiones seguidas del mismo nodo deben **acumular** progreso (≈33%→66%), el PUT de letters/numbers deja de dar 400, y los ítems fallados reaparecen priorizados en la sesión siguiente.
+
+**Riesgos propios de F3e:** la fórmula nueva puede calcular MENOS progreso a usuarios que ya completaron nodos (mitigado: `max()` conserva lo mostrado); writes por ítem en la BD compartida (volumen bajo, upsert sobre clave única); migración aditiva con backup como siempre.
 
 #### F-media — ⏸️ diferida (sin correr)
 Audio ElevenLabs (los ~24 clips faltantes de números/vocab nuevos) e imágenes: **no ejecutado**; se retoma con presupuesto. Con F3d, la sección 1 ya tiene escucha-y-selecciona con el audio existente.
@@ -169,6 +187,9 @@ Audio ElevenLabs (los ~24 clips faltantes de números/vocab nuevos) e imágenes:
 - ~~**L32 vs L24 "reflexive pronouns":**~~ **RESUELTO (F0):** L32 está vacío (0/0) y L24 tiene el contenido bueno (8 oraciones) → L32 es duplicado; consolidar/retirar su nodo en F3.
 - **Oraciones retiradas en F3:** ¿borrar definitivo o archivar desactivadas? **(decisión de F3b — no bloquea F3a).**
 - **Imágenes:** fuente (banco propio, generadas, libres) — se define en F-media.
+- **Tamaño de tramo (F3e):** propuesto `clamp(ceil(total/3), 4, 9)` — el usuario pidió "⅓–½"; es un knob afinable tras probar.
+- **Repaso global (F3e, futuro):** ¿los ítems `done` de `item_progress` deberían alimentar el SRS/review general (como hoy las oraciones)? No bloquea F3e; se decide cuando el dominio por ítem esté en prod.
+- **Fundamentos con dominio por ítem:** `item_progress` ya contempla `pronunciation|grammar`; cablear sus lecciones al mismo motor de tramos queda para después del piloto de sección 2.
 
 ## 8. Fuera de alcance
 - Rediseño del panel admin (se extiende el existente, no se rehace).
