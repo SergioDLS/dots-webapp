@@ -67,14 +67,14 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
     () =>
       tramo
         .filter((i) => i.audio)
-        .map((i) => ({ id: i.id, prompt: i.meaning, audio: i.audio! })),
+        .map((i) => ({ id: i.id, prompt: i.meaning, audio: i.audio!, character: i.character ?? null })),
     [tramo],
   );
   const inversePool = useMemo<AudioChoice[]>(
     () =>
       content.items
         .filter((i) => i.audio)
-        .map((i) => ({ id: i.id, prompt: i.meaning, audio: i.audio! })),
+        .map((i) => ({ id: i.id, prompt: i.meaning, audio: i.audio!, character: i.character ?? null })),
     [content.items],
   );
 

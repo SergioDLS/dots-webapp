@@ -3,8 +3,10 @@
 import { useMemo, useRef, useState } from "react";
 
 import UIButton from "@/components/ui/button/button";
+import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { optionStyles } from "@/components/lesson/option-styles";
 import { playSound } from "@/lib/feedback-sounds";
+import type { ItemCharacter } from "@/services/lessons.service";
 
 /**
  * Ronda inversa (F3e): ves el texto (letra/numeral/significado) y eliges el
@@ -18,6 +20,7 @@ export type AudioChoice = {
   /** Texto grande mostrado como consigna. */
   prompt: string;
   audio: string;
+  character?: ItemCharacter | null;
 };
 
 interface Props {
@@ -157,6 +160,7 @@ export default function AudioChoiceQuiz({
             style={optionStyle(option.id)}
             onClick={() => pick(option)}
           >
+            <VoiceAvatar character={option.character} size="xs" />
             <span className="text-3xl">🔊</span>
             <span className="text-xs" style={{ opacity: 0.7 }}>
               Opción {idx + 1}

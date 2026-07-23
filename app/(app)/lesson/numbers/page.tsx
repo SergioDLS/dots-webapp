@@ -171,14 +171,14 @@ function NumbersDrill({
     () =>
       tramo
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio! })),
+        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio!, character: it.character ?? null })),
     [tramo],
   );
   const inversePool = useMemo<AudioChoice[]>(
     () =>
       content.items
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio! })),
+        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio!, character: it.character ?? null })),
     [content.items],
   );
   const hasInverse = inverseItems.length >= 2;

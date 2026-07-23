@@ -118,14 +118,14 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
     () =>
       tramo
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio! })),
+        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio!, character: it.character ?? null })),
     [tramo],
   );
   const inversePool = useMemo<AudioChoice[]>(
     () =>
       content.items
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio! })),
+        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio!, character: it.character ?? null })),
     [content.items],
   );
   const hasInverse = inverseItems.length >= 2;
