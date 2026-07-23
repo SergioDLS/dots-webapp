@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-07-23
 - **Rama:** `redesign/contenido-camino` (ambos repos)
-- **Estado:** decisiones cerradas en grilling; **pendiente de plan de implementación**. Depende de que el usuario elija 4 voice IDs de ElevenLabs (shortlist pendiente) y genere el arte en Midjourney (no bloquea la fase de datos ni la UI placeholder).
+- **Estado:** decisiones cerradas en grilling; **plan de implementación escrito 2026-07-23** ([plan](../plans/2026-07-23-personajes-voz.md)) — con una corrección a la derivada técnica 1: `sentences` queda FUERA del reparto retro porque su personaje construye la URL de Cloudinary (reasignar rompería audios); se reparte en F-media al regenerar. Los voice IDs de ElevenLabs los sigue eligiendo el usuario y NO bloquean (se cargan después con `--voices`); el arte Midjourney tampoco (UI placeholder).
 - **Repos:** `dots-webapp` (front) + `dots-backend` (API/seed). BD PostgreSQL **compartida de producción** — migraciones/seeds `--apply` los corre el usuario.
 
 ## 1. Idea
