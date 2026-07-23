@@ -185,7 +185,7 @@ export default function PracticeContainer({
             <Sound autoplay src={audioSrc} icon className="flex flex-col items-center gap-2">
               <WordImg src={dataSentence.img ?? ""} size="medium" />
             </Sound>
-            {audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} size="xs" />}
+            {audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} />}
           </div>
         </div>
 
@@ -278,7 +278,13 @@ export default function PracticeContainer({
     titleEmoji = mode === "guessImg" ? "🖼️" : "👂";
     const src = mode === "whatDoYouHearSentence" ? audioSrc : (dataSentence.img_sound ?? audioSrc);
     soundContent = mode !== "guessImg"
-      ? <Sound autoplay icon src={src} className="flex flex-col items-center gap-2"><WordImg src={dataSentence.img ?? ""} size="medium" /></Sound>
+      ? (
+        <div className="flex flex-col items-center gap-2">
+          <Sound autoplay icon src={src} className="flex flex-col items-center gap-2"><WordImg src={dataSentence.img ?? ""} size="medium" /></Sound>
+          {/* avatar solo si suena la narración de la oración (img_sound es otra voz) */}
+          {src === audioSrc && audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} />}
+        </div>
+      )
       : <WordImg src={dataSentence.img ?? ""} size="medium" />;
   } else {
     soundContent = (
@@ -291,7 +297,7 @@ export default function PracticeContainer({
             {sentenceText}
           </p>
         </Sound>
-        {audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} size="xs" />}
+        {audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} />}
       </div>
     );
   }
