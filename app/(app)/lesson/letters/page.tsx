@@ -8,6 +8,7 @@ import UIButton from "@/components/ui/button/button";
 import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
+import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { useAuth } from "@/context/auth-context";
 import { useLessonAudio } from "@/hooks/use-lesson-audio";
 import { useLessonSession } from "@/hooks/use-lesson-session";
@@ -363,6 +364,7 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
       <div className="dots-card flex flex-col items-center gap-3 p-6 text-center">
         {target.audio ? (
           <>
+            <VoiceAvatar character={target?.character} />
             <button
               type="button"
               onClick={() => play(target.audio)}

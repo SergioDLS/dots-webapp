@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { baseOptionCls, optionStyles } from "@/components/lesson/option-styles";
+import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { playSound } from "@/lib/feedback-sounds";
 import type { VocabContent } from "@/services/lessons.service";
 
@@ -125,17 +126,20 @@ export default function ListenQuiz({
       <p className="text-center text-sm mb-3" style={{ color: "var(--muted)" }}>
         Escucha y elige el significado · dominadas {mastered.size} de {total}
       </p>
-      <button
-        className="w-full rounded-2xl py-6 mb-4 font-display font-extrabold text-lg transition-all duration-200 cursor-pointer select-none active:scale-[.97]"
-        style={{
-          background: "color-mix(in srgb, var(--accent) 14%, var(--surface))",
-          border: "2px solid var(--accent)",
-          color: "var(--accent)",
-        }}
-        onClick={() => play(target.audio)}
-      >
-        🔊 Escuchar de nuevo
-      </button>
+      <div className="flex flex-col items-center gap-3 mb-4">
+        <VoiceAvatar character={target.character} />
+        <button
+          className="w-full rounded-2xl py-6 font-display font-extrabold text-lg transition-all duration-200 cursor-pointer select-none active:scale-[.97]"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 14%, var(--surface))",
+            border: "2px solid var(--accent)",
+            color: "var(--accent)",
+          }}
+          onClick={() => play(target.audio)}
+        >
+          🔊 Escuchar de nuevo
+        </button>
+      </div>
       <div className="flex flex-col gap-2 w-full">
         {options.map((option) => (
           <button

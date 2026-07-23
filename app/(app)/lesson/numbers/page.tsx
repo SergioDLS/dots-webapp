@@ -7,6 +7,7 @@ import Spinner from "@/components/ui/Spinner/Spinner";
 import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
+import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { useAuth } from "@/context/auth-context";
 import { useLessonAudio } from "@/hooks/use-lesson-audio";
 import { useLessonSession } from "@/hooks/use-lesson-session";
@@ -374,6 +375,7 @@ function NumbersDrill({
       <div className="dots-card flex flex-col items-center gap-3 p-5">
         {audioSrc ? (
           <>
+            <VoiceAvatar character={target?.character} />
             <span className="text-sm text-(--muted)">
               Suena solo — toca para repetir
             </span>
