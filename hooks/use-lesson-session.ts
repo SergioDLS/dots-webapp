@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState } from "react";
 
 import type { ItemMastery } from "@/services/lessons.service";
 
@@ -113,5 +113,10 @@ export function buildLessonSession<T extends SessionableItem>(
 export function useLessonSession<T extends SessionableItem>(
   items: T[],
 ): LessonSession<T> {
-  return useMemo(() => buildLessonSession(items), [items]);
+  // useState, NO useMemo: la selección baraja al azar y un recálculo del memo
+  // (React no lo garantiza estable) produciría OTRO tramo a mitad de sesión,
+  // dejando colas con ids huérfanos. Una sesión se fija al montar; las
+  // lecciones remontan por key en cada fetch para pedir tramo nuevo.
+  const [session] = useState(() => buildLessonSession(items));
+  return session;
 }
