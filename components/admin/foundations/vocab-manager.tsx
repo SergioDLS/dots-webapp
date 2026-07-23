@@ -22,9 +22,11 @@ import {
   updateVocabItem,
   deleteVocabItem,
   generateVocabAudio,
+  getAdminCharacters,
   uploadMedia,
   type AdminVocabPack,
   type AdminVocabItem,
+  type AdminCharacter,
 } from "@/services/admin.service";
 
 export default function VocabManager({
@@ -196,6 +198,16 @@ function PackDetail({
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AdminVocabItem | null>(null);
   const [generatingId, setGeneratingId] = useState<number | null>(null);
+  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
+  const [narratorId, setNarratorId] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    let alive = true;
+    getAdminCharacters()
+      .then((rows) => { if (alive) setCharacters(rows); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     getVocabItems(pack.id)
@@ -203,6 +215,9 @@ function PackDetail({
       .catch(() => flash("Could not load items.", "error"))
       .finally(() => setLoading(false));
   }, [pack.id, flash]);
+
+  const characterName = (id?: number | null) =>
+    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
 
   const refreshItems = useCallback(() => {
     getVocabItems(pack.id).then(setItems).catch(() => {});
@@ -222,11 +237,11 @@ function PackDetail({
   const genAudio = async (item: AdminVocabItem) => {
     setGeneratingId(item.id);
     try {
-      await generateVocabAudio(item.id);
+      await generateVocabAudio(item.id, narratorId);
       refreshItems();
       flash("Audio generado.");
     } catch {
-      flash("Could not generate audio.", "error");
+      flash("No se pudo generar el audio.", "error");
     } finally {
       setGeneratingId(null);
     }
@@ -245,15 +260,30 @@ function PackDetail({
         <h1 className="font-display text-2xl font-extrabold text-foreground">
           {pack.title}
         </h1>
-        <UIButton
-          tone="accent"
-          onClick={() => {
-            setEditingItem(null);
-            setItemModalOpen(true);
-          }}
-        >
-          + New word
-        </UIButton>
+        <div className="flex items-center gap-3">
+          <select
+            value={narratorId ?? ""}
+            onChange={(e) =>
+              setNarratorId(e.target.value === "" ? undefined : Number(e.target.value))
+            }
+            className="rounded-lg border px-2 py-1 text-sm"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <option value="">Narrador: Auto (balanceado)</option>
+            {characters.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <UIButton
+            tone="accent"
+            onClick={() => {
+              setEditingItem(null);
+              setItemModalOpen(true);
+            }}
+          >
+            + New word
+          </UIButton>
+        </div>
       </div>
 
       {loading ? (
@@ -273,6 +303,7 @@ function PackDetail({
                 <th className="px-4 py-3">Word</th>
                 <th className="px-4 py-3">Meaning</th>
                 <th className="px-4 py-3">Media</th>
+                <th className="px-4 py-3">Voz</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -292,6 +323,9 @@ function PackDetail({
                     <span className="flex items-center gap-1.5 text-xs font-bold text-(--muted)">
                       {item.img ? "🖼️" : "—"} {item.audio ? "🔊" : ""}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs font-semibold text-(--muted)">
+                    {characterName(item.voiceCharacterId)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">

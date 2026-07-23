@@ -1,5 +1,24 @@
 import api from "../lib/api-client";
 
+// ── Characters (narrators) ─────────────────────────────────────
+
+export type AdminCharacter = {
+  id: number;
+  key: string;
+  name: string;
+  elevenlabsVoiceId?: string | null;
+  img?: string | null;
+  isDefault: boolean;
+  enabled: boolean;
+  accent?: string;
+  audioCount: number;
+};
+
+export async function getAdminCharacters() {
+  const { data } = await api.get<AdminCharacter[]>("/admin/characters");
+  return data;
+}
+
 export type AdminDifficulty = {
   id: number;
   name: string;
@@ -508,6 +527,7 @@ export type AdminVocabItem = {
   audio: string;
   position: number;
   enabled: boolean;
+  voiceCharacterId?: number | null;
 };
 
 export async function getVocabPacks(): Promise<AdminVocabPack[]> {
@@ -662,6 +682,7 @@ export type AdminLetterItem = {
   audio: string;
   position: number;
   enabled: boolean;
+  voiceCharacterId?: number | null;
 };
 
 export async function getLetterPacks(): Promise<AdminLetterPack[]> {
@@ -753,6 +774,7 @@ export type AdminNumberItem = {
   audio: string;
   position: number;
   enabled: boolean;
+  voiceCharacterId?: number | null;
 };
 
 export async function getNumberPacks(): Promise<AdminNumberPack[]> {
@@ -817,5 +839,21 @@ export async function updateNumberItem(
 
 export async function deleteNumberItem(id: number) {
   const { data } = await api.delete(`/admin/number-items/${id}`);
+  return data;
+}
+
+export async function generateLetterAudio(id: number, characterId?: number) {
+  const { data } = await api.post(
+    `/admin/letter-items/${id}/generate-audio`,
+    characterId != null ? { characterId } : {},
+  );
+  return data;
+}
+
+export async function generateNumberAudio(id: number, characterId?: number) {
+  const { data } = await api.post(
+    `/admin/number-items/${id}/generate-audio`,
+    characterId != null ? { characterId } : {},
+  );
   return data;
 }

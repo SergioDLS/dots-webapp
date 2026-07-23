@@ -22,9 +22,12 @@ import {
   createNumberItem,
   updateNumberItem,
   deleteNumberItem,
+  generateNumberAudio,
+  getAdminCharacters,
   uploadMedia,
   type AdminNumberPack,
   type AdminNumberItem,
+  type AdminCharacter,
 } from "@/services/admin.service";
 
 export default function NumbersManager({
@@ -195,6 +198,17 @@ function PackDetail({
   const [loading, setLoading] = useState(true);
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AdminNumberItem | null>(null);
+  const [generatingId, setGeneratingId] = useState<number | null>(null);
+  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
+  const [narratorId, setNarratorId] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    let alive = true;
+    getAdminCharacters()
+      .then((rows) => { if (alive) setCharacters(rows); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     getNumberItems(pack.id)
@@ -206,6 +220,22 @@ function PackDetail({
   const refreshItems = useCallback(() => {
     getNumberItems(pack.id).then(setItems).catch(() => {});
   }, [pack.id]);
+
+  const characterName = (id?: number | null) =>
+    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
+
+  const genAudio = async (item: AdminNumberItem) => {
+    setGeneratingId(item.id);
+    try {
+      await generateNumberAudio(item.id, narratorId);
+      refreshItems();
+      flash("Audio generado.");
+    } catch {
+      flash("No se pudo generar el audio.", "error");
+    } finally {
+      setGeneratingId(null);
+    }
+  };
 
   const removeItem = async (item: AdminNumberItem) => {
     if (!confirm(`Delete this number?\n\n"${item.value}"`)) return;
@@ -231,15 +261,30 @@ function PackDetail({
         <h1 className="font-display text-2xl font-extrabold text-foreground">
           {pack.title}
         </h1>
-        <UIButton
-          tone="accent"
-          onClick={() => {
-            setEditingItem(null);
-            setItemModalOpen(true);
-          }}
-        >
-          + New number
-        </UIButton>
+        <div className="flex items-center gap-3">
+          <select
+            value={narratorId ?? ""}
+            onChange={(e) =>
+              setNarratorId(e.target.value === "" ? undefined : Number(e.target.value))
+            }
+            className="rounded-lg border px-2 py-1 text-sm"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <option value="">Narrador: Auto (balanceado)</option>
+            {characters.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <UIButton
+            tone="accent"
+            onClick={() => {
+              setEditingItem(null);
+              setItemModalOpen(true);
+            }}
+          >
+            + New number
+          </UIButton>
+        </div>
       </div>
 
       {loading ? (
@@ -259,6 +304,7 @@ function PackDetail({
                 <th className="px-4 py-3">Value</th>
                 <th className="px-4 py-3">Word</th>
                 <th className="px-4 py-3">Media</th>
+                <th className="px-4 py-3">Voz</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -285,8 +331,18 @@ function PackDetail({
                       )}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-xs font-semibold text-(--muted)">
+                    {characterName(item.voiceCharacterId)}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => genAudio(item)}
+                        disabled={generatingId === item.id}
+                        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent) disabled:opacity-50"
+                      >
+                        {generatingId === item.id ? "…" : "Generate audio"}
+                      </button>
                       <button
                         onClick={() => {
                           setEditingItem(item);
