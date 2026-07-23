@@ -12,6 +12,13 @@ export type ItemMastery = {
   timesWrong: number;
 };
 
+/** Personaje que narra el clip (la cara ES la voz). null = voz legacy/default (Doty). */
+export type ItemCharacter = {
+  key: string;
+  name: string;
+  img?: string | null;
+};
+
 export type GrammarBlock = {
   type: "p" | "example" | "tip";
   text: string;
@@ -50,6 +57,7 @@ export type VocabContent = {
     img?: string | null;
     audio?: string | null;
     progress?: ItemMastery | null;
+    character?: ItemCharacter | null;
   }[];
 };
 
@@ -72,6 +80,7 @@ export type LettersContent = {
     img?: string | null;
     audio?: string | null;
     progress?: ItemMastery | null;
+    character?: ItemCharacter | null;
   }[];
 };
 
@@ -85,6 +94,7 @@ export type NumbersContent = {
     img?: string | null;
     audio?: string | null;
     progress?: ItemMastery | null;
+    character?: ItemCharacter | null;
   }[];
 };
 
