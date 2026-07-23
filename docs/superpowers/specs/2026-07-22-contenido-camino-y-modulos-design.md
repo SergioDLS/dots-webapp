@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-07-22
 - **Rama:** `redesign/contenido-camino` (ambos repos)
-- **Estado:** F0/F1/F2/F3a/F3b hechos y aplicados a prod (2026-07-22); F3c parcial (engrosado de vocab hecho; fundamentos en 2–12 diferidos por requerir autoría nueva); F-media diferida (créditos).
+- **Estado:** F0/F1/F2/F3a/F3b/F3d hechos y aplicados a prod (2026-07-22); F3c parcial (engrosado vocab hecho; fundamentos 2–12 diferidos — requieren autoría nueva); **F3e pendiente** (sesiones por tramos + autoplay + ronda inversa; incluye fix del progreso de letters/numbers); piloto gramática sección 2 diseñado, sin arrancar; F-media diferida (créditos).
 - **Repos:** `dots-webapp` (front) + `dots-backend` (API/seed). BD PostgreSQL **compartida de producción**.
 
 ## 1. Problema
@@ -135,12 +135,19 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 - **Engrosar vocab flacos ≥10:** ✅ hecho donde es posible. `seed:vocab-topup` (`scripts/seed-vocab-topup.js`) aplicado a prod: `vocab-shapes` 6→10 (+STAR, OVAL, PENTAGON, HEXAGON) y `vocab-daytime` 8→10 (+dawn, dusk). Las **categorías cerradas se aceptan** bajo la barra: `days`=7, `seasons`=4, `meals`=5 (no se pueden inflar sin meter ruido). Backup: `scripts/out/backup-vocab-topup-*.json`.
 - **Colocar fundamentos en secciones 2–12:** ⏸️ **diferido.** El inventario mostró **0 fundamentos sin colocar** (pronunciation 9/9, grammar 11/11, vocab 32/32 ya referenciados). Interlazar 2–12 exige **autorear fundamentos nuevos** (grammar pills / pronunciation / vocab por sección) — una fase de contenido propia con su spec/plan; no se hizo en esta tanda.
 
-#### F3d — Oído + dominio (rediseño de lecciones, audio copiado) — decidido 2026-07-22
+#### F3d — Oído + dominio (rediseño de lecciones, audio copiado) — ✅ hecho 2026-07-22
 **Origen:** feedback del usuario al verificar F3b: "el abecedario debería ser escuchar el sonido y seleccionar la letra; el resto (con traducción) escuchar y seleccionar + emparejar, y repetir hasta ~90% — es vocabulario vital".
 **Hallazgo clave:** `words` de la sección 1 tiene **audio al 100%** (Cloudinary), y el seed F3b ya lo copió a `vocab_items` (361/367). Letras A–Z y números one–ten tienen clip en `words` → se **copian** a `letter_items`/`number_items`. **Sin ElevenLabs** (decidido: no generar los ~24 faltantes; eleven–twenty/decenas y 6 vocab de F3c degradan a modo visual).
 - **Audio:** seed idempotente que copia `words.audio` → `letter_items` (por letra, 26/26) y `number_items` (por palabra, 10/28). Solo llena NULL; backup + rollback.
 - **Lecciones:** letras = presentación → **escucha-y-selecciona** (suena el nombre → eliges entre 4 letras); números = escucha-y-selecciona (con audio) / palabra→numeral (sin) + ronda de emparejar numeral↔palabra; vocab = presentar + **escucha-y-selecciona** (oyes EN → eliges traducción) + emparejar. **Bucle de dominio** en las tres: fallos re-encolados hasta responder todo bien (~90%); `times_wrong` sigue viajando igual.
 - **Piloto sección 2 (nota):** pills de profundidad variable; **verb to be la más amplia** (vital y complicado).
+- **✅ Ejecutado 2026-07-22:** audio copiado a prod (`audio:copy-modules`, letters 26/26, numbers 10/28; backup `scripts/out/backup-copy-audio-*.json`) y las 3 lecciones rediseñadas y verificadas por el usuario en preview ("está mejor"): letras = presentación con audio por tap → escucha-y-selecciona; números = escucha→numeral + emparejar; vocab = etapa `listen` nueva (`listen-quiz.tsx`) entre presentar y emparejar. Re-encolado de fallos en las tres. Commits `5d84723` (back) y `6145bdc`/`6d0e5f4`/`95e4f14` (front).
+
+#### F3e — Sesiones por tramos + autoplay + ronda inversa — 📋 diseño capturado 2026-07-22 (pendiente)
+**Feedback del usuario tras probar F3d:** (1) no pedir todas las letras de golpe — **½ o ⅓ de los ítems por sesión**; (2) **autoplay** del audio al cambiar de pregunta o responder bien (el gesto de "Practicar" ya legaliza el autoplay); (3) **ronda inversa**: ver la letra/numeral/palabra y **elegir el audio correcto** entre opciones. Aplica a letters, numbers y **todas** las lecciones tipo vocabulario (months, days, seasons…).
+**Hallazgos técnicos (leídos en `node-progress.service.ts`, condicionan el diseño):**
+- 🐞 **Bug real pendiente:** `NodeProgressService.ITEM_TABLES` solo cubre pronunciation/grammar/vocab — **`letters` y `numbers` NO están** → `PUT /path/nodes/:id/progress` responde 400 para esos nodos y el progreso de las lecciones nuevas **no se persiste hoy** (el front lo traga con `.catch`). Fix chico: agregar `letters: { table: 'letter_items', fk: 'pack_id' }` y `numbers: { table: 'number_items', fk: 'pack_id' }`.
+- **El chunking necesita backend:** el progreso por nodo se guarda como `max(progress previo, answered/total de la sesión)` — enviar ⅓ de los ítems da 33% y un segundo tercio vuelve a dar 33% (max no acumula tramos distintos). Para "⅓ por sesión" hay que acumular por ítem o sumar tramos (y decidir cómo elegir el tramo de cada sesión, p. ej. por `progress` actual).
 
 #### F-media — ⏸️ diferida (sin correr)
 Audio ElevenLabs (los ~24 clips faltantes de números/vocab nuevos) e imágenes: **no ejecutado**; se retoma con presupuesto. Con F3d, la sección 1 ya tiene escucha-y-selecciona con el audio existente.
