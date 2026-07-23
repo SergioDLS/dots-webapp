@@ -10,6 +10,16 @@
       ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "dots-webapp-verify",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /home/endurance/Projects/Endurance/dots/dots-webapp-verify && PATH=/home/endurance/.nvm/versions/node/v22.23.1/bin:$PATH exec npm run dev -- --port 3100"
+      ],
+      "port": 3100,
+      "autoPort": false
     }
   ]
 }

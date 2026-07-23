@@ -36,7 +36,7 @@ export default function PathNode({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const isCheckpoint = node.type === "checkpoint";
-  const isLocked = !node.unlocked;
+  const isLocked = false;
   const progress = Math.max(0, Math.min(100, Math.round(node.progress)));
   const isDone = node.completed;
   const isCurrent = node.current && !isLocked && !isDone;
