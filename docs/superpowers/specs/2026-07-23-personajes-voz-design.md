@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-07-23
 - **Rama:** `redesign/contenido-camino` (ambos repos)
-- **Estado:** decisiones cerradas en grilling; **plan de implementación escrito 2026-07-23** ([plan](../plans/2026-07-23-personajes-voz.md)) — con una corrección a la derivada técnica 1: `sentences` queda FUERA del reparto retro porque su personaje construye la URL de Cloudinary (reasignar rompería audios); se reparte en F-media al regenerar. Los voice IDs de ElevenLabs los sigue eligiendo el usuario y NO bloquean (se cargan después con `--voices`); el arte Midjourney tampoco (UI placeholder).
+- **Estado:** 🔨 **código implementado y con review final de rama 2026-07-23** ([plan](../plans/2026-07-23-personajes-voz.md); backend `5fbb6cf..b1a7e07`, webapp `b876522..0d1b2f5`; ambos merge-ready). Corrección a la derivada técnica 1: `sentences` queda FUERA del reparto retro porque su personaje construye la URL de Cloudinary (reasignar rompería audios); se reparte en F-media al regenerar. **Pendiente (usuario):** `npm run migrate:item-progress -- --apply` (F3e) y `npm run migrate:voice-characters -- --apply` — el backend nuevo NO debe bootear contra prod antes; luego preview end-to-end. Los voice IDs se cargan cuando el usuario los elija: `npm run migrate:voice-characters -- --apply --voices doty=<id>,doty-fem=<id>,doty-captain=<id>,doty-scientist=<id>`. Arte Midjourney: cargar en `characters.img` (VoiceAvatar ya lo prefiere).
 - **Repos:** `dots-webapp` (front) + `dots-backend` (API/seed). BD PostgreSQL **compartida de producción** — migraciones/seeds `--apply` los corre el usuario.
 
 ## 1. Idea
