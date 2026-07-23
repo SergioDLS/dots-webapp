@@ -5,6 +5,7 @@ import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
+import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import { getOptionState, optionStyles, baseOptionCls } from "@/components/lesson/option-styles";
 import RewardPanel from "@/components/lesson/reward-panel";
@@ -180,9 +181,12 @@ export default function PracticeContainer({
         <SectionLabel emoji="🧩">Build up the sentence!</SectionLabel>
         <div className="flex items-end gap-4">
           <Doty pose={doty} size="small" animation="bob" />
-          <Sound autoplay src={audioSrc} icon className="flex flex-col items-center gap-2">
-            <WordImg src={dataSentence.img ?? ""} size="medium" />
-          </Sound>
+          <div className="flex flex-col items-center gap-2">
+            <Sound autoplay src={audioSrc} icon className="flex flex-col items-center gap-2">
+              <WordImg src={dataSentence.img ?? ""} size="medium" />
+            </Sound>
+            {audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} size="xs" />}
+          </div>
         </div>
 
         {answered === "wrong" && (
@@ -278,14 +282,17 @@ export default function PracticeContainer({
       : <WordImg src={dataSentence.img ?? ""} size="medium" />;
   } else {
     soundContent = (
-      <Sound autoplay icon src={audioSrc} className="flex flex-col items-center gap-2">
-        <p
-          className="text-xl font-bold text-center max-w-xs"
-          style={{ color: "var(--foreground)" }}
-        >
-          {sentenceText}
-        </p>
-      </Sound>
+      <div className="flex flex-col items-center gap-2">
+        <Sound autoplay icon src={audioSrc} className="flex flex-col items-center gap-2">
+          <p
+            className="text-xl font-bold text-center max-w-xs"
+            style={{ color: "var(--foreground)" }}
+          >
+            {sentenceText}
+          </p>
+        </Sound>
+        {audioSrc && <VoiceAvatar voiceKey={dataSentence.voice_key} size="xs" />}
+      </div>
     );
   }
 
