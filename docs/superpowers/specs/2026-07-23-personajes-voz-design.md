@@ -43,6 +43,14 @@ Cada audio de la app pertenece a un personaje de la familia Doty: la cara que se
 4. **Admin:** columna/badge de personaje en los managers de foundations y en el flujo de generación; selector de personaje al regenerar.
 5. **Regeneración futura (F-media):** batch prioriza ítems donde `characters.gender` (si se agrega) o la voz real no calza con el clip legacy. Queda explícitamente fuera de esta fase.
 
+## 4-bis. Ejecución de voces reales (2026-07-24)
+
+- **Voice IDs cargados por el usuario.** Elenco efectivo de **3**: `doty` (Enthusiast boy), `doty-sailor` — renombrado desde `doty-captain`, "Doty marinero" (Sailor old man) — y `doty-scientist` (Cientific Women); todas categoría `generated`.
+- **`doty-fem` desactivada** (`enabled=false`): su voz Belle es `professional` (Voice Library) y el plan gratuito de ElevenLabs responde **402** vía API. Para reactivarla: plan pago o cambiar a una voz `generated`. El picker (script y `NarrationService`) la excluye por `enabled`.
+- **286 audios generados** (`narrations:generate --random`): 18 numbers, 96 vocab, 140 pronunciation, 32 sentences → catálogo con 0 ítems sin audio. Detalle y pendientes en el spec de contenido, sección F-media.
+- **Script extendido** (`feat(narration): targets letters/numbers y reparto uniforme`): `--target letters|numbers` (espejo de los métodos del service) y `--random`, porque el picker balanceado quedaba sesgado por las ~960 narraciones legacy del default y nunca lo habría elegido.
+- **Fix de front**: el mapa de poses usaba `doty-captain`; con el rename la cara caía al placeholder de Doty (y en practice mostraba el nombre equivocado). Corregido a `doty-sailor` (commit `3523c68`).
+
 ## 5. Pendientes / no resueltos
 
 - **Género de la voz legacy** (¿masculina o femenina?): el usuario no lo precisó; solo afecta la priorización de la regeneración futura, no bloquea nada.

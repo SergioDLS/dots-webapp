@@ -168,8 +168,10 @@ Cada fase, al implementarse, genera su propio plan con `writing-plans` y se ejec
 
 **Riesgos propios de F3e:** la fórmula nueva puede calcular MENOS progreso a usuarios que ya completaron nodos (mitigado: `max()` conserva lo mostrado); writes por ítem en la BD compartida (volumen bajo, upsert sobre clave única); migración aditiva con backup como siempre.
 
-#### F-media — ⏸️ diferida (sin correr)
-Audio ElevenLabs (los ~24 clips faltantes de números/vocab nuevos) e imágenes: **no ejecutado**; se retoma con presupuesto. Con F3d, la sección 1 ya tiene escucha-y-selecciona con el audio existente.
+#### F-media — ⚠️ parcial 2026-07-24 (audio faltante hecho; regeneración e imágenes pendientes)
+**✅ Ejecutado 2026-07-24 (voces reales de ElevenLabs, elenco de 3):** se generaron **286 audios** con `narrations:generate --random` — numbers 18, vocab 96, pronunciation 70 ítems (140 clips) y sentences 32. El catálogo quedó con **0 ítems sin audio** (vocab 457/457, letters 26/26, numbers 28/28, pronunciation 70/70, sentences 694/694). Backups en `scripts/out/backup-generate-narrations-*.json` (rollback restaura columnas; los archivos de Cloudinary quedan). Verificado: las 4 formas de URL resuelven 200, incluida la ruta **legacy sin subcarpeta** para el personaje default.
+**Elenco efectivo:** `doty` (Enthusiast boy), `doty-sailor` (Sailor old man), `doty-scientist` (Cientific Women) — las tres voces `generated`. **`doty-fem` quedó `enabled=false`**: su voz (Belle, categoría `professional` de la Voice Library) da **HTTP 402 en plan gratuito**; requiere plan pago o una voz `generated` de reemplazo.
+**Pendiente:** (a) regenerar los ~397 ítems con **audio legacy** (voz anónima única) para que la voz calce con la cara — incluidos los **100 asignados a `doty-fem`**, que hoy muestran una cara sin voz; ahora es barato (`--force --ids …`); (b) **imágenes** de vocab/letras/números; (c) arte Midjourney en `characters.img`.
 
 ### F-media — Audio + imágenes (diferida, aprobación aparte)
 - Audio de words/letters/numbers/fundamentos nuevos vía `generate-narrations.js` (ElevenLabs → Cloudinary; **cuesta créditos**).
