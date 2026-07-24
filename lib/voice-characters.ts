@@ -7,7 +7,7 @@ export type VoiceCharacterInfo = { key: string; name: string; pose: string };
 const BY_KEY: Record<string, VoiceCharacterInfo> = {
   doty: { key: "doty", name: "Doty", pose: "02" },
   "doty-fem": { key: "doty-fem", name: "Doty Fem", pose: "17" },
-  "doty-captain": { key: "doty-captain", name: "Doty capitán", pose: "07" },
+  "doty-sailor": { key: "doty-sailor", name: "Doty marinero", pose: "07" },
   "doty-scientist": { key: "doty-scientist", name: "Doty científica", pose: "11" },
 };
 
