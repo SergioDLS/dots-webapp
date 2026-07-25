@@ -271,7 +271,7 @@ function PackDetail({
             style={{ borderColor: "var(--border)" }}
           >
             <option value="">Narrador: Auto (balanceado)</option>
-            {characters.map((c) => (
+            {characters.filter((c) => c.enabled).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
