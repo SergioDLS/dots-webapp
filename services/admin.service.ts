@@ -102,6 +102,16 @@ export async function getWords(levelId: number): Promise<AdminWord[]> {
   return data;
 }
 
+/**
+ * El backend autonarra al crear y al cambiar `text`/`mWord`, y dice cómo salió
+ * ese intento. `narration` viene ausente cuando no hubo intento (un update que
+ * solo toca media), así que su presencia también marca "la ruta canónica se
+ * reescribió".
+ */
+export type SavedSentence = AdminSentence & {
+  narration?: "generated" | "failed";
+};
+
 export async function createSentence(payload: {
   levelId: number;
   text: string;
@@ -109,7 +119,7 @@ export async function createSentence(payload: {
   img?: string;
   imgSound?: string;
   sentenceExtension?: string;
-}): Promise<AdminSentence> {
+}): Promise<SavedSentence> {
   const { data } = await api.post("/admin/sentences", payload);
   return data;
 }
@@ -124,7 +134,7 @@ export async function updateSentence(
     sentenceExtension: string;
     enabled: boolean;
   }>,
-): Promise<AdminSentence> {
+): Promise<SavedSentence> {
   const { data } = await api.patch(`/admin/sentences/${id}`, payload);
   return data;
 }
