@@ -336,6 +336,7 @@ export type AdminPronunciationItem = {
   audioB: string;
   position: number;
   enabled: boolean;
+  voiceCharacterId?: number | null;
 };
 
 export async function getPronunciationUnits(): Promise<

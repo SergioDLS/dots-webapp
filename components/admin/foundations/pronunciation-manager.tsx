@@ -10,6 +10,8 @@ import {
   Toggle,
   modalInputCls,
 } from "@/components/admin/ui";
+import VoiceModal from "@/components/admin/voice-modal";
+import type { StudioTake } from "@/components/admin/voice-studio";
 import {
   getPronunciationUnits,
   createPronunciationUnit,
@@ -19,7 +21,10 @@ import {
   createPronunciationItem,
   updatePronunciationItem,
   deletePronunciationItem,
-  generatePronunciationAudio,
+  draftNarration,
+  publishNarration,
+  getAdminCharacters,
+  type AdminCharacter,
   type AdminPronunciationUnit,
   type AdminPronunciationItem,
 } from "@/services/admin.service";
@@ -194,7 +199,18 @@ function UnitDetail({
   const [editingItem, setEditingItem] = useState<AdminPronunciationItem | null>(
     null,
   );
-  const [generatingId, setGeneratingId] = useState<number | null>(null);
+  const [voiceItem, setVoiceItem] = useState<AdminPronunciationItem | null>(
+    null,
+  );
+  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    getAdminCharacters()
+      .then((rows) => { if (alive) setCharacters(rows); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     getPronunciationItems(unit.id)
@@ -207,6 +223,23 @@ function UnitDetail({
     getPronunciationItems(unit.id).then(setItems).catch(() => {});
   }, [unit.id]);
 
+  const characterName = (id?: number | null) =>
+    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
+
+  // El par mínimo son DOS clips etiquetados del mismo personaje, así que no
+  // sirve el helper `singleClipTake` que usan vocab/letters/numbers.
+  const liveTake = (item: AdminPronunciationItem): StudioTake | null =>
+    item.audioA || item.audioB
+      ? {
+          characterId: item.voiceCharacterId ?? undefined,
+          characterName: characterName(item.voiceCharacterId),
+          clips: [
+            ...(item.audioA ? [{ label: item.wordA, url: item.audioA }] : []),
+            ...(item.audioB ? [{ label: item.wordB, url: item.audioB }] : []),
+          ],
+        }
+      : null;
+
   const removeItem = async (it: AdminPronunciationItem) => {
     if (!confirm(`Delete this pair?\n\n"${it.wordA}" / "${it.wordB}"`)) return;
     try {
@@ -215,19 +248,6 @@ function UnitDetail({
       flash("Pair deleted.");
     } catch {
       flash("Could not delete the pair.", "error");
-    }
-  };
-
-  const generateAudio = async (it: AdminPronunciationItem) => {
-    setGeneratingId(it.id);
-    try {
-      await generatePronunciationAudio(it.id);
-      refreshItems();
-      flash("Audio generado.");
-    } catch {
-      flash("Could not generate audio.", "error");
-    } finally {
-      setGeneratingId(null);
     }
   };
 
@@ -304,11 +324,10 @@ function UnitDetail({
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => generateAudio(it)}
-                        disabled={generatingId === it.id}
-                        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent) disabled:opacity-50"
+                        onClick={() => setVoiceItem(it)}
+                        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
                       >
-                        {generatingId === it.id ? "…" : "Generate audio"}
+                        Voz
                       </button>
                       <RowActions
                         onEdit={() => {
@@ -335,6 +354,27 @@ function UnitDetail({
             setItemModalOpen(false);
             refreshItems();
             flash(msg);
+          }}
+        />
+      )}
+
+      {/* key por ítem: el studio siembra su estado desde `live`. Y el refetch
+          al cerrar es lo que refresca el badge de audio de la fila. */}
+      {voiceItem && (
+        <VoiceModal
+          key={voiceItem.id}
+          title={`Voz · ${voiceItem.wordA} / ${voiceItem.wordB}`}
+          live={liveTake(voiceItem)}
+          characters={characters}
+          onDraft={(opts) =>
+            draftNarration("pronunciation-items", voiceItem.id, opts)
+          }
+          onPublish={(characterId) =>
+            publishNarration("pronunciation-items", voiceItem.id, characterId)
+          }
+          onClose={() => {
+            setVoiceItem(null);
+            refreshItems();
           }}
         />
       )}
