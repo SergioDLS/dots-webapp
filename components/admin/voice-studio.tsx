@@ -47,8 +47,6 @@ interface VoiceStudioProps {
   characters: AdminCharacter[];
   onDraft: (opts: DraftOpts) => Promise<StudioTake & { characterId: number }>;
   onPublish: (characterId: number) => Promise<{ urls: string[] }>;
-  disabled?: boolean;
-  disabledReason?: string;
 }
 
 function errorMessage(e: unknown): string {
@@ -105,8 +103,6 @@ export default function VoiceStudio({
   characters,
   onDraft,
   onPublish,
-  disabled,
-  disabledReason,
 }: VoiceStudioProps) {
   const [published, setPublished] = useState<StudioTake | null>(live);
   const [draft, setDraft] = useState<
@@ -270,8 +266,7 @@ export default function VoiceStudio({
       {!draft && (
         <button
           onClick={generate}
-          disabled={generating || disabled}
-          title={disabled ? disabledReason : undefined}
+          disabled={generating}
           className="self-start rounded-lg border-2 border-(--accent) px-3 py-1.5 text-xs font-bold text-(--accent) transition-colors hover:bg-(--accent)/10 disabled:opacity-40"
         >
           {generating
@@ -280,12 +275,6 @@ export default function VoiceStudio({
               ? "Generar otra toma"
               : "Generar voz"}
         </button>
-      )}
-
-      {disabled && disabledReason && (
-        <p className="text-[11px] font-semibold text-(--muted)">
-          {disabledReason}
-        </p>
       )}
 
       {err && (
