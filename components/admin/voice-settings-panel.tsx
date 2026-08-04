@@ -209,8 +209,15 @@ export default function VoiceSettingsPanel({
                 <input
                   value={seed ?? ""}
                   onChange={(e) => {
-                    const raw = e.target.value.trim();
-                    onSeedChange(raw === "" ? null : Number(raw));
+                    // El backend exige un entero 0..4294967295. Filtramos aquí
+                    // lo que provocaría un 400 —decimales, negativos, letras—
+                    // en vez de dejarlo llegar al fetcher.
+                    const digits = e.target.value.replace(/\D/g, "");
+                    onSeedChange(
+                      digits === ""
+                        ? null
+                        : Math.min(Number(digits), 4294967295),
+                    );
                   }}
                   placeholder="vacío = al azar"
                   inputMode="numeric"
