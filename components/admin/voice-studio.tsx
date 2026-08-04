@@ -74,7 +74,10 @@ function Player({
   return (
     <div className="flex flex-col gap-1.5">
       {clips.map((clip, i) => (
-        <div key={clip.url} className="flex items-center gap-2">
+        // La posición va en la clave porque un par mínimo con datos legacy
+        // corruptos podría traer audioA === audioB. Sigue cambiando por toma,
+        // que es lo que sostiene el invariante de remontaje.
+        <div key={`${i}-${clip.url}`} className="flex items-center gap-2">
           {clip.label && (
             <span className="min-w-16 text-xs font-bold text-(--muted)">
               {clip.label}
@@ -83,7 +86,7 @@ function Player({
           {/* key por URL: cada toma nueva remonta el <audio>, así autoPlay
               suena UNA vez por toma y nunca se repite en un re-render. */}
           <audio
-            key={clip.url}
+            key={`${i}-${clip.url}`}
             // Único punto de paso de TODO clip del studio, así que resolvemos
             // aquí: los borradores y las tomas de Cloudinary son absolutas y
             // pasan intactas, pero en la BD compartida quedan rutas legacy
@@ -118,7 +121,13 @@ export default function VoiceStudio({
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [err, setErr] = useState("");
-  const [narratorId, setNarratorId] = useState<number | undefined>(undefined);
+  // Sembrado con el narrador que YA tiene el ítem: "Regenerar" sin tocar el
+  // selector debe repetir la misma voz, no caer a Auto y reasignarle el
+  // narrador al publicar. El componente se remonta por ítem, así que la
+  // siembra es correcta para cada uno.
+  const [narratorId, setNarratorId] = useState<number | undefined>(
+    live?.characterId,
+  );
   const [settings, setSettings] = useState<VoiceSettings | null>(null);
   const [seed, setSeed] = useState<number | null>(null);
 
@@ -202,7 +211,10 @@ export default function VoiceStudio({
         >
           <option value="">Narrador: Auto (balanceado)</option>
           {characters
-            .filter((c) => c.enabled)
+            // El narrador que el ítem ya usa entra aunque esté deshabilitado:
+            // si no, el selector mostraría un valor sin opción y regenerar
+            // parecería usar Auto cuando en realidad repite esa voz.
+            .filter((c) => c.enabled || c.id === live?.characterId)
             .map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
