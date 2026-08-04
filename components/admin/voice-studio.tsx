@@ -7,6 +7,7 @@ import type {
   VoiceSettings,
 } from "@/services/admin.service";
 import VoiceSettingsPanel from "@/components/admin/voice-settings-panel";
+import { resolveAudioUrl } from "@/components/admin/ui";
 
 export type StudioTake = {
   characterId?: number;
@@ -83,7 +84,11 @@ function Player({
               suena UNA vez por toma y nunca se repite en un re-render. */}
           <audio
             key={clip.url}
-            src={clip.url}
+            // Único punto de paso de TODO clip del studio, así que resolvemos
+            // aquí: los borradores y las tomas de Cloudinary son absolutas y
+            // pasan intactas, pero en la BD compartida quedan rutas legacy
+            // relativas, y un <audio> con src roto falla EN SILENCIO.
+            src={resolveAudioUrl(clip.url)}
             controls
             autoPlay={autoPlay && i === 0}
             className="h-8 w-full"
