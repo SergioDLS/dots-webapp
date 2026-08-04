@@ -1457,10 +1457,16 @@ Agregar como métodos públicos, junto a `updateCharacter`:
     const saved = characterVoiceSettings(character);
     if (saved) return { source: 'character' as const, ...saved };
 
-    if (!character.elevenlabsVoiceId) {
+    // Misma resolución que NarrationService.resolveVoiceId: el personaje
+    // default puede hablar con la voz del entorno aunque no tenga columna
+    // propia. Sin esta rama, el panel no podría sembrar los sliders para Doty.
+    const voiceId =
+      character.elevenlabsVoiceId ||
+      (character.isDefault ? process.env.ELEVENLABS_VOICE_ID : undefined);
+    if (!voiceId) {
       throw new HttpException('Character has no ElevenLabs voice configured', 404);
     }
-    const fromVoice = await this.tts.getVoiceSettings(character.elevenlabsVoiceId);
+    const fromVoice = await this.tts.getVoiceSettings(voiceId);
     return { source: 'elevenlabs' as const, ...fromVoice };
   }
 ```
@@ -2189,6 +2195,10 @@ git commit -m "feat(admin): panel de ajustes de voz con guardado por personaje"
     disabledReason?: string
   }
   export default function VoiceStudio(p: VoiceStudioProps): React.ReactElement
+  export function singleClipTake(
+    item: { audio?: string | null; voiceCharacterId?: number | null },
+    characterName: (id?: number | null) => string,
+  ): StudioTake | null
   ```
 
 ⚠️ **El componente debe remontarse por ítem** (dale `key={item.id}` donde lo uses). Inicializa su estado interno desde `live`, así que reusar la instancia entre dos ítems distintos mostraría la toma del anterior.
@@ -2221,6 +2231,23 @@ export type DraftOpts = {
   seed?: number;
   voiceSettings?: VoiceSettings | null;
 };
+
+/**
+ * Toma viva de las entidades de UN solo clip (vocab, letters, numbers), que
+ * comparten shape: `audio` + `voiceCharacterId`. pronunciation arma la suya
+ * aparte porque es un par mínimo de dos clips etiquetados.
+ */
+export function singleClipTake(
+  item: { audio?: string | null; voiceCharacterId?: number | null },
+  characterName: (id?: number | null) => string,
+): StudioTake | null {
+  if (!item.audio) return null;
+  return {
+    characterId: item.voiceCharacterId ?? undefined,
+    characterName: characterName(item.voiceCharacterId),
+    clips: [{ url: item.audio }],
+  };
+}
 
 interface VoiceStudioProps {
   /** Toma que oye el alumno hoy, o null si el ítem aún no tiene narración. */
@@ -2572,15 +2599,13 @@ Reemplazar el estado `generatingId` y la función `genAudio` completa por:
 
 ```typescript
   const [voiceItem, setVoiceItem] = useState<AdminVocabItem | null>(null);
+```
 
-  const liveTake = (item: AdminVocabItem) =>
-    item.audio
-      ? {
-          characterId: item.voiceCharacterId ?? undefined,
-          characterName: characterName(item.voiceCharacterId),
-          clips: [{ url: item.audio }],
-        }
-      : null;
+La toma viva la arma el helper compartido, así que no hay un `liveTake` por manager. Agregar `singleClipTake` al import de `voice-studio`:
+
+```typescript
+import VoiceModal from "@/components/admin/voice-modal";
+import { singleClipTake } from "@/components/admin/voice-studio";
 ```
 
 Reemplazar el botón `Generate audio` de la fila por:
@@ -2601,7 +2626,7 @@ Y renderizar el modal junto a los demás modales del componente:
         <VoiceModal
           key={voiceItem.id}
           title={`Voz · ${voiceItem.text}`}
-          live={liveTake(voiceItem)}
+          live={singleClipTake(voiceItem, characterName)}
           characters={characters}
           onDraft={(opts) => draftNarration("vocab-items", voiceItem.id, opts)}
           onPublish={(characterId) =>
@@ -2625,16 +2650,9 @@ Reemplazar `generatingId` + `genAudio` por:
 
 ```typescript
   const [voiceItem, setVoiceItem] = useState<AdminLetterItem | null>(null);
-
-  const liveTake = (item: AdminLetterItem) =>
-    item.audio
-      ? {
-          characterId: item.voiceCharacterId ?? undefined,
-          characterName: characterName(item.voiceCharacterId),
-          clips: [{ url: item.audio }],
-        }
-      : null;
 ```
+
+Importar también el helper compartido: `import { singleClipTake } from "@/components/admin/voice-studio";`
 
 Botón de fila → `onClick={() => setVoiceItem(item)}` con el texto `Voz`. Modal:
 
@@ -2643,7 +2661,7 @@ Botón de fila → `onClick={() => setVoiceItem(item)}` con el texto `Voz`. Moda
         <VoiceModal
           key={voiceItem.id}
           title={`Voz · ${voiceItem.letter}`}
-          live={liveTake(voiceItem)}
+          live={singleClipTake(voiceItem, characterName)}
           characters={characters}
           onDraft={(opts) => draftNarration("letter-items", voiceItem.id, opts)}
           onPublish={(characterId) =>
@@ -2663,16 +2681,9 @@ Imports: quitar `generateNumberAudio`, agregar `draftNarration`, `publishNarrati
 
 ```typescript
   const [voiceItem, setVoiceItem] = useState<AdminNumberItem | null>(null);
-
-  const liveTake = (item: AdminNumberItem) =>
-    item.audio
-      ? {
-          characterId: item.voiceCharacterId ?? undefined,
-          characterName: characterName(item.voiceCharacterId),
-          clips: [{ url: item.audio }],
-        }
-      : null;
 ```
+
+Importar también el helper compartido: `import { singleClipTake } from "@/components/admin/voice-studio";`
 
 Modal:
 
@@ -2681,7 +2692,7 @@ Modal:
         <VoiceModal
           key={voiceItem.id}
           title={`Voz · ${voiceItem.word}`}
-          live={liveTake(voiceItem)}
+          live={singleClipTake(voiceItem, characterName)}
           characters={characters}
           onDraft={(opts) => draftNarration("number-items", voiceItem.id, opts)}
           onPublish={(characterId) =>
