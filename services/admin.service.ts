@@ -11,6 +11,10 @@ export type AdminCharacter = {
   isDefault: boolean;
   enabled: boolean;
   accent?: string;
+  ttsStability?: number | null;
+  ttsSimilarityBoost?: number | null;
+  ttsStyle?: number | null;
+  ttsSpeakerBoost?: boolean | null;
   audioCount: number;
 };
 
@@ -55,6 +59,11 @@ export type AdminSentence = {
   imgSound: string;
   enabled: boolean;
   sentenceExtension: string;
+  /** Personaje que narra la oración. Sin esto no se puede armar la URL de la
+   *  narración: el alumno la deriva de (id, extension, voiceKey). */
+  voiceCharacterId?: number | null;
+  voiceKey?: string | null;
+  voiceCharacterName?: string | null;
 };
 
 export type AdminWord = {
@@ -839,6 +848,99 @@ export async function updateNumberItem(
 
 export async function deleteNumberItem(id: number) {
   const { data } = await api.delete(`/admin/number-items/${id}`);
+  return data;
+}
+
+// ── Audición de voz: borrador → escuchar → publicar ────────────
+
+export type NarrationEntity =
+  | "sentences"
+  | "vocab-items"
+  | "letter-items"
+  | "number-items"
+  | "pronunciation-items";
+
+export type VoiceSettings = {
+  stability: number;
+  similarityBoost: number;
+  style: number;
+  useSpeakerBoost: boolean;
+};
+
+export type VoiceClip = { label?: string; url: string };
+
+export type VoiceTake = {
+  characterId: number;
+  characterKey: string;
+  characterName: string;
+  spokenText: string;
+  clips: VoiceClip[];
+  voiceSettings: VoiceSettings | null;
+};
+
+/** Genera una toma en la ruta borrador. No toca lo que oye el alumno. */
+export async function draftNarration(
+  entity: NarrationEntity,
+  id: number,
+  opts: {
+    characterId?: number;
+    seed?: number;
+    voiceSettings?: VoiceSettings | null;
+  } = {},
+): Promise<VoiceTake> {
+  const { data } = await api.post<VoiceTake>(
+    `/admin/${entity}/${id}/narration-draft`,
+    {
+      ...(opts.characterId != null && { characterId: opts.characterId }),
+      ...(opts.seed != null && { seed: opts.seed }),
+      ...(opts.voiceSettings && { voiceSettings: opts.voiceSettings }),
+    },
+  );
+  return data;
+}
+
+/** Promueve el borrador de ese narrador a la ruta canónica. */
+export async function publishNarration(
+  entity: NarrationEntity,
+  id: number,
+  characterId: number,
+): Promise<{ characterKey: string; url: string; urls: string[] }> {
+  const { data } = await api.post(`/admin/${entity}/${id}/narration-publish`, {
+    characterId,
+  });
+  return data;
+}
+
+export type CharacterVoiceSettings = VoiceSettings & {
+  source: "character" | "elevenlabs";
+};
+
+/** Ajustes efectivos de un personaje. Lectura de metadata: no gasta créditos. */
+export async function getCharacterVoiceSettings(characterId: number) {
+  const { data } = await api.get<CharacterVoiceSettings>(
+    `/admin/characters/${characterId}/voice-settings`,
+  );
+  return data;
+}
+
+export async function updateCharacter(
+  id: number,
+  payload: Partial<{
+    name: string;
+    elevenlabsVoiceId: string;
+    img: string;
+    enabled: boolean;
+    accent: string;
+    ttsStability: number | null;
+    ttsSimilarityBoost: number | null;
+    ttsStyle: number | null;
+    ttsSpeakerBoost: boolean | null;
+  }>,
+) {
+  const { data } = await api.patch<AdminCharacter>(
+    `/admin/characters/${id}`,
+    payload,
+  );
   return data;
 }
 
