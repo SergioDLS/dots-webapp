@@ -595,7 +595,7 @@ export function toElevenLabsVoiceSettings(s: VoiceSettings): {
 source ~/.nvm/nvm.sh && cd ../dots-backend && npm test -- narration.util
 ```
 
-Esperado: PASS, 21 tests.
+Esperado: PASS, 20 tests (4 de `draftPublicId`, 8 de `parseVoiceSettings`, 4 de `characterVoiceSettings`, 3 de `resolveVoiceSettings`, 1 de `toElevenLabsVoiceSettings`).
 
 - [ ] **Step 5: Commit**
 
@@ -2167,6 +2167,17 @@ git commit -m "feat(admin): panel de ajustes de voz con guardado por personaje"
 ---
 
 ### Task 10: `VoiceStudio`
+
+> **Corrección aplicada durante la ejecución (no reintroducir):** las props
+> `disabled?: boolean` y `disabledReason?: string` que aparecen más abajo en
+> este bloque **se eliminaron**. Ningún consumidor las pasa —Task 11 abre el
+> modal sobre un ítem que ya existe, y Task 12 renderiza el studio de forma
+> condicional con su propio placeholder— y además `disabled` cerraba solo el
+> botón inicial y no "Regenerar", así que llegaba roto. Si alguna vez hace
+> falta apagar el studio, el patrón de la feature es el render condicional.
+> También se corrigió la línea "Ajustes usados", que con el ternario original
+> omitía `useSpeakerBoost: false`, justo el valor que esa línea existe para
+> revelar.
 
 **Files:**
 - Create: `components/admin/voice-studio.tsx`

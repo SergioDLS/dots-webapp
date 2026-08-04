@@ -51,7 +51,8 @@ interface VoiceStudioProps {
 
 function errorMessage(e: unknown): string {
   const status = (e as { response?: { status?: number } })?.response?.status;
-  if (status === 409) return "No hay borrador de ese narrador para este ítem.";
+  if (status === 409)
+    return "No hay borrador de ese narrador para este ítem. Regenera la toma para volver a intentarlo.";
   if (status === 429) return "ElevenLabs pidió esperar. Prueba en un momento.";
   if (status === 400)
     return "ElevenLabs rechazó los ajustes. Revisa los valores del panel.";
@@ -150,6 +151,15 @@ export default function VoiceStudio({
     setErr("");
     try {
       const { urls } = await onPublish(draft.characterId);
+      // Sin una URL por clip no se puede armar la toma viva: caer a la del
+      // borrador daría un 404 silencioso, porque el rename ya movió ese asset.
+      // Mejor dejar el borrador en pantalla y decirlo.
+      if (urls.length !== draft.clips.length) {
+        setErr(
+          "El servidor publicó pero no devolvió todas las pistas. Recarga para ver qué quedó.",
+        );
+        return;
+      }
       // La respuesta trae solo las URLs canónicas versionadas; el nombre y el
       // texto hablado ya venían en el borrador, así que la toma viva se arma
       // sin refetch.
@@ -157,10 +167,7 @@ export default function VoiceStudio({
         characterId: draft.characterId,
         characterName: draft.characterName,
         spokenText: draft.spokenText,
-        clips: draft.clips.map((c, i) => ({
-          label: c.label,
-          url: urls[i] ?? c.url,
-        })),
+        clips: draft.clips.map((c, i) => ({ label: c.label, url: urls[i] })),
       });
       setDraft(null);
     } catch (e) {
@@ -175,7 +182,12 @@ export default function VoiceStudio({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-bold text-(--muted)">Narración</span>
         <select
+          aria-label="Narrador"
           value={narratorId ?? ""}
+          // A propósito no se resetean los `settings`: cambiar de narrador
+          // conservando los ajustes deja comparar la misma configuración entre
+          // voces. Ojo, entonces "Guardar en el personaje" los escribe sobre el
+          // narrador que esté elegido en ese momento, no sobre el que los sembró.
           onChange={(e) =>
             setNarratorId(
               e.target.value === "" ? undefined : Number(e.target.value),
@@ -230,7 +242,12 @@ export default function VoiceStudio({
               {draft.voiceSettings.stability.toFixed(2)}
               {" · "}parecido {draft.voiceSettings.similarityBoost.toFixed(2)}
               {" · "}estilo {draft.voiceSettings.style.toFixed(2)}
-              {draft.voiceSettings.useSpeakerBoost ? " · con refuerzo" : ""}
+              {/* Se imprimen los dos casos: con el panel apagado esta línea es
+                  la ÚNICA forma de ver que el personaje trae el refuerzo en
+                  false, y omitirlo se leería como que no viajó el ajuste. */}
+              {draft.voiceSettings.useSpeakerBoost
+                ? " · con refuerzo"
+                : " · sin refuerzo"}
             </p>
           )}
           <Player clips={draft.clips} autoPlay />
