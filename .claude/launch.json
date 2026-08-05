@@ -10,6 +10,15 @@
       ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "dots-backend",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd ../dots-backend && PATH=$(ls -d \"$HOME\"/.nvm/versions/node/v22*/bin | tail -1):$PATH exec npm run start:dev"
+      ],
+      "port": 4000
     }
   ]
 }
