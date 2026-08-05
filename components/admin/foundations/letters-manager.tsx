@@ -13,6 +13,9 @@ import {
   resolveAudioUrl,
   resolveImageUrl,
 } from "@/components/admin/ui";
+import VoiceModal, { VoiceRosterModal } from "@/components/admin/voice-modal";
+import { singleClipTake } from "@/components/admin/voice-studio";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   getLetterPacks,
   createLetterPack,
@@ -22,12 +25,11 @@ import {
   createLetterItem,
   updateLetterItem,
   deleteLetterItem,
-  generateLetterAudio,
-  getAdminCharacters,
+  draftNarration,
+  publishNarration,
   uploadMedia,
   type AdminLetterPack,
   type AdminLetterItem,
-  type AdminCharacter,
 } from "@/services/admin.service";
 
 export default function LettersManager({
@@ -198,17 +200,13 @@ function PackDetail({
   const [loading, setLoading] = useState(true);
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AdminLetterItem | null>(null);
-  const [generatingId, setGeneratingId] = useState<number | null>(null);
-  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
-  const [narratorId, setNarratorId] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    let alive = true;
-    getAdminCharacters()
-      .then((rows) => { if (alive) setCharacters(rows); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
+  const [voiceItem, setVoiceItem] = useState<AdminLetterItem | null>(null);
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+    characterName,
+  } = useAdminCharacters();
 
   useEffect(() => {
     getLetterItems(pack.id)
@@ -220,22 +218,6 @@ function PackDetail({
   const refreshItems = useCallback(() => {
     getLetterItems(pack.id).then(setItems).catch(() => {});
   }, [pack.id]);
-
-  const characterName = (id?: number | null) =>
-    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
-
-  const genAudio = async (item: AdminLetterItem) => {
-    setGeneratingId(item.id);
-    try {
-      await generateLetterAudio(item.id, narratorId);
-      refreshItems();
-      flash("Audio generado.");
-    } catch {
-      flash("No se pudo generar el audio.", "error");
-    } finally {
-      setGeneratingId(null);
-    }
-  };
 
   const removeItem = async (item: AdminLetterItem) => {
     if (!confirm(`Delete this letter?\n\n"${item.letter}"`)) return;
@@ -261,30 +243,15 @@ function PackDetail({
         <h1 className="font-display text-2xl font-extrabold text-foreground">
           {pack.title}
         </h1>
-        <div className="flex items-center gap-3">
-          <select
-            value={narratorId ?? ""}
-            onChange={(e) =>
-              setNarratorId(e.target.value === "" ? undefined : Number(e.target.value))
-            }
-            className="rounded-lg border px-2 py-1 text-sm"
-            style={{ borderColor: "var(--border)" }}
-          >
-            <option value="">Narrador: Auto (balanceado)</option>
-            {characters.filter((c) => c.enabled).map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <UIButton
-            tone="accent"
-            onClick={() => {
-              setEditingItem(null);
-              setItemModalOpen(true);
-            }}
-          >
-            + New letter
-          </UIButton>
-        </div>
+        <UIButton
+          tone="accent"
+          onClick={() => {
+            setEditingItem(null);
+            setItemModalOpen(true);
+          }}
+        >
+          + New letter
+        </UIButton>
       </div>
 
       {loading ? (
@@ -332,11 +299,10 @@ function PackDetail({
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => genAudio(item)}
-                        disabled={generatingId != null}
-                        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent) disabled:opacity-50"
+                        onClick={() => setVoiceItem(item)}
+                        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
                       >
-                        {generatingId === item.id ? "…" : "Generate audio"}
+                        Voz
                       </button>
                       <button
                         onClick={() => {
@@ -374,6 +340,37 @@ function PackDetail({
           }}
         />
       )}
+
+      {/* key por ítem: el studio siembra su estado desde `live`. Y el refetch
+          al cerrar es lo que refresca el badge 🔊 y la columna de personaje.
+          Sin elenco NO se monta el studio: su selector mostraría "Auto" sobre el
+          narrador real y el primer toque lo reasignaría. */}
+      {voiceItem &&
+        (characters ? (
+          <VoiceModal
+            key={voiceItem.id}
+            title={`Voz · ${voiceItem.letter}`}
+            live={singleClipTake(voiceItem, characterName)}
+            characters={characters}
+            onDraft={(opts) =>
+              draftNarration("letter-items", voiceItem.id, opts)
+            }
+            onPublish={(characterId) =>
+              publishNarration("letter-items", voiceItem.id, characterId)
+            }
+            onClose={() => {
+              setVoiceItem(null);
+              refreshItems();
+            }}
+          />
+        ) : (
+          <VoiceRosterModal
+            title={`Voz · ${voiceItem.letter}`}
+            error={charsError}
+            onRetry={retryChars}
+            onClose={() => setVoiceItem(null)}
+          />
+        ))}
     </div>
   );
 }

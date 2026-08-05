@@ -11,6 +11,10 @@ export type AdminCharacter = {
   isDefault: boolean;
   enabled: boolean;
   accent?: string;
+  ttsStability?: number | null;
+  ttsSimilarityBoost?: number | null;
+  ttsStyle?: number | null;
+  ttsSpeakerBoost?: boolean | null;
   audioCount: number;
 };
 
@@ -55,6 +59,11 @@ export type AdminSentence = {
   imgSound: string;
   enabled: boolean;
   sentenceExtension: string;
+  /** Personaje que narra la oración. Sin esto no se puede armar la URL de la
+   *  narración: el alumno la deriva de (id, extension, voiceKey). */
+  voiceCharacterId?: number | null;
+  voiceKey?: string | null;
+  voiceCharacterName?: string | null;
 };
 
 export type AdminWord = {
@@ -93,6 +102,16 @@ export async function getWords(levelId: number): Promise<AdminWord[]> {
   return data;
 }
 
+/**
+ * El backend autonarra al crear y al cambiar `text`/`mWord`, y dice cómo salió
+ * ese intento. `narration` viene ausente cuando no hubo intento (un update que
+ * solo toca media), así que su presencia también marca "la ruta canónica se
+ * reescribió".
+ */
+export type SavedSentence = AdminSentence & {
+  narration?: "generated" | "failed";
+};
+
 export async function createSentence(payload: {
   levelId: number;
   text: string;
@@ -100,7 +119,7 @@ export async function createSentence(payload: {
   img?: string;
   imgSound?: string;
   sentenceExtension?: string;
-}): Promise<AdminSentence> {
+}): Promise<SavedSentence> {
   const { data } = await api.post("/admin/sentences", payload);
   return data;
 }
@@ -115,7 +134,7 @@ export async function updateSentence(
     sentenceExtension: string;
     enabled: boolean;
   }>,
-): Promise<AdminSentence> {
+): Promise<SavedSentence> {
   const { data } = await api.patch(`/admin/sentences/${id}`, payload);
   return data;
 }
@@ -327,6 +346,7 @@ export type AdminPronunciationItem = {
   audioB: string;
   position: number;
   enabled: boolean;
+  voiceCharacterId?: number | null;
 };
 
 export async function getPronunciationUnits(): Promise<
@@ -401,6 +421,10 @@ export async function deletePronunciationItem(id: number) {
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generatePronunciationAudio(
   id: number,
   characterId?: number,
@@ -593,6 +617,10 @@ export async function deleteVocabItem(id: number) {
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generateVocabAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/vocab-items/${id}/generate-audio`,
@@ -842,6 +870,108 @@ export async function deleteNumberItem(id: number) {
   return data;
 }
 
+// ── Audición de voz: borrador → escuchar → publicar ────────────
+
+export type NarrationEntity =
+  | "sentences"
+  | "vocab-items"
+  | "letter-items"
+  | "number-items"
+  | "pronunciation-items";
+
+export type VoiceSettings = {
+  stability: number;
+  similarityBoost: number;
+  style: number;
+  useSpeakerBoost: boolean;
+};
+
+export type VoiceClip = { label?: string; url: string };
+
+export type VoiceTake = {
+  characterId: number;
+  characterKey: string;
+  characterName: string;
+  spokenText: string;
+  clips: VoiceClip[];
+  voiceSettings: VoiceSettings | null;
+};
+
+/** Genera una toma en la ruta borrador. No toca lo que oye el alumno. */
+export async function draftNarration(
+  entity: NarrationEntity,
+  id: number,
+  opts: {
+    characterId?: number;
+    seed?: number;
+    voiceSettings?: VoiceSettings | null;
+  } = {},
+): Promise<VoiceTake> {
+  const { data } = await api.post<VoiceTake>(
+    `/admin/${entity}/${id}/narration-draft`,
+    {
+      ...(opts.characterId != null && { characterId: opts.characterId }),
+      ...(opts.seed != null && { seed: opts.seed }),
+      ...(opts.voiceSettings && { voiceSettings: opts.voiceSettings }),
+    },
+  );
+  return data;
+}
+
+/** Promueve el borrador de ese narrador a la ruta canónica. */
+export async function publishNarration(
+  entity: NarrationEntity,
+  id: number,
+  characterId: number,
+): Promise<{ characterKey: string; url: string; urls: string[] }> {
+  const { data } = await api.post(`/admin/${entity}/${id}/narration-publish`, {
+    characterId,
+  });
+  return data;
+}
+
+export type CharacterVoiceSettings = VoiceSettings & {
+  source: "character" | "elevenlabs";
+};
+
+/** Ajustes efectivos de un personaje. Lectura de metadata: no gasta créditos. */
+export async function getCharacterVoiceSettings(characterId: number) {
+  const { data } = await api.get<CharacterVoiceSettings>(
+    `/admin/characters/${characterId}/voice-settings`,
+  );
+  return data;
+}
+
+/**
+ * El backend responde con la entidad cruda que devuelve `characterRepository
+ * .save()`, no con el item serializado del listado: la forma es más angosta que
+ * un `AdminCharacter` — en particular NO trae `audioCount`.
+ */
+export async function updateCharacter(
+  id: number,
+  payload: Partial<{
+    name: string;
+    elevenlabsVoiceId: string;
+    img: string;
+    enabled: boolean;
+    accent: string;
+    ttsStability: number | null;
+    ttsSimilarityBoost: number | null;
+    ttsStyle: number | null;
+    ttsSpeakerBoost: boolean | null;
+  }>,
+) {
+  const { data } = await api.patch<Omit<AdminCharacter, "audioCount">>(
+    `/admin/characters/${id}`,
+    payload,
+  );
+  return data;
+}
+
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generateLetterAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/letter-items/${id}/generate-audio`,
@@ -850,6 +980,10 @@ export async function generateLetterAudio(id: number, characterId?: number) {
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generateNumberAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/number-items/${id}/generate-audio`,

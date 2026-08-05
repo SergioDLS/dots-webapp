@@ -471,9 +471,15 @@ function LevelDetail({
         <SentenceModal
           levelId={level.id}
           sentence={editingSentence}
-          onClose={() => setSentenceModalOpen(false)}
-          onSaved={(msg) => {
+          // El refetch al cerrar es lo que evita reabrir con un `voiceKey`
+          // viejo: publicar una toma dentro del studio cambia el narrador.
+          onClose={() => {
             setSentenceModalOpen(false);
+            refreshSentences();
+          }}
+          // Guardar NO cierra: el modal sigue abierto en modo edición para
+          // escuchar y regenerar la narración de la oración recién creada.
+          onSaved={(msg) => {
             refreshSentences();
             flash(msg);
           }}

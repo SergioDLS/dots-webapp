@@ -4,10 +4,14 @@ import React, { useState } from "react";
 import UIButton from "@/components/ui/button/button";
 import {
   createSentence,
+  draftNarration,
+  publishNarration,
   updateSentence,
   uploadMedia,
   type AdminSentence,
+  type SavedSentence,
 } from "@/services/admin.service";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   AdminModal,
   Field,
@@ -17,6 +21,8 @@ import {
   resolveAudioUrl,
   resolveImageUrl,
 } from "@/components/admin/ui";
+import VoiceStudio from "@/components/admin/voice-studio";
+import { resolveSentenceSoundUrl } from "@/constants";
 
 interface Props {
   levelId: number;
@@ -31,7 +37,6 @@ export default function SentenceModal({
   onClose,
   onSaved,
 }: Props) {
-  const isEdit = Boolean(sentence);
   const [text, setText] = useState(sentence?.text ?? "");
   const [mWord, setMWord] = useState(sentence?.mWord ?? "");
   const [img, setImg] = useState(sentence?.img ?? "");
@@ -40,6 +45,70 @@ export default function SentenceModal({
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+
+  // Tras crear con éxito el modal NO se cierra: queda en modo edición con la
+  // narración lista para escuchar y regenerar. Por eso el modo se lee de
+  // `savedId` y no de la prop `sentence`, que en el flujo de creación nunca
+  // deja de ser null.
+  const [savedId, setSavedId] = useState<number | null>(sentence?.id ?? null);
+  // Texto tal como quedó guardado. El backend re-narra Y publica directo en
+  // cuanto ve `text`/`mWord` en el body, así que mandarlos sin que hayan
+  // cambiado pisaría con una toma automática la que el admin acabó de aprobar
+  // — y gastaría créditos de ElevenLabs en un guardado de solo media.
+  // La línea base va TRIMEADA porque `save()` compara contra `text.trim()`: una
+  // fila guardada con espacios al borde se leería como "cambió" en el primer
+  // guardado aunque el admin solo haya tocado una imagen.
+  const [savedText, setSavedText] = useState(sentence?.text.trim() ?? "");
+  const [savedWord, setSavedWord] = useState(sentence?.mWord.trim() ?? "");
+  const [ext, setExt] = useState<string>(sentence?.sentenceExtension ?? "");
+  const [voiceKey, setVoiceKey] = useState<string | null>(
+    sentence?.voiceKey ?? null,
+  );
+  const [voiceName, setVoiceName] = useState<string | null>(
+    sentence?.voiceCharacterName ?? null,
+  );
+  // El studio siembra su selector de narrador con esto: sin el id, "Regenerar"
+  // caería a Auto y podría reasignarle la voz a la oración.
+  const [voiceCharacterId, setVoiceCharacterId] = useState<number | null>(
+    sentence?.voiceCharacterId ?? null,
+  );
+  // El studio siembra su estado (y su sello anti-caché) al montar, así que hay
+  // que remontarlo cuando el backend reescribe la ruta canónica: si no, el
+  // reproductor seguiría sirviendo la toma anterior desde la caché del
+  // navegador, con la misma URL y el mismo `?t=`.
+  const [takeVersion, setTakeVersion] = useState(0);
+  // null = todavía cargando o falló. El studio no se monta sin el elenco: además
+  // de llenar su selector, `isDefault` es lo único que revela si la narración
+  // vive en la ruta legacy (ver `pathKey`).
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+  } = useAdminCharacters();
+
+  const narrator = characters?.find((c) => c.id === voiceCharacterId) ?? null;
+  // El personaje por defecto conserva la ruta legacy SIN subcarpeta
+  // (`sentencePublicId` en el backend), pero el serializer del admin manda su
+  // `key` igual que la de cualquier otro. Usarla armaría un 404 silencioso en
+  // las ~814 narraciones de la voz por defecto, así que la subcarpeta se decide
+  // por `isDefault`, igual que hace el endpoint del alumno. El `voiceKey` crudo
+  // queda de respaldo por si el id no apareciera en el elenco.
+  const pathKey = narrator
+    ? narrator.isDefault
+      ? undefined
+      : narrator.key
+    : (voiceKey ?? undefined);
+
+  // Sin extensión no hay narración publicada. El studio necesita `null` (no un
+  // objeto a medias) para ofrecer "Generar voz" en vez de un reproductor roto.
+  const liveTake =
+    savedId != null && ext
+      ? {
+          characterId: voiceCharacterId ?? undefined,
+          characterName: voiceName ?? "voz sin identificar",
+          clips: [{ url: resolveSentenceSoundUrl(savedId, ext, pathKey) }],
+        }
+      : null;
 
   const validate = (): string => {
     if (!text.trim()) return "Please write the sentence.";
@@ -71,6 +140,36 @@ export default function SentenceModal({
     }
   };
 
+  /**
+   * Refleja la fila que acabó de devolver el backend: la narración que generó
+   * (el modal ya no la descarta) y la línea base de texto contra la que se
+   * decide si el próximo guardado debe re-narrar.
+   */
+  const applySavedRow = (row: SavedSentence) => {
+    // Trimeado por lo mismo que la siembra: si el guardado no mandó `text`, la
+    // fila vuelve con el valor crudo de la BD y el próximo guardado lo mandaría
+    // otra vez sin necesidad.
+    setSavedText(row.text.trim());
+    setSavedWord(row.mWord.trim());
+    setExt(row.sentenceExtension ?? "");
+    setVoiceKey(row.voiceKey ?? null);
+    setVoiceName(row.voiceCharacterName ?? null);
+    setVoiceCharacterId(row.voiceCharacterId ?? null);
+    // `narration` presente ⇒ el backend regeneró la toma canónica. Bumpear solo
+    // en ese caso deja intacto un borrador en curso cuando el guardado no tocó
+    // el texto, y lo descarta cuando sí (ese borrador diría la frase vieja).
+    if (row.narration) setTakeVersion((n) => n + 1);
+  };
+
+  /**
+   * Hasta ahora este resultado se descartaba: la narración fallaba en silencio
+   * y el admin no tenía forma de enterarse.
+   */
+  const narrationNote = (row: SavedSentence, base: string) =>
+    row.narration === "failed"
+      ? `${base} La narración NO se pudo generar — revísala abajo.`
+      : base;
+
   const save = async () => {
     const problem = validate();
     if (problem) {
@@ -79,28 +178,39 @@ export default function SentenceModal({
     }
     setSaving(true);
     setErr("");
+    const nextText = text.trim();
+    const nextWord = mWord.trim();
     try {
-      if (isEdit && sentence) {
-        await updateSentence(sentence.id, {
-          text: text.trim(),
-          mWord: mWord.trim(),
+      // La rama va por `savedId`, no por la prop: tras crear sin cerrar hay que
+      // actualizar esa misma oración, no crear una segunda.
+      if (savedId != null) {
+        const updated = await updateSentence(savedId, {
+          ...(nextText !== savedText && { text: nextText }),
+          ...(nextWord !== savedWord && { mWord: nextWord }),
           img,
           imgSound,
         });
-        onSaved("Sentence updated.");
+        applySavedRow(updated);
+        onSaved(narrationNote(updated, "Oración actualizada."));
       } else {
-        await createSentence({
+        const created = await createSentence({
           levelId,
-          text: text.trim(),
-          mWord: mWord.trim(),
+          text: nextText,
+          mWord: nextWord,
           img: img || undefined,
           imgSound: imgSound || undefined,
         });
-        onSaved("Sentence created.");
+        applySavedRow(created);
+        setSavedId(created.id);
+        onSaved(narrationNote(created, "Oración creada."));
       }
     } catch (e: unknown) {
       const ex = e as { response?: { data?: { message?: string } } };
-      setErr(ex?.response?.data?.message ?? "Could not save. Please try again.");
+      setErr(
+        ex?.response?.data?.message ??
+          "No se pudo guardar. Inténtalo otra vez.",
+      );
+    } finally {
       setSaving(false);
     }
   };
@@ -109,19 +219,24 @@ export default function SentenceModal({
 
   return (
     <AdminModal
-      title={isEdit ? "Edit sentence" : "New sentence"}
+      title={savedId != null ? "Edit sentence" : "New sentence"}
       onClose={onClose}
       footer={
         <>
+          {/* Con la oración ya creada no queda nada que cancelar. */}
           <UIButton tone="neutral" onClick={onClose}>
-            Cancel
+            {savedId != null ? "Cerrar" : "Cancelar"}
           </UIButton>
           <UIButton
             tone="accent"
             onClick={save}
             disabled={saving || uploadingImg || uploadingAudio}
           >
-            {saving ? "Saving…" : isEdit ? "Save changes" : "Create sentence"}
+            {saving
+              ? "Guardando…"
+              : savedId != null
+                ? "Guardar cambios"
+                : "Crear oración"}
           </UIButton>
         </>
       }
@@ -176,7 +291,7 @@ export default function SentenceModal({
           preview={resolveImageUrl(img)}
         />
         <UploadTile
-          label="Word audio"
+          label="Audio de la palabra"
           accept="audio/*"
           uploading={uploadingAudio}
           hasValue={Boolean(imgSound)}
@@ -185,6 +300,46 @@ export default function SentenceModal({
           preview={resolveAudioUrl(imgSound)}
         />
       </div>
+
+      {/* Confundir este clip con la narración es lo que dejó la narración sin
+          UI durante todo este tiempo. */}
+      <p className="px-1 text-[11px] font-medium text-(--muted)">
+        “Audio de la palabra” es el clip de “{mWord || "la palabra faltante"}”
+        que suena en los botones de respuesta — no es la narración de la oración.
+      </p>
+
+      {savedId == null ? (
+        <div className="rounded-2xl border-2 border-dashed border-(--border) p-3 text-xs font-semibold text-(--muted)">
+          Crea la oración y aquí mismo podrás escuchar su narración y
+          regenerarla.
+        </div>
+      ) : charsError ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) p-3 text-xs font-semibold text-(--muted)">
+          No se pudieron cargar las voces.
+          <button
+            onClick={retryChars}
+            className="rounded-lg border-2 border-(--accent) px-3 py-1.5 text-xs font-bold text-(--accent) transition-colors hover:bg-(--accent)/10"
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : characters == null ? (
+        <div className="rounded-2xl border-2 border-dashed border-(--border) p-3 text-xs font-semibold text-(--muted)">
+          Cargando voces…
+        </div>
+      ) : (
+        /* key por toma: el studio siembra su estado desde `live`, así que debe
+           remontarse por oración y cada vez que el backend la vuelve a narrar. */
+        <VoiceStudio
+          key={`${savedId}-${takeVersion}`}
+          live={liveTake}
+          characters={characters}
+          onDraft={(opts) => draftNarration("sentences", savedId, opts)}
+          onPublish={(characterId) =>
+            publishNarration("sentences", savedId, characterId)
+          }
+        />
+      )}
     </AdminModal>
   );
 }
