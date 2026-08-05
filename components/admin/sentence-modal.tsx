@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import UIButton from "@/components/ui/button/button";
 import {
   createSentence,
   draftNarration,
-  getAdminCharacters,
   publishNarration,
   updateSentence,
   uploadMedia,
-  type AdminCharacter,
   type AdminSentence,
   type SavedSentence,
 } from "@/services/admin.service";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   AdminModal,
   Field,
@@ -56,8 +55,11 @@ export default function SentenceModal({
   // cuanto ve `text`/`mWord` en el body, así que mandarlos sin que hayan
   // cambiado pisaría con una toma automática la que el admin acabó de aprobar
   // — y gastaría créditos de ElevenLabs en un guardado de solo media.
-  const [savedText, setSavedText] = useState(sentence?.text ?? "");
-  const [savedWord, setSavedWord] = useState(sentence?.mWord ?? "");
+  // La línea base va TRIMEADA porque `save()` compara contra `text.trim()`: una
+  // fila guardada con espacios al borde se leería como "cambió" en el primer
+  // guardado aunque el admin solo haya tocado una imagen.
+  const [savedText, setSavedText] = useState(sentence?.text.trim() ?? "");
+  const [savedWord, setSavedWord] = useState(sentence?.mWord.trim() ?? "");
   const [ext, setExt] = useState<string>(sentence?.sentenceExtension ?? "");
   const [voiceKey, setVoiceKey] = useState<string | null>(
     sentence?.voiceKey ?? null,
@@ -75,26 +77,14 @@ export default function SentenceModal({
   // reproductor seguiría sirviendo la toma anterior desde la caché del
   // navegador, con la misma URL y el mismo `?t=`.
   const [takeVersion, setTakeVersion] = useState(0);
-  // null = todavía cargando. El studio no se monta sin el elenco: además de
-  // llenar su selector, `isDefault` es lo único que revela si la narración vive
-  // en la ruta legacy (ver `pathKey`).
-  const [characters, setCharacters] = useState<AdminCharacter[] | null>(null);
-  const [charsError, setCharsError] = useState(false);
-  const [charsAttempt, setCharsAttempt] = useState(0);
-
-  useEffect(() => {
-    let alive = true;
-    getAdminCharacters()
-      .then((rows) => {
-        if (alive) setCharacters(rows);
-      })
-      .catch(() => {
-        if (alive) setCharsError(true);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [charsAttempt]);
+  // null = todavía cargando o falló. El studio no se monta sin el elenco: además
+  // de llenar su selector, `isDefault` es lo único que revela si la narración
+  // vive en la ruta legacy (ver `pathKey`).
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+  } = useAdminCharacters();
 
   const narrator = characters?.find((c) => c.id === voiceCharacterId) ?? null;
   // El personaje por defecto conserva la ruta legacy SIN subcarpeta
@@ -156,8 +146,11 @@ export default function SentenceModal({
    * decide si el próximo guardado debe re-narrar.
    */
   const applySavedRow = (row: SavedSentence) => {
-    setSavedText(row.text);
-    setSavedWord(row.mWord);
+    // Trimeado por lo mismo que la siembra: si el guardado no mandó `text`, la
+    // fila vuelve con el valor crudo de la BD y el próximo guardado lo mandaría
+    // otra vez sin necesidad.
+    setSavedText(row.text.trim());
+    setSavedWord(row.mWord.trim());
     setExt(row.sentenceExtension ?? "");
     setVoiceKey(row.voiceKey ?? null);
     setVoiceName(row.voiceCharacterName ?? null);
@@ -324,10 +317,7 @@ export default function SentenceModal({
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) p-3 text-xs font-semibold text-(--muted)">
           No se pudieron cargar las voces.
           <button
-            onClick={() => {
-              setCharsError(false);
-              setCharsAttempt((n) => n + 1);
-            }}
+            onClick={retryChars}
             className="rounded-lg border-2 border-(--accent) px-3 py-1.5 text-xs font-bold text-(--accent) transition-colors hover:bg-(--accent)/10"
           >
             Reintentar

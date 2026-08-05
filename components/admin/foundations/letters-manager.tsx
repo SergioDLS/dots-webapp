@@ -13,8 +13,9 @@ import {
   resolveAudioUrl,
   resolveImageUrl,
 } from "@/components/admin/ui";
-import VoiceModal from "@/components/admin/voice-modal";
+import VoiceModal, { VoiceRosterModal } from "@/components/admin/voice-modal";
 import { singleClipTake } from "@/components/admin/voice-studio";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   getLetterPacks,
   createLetterPack,
@@ -26,11 +27,9 @@ import {
   deleteLetterItem,
   draftNarration,
   publishNarration,
-  getAdminCharacters,
   uploadMedia,
   type AdminLetterPack,
   type AdminLetterItem,
-  type AdminCharacter,
 } from "@/services/admin.service";
 
 export default function LettersManager({
@@ -202,15 +201,12 @@ function PackDetail({
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AdminLetterItem | null>(null);
   const [voiceItem, setVoiceItem] = useState<AdminLetterItem | null>(null);
-  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    getAdminCharacters()
-      .then((rows) => { if (alive) setCharacters(rows); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+    characterName,
+  } = useAdminCharacters();
 
   useEffect(() => {
     getLetterItems(pack.id)
@@ -222,9 +218,6 @@ function PackDetail({
   const refreshItems = useCallback(() => {
     getLetterItems(pack.id).then(setItems).catch(() => {});
   }, [pack.id]);
-
-  const characterName = (id?: number | null) =>
-    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
 
   const removeItem = async (item: AdminLetterItem) => {
     if (!confirm(`Delete this letter?\n\n"${item.letter}"`)) return;
@@ -349,23 +342,35 @@ function PackDetail({
       )}
 
       {/* key por ítem: el studio siembra su estado desde `live`. Y el refetch
-          al cerrar es lo que refresca el badge 🔊 y la columna de personaje. */}
-      {voiceItem && (
-        <VoiceModal
-          key={voiceItem.id}
-          title={`Voz · ${voiceItem.letter}`}
-          live={singleClipTake(voiceItem, characterName)}
-          characters={characters}
-          onDraft={(opts) => draftNarration("letter-items", voiceItem.id, opts)}
-          onPublish={(characterId) =>
-            publishNarration("letter-items", voiceItem.id, characterId)
-          }
-          onClose={() => {
-            setVoiceItem(null);
-            refreshItems();
-          }}
-        />
-      )}
+          al cerrar es lo que refresca el badge 🔊 y la columna de personaje.
+          Sin elenco NO se monta el studio: su selector mostraría "Auto" sobre el
+          narrador real y el primer toque lo reasignaría. */}
+      {voiceItem &&
+        (characters ? (
+          <VoiceModal
+            key={voiceItem.id}
+            title={`Voz · ${voiceItem.letter}`}
+            live={singleClipTake(voiceItem, characterName)}
+            characters={characters}
+            onDraft={(opts) =>
+              draftNarration("letter-items", voiceItem.id, opts)
+            }
+            onPublish={(characterId) =>
+              publishNarration("letter-items", voiceItem.id, characterId)
+            }
+            onClose={() => {
+              setVoiceItem(null);
+              refreshItems();
+            }}
+          />
+        ) : (
+          <VoiceRosterModal
+            title={`Voz · ${voiceItem.letter}`}
+            error={charsError}
+            onRetry={retryChars}
+            onClose={() => setVoiceItem(null)}
+          />
+        ))}
     </div>
   );
 }

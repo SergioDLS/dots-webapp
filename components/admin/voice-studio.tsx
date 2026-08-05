@@ -42,7 +42,7 @@ export function singleClipTake(
   };
 }
 
-interface VoiceStudioProps {
+export interface VoiceStudioProps {
   /** Toma que oye el alumno hoy, o null si el ítem aún no tiene narración. */
   live: StudioTake | null;
   characters: AdminCharacter[];
@@ -52,15 +52,24 @@ interface VoiceStudioProps {
 
 function errorMessage(e: unknown): string {
   const status = (e as { response?: { status?: number } })?.response?.status;
+  const raw = (e as { response?: { data?: { message?: string | string[] } } })
+    ?.response?.data?.message;
+  // Un 400 de validación de Nest llega como arreglo de mensajes; sin aplanarlo
+  // el <p> lo pegaría todo junto sin separación.
+  const msg = Array.isArray(raw) ? raw.join(" · ") : raw;
   if (status === 409)
     return "No hay borrador de ese narrador para este ítem. Regenera la toma para volver a intentarlo.";
   if (status === 429) return "ElevenLabs pidió esperar. Prueba en un momento.";
+  // El 400 más probable desde esta UI NO viene de los ajustes: el panel manda
+  // siempre el juego completo, así que el parser del backend no puede fallar.
+  // Es "Character has no ElevenLabs voice configured", que sale del selector de
+  // narrador — mandar al admin a revisar el panel lo desviaría del problema.
   if (status === 400)
-    return "ElevenLabs rechazó los ajustes. Revisa los valores del panel.";
+    return (
+      msg ?? "ElevenLabs rechazó los ajustes. Revisa los valores del panel."
+    );
   if (status === 503)
     return "Falta configurar ElevenLabs o Cloudinary en el servidor.";
-  const msg = (e as { response?: { data?: { message?: string } } })?.response
-    ?.data?.message;
   return msg ?? "No se pudo completar. Inténtalo otra vez.";
 }
 
@@ -74,19 +83,18 @@ function Player({
   return (
     <div className="flex flex-col gap-1.5">
       {clips.map((clip, i) => (
-        // La posición va en la clave porque un par mínimo con datos legacy
-        // corruptos podría traer audioA === audioB. Sigue cambiando por toma,
-        // que es lo que sostiene el invariante de remontaje.
+        // Clave = posición + URL. Cada toma nueva trae otra URL, así que remonta
+        // este subárbol completo (el <audio> incluido): `autoPlay` suena UNA vez
+        // por toma y nunca se repite en un re-render. La posición va delante
+        // porque un par mínimo con datos legacy corruptos podría traer
+        // audioA === audioB, y dos claves iguales romperían ese remontaje.
         <div key={`${i}-${clip.url}`} className="flex items-center gap-2">
           {clip.label && (
             <span className="min-w-16 text-xs font-bold text-(--muted)">
               {clip.label}
             </span>
           )}
-          {/* key por URL: cada toma nueva remonta el <audio>, así autoPlay
-              suena UNA vez por toma y nunca se repite en un re-render. */}
           <audio
-            key={`${i}-${clip.url}`}
             // Único punto de paso de TODO clip del studio, así que resolvemos
             // aquí: los borradores y las tomas de Cloudinary son absolutas y
             // pasan intactas, pero en la BD compartida quedan rutas legacy

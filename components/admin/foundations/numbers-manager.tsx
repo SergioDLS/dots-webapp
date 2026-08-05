@@ -13,8 +13,9 @@ import {
   resolveAudioUrl,
   resolveImageUrl,
 } from "@/components/admin/ui";
-import VoiceModal from "@/components/admin/voice-modal";
+import VoiceModal, { VoiceRosterModal } from "@/components/admin/voice-modal";
 import { singleClipTake } from "@/components/admin/voice-studio";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   getNumberPacks,
   createNumberPack,
@@ -26,11 +27,9 @@ import {
   deleteNumberItem,
   draftNarration,
   publishNarration,
-  getAdminCharacters,
   uploadMedia,
   type AdminNumberPack,
   type AdminNumberItem,
-  type AdminCharacter,
 } from "@/services/admin.service";
 
 export default function NumbersManager({
@@ -202,15 +201,12 @@ function PackDetail({
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AdminNumberItem | null>(null);
   const [voiceItem, setVoiceItem] = useState<AdminNumberItem | null>(null);
-  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    getAdminCharacters()
-      .then((rows) => { if (alive) setCharacters(rows); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+    characterName,
+  } = useAdminCharacters();
 
   useEffect(() => {
     getNumberItems(pack.id)
@@ -222,9 +218,6 @@ function PackDetail({
   const refreshItems = useCallback(() => {
     getNumberItems(pack.id).then(setItems).catch(() => {});
   }, [pack.id]);
-
-  const characterName = (id?: number | null) =>
-    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
 
   const removeItem = async (item: AdminNumberItem) => {
     if (!confirm(`Delete this number?\n\n"${item.value}"`)) return;
@@ -354,23 +347,35 @@ function PackDetail({
       )}
 
       {/* key por ítem: el studio siembra su estado desde `live`. Y el refetch
-          al cerrar es lo que refresca el badge 🔊 y la columna de personaje. */}
-      {voiceItem && (
-        <VoiceModal
-          key={voiceItem.id}
-          title={`Voz · ${voiceItem.word}`}
-          live={singleClipTake(voiceItem, characterName)}
-          characters={characters}
-          onDraft={(opts) => draftNarration("number-items", voiceItem.id, opts)}
-          onPublish={(characterId) =>
-            publishNarration("number-items", voiceItem.id, characterId)
-          }
-          onClose={() => {
-            setVoiceItem(null);
-            refreshItems();
-          }}
-        />
-      )}
+          al cerrar es lo que refresca el badge 🔊 y la columna de personaje.
+          Sin elenco NO se monta el studio: su selector mostraría "Auto" sobre el
+          narrador real y el primer toque lo reasignaría. */}
+      {voiceItem &&
+        (characters ? (
+          <VoiceModal
+            key={voiceItem.id}
+            title={`Voz · ${voiceItem.word}`}
+            live={singleClipTake(voiceItem, characterName)}
+            characters={characters}
+            onDraft={(opts) =>
+              draftNarration("number-items", voiceItem.id, opts)
+            }
+            onPublish={(characterId) =>
+              publishNarration("number-items", voiceItem.id, characterId)
+            }
+            onClose={() => {
+              setVoiceItem(null);
+              refreshItems();
+            }}
+          />
+        ) : (
+          <VoiceRosterModal
+            title={`Voz · ${voiceItem.word}`}
+            error={charsError}
+            onRetry={retryChars}
+            onClose={() => setVoiceItem(null)}
+          />
+        ))}
     </div>
   );
 }

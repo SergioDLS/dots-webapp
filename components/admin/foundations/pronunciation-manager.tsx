@@ -10,8 +10,9 @@ import {
   Toggle,
   modalInputCls,
 } from "@/components/admin/ui";
-import VoiceModal from "@/components/admin/voice-modal";
+import VoiceModal, { VoiceRosterModal } from "@/components/admin/voice-modal";
 import type { StudioTake } from "@/components/admin/voice-studio";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   getPronunciationUnits,
   createPronunciationUnit,
@@ -23,8 +24,6 @@ import {
   deletePronunciationItem,
   draftNarration,
   publishNarration,
-  getAdminCharacters,
-  type AdminCharacter,
   type AdminPronunciationUnit,
   type AdminPronunciationItem,
 } from "@/services/admin.service";
@@ -202,15 +201,12 @@ function UnitDetail({
   const [voiceItem, setVoiceItem] = useState<AdminPronunciationItem | null>(
     null,
   );
-  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    getAdminCharacters()
-      .then((rows) => { if (alive) setCharacters(rows); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+    characterName,
+  } = useAdminCharacters();
 
   useEffect(() => {
     getPronunciationItems(unit.id)
@@ -222,9 +218,6 @@ function UnitDetail({
   const refreshItems = useCallback(() => {
     getPronunciationItems(unit.id).then(setItems).catch(() => {});
   }, [unit.id]);
-
-  const characterName = (id?: number | null) =>
-    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
 
   // El par mínimo son DOS clips etiquetados del mismo personaje, así que no
   // sirve el helper `singleClipTake` que usan vocab/letters/numbers.
@@ -359,25 +352,35 @@ function UnitDetail({
       )}
 
       {/* key por ítem: el studio siembra su estado desde `live`. Y el refetch
-          al cerrar es lo que refresca el badge de audio de la fila. */}
-      {voiceItem && (
-        <VoiceModal
-          key={voiceItem.id}
-          title={`Voz · ${voiceItem.wordA} / ${voiceItem.wordB}`}
-          live={liveTake(voiceItem)}
-          characters={characters}
-          onDraft={(opts) =>
-            draftNarration("pronunciation-items", voiceItem.id, opts)
-          }
-          onPublish={(characterId) =>
-            publishNarration("pronunciation-items", voiceItem.id, characterId)
-          }
-          onClose={() => {
-            setVoiceItem(null);
-            refreshItems();
-          }}
-        />
-      )}
+          al cerrar es lo que refresca el badge de audio de la fila.
+          Sin elenco NO se monta el studio: su selector mostraría "Auto" sobre el
+          narrador real y el primer toque lo reasignaría. */}
+      {voiceItem &&
+        (characters ? (
+          <VoiceModal
+            key={voiceItem.id}
+            title={`Voz · ${voiceItem.wordA} / ${voiceItem.wordB}`}
+            live={liveTake(voiceItem)}
+            characters={characters}
+            onDraft={(opts) =>
+              draftNarration("pronunciation-items", voiceItem.id, opts)
+            }
+            onPublish={(characterId) =>
+              publishNarration("pronunciation-items", voiceItem.id, characterId)
+            }
+            onClose={() => {
+              setVoiceItem(null);
+              refreshItems();
+            }}
+          />
+        ) : (
+          <VoiceRosterModal
+            title={`Voz · ${voiceItem.wordA} / ${voiceItem.wordB}`}
+            error={charsError}
+            onRetry={retryChars}
+            onClose={() => setVoiceItem(null)}
+          />
+        ))}
     </div>
   );
 }

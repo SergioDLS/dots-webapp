@@ -421,6 +421,10 @@ export async function deletePronunciationItem(id: number) {
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generatePronunciationAudio(
   id: number,
   characterId?: number,
@@ -613,6 +617,10 @@ export async function deleteVocabItem(id: number) {
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generateVocabAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/vocab-items/${id}/generate-audio`,
@@ -934,6 +942,11 @@ export async function getCharacterVoiceSettings(characterId: number) {
   return data;
 }
 
+/**
+ * El backend responde con la entidad cruda que devuelve `characterRepository
+ * .save()`, no con el item serializado del listado: la forma es más angosta que
+ * un `AdminCharacter` — en particular NO trae `audioCount`.
+ */
 export async function updateCharacter(
   id: number,
   payload: Partial<{
@@ -948,13 +961,17 @@ export async function updateCharacter(
     ttsSpeakerBoost: boolean | null;
   }>,
 ) {
-  const { data } = await api.patch<AdminCharacter>(
+  const { data } = await api.patch<Omit<AdminCharacter, "audioCount">>(
     `/admin/characters/${id}`,
     payload,
   );
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generateLetterAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/letter-items/${id}/generate-audio`,
@@ -963,6 +980,10 @@ export async function generateLetterAudio(id: number, characterId?: number) {
   return data;
 }
 
+/**
+ * @deprecated Genera Y publica de una, sin audición: usa `draftNarration` +
+ * `publishNarration` para que el admin escuche la toma antes de aprobarla.
+ */
 export async function generateNumberAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/number-items/${id}/generate-audio`,

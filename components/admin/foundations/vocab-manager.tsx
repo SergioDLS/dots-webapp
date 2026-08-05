@@ -12,8 +12,9 @@ import {
   modalInputCls,
   resolveImageUrl,
 } from "@/components/admin/ui";
-import VoiceModal from "@/components/admin/voice-modal";
+import VoiceModal, { VoiceRosterModal } from "@/components/admin/voice-modal";
 import { singleClipTake } from "@/components/admin/voice-studio";
+import { useAdminCharacters } from "@/hooks/use-admin-characters";
 import {
   getVocabPacks,
   createVocabPack,
@@ -25,11 +26,9 @@ import {
   deleteVocabItem,
   draftNarration,
   publishNarration,
-  getAdminCharacters,
   uploadMedia,
   type AdminVocabPack,
   type AdminVocabItem,
-  type AdminCharacter,
 } from "@/services/admin.service";
 
 export default function VocabManager({
@@ -201,15 +200,12 @@ function PackDetail({
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AdminVocabItem | null>(null);
   const [voiceItem, setVoiceItem] = useState<AdminVocabItem | null>(null);
-  const [characters, setCharacters] = useState<AdminCharacter[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    getAdminCharacters()
-      .then((rows) => { if (alive) setCharacters(rows); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
+  const {
+    characters,
+    error: charsError,
+    retry: retryChars,
+    characterName,
+  } = useAdminCharacters();
 
   useEffect(() => {
     getVocabItems(pack.id)
@@ -217,9 +213,6 @@ function PackDetail({
       .catch(() => flash("Could not load items.", "error"))
       .finally(() => setLoading(false));
   }, [pack.id, flash]);
-
-  const characterName = (id?: number | null) =>
-    characters.find((c) => c.id === id)?.name ?? (id != null ? `#${id}` : "—");
 
   const refreshItems = useCallback(() => {
     getVocabItems(pack.id).then(setItems).catch(() => {});
@@ -347,23 +340,35 @@ function PackDetail({
       )}
 
       {/* key por ítem: el studio siembra su estado desde `live`. Y el refetch
-          al cerrar es lo que refresca el badge 🔊 y la columna de personaje. */}
-      {voiceItem && (
-        <VoiceModal
-          key={voiceItem.id}
-          title={`Voz · ${voiceItem.text}`}
-          live={singleClipTake(voiceItem, characterName)}
-          characters={characters}
-          onDraft={(opts) => draftNarration("vocab-items", voiceItem.id, opts)}
-          onPublish={(characterId) =>
-            publishNarration("vocab-items", voiceItem.id, characterId)
-          }
-          onClose={() => {
-            setVoiceItem(null);
-            refreshItems();
-          }}
-        />
-      )}
+          al cerrar es lo que refresca el badge 🔊 y la columna de personaje.
+          Sin elenco NO se monta el studio: su selector mostraría "Auto" sobre el
+          narrador real y el primer toque lo reasignaría. */}
+      {voiceItem &&
+        (characters ? (
+          <VoiceModal
+            key={voiceItem.id}
+            title={`Voz · ${voiceItem.text}`}
+            live={singleClipTake(voiceItem, characterName)}
+            characters={characters}
+            onDraft={(opts) =>
+              draftNarration("vocab-items", voiceItem.id, opts)
+            }
+            onPublish={(characterId) =>
+              publishNarration("vocab-items", voiceItem.id, characterId)
+            }
+            onClose={() => {
+              setVoiceItem(null);
+              refreshItems();
+            }}
+          />
+        ) : (
+          <VoiceRosterModal
+            title={`Voz · ${voiceItem.text}`}
+            error={charsError}
+            onRetry={retryChars}
+            onClose={() => setVoiceItem(null)}
+          />
+        ))}
     </div>
   );
 }
