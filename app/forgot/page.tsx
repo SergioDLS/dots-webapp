@@ -14,6 +14,7 @@ import {
   btnOutline,
   ErrorBanner,
   AuthShell,
+  PendingLabel,
 } from "@/components/auth/auth-ui";
 
 /** El backend responde en inglés; aquí se traduce lo que ve el usuario. */
@@ -26,12 +27,21 @@ const ERROR_ES: Record<string, string> = {
 const GENERIC_ERROR = "Algo falló de nuestro lado. Intenta de nuevo.";
 const RESEND_COOLDOWN_S = 30;
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email.trim());
+}
+
 function translateError(e: unknown): string {
   const raw = (e as { response?: { data?: { message?: string | string[] } } })
     ?.response?.data?.message;
-  const first = Array.isArray(raw) ? raw[0] : raw;
-  if (!first) return GENERIC_ERROR;
-  return ERROR_ES[first] ?? GENERIC_ERROR;
+  if (Array.isArray(raw)) {
+    const first = raw[0];
+    return (first && ERROR_ES[first]) ?? "Revisa los datos: algo no tiene el formato correcto.";
+  }
+  if (!raw) return GENERIC_ERROR;
+  return ERROR_ES[raw] ?? GENERIC_ERROR;
 }
 
 export default function ForgotPassword() {
@@ -53,16 +63,22 @@ export default function ForgotPassword() {
     return () => clearTimeout(id);
   }, [cooldown]);
 
-  const sendCode = async () => {
+  const validateEmailField = (): boolean => {
     const clean = email.trim();
     if (!clean) {
       setError("Escribe tu correo.");
-      return;
+      return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+    if (!isValidEmail(clean)) {
       setError("Ese correo no se ve bien.");
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const sendCode = async () => {
+    if (!validateEmailField()) return;
+    const clean = email.trim();
     setError("");
     setLoading(true);
     try {
@@ -158,18 +174,25 @@ export default function ForgotPassword() {
             className={inputCls}
           />
           <button type="submit" disabled={loading} className={btnPrimary}>
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Enviando…
-              </span>
-            ) : (
-              "Enviar código"
-            )}
+            {loading ? <PendingLabel text="Enviando…" /> : "Enviar código"}
           </button>
         </div>
 
-        <div style={{ animation: "dots-slide-up 0.5s ease-out 0.2s both" }}>
+        <div
+          className="flex flex-col gap-2.5"
+          style={{ animation: "dots-slide-up 0.5s ease-out 0.2s both" }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              if (!validateEmailField()) return;
+              setError("");
+              setPhase("code");
+            }}
+            className={btnOutline}
+          >
+            Ya tengo un código
+          </button>
           <button
             type="button"
             onClick={() => router.push("/")}
@@ -230,14 +253,7 @@ export default function ForgotPassword() {
             className={inputCls}
           />
           <button type="submit" disabled={loading} className={btnPrimary}>
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Cambiando…
-              </span>
-            ) : (
-              "Cambiar contraseña"
-            )}
+            {loading ? <PendingLabel text="Cambiando…" /> : "Cambiar contraseña"}
           </button>
         </div>
 
