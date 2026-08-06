@@ -11,7 +11,7 @@ export const btnPrimary =
   "dots-pressable w-full rounded-2xl bg-(--accent) px-4 py-3.5 text-sm font-extrabold tracking-wide text-(--accent-contrast) [--press-color:var(--accent-edge)] disabled:opacity-60";
 
 export const btnOutline =
-  "dots-pressable w-full rounded-2xl border-2 border-(--border) bg-(--surface) px-4 py-3 text-sm font-bold text-(--muted) hover:text-(--accent) hover:border-(--accent)";
+  "dots-pressable w-full rounded-2xl border-2 border-(--border) bg-(--surface) px-4 py-3 text-sm font-bold text-(--muted) enabled:hover:text-(--accent) enabled:hover:border-(--accent) disabled:opacity-60";
 
 export function ErrorBanner({ text }: { text: string }) {
   return (
@@ -25,6 +25,16 @@ export function ErrorBanner({ text }: { text: string }) {
     >
       {text}
     </p>
+  );
+}
+
+/** Spinner de carga con texto. Compartido por login y /forgot. */
+export function PendingLabel({ text }: { text: string }) {
+  return (
+    <span className="flex items-center justify-center gap-2">
+      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      {text}
+    </span>
   );
 }
 

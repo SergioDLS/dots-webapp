@@ -13,6 +13,7 @@ import {
   btnOutline,
   ErrorBanner,
   AuthShell,
+  PendingLabel,
 } from "@/components/auth/auth-ui";
 
 export default function Login() {
@@ -200,14 +201,7 @@ export default function Login() {
             disabled={loginLoading}
             className={btnPrimary}
           >
-            {loginLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Entrando…
-              </span>
-            ) : (
-              "¡Vamos!"
-            )}
+            {loginLoading ? <PendingLabel text="Entrando…" /> : "¡Vamos!"}
           </button>
         </div>
 

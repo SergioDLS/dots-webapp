@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 
 const CELLS = [0, 1, 2, 3, 4, 5];
 
@@ -21,6 +21,7 @@ export default function CodeInput({
   disabled = false,
 }: CodeInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
   const activeIndex = Math.min(value.length, CELLS.length - 1);
 
   return (
@@ -30,7 +31,7 @@ export default function CodeInput({
     >
       <div className="flex justify-center gap-2 pointer-events-none" aria-hidden>
         {CELLS.map((i) => {
-          const isActive = !disabled && i === activeIndex;
+          const isActive = !disabled && focused && i === activeIndex;
           return (
             <div
               key={i}
@@ -55,6 +56,8 @@ export default function CodeInput({
         ref={inputRef}
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         inputMode="numeric"
         autoComplete="one-time-code"
         maxLength={6}
