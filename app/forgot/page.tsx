@@ -184,6 +184,7 @@ export default function ForgotPassword() {
         >
           <button
             type="button"
+            disabled={loading}
             onClick={() => {
               if (!validateEmailField()) return;
               setError("");
