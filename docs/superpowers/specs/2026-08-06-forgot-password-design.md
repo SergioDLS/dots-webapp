@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-08-06
 - **Rama:** por crear, `feat/forgot-password` (solo `dots-webapp`).
-- **Estado:** 📐 diseño aprobado, sin implementar. Siguiente paso: plan de implementación.
+- **Estado:** ✅ implementado 2026-08-06 en la rama `feat/forgot-password`. SMTP configurado y verificado (credencial válida + correo de prueba entregado). Pendientes: las mismas variables SMTP en el `.env` de producción del VPS, y el recorrido end-to-end con un usuario real de la BD (§6, §7).
 - **Repos:** `dots-webapp` (todo el código nuevo) + `dots-backend` (**solo `.env`**, que no está versionado → sin commit ni rama allá). La credencial SMTP se toma de `dots-info-web/.env.local`.
 - **BD:** PostgreSQL **compartida de producción**. Relevante aquí: activar SMTP hace que un `forgot-password` con el correo de un usuario real le mande un correo real. Ver §6.
 - **Antecedente:** ninguno. El backend ya trae el flujo completo desde el commit `267bae8`; nunca tuvo UI.
