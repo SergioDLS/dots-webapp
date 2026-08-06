@@ -28,7 +28,7 @@ export default function CodeInput({
       className="relative"
       onPointerUp={() => inputRef.current?.focus()}
     >
-      <div className="flex justify-center gap-2" aria-hidden>
+      <div className="flex justify-center gap-2 pointer-events-none" aria-hidden>
         {CELLS.map((i) => {
           const isActive = !disabled && i === activeIndex;
           return (
