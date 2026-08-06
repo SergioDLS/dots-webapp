@@ -7,6 +7,13 @@ import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
 import api from "@/lib/api-client";
 import Doty from "@/components/ui/doty/doty";
+import {
+  inputCls,
+  btnPrimary,
+  btnOutline,
+  ErrorBanner,
+  AuthShell,
+} from "@/components/auth/auth-ui";
 
 export default function Login() {
   const router = useRouter();
@@ -144,29 +151,6 @@ export default function Login() {
     }
   };
 
-  /* ─── Shared classes ───────────────────────────────────────── */
-  const inputCls =
-    "w-full rounded-2xl border-2 border-(--border) bg-(--input-bg) px-4 py-3 text-base text-foreground placeholder:text-(--muted) outline-none transition-all duration-200 focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/15";
-
-  const btnPrimary =
-    "dots-pressable w-full rounded-2xl bg-(--accent) px-4 py-3.5 text-sm font-extrabold tracking-wide text-(--accent-contrast) [--press-color:var(--accent-edge)] disabled:opacity-60";
-
-  const btnOutline =
-    "dots-pressable w-full rounded-2xl border-2 border-(--border) bg-(--surface) px-4 py-3 text-sm font-bold text-(--muted) hover:text-(--accent) hover:border-(--accent)";
-
-  const errorBanner = (text: string) => (
-    <p
-      className="rounded-2xl px-4 py-2.5 text-center text-sm font-bold"
-      style={{
-        background: "var(--danger-soft)",
-        color: "var(--danger)",
-        animation: "dots-pop-in 0.3s ease-out both",
-      }}
-    >
-      {text}
-    </p>
-  );
-
   let content = null;
   if (login === "login") {
     content = (
@@ -187,7 +171,7 @@ export default function Login() {
           </p>
         </div>
 
-        {incorrect && errorBanner(msg)}
+        {incorrect && <ErrorBanner text={msg} />}
 
         {/* Form */}
         <div
@@ -266,7 +250,7 @@ export default function Login() {
           </p>
         </div>
 
-        {msg && errorBanner(msg)}
+        {msg && <ErrorBanner text={msg} />}
 
         {/* Fields */}
         <div className="grid gap-4 md:grid-cols-2">
@@ -411,30 +395,5 @@ export default function Login() {
     );
   }
 
-  return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-12 text-foreground">
-      {/* Drifting color blobs behind the card */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-30 blur-3xl"
-        style={{
-          background: "var(--accent)",
-          animation: "dots-blob-drift 14s ease-in-out infinite",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-32 -bottom-32 h-96 w-96 rounded-full opacity-25 blur-3xl"
-        style={{
-          background: "var(--primary)",
-          animation: "dots-blob-drift 18s ease-in-out infinite reverse",
-        }}
-      />
-
-      {/* Card */}
-      <div className="dots-card relative z-10 flex w-full max-w-3xl items-center justify-center px-6 py-10 md:px-12 md:py-12">
-        {content}
-      </div>
-    </div>
-  );
+  return <AuthShell>{content}</AuthShell>;
 }
