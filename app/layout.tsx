@@ -22,9 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "dots — Language Online Learning",
+  title: "dots — Aprende inglés jugando",
   description:
-    "Learn languages the fun way with Doty: bite-sized lessons, streaks and games.",
+    "Aprende inglés de verdad con Doty: lecciones cortas, rachas y juegos que enganchan.",
 };
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
         {/* Apply saved theme BEFORE first paint to prevent flash */}
         <script

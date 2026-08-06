@@ -14,7 +14,8 @@ async function loginService(username: string, password: string) {
     const response = await api.post("/auth/login", { username, password });
     return response.data;
   } catch (error) {
-    console.error("Login error:", error);
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    console.error("Login error — status:", status ?? "network");
     throw error;
   }
 }
