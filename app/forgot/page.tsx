@@ -259,6 +259,9 @@ export default function ForgotPassword() {
               setPhase("email");
               setCode("");
               setError("");
+              setPassword("");
+              setPassword2("");
+              setCooldown(0);
             }}
             className={btnOutline}
           >
