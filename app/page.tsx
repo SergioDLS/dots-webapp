@@ -64,7 +64,7 @@ export default function Login() {
         setIncorrect(true);
         const text =
           (response && (response.message || response.error)) ||
-          "Incorrect username or password!";
+          "¡Usuario o contraseña incorrectos!";
         setMsg(text);
       }
     } catch (e: unknown) {
@@ -77,7 +77,7 @@ export default function Login() {
         ex?.response?.data?.message ||
         ex?.response?.data?.error ||
         ex?.message ||
-        "Login failed. Please try again.";
+        "No pudimos entrar. Intenta de nuevo.";
       setMsg(errMsg);
     } finally {
       setLoginLoading(false);
@@ -103,17 +103,17 @@ export default function Login() {
 
   const signInHandler = () => {
     if (name === "") {
-      setMsg("Please fill the Name input!");
+      setMsg("¡Falta tu nombre!");
     } else if (lastName === "") {
-      setMsg("Please fill the Last name input!");
+      setMsg("¡Falta tu apellido!");
     } else if (birthday === "") {
-      setMsg("Please fill the Birthday input!");
+      setMsg("¡Falta tu fecha de nacimiento!");
     } else if (email !== email2) {
-      setMsg("Emails must match!");
+      setMsg("¡Los correos no coinciden!");
     } else if (password.length < 8) {
-      setMsg("Your password must be 8 or more characters long!");
+      setMsg("¡Tu contraseña debe tener 8 caracteres o más!");
     } else if (password !== password2) {
-      setMsg("Both passwords must be the same!");
+      setMsg("¡Las contraseñas no coinciden!");
     } else {
       setMsg("");
       setLogin("loading");
@@ -147,7 +147,7 @@ export default function Login() {
     } catch (error) {
       const err = error as AxiosError<{ error?: string }>;
       setLogin("error");
-      setErrorMessage(err.response?.data?.error ?? "Unexpected error");
+      setErrorMessage(err.response?.data?.error ?? "Error inesperado");
     }
   };
 
@@ -167,7 +167,7 @@ export default function Login() {
             dots
           </h1>
           <p className="text-sm font-semibold text-(--muted)">
-            Hi! I&apos;m Doty. Ready to learn something new?
+            ¡Hola! Soy Doty. ¿Aprendemos algo nuevo?
           </p>
         </div>
 
@@ -181,7 +181,7 @@ export default function Login() {
           <input
             value={user}
             onChange={(e) => setUser(e.target.value)}
-            placeholder="Username"
+            placeholder="Usuario"
             type="text"
             autoComplete="username"
             className={inputCls}
@@ -189,7 +189,7 @@ export default function Login() {
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="Contraseña"
             type="password"
             autoComplete="current-password"
             className={inputCls}
@@ -203,10 +203,10 @@ export default function Login() {
             {loginLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Logging in…
+                Entrando…
               </span>
             ) : (
-              "Let's go!"
+              "¡Vamos!"
             )}
           </button>
         </div>
@@ -218,17 +218,17 @@ export default function Login() {
         >
           <button
             type="button"
-            onClick={() => window.location.replace("/forgot")}
+            onClick={() => router.push("/forgot")}
             className={btnOutline}
           >
-            Forgot password?
+            ¿Olvidaste tu contraseña?
           </button>
           <button
             type="button"
             onClick={() => newUserHandler(true)}
             className={btnOutline}
           >
-            New to dots? Create account
+            ¿Nuevo en dots? Crea tu cuenta
           </button>
         </div>
       </div>
@@ -243,10 +243,10 @@ export default function Login() {
         >
           <Doty pose="13" size="tiny" />
           <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-            Join the club!
+            ¡Únete al club!
           </h2>
           <p className="text-sm font-semibold text-(--muted)">
-            Fill in the form and let&apos;s get started
+            Llena el formulario y empezamos
           </p>
         </div>
 
@@ -257,35 +257,35 @@ export default function Login() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="First name"
+            placeholder="Nombre"
             type="text"
             className={inputCls}
           />
           <input
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-            placeholder="Last name"
+            placeholder="Apellido"
             type="text"
             className={inputCls}
           />
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
+            placeholder="Correo"
             type="email"
             className={inputCls}
           />
           <input
             value={email2}
             onChange={(e) => setEmail2(e.target.value)}
-            placeholder="Confirm email"
+            placeholder="Repite el correo"
             type="email"
             className={inputCls}
           />
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="Contraseña"
             type="password"
             autoComplete="new-password"
             className={inputCls}
@@ -293,7 +293,7 @@ export default function Login() {
           <input
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
-            placeholder="Confirm password"
+            placeholder="Repite la contraseña"
             type="password"
             autoComplete="new-password"
             className={inputCls}
@@ -313,10 +313,10 @@ export default function Login() {
             onClick={() => setLogin("login")}
             className={btnOutline}
           >
-            Back
+            Volver
           </button>
           <button type="button" onClick={signInHandler} className={btnPrimary}>
-            Create account
+            Crear cuenta
           </button>
         </div>
       </div>
@@ -329,7 +329,7 @@ export default function Login() {
         </div>
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
         <p className="text-sm font-bold text-(--muted)">
-          Getting things ready…
+          Preparando todo…
         </p>
       </div>
     );
@@ -341,15 +341,15 @@ export default function Login() {
       >
         <Doty pose="02" size="smaller" />
         <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-          You&apos;re in! 🎉
+          ¡Estás dentro! 🎉
         </h2>
         <p className="text-sm font-semibold text-(--muted)">
-          We sent a confirmation email to{" "}
+          Te mandamos un correo de confirmación a{" "}
           <span className="font-extrabold text-foreground">{email}</span>.
         </p>
         {newUsername && (
           <p className="text-sm font-semibold text-(--muted)">
-            Your username:{" "}
+            Tu usuario:{" "}
             <span className="font-extrabold text-foreground">
               {newUsername}
             </span>
@@ -360,7 +360,7 @@ export default function Login() {
           onClick={() => setLogin("login")}
           className={btnPrimary}
         >
-          Go to login
+          Ir a iniciar sesión
         </button>
       </div>
     );
@@ -372,7 +372,7 @@ export default function Login() {
       >
         <Doty pose="05" size="smaller" />
         <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-          Oops!
+          ¡Ups!
         </h2>
         <p className="text-sm font-semibold text-(--muted)">{errorMessage}</p>
         <div className="flex w-full flex-col gap-3">
@@ -381,14 +381,14 @@ export default function Login() {
             onClick={() => newUserHandler(false)}
             className={btnPrimary}
           >
-            Try again
+            Intentar de nuevo
           </button>
           <button
             type="button"
             onClick={() => setLogin("login")}
             className={btnOutline}
           >
-            Back to login
+            Volver a iniciar sesión
           </button>
         </div>
       </div>
