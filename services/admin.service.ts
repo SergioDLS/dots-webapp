@@ -286,6 +286,66 @@ export async function setUserBlocked(id: number, blocked: boolean) {
   return data;
 }
 
+// ── Invitations ────────────────────────────────────────────────
+
+export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
+
+export type AdminInvitation = {
+  id: number;
+  email: string;
+  name: string;
+  lastName: string;
+  token: string;
+  status: InvitationStatus;
+  expiresAt: string;
+  accessExpires: string | null;
+  invitedByName: string;
+  createdAt: string;
+  lastSentAt: string;
+  acceptedAt: string | null;
+};
+
+export type BulkInviteResult = {
+  created: string[];
+  skipped: { email: string; reason: string }[];
+};
+
+export async function getInvitations(): Promise<AdminInvitation[]> {
+  const { data } = await api.get("/admin/invitations");
+  return data;
+}
+
+export async function createInvitation(payload: {
+  email: string;
+  name?: string;
+  lastName?: string;
+  accessExpires?: string | null;
+}): Promise<AdminInvitation> {
+  const { data } = await api.post("/admin/invitations", payload);
+  return data;
+}
+
+export async function bulkInvitations(
+  emails: string,
+  accessExpires: string | null,
+): Promise<BulkInviteResult> {
+  const { data } = await api.post("/admin/invitations/bulk", {
+    emails,
+    accessExpires,
+  });
+  return data;
+}
+
+export async function resendInvitation(id: number): Promise<AdminInvitation> {
+  const { data } = await api.post(`/admin/invitations/${id}/resend`);
+  return data;
+}
+
+export async function revokeInvitation(id: number): Promise<AdminInvitation> {
+  const { data } = await api.delete(`/admin/invitations/${id}`);
+  return data;
+}
+
 export async function uploadMedia(
   file: File,
   kind: "image" | "audio",
