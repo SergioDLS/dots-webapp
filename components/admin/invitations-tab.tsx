@@ -112,7 +112,10 @@ export default function InvitationsTab({ flash }: Props) {
       await navigator.clipboard.writeText(link);
       flash("Link copied to clipboard.");
     } catch {
-      flash(link, "error");
+      // El portapapeles falla sin HTTPS o si el permiso está denegado. No es
+      // un error del que haya que alarmarse: el enlace sirve igual, solo hay
+      // que copiarlo a mano. Por eso va como aviso normal y no en rojo.
+      flash(`Clipboard unavailable — copy it manually: ${link}`);
     }
   };
 

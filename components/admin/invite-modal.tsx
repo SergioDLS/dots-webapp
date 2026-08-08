@@ -51,7 +51,6 @@ export default function InviteModal({ onClose, onSent }: Props) {
       if (mode === "single") {
         if (!email.trim() || !email.includes("@")) {
           setErr("Please write a valid email.");
-          setSending(false);
           return;
         }
         await createInvitation({
@@ -64,7 +63,6 @@ export default function InviteModal({ onClose, onSent }: Props) {
       } else {
         if (!emails.trim()) {
           setErr("Paste at least one email.");
-          setSending(false);
           return;
         }
         // emails es el texto pegado tal cual; el backend lo parsea
@@ -74,6 +72,10 @@ export default function InviteModal({ onClose, onSent }: Props) {
     } catch (e: unknown) {
       const ex = e as { response?: { data?: { message?: string } } };
       setErr(ex?.response?.data?.message ?? "Could not send. Please try again.");
+    } finally {
+      // En un solo sitio, para que ningún camino pueda dejar el botón
+      // bloqueado. Hoy el éxito desmonta el modal y no se notaría, pero eso
+      // depende de lo que haga el padre, no de este componente.
       setSending(false);
     }
   };
