@@ -21,6 +21,8 @@ Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lec
 
 Flujos inmersivos (sin chrome): `/practice`, `/lesson/{pronunciation,grammar,vocab}`, `/checkpoint`, `/onboarding` (placement), `/readings/:id`, `/games/*`.
 
+Fuera de `(app)` y sin sesión: `/` (login), `/forgot` (recuperar contraseña) y `/invite/[token]` (aceptar invitación y crear la cuenta). Esta última es la **única vía de alta que existe en la app** — no hay registro público. El panel de invitaciones vive en `/admin/users`, pestaña *Invitations*.
+
 ## Los 14 juegos (`app/(app)/games/`)
 
 Legacy (5): dont-pop, dot-bombs (teclado físico — NO RN-safe, pendiente de reemplazo por anagrama tap), dotaxi, flashcards, speed-round.

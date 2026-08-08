@@ -34,6 +34,7 @@ No hay test runner de componentes: la verificación es lint + build + preview ma
 5. Todo fetch de página de juego: estado `loadError` + botón **Reintentar** que re-fetchea por estado (nunca `window.location.reload`).
 6. `useSearchParams` siempre dentro de un boundary `<Suspense>`.
 7. Juegos seedables aceptan `?seed=` y lo pasan al fetcher (torneo/reto/fantasma dependen de eso para mazos idénticos).
+8. **Acceso solo por invitación.** No hay registro público: `POST /auth/register` fue eliminado del backend. La única ruta capaz de crear un usuario es `POST /auth/invitations/accept`, y exige un token válido de 48 h atado a un correo. Si necesitas una cuenta de prueba, invítate desde `/admin/users` → pestaña *Invitations*. El login respeta además `users.expires`, y el refresh revalida `blocked` contra la BD, así que desactivar a alguien lo expulsa en menos de 15 minutos.
 
 ## Contexto ampliado
 
