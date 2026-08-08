@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UserModal from "@/components/admin/user-modal";
+import InvitationsTab from "@/components/admin/invitations-tab";
 import {
   SearchInput,
   Toggle,
@@ -29,6 +30,7 @@ const fmtDate = (iso: string | null): string => {
 };
 
 export default function AdminUsersPage() {
+  const [tab, setTab] = useState<"users" | "invitations">("users");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -89,98 +91,127 @@ export default function AdminUsersPage() {
         </span>
       </div>
 
-      <SearchInput
-        value={search}
-        onChange={setSearch}
-        placeholder="Search by name or email…"
-      />
+      <div className="flex w-fit gap-1 rounded-2xl border-2 border-(--border) bg-(--surface) p-1">
+        <button
+          onClick={() => setTab("users")}
+          className={`rounded-xl px-4 py-2 text-sm font-extrabold transition-colors ${
+            tab === "users"
+              ? "bg-(--accent) text-white"
+              : "text-(--muted) hover:bg-(--accent)/10 hover:text-(--accent)"
+          }`}
+        >
+          Users
+        </button>
+        <button
+          onClick={() => setTab("invitations")}
+          className={`rounded-xl px-4 py-2 text-sm font-extrabold transition-colors ${
+            tab === "invitations"
+              ? "bg-(--accent) text-white"
+              : "text-(--muted) hover:bg-(--accent)/10 hover:text-(--accent)"
+          }`}
+        >
+          Invitations
+        </button>
+      </div>
 
-      {loading ? (
-        <div className="py-16">
-          <Spinner title="Loading users…" />
-        </div>
-      ) : visible.length === 0 ? (
-        <p className="rounded-2xl border-2 border-dashed border-(--border) px-5 py-8 text-center text-sm font-semibold text-(--muted)">
-          No users match your search.
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border-2 border-(--border)">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-(--surface) text-(--muted)">
-              <tr className="text-xs font-extrabold uppercase tracking-wide">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3 text-center">XP</th>
-                <th className="px-4 py-3 text-center">Streak</th>
-                <th className="px-4 py-3">Member since</th>
-                <th className="px-4 py-3">Expires</th>
-                <th className="px-4 py-3 text-center">Active</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((u) => (
-                <tr key={u.id} className="border-t border-(--border) align-middle">
-                  <td className="px-4 py-3 font-bold text-foreground">
-                    {u.name} {u.lastName}
-                    {u.profile === ADMIN_PROFILE && (
-                      <span className="ml-2 rounded-full bg-(--accent)/15 px-2 py-0.5 text-[10px] font-extrabold text-(--accent)">
-                        ADMIN
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-(--muted)">
-                    {u.email || u.username || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-center text-xs font-bold text-(--muted)">
-                    {u.xp}
-                  </td>
-                  <td className="px-4 py-3 text-center text-xs font-bold text-(--muted)">
-                    {u.streak > 0 ? `🔥${u.streak}` : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-(--muted)">
-                    {fmtDate(u.creationDate)}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-(--muted)">
-                    {u.expires ? fmtDate(u.expires) : "Never"}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <Toggle
-                      on={!u.blocked}
-                      onClick={() => toggleBlocked(u)}
-                      title={u.blocked ? "Blocked — click to unblock" : "Active — click to block"}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end">
-                      <button
-                        onClick={() => setEditing(u)}
-                        className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {tab === "users" && (
+        <>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by name or email…"
+          />
+
+          {loading ? (
+            <div className="py-16">
+              <Spinner title="Loading users…" />
+            </div>
+          ) : visible.length === 0 ? (
+            <p className="rounded-2xl border-2 border-dashed border-(--border) px-5 py-8 text-center text-sm font-semibold text-(--muted)">
+              No users match your search.
+            </p>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border-2 border-(--border)">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-(--surface) text-(--muted)">
+                  <tr className="text-xs font-extrabold uppercase tracking-wide">
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3 text-center">XP</th>
+                    <th className="px-4 py-3 text-center">Streak</th>
+                    <th className="px-4 py-3">Member since</th>
+                    <th className="px-4 py-3">Expires</th>
+                    <th className="px-4 py-3 text-center">Active</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((u) => (
+                    <tr key={u.id} className="border-t border-(--border) align-middle">
+                      <td className="px-4 py-3 font-bold text-foreground">
+                        {u.name} {u.lastName}
+                        {u.profile === ADMIN_PROFILE && (
+                          <span className="ml-2 rounded-full bg-(--accent)/15 px-2 py-0.5 text-[10px] font-extrabold text-(--accent)">
+                            ADMIN
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-(--muted)">
+                        {u.email || u.username || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-center text-xs font-bold text-(--muted)">
+                        {u.xp}
+                      </td>
+                      <td className="px-4 py-3 text-center text-xs font-bold text-(--muted)">
+                        {u.streak > 0 ? `🔥${u.streak}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-semibold text-(--muted)">
+                        {fmtDate(u.creationDate)}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-semibold text-(--muted)">
+                        {u.expires ? fmtDate(u.expires) : "Never"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Toggle
+                          on={!u.blocked}
+                          onClick={() => toggleBlocked(u)}
+                          title={u.blocked ? "Blocked — click to unblock" : "Active — click to block"}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end">
+                          <button
+                            onClick={() => setEditing(u)}
+                            className="rounded-lg border-2 border-(--border) px-2.5 py-1 text-xs font-bold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {editing && (
+            <UserModal
+              user={editing}
+              onClose={() => setEditing(null)}
+              onSaved={(msg, updated) => {
+                setEditing(null);
+                setUsers((prev) =>
+                  prev.map((x) => (x.id === updated.id ? updated : x)),
+                );
+                flash(msg);
+              }}
+            />
+          )}
+        </>
       )}
 
-      {editing && (
-        <UserModal
-          user={editing}
-          onClose={() => setEditing(null)}
-          onSaved={(msg, updated) => {
-            setEditing(null);
-            setUsers((prev) =>
-              prev.map((x) => (x.id === updated.id ? updated : x)),
-            );
-            flash(msg);
-          }}
-        />
-      )}
+      {tab === "invitations" && <InvitationsTab flash={flash} />}
 
       {toast && <ToastBanner toast={toast} />}
     </div>
