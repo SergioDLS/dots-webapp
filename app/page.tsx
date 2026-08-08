@@ -29,6 +29,19 @@ export default function Login() {
   const [loginLoading, setLoginLoading] = useState(false);
   const { setAccessToken } = useAuth();
 
+  // Si el refresh falló con 403 (bloqueado o vencido), api-client guarda el
+  // motivo en sessionStorage antes de redirigir aquí. Lo leemos al montar,
+  // mostramos el aviso y limpiamos la clave para que no reaparezca.
+  // Los setState van DENTRO del efecto (regla #3 de CLAUDE.md).
+  useEffect(() => {
+    const reason = window.sessionStorage.getItem("dots_auth_reason");
+    if (reason) {
+      window.sessionStorage.removeItem("dots_auth_reason");
+      setIncorrect(true);
+      setMsg(REASON_ES[reason] ?? "Tu sesión terminó. Vuelve a iniciar sesión.");
+    }
+  }, []);
+
   const loginHandler = useCallback(async () => {
     setLoginLoading(true);
     try {

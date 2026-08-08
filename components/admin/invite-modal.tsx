@@ -16,7 +16,9 @@ import {
 
 interface Props {
   onClose: () => void;
-  onSent: (message: string) => void;
+  // message es opcional: el bulk exitoso cierra sin toast (el resumen ya
+  // quedó en el modal); la invitación individual sigue mandando el mensaje.
+  onSent: (message?: string) => void;
 }
 
 type Mode = "single" | "bulk";
@@ -30,19 +32,9 @@ export default function InviteModal({ onClose, onSent }: Props) {
   const [accessExpires, setAccessExpires] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState("");
-
-  // Describe el resultado de un bulk: cuántas se crearon y cuáles se
-  // omitieron con su motivo, para que la academia vea exactamente qué pasó.
-  const describe = (result: BulkInviteResult): string => {
-    const parts = [`${result.created.length} invited`];
-    if (result.skipped.length > 0) {
-      const detail = result.skipped
-        .map((s) => `${s.email} (${s.reason})`)
-        .join("; ");
-      parts.push(`${result.skipped.length} skipped: ${detail}`);
-    }
-    return parts.join(" — ");
-  };
+  // Estado que guarda el resultado del bulk para mostrarlo dentro del modal.
+  // null = todavía no se ha enviado (o fue un single).
+  const [bulkResult, setBulkResult] = useState<BulkInviteResult | null>(null);
 
   const send = async () => {
     setErr("");
@@ -59,6 +51,7 @@ export default function InviteModal({ onClose, onSent }: Props) {
           lastName: lastName.trim() || undefined,
           accessExpires: accessExpires || null,
         });
+        // La invitación individual cabe en una línea: cerramos y mostramos toast.
         onSent(`Invitation sent to ${email.trim()}.`);
       } else {
         if (!emails.trim()) {
@@ -67,15 +60,16 @@ export default function InviteModal({ onClose, onSent }: Props) {
         }
         // emails es el texto pegado tal cual; el backend lo parsea
         const result = await bulkInvitations(emails, accessExpires || null);
-        onSent(describe(result));
+        // El resultado puede tener varios omitidos con motivos: mostramos el
+        // resumen dentro del modal para que el admin pueda leerlo con calma.
+        setBulkResult(result);
       }
     } catch (e: unknown) {
       const ex = e as { response?: { data?: { message?: string } } };
       setErr(ex?.response?.data?.message ?? "Could not send. Please try again.");
     } finally {
       // En un solo sitio, para que ningún camino pueda dejar el botón
-      // bloqueado. Hoy el éxito desmonta el modal y no se notaría, pero eso
-      // depende de lo que haga el padre, no de este componente.
+      // bloqueado.
       setSending(false);
     }
   };
@@ -86,6 +80,49 @@ export default function InviteModal({ onClose, onSent }: Props) {
         ? "bg-(--accent) text-white"
         : "text-(--muted) hover:bg-(--accent)/10 hover:text-(--accent)"
     }`;
+
+  // Pantalla de resumen del bulk: muestra cuántas se crearon y lista las
+  // omitidas con su motivo, una por línea.
+  if (bulkResult) {
+    return (
+      <AdminModal
+        title="Bulk invite — results"
+        onClose={() => onSent()}
+        footer={
+          <UIButton tone="accent" onClick={() => onSent()}>
+            Done
+          </UIButton>
+        }
+      >
+        <p className="text-sm font-bold text-foreground">
+          {bulkResult.created.length === 1
+            ? "1 invitation sent."
+            : `${bulkResult.created.length} invitations sent.`}
+        </p>
+
+        {bulkResult.skipped.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-extrabold uppercase tracking-wide text-(--muted)">
+              {bulkResult.skipped.length === 1
+                ? "1 skipped"
+                : `${bulkResult.skipped.length} skipped`}
+            </p>
+            <ul className="flex flex-col gap-1">
+              {bulkResult.skipped.map((s) => (
+                <li
+                  key={s.email}
+                  className="rounded-xl border border-(--border) px-3 py-2 text-sm"
+                >
+                  <span className="font-bold text-foreground">{s.email}</span>
+                  <span className="ml-2 text-(--muted)">— {s.reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </AdminModal>
+    );
+  }
 
   return (
     <AdminModal

@@ -243,7 +243,9 @@ export default function InvitationsTab({ flash }: Props) {
           onClose={() => setInviting(false)}
           onSent={(message) => {
             setInviting(false);
-            flash(message);
+            // El bulk exitoso cierra sin toast (el resumen ya se mostró en el
+            // modal); la invitación individual trae su mensaje para el toast.
+            if (message) flash(message);
             reload();
           }}
         />
