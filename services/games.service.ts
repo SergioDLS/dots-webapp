@@ -56,13 +56,11 @@ export type DotaxiQuestion = {
   correct: string;
 };
 
+// Propaga el error a propósito: la cuadrícula de /play distingue "no hay
+// juegos" de "no pudimos cargarlos" y ofrece Reintentar.
 export async function getGamesService(): Promise<Game[]> {
-  try {
-    const { data } = await api.get<Game[]>("/games");
-    return data;
-  } catch {
-    return [];
-  }
+  const { data } = await api.get<Game[]>("/games");
+  return data;
 }
 
 export async function getGameWordsService(): Promise<GameWord[]> {
