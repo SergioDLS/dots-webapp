@@ -20,7 +20,10 @@ const REASON_ES: Record<string, string> = {
   expired: "Tu acceso venció. Contacta a tu academia para renovarlo.",
 };
 
-const CONTACT_EMAIL = "dotsglobalgroup@gmail.com";
+// Formulario de contacto de la web informativa. El ancla cae directo en la
+// seccion del formulario (dots-info-web, app/contacto/page.tsx: id="formulario")
+// en vez de arriba de la pagina.
+const CONTACT_FORM_URL = "https://dotsonlinelearning.com/contacto#formulario";
 
 // Mismo número que el botón flotante de la web informativa (dots-info-web,
 // app/components/WhatsAppButton.tsx). El mensaje sí cambia: aquí la persona
@@ -219,10 +222,12 @@ export default function Login() {
                 WhatsApp
               </a>
               <a
-                href={`mailto:${CONTACT_EMAIL}`}
+                href={CONTACT_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`${contactLink} border-(--border) text-(--muted) hover:border-(--accent) hover:text-(--accent)`}
               >
-                Correo
+                Contáctanos
               </a>
             </div>
           </div>
