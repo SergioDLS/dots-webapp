@@ -20,6 +20,19 @@ const REASON_ES: Record<string, string> = {
   expired: "Tu acceso venció. Contacta a tu academia para renovarlo.",
 };
 
+const CONTACT_EMAIL = "dotsglobalgroup@gmail.com";
+
+// Mismo número que el botón flotante de la web informativa (dots-info-web,
+// app/components/WhatsAppButton.tsx). El mensaje sí cambia: aquí la persona
+// llega desde el login, así que pregunta por el acceso a la app.
+const WHATSAPP_URL = `https://wa.me/34683123178?text=${encodeURIComponent(
+  "¡Hola! Me gustaría más información sobre el acceso a la app de dots.",
+)}`;
+
+// py-3 deja el alto en 44 px, el mínimo cómodo para pulsar con el pulgar.
+const contactLink =
+  "dots-pressable flex-1 rounded-2xl border-2 bg-(--surface) px-4 py-3 text-xs font-extrabold";
+
 export default function Login() {
   const router = useRouter();
   const [user, setUser] = useState("");
@@ -175,18 +188,43 @@ export default function Login() {
           >
             ¿Olvidaste tu contraseña?
           </button>
-          <div className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
             <Doty pose="13" size="micro" />
             <p className="text-xs font-bold text-(--muted)">
-              ¿No tienes cuenta? dots es solo por invitación. Si tu academia te
-              inscribió, revisa tu correo — y si no llegó, escríbenos a{" "}
-              <a
-                href="mailto:dotsglobalgroup@gmail.com"
-                className="font-extrabold text-(--accent) underline"
-              >
-                dotsglobalgroup@gmail.com
-              </a>
+              ¿No tienes cuenta? La app es parte de los beneficios de{" "}
+              <span className="font-extrabold text-foreground">
+                Dots Academia de Idiomas
+              </span>
+              . Escríbenos y te contamos cómo entrar.
             </p>
+            <div className="flex w-full flex-col gap-2 sm:flex-row">
+              <a
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={contactLink}
+                // El verde vive en el borde y el canto, no en el texto:
+                // --success sobre blanco da 2.1:1, muy por debajo del 4.5:1 que
+                // pide un texto de 12 px.
+                style={
+                  {
+                    borderColor:
+                      "color-mix(in srgb, var(--success) 60%, var(--border))",
+                    color: "var(--foreground)",
+                    "--press-color":
+                      "color-mix(in srgb, var(--success) 70%, var(--border))",
+                  } as React.CSSProperties
+                }
+              >
+                WhatsApp
+              </a>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className={`${contactLink} border-(--border) text-(--muted) hover:border-(--accent) hover:text-(--accent)`}
+              >
+                Correo
+              </a>
+            </div>
           </div>
         </div>
       </div>
