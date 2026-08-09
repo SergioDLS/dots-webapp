@@ -1,11 +1,17 @@
 import api from "../lib/api-client";
 
-export type RegisterPayload = {
+export type InvitationPreview = {
+  email: string;
   name: string;
   lastName: string;
-  email: string;
+};
+
+export type AcceptInvitePayload = {
+  token: string;
   username: string;
   password: string;
+  name: string;
+  lastName: string;
   birthday?: string;
 };
 
@@ -20,8 +26,13 @@ async function loginService(username: string, password: string) {
   }
 }
 
-async function registerService(payload: RegisterPayload) {
-  const response = await api.post("/auth/register", payload);
+async function getInvitationService(token: string): Promise<InvitationPreview> {
+  const response = await api.get(`/auth/invitations/${token}`);
+  return response.data;
+}
+
+async function acceptInvitationService(payload: AcceptInvitePayload) {
+  const response = await api.post("/auth/invitations/accept", payload);
   return response.data;
 }
 
@@ -45,7 +56,8 @@ async function resetPasswordService(
 
 export {
   loginService,
-  registerService,
+  getInvitationService,
+  acceptInvitationService,
   forgotPasswordService,
   resetPasswordService,
 };

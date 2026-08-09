@@ -43,8 +43,24 @@ export const refreshAccessToken = (): Promise<string | null> => {
         setAccessToken(token);
         return token;
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         setAccessToken(null);
+        // Un 403 significa que la sesión no solo expiró localmente: el backend
+        // rechaza explícitamente este refresh token (usuario bloqueado o con
+        // acceso vencido). En ese caso guardamos el motivo, limpiamos el
+        // perfil y forzamos una recarga limpia a /. Usamos window.location
+        // igual que logout() en auth-context.tsx: la sesión ya está muerta,
+        // perder el token en memoria es exactamente lo que queremos.
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 403 && typeof window !== "undefined") {
+          const reason = (err as { response?: { data?: { reason?: string } } })
+            ?.response?.data?.reason;
+          if (reason) {
+            window.sessionStorage.setItem("dots_auth_reason", reason);
+          }
+          window.localStorage.removeItem("user");
+          window.location.replace("/");
+        }
         return null;
       })
       .finally(() => {

@@ -2,10 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AxiosError } from "axios";
 import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
-import api from "@/lib/api-client";
 import Doty from "@/components/ui/doty/doty";
 import {
   inputCls,
@@ -16,24 +14,33 @@ import {
   PendingLabel,
 } from "@/components/auth/auth-ui";
 
+/** El backend distingue bloqueo de vencimiento; el usuario merece saber cuál. */
+const REASON_ES: Record<string, string> = {
+  blocked: "Tu acceso fue desactivado. Escríbenos si crees que es un error.",
+  expired: "Tu acceso venció. Contacta a tu academia para renovarlo.",
+};
+
 export default function Login() {
   const router = useRouter();
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
-  const [login, setLogin] = useState("login");
   const [incorrect, setIncorrect] = useState(false);
-  const [name, setName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [birthday, setBirthday] = useState("2022-04-17");
-  const [email, setEmail] = useState("");
-  const [email2, setEmail2] = useState("");
   const [msg, setMsg] = useState("");
-  const [code] = useState("");
-  const [newUsername, setNewUsername] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const { setAccessToken } = useAuth();
+
+  // Si el refresh falló con 403 (bloqueado o vencido), api-client guarda el
+  // motivo en sessionStorage antes de redirigir aquí. Lo leemos al montar,
+  // mostramos el aviso y limpiamos la clave para que no reaparezca.
+  // Los setState van DENTRO del efecto (regla #3 de CLAUDE.md).
+  useEffect(() => {
+    const reason = window.sessionStorage.getItem("dots_auth_reason");
+    if (reason) {
+      window.sessionStorage.removeItem("dots_auth_reason");
+      setIncorrect(true);
+      setMsg(REASON_ES[reason] ?? "Tu sesión terminó. Vuelve a iniciar sesión.");
+    }
+  }, []);
 
   const loginHandler = useCallback(async () => {
     setLoginLoading(true);
@@ -43,8 +50,8 @@ export default function Login() {
         setIncorrect(false);
         setMsg("");
         setAccessToken(response.token);
-        // Persist the profile so components (greeting, admin menu,
-        // profile picture) can render it without refetching.
+        // Persiste el perfil para que los componentes (saludo, menú admin,
+        // foto de perfil) puedan renderizarlo sin refetchear.
         localStorage.setItem(
           "user",
           JSON.stringify({
@@ -57,9 +64,9 @@ export default function Login() {
             profile_pic: response.profile_picture ?? null,
           }),
         );
-        // Client-side navigation keeps the AuthProvider mounted, so the
-        // access token from the login response stays in memory. The refresh
-        // cookie is only needed as a fallback on full page reloads.
+        // La navegación client-side mantiene AuthProvider montado, así el
+        // token en memoria sobrevive. La cookie de refresh solo se usa como
+        // respaldo en recargas completas.
         router.push("/levels");
       } else {
         setIncorrect(true);
@@ -71,10 +78,12 @@ export default function Login() {
     } catch (e: unknown) {
       setIncorrect(true);
       const ex = e as {
-        response?: { data?: { message?: string; error?: string } };
+        response?: { data?: { message?: string; error?: string; reason?: string } };
         message?: string;
       };
+      const reason = ex?.response?.data?.reason;
       const errMsg =
+        (reason && REASON_ES[reason]) ||
         ex?.response?.data?.message ||
         ex?.response?.data?.error ||
         ex?.message ||
@@ -102,61 +111,10 @@ export default function Login() {
     };
   }, [password, loginHandler]);
 
-  const signInHandler = () => {
-    if (name === "") {
-      setMsg("¡Falta tu nombre!");
-    } else if (lastName === "") {
-      setMsg("¡Falta tu apellido!");
-    } else if (birthday === "") {
-      setMsg("¡Falta tu fecha de nacimiento!");
-    } else if (email !== email2) {
-      setMsg("¡Los correos no coinciden!");
-    } else if (password.length < 8) {
-      setMsg("¡Tu contraseña debe tener 8 caracteres o más!");
-    } else if (password !== password2) {
-      setMsg("¡Las contraseñas no coinciden!");
-    } else {
-      setMsg("");
-      setLogin("loading");
-      sendNewUser();
-    }
-  };
-
-  const newUserHandler = (clean: boolean) => {
-    setLogin("new-user");
-    if (clean) {
-      setName("");
-      setLastName("");
-      setBirthday("");
-      setEmail("");
-      setMsg("");
-    }
-  };
-
-  const sendNewUser = async () => {
-    try {
-      const response = await api.post<{ result: string; username?: string }>(
-        "/newUser",
-        { name, lastName, email, code },
-      );
-      if (response.data.result === "OK") {
-        setLogin("username");
-        setNewUsername(String(response.data.username));
-      } else if (response.data.result === "NOK5") {
-        setLogin("wrongcode");
-      }
-    } catch (error) {
-      const err = error as AxiosError<{ error?: string }>;
-      setLogin("error");
-      setErrorMessage(err.response?.data?.error ?? "Error inesperado");
-    }
-  };
-
-  let content = null;
-  if (login === "login") {
-    content = (
+  return (
+    <AuthShell>
       <div className="flex w-full max-w-sm flex-col gap-7">
-        {/* Brand + mascot */}
+        {/* Marca + mascota */}
         <div
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
@@ -174,7 +132,7 @@ export default function Login() {
 
         {incorrect && <ErrorBanner text={msg} />}
 
-        {/* Form */}
+        {/* Formulario */}
         <div
           className="flex flex-col gap-4"
           style={{ animation: "dots-slide-up 0.5s ease-out 0.1s both" }}
@@ -205,7 +163,7 @@ export default function Login() {
           </button>
         </div>
 
-        {/* Secondary links */}
+        {/* Enlaces secundarios */}
         <div
           className="flex flex-col gap-2.5"
           style={{ animation: "dots-slide-up 0.5s ease-out 0.2s both" }}
@@ -217,177 +175,21 @@ export default function Login() {
           >
             ¿Olvidaste tu contraseña?
           </button>
-          <button
-            type="button"
-            onClick={() => newUserHandler(true)}
-            className={btnOutline}
-          >
-            ¿Nuevo en dots? Crea tu cuenta
-          </button>
+          <div className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
+            <Doty pose="13" size="micro" />
+            <p className="text-xs font-bold text-(--muted)">
+              ¿No tienes cuenta? dots es solo por invitación. Si tu academia te
+              inscribió, revisa tu correo — y si no llegó, escríbenos a{" "}
+              <a
+                href="mailto:dotsglobalgroup@gmail.com"
+                className="font-extrabold text-(--accent) underline"
+              >
+                dotsglobalgroup@gmail.com
+              </a>
+            </p>
+          </div>
         </div>
       </div>
-    );
-  } else if (login === "new-user") {
-    content = (
-      <div className="flex w-full max-w-2xl flex-col gap-7">
-        {/* Header */}
-        <div
-          className="flex flex-col items-center gap-2 text-center"
-          style={{ animation: "dots-slide-up 0.5s ease-out both" }}
-        >
-          <Doty pose="13" size="tiny" />
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-            ¡Únete al club!
-          </h2>
-          <p className="text-sm font-semibold text-(--muted)">
-            Llena el formulario y empezamos
-          </p>
-        </div>
-
-        {msg && <ErrorBanner text={msg} />}
-
-        {/* Fields */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nombre"
-            type="text"
-            className={inputCls}
-          />
-          <input
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Apellido"
-            type="text"
-            className={inputCls}
-          />
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Correo"
-            type="email"
-            className={inputCls}
-          />
-          <input
-            value={email2}
-            onChange={(e) => setEmail2(e.target.value)}
-            placeholder="Repite el correo"
-            type="email"
-            className={inputCls}
-          />
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Contraseña"
-            type="password"
-            autoComplete="new-password"
-            className={inputCls}
-          />
-          <input
-            value={password2}
-            onChange={(e) => setPassword2(e.target.value)}
-            placeholder="Repite la contraseña"
-            type="password"
-            autoComplete="new-password"
-            className={inputCls}
-          />
-          <input
-            value={birthday}
-            onChange={(e) => setBirthday(e.target.value)}
-            type="date"
-            className={`${inputCls} md:col-span-2 text-(--muted)`}
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setLogin("login")}
-            className={btnOutline}
-          >
-            Volver
-          </button>
-          <button type="button" onClick={signInHandler} className={btnPrimary}>
-            Crear cuenta
-          </button>
-        </div>
-      </div>
-    );
-  } else if (login === "loading") {
-    content = (
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div style={{ animation: "dots-float 1.5s ease-in-out infinite" }}>
-          <Doty pose="07" size="tiny" />
-        </div>
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
-        <p className="text-sm font-bold text-(--muted)">
-          Preparando todo…
-        </p>
-      </div>
-    );
-  } else if (login === "username") {
-    content = (
-      <div
-        className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
-        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
-      >
-        <Doty pose="02" size="smaller" />
-        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-          ¡Estás dentro! 🎉
-        </h2>
-        <p className="text-sm font-semibold text-(--muted)">
-          Te mandamos un correo de confirmación a{" "}
-          <span className="font-extrabold text-foreground">{email}</span>.
-        </p>
-        {newUsername && (
-          <p className="text-sm font-semibold text-(--muted)">
-            Tu usuario:{" "}
-            <span className="font-extrabold text-foreground">
-              {newUsername}
-            </span>
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={() => setLogin("login")}
-          className={btnPrimary}
-        >
-          Ir a iniciar sesión
-        </button>
-      </div>
-    );
-  } else if (login === "error") {
-    content = (
-      <div
-        className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
-        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
-      >
-        <Doty pose="05" size="smaller" />
-        <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-          ¡Ups!
-        </h2>
-        <p className="text-sm font-semibold text-(--muted)">{errorMessage}</p>
-        <div className="flex w-full flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => newUserHandler(false)}
-            className={btnPrimary}
-          >
-            Intentar de nuevo
-          </button>
-          <button
-            type="button"
-            onClick={() => setLogin("login")}
-            className={btnOutline}
-          >
-            Volver a iniciar sesión
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return <AuthShell>{content}</AuthShell>;
+    </AuthShell>
+  );
 }
