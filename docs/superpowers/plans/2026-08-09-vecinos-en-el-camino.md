@@ -16,6 +16,8 @@
 - La BD es **PostgreSQL remota COMPARTIDA de producción**. Este plan **no aplica ningún DDL**. Ningún test toca la BD real: todo con fixtures y mocks `jest.fn()`.
 - Backend: todo controller nuevo con `@UseGuards(JwtAuthGuard)`; el `userId` sale de `@CurrentUser()`, **nunca** del body; raw SQL siempre parametrizado (`$1, $2`).
 - Backend: `npm test` verde y `npm run build` antes de commitear.
+- **NUNCA correr `npm run lint` en dots-backend.** Ese script es `eslint … --fix` y reescribe archivos de TODO el repo; ya contaminó 18 archivos ajenos con cambios semánticos en una sesión anterior. Si necesitas lint del backend: `npx eslint <solo los archivos que tocaste>` sin `--fix`. El repo arrastra ~194 problemas preexistentes, así que un lint global nunca estará limpio.
+- **Nunca `git add .`** — solo rutas explícitas, en ninguno de los dos repos.
 - Frontend: `npm run lint` (incluye reglas del compiler de React) + `npx next build` (type-check) antes de commitear.
 - Frontend regla 2 (RN-safe): solo tap/pointer, animación solo `transform`/`opacity`, **hover nunca como única señal** — todo texto informativo va siempre visible.
 - Frontend regla 3: prohibido `setState` síncrono en el cuerpo de un `useEffect`.
@@ -1329,18 +1331,22 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ---
 
-## Task 6: Frontend — tipos, fetcher y arreglo de `normalizeCurrent`
+## Task 6: Frontend completo — datos, arreglo de `normalizeCurrent` y render
 
 **Files:**
 - Modify: `dots-webapp/types/path.types.ts`
 - Modify: `dots-webapp/services/levels.service.ts`
 - Modify: `dots-webapp/components/path/path-container.tsx`
+- Create: `dots-webapp/lib/peer-colors.ts`
+- Create: `dots-webapp/components/path/path-peer.tsx`
+- Modify: `dots-webapp/components/path/path-difficulty.tsx`
+- Modify: `dots-webapp/components/path/path-section.tsx`
 
 **Interfaces:**
 - Consumes: `GET /path/neighbors` (Task 5).
-- Produces: `type PathPeer`, `type PathNeighborsResponse` en `types/path.types.ts`; `getPathNeighborsService(): Promise<PathNeighborsResponse>` en `services/levels.service.ts`; estado `peersByNodeId: Record<number, PathPeer[]>` dentro de `PathContainer`.
+- Produces: `type PathPeer`, `type PathNeighborsResponse` en `types/path.types.ts`; `getPathNeighborsService(): Promise<PathNeighborsResponse>` en `services/levels.service.ts`; `peerColor(userId: number): string` en `lib/peer-colors.ts`; componente `PathPeer` con props `{ peer: PathPeer; side: "left" | "right"; stackIndex?: number }`; prop `peersByNodeId: Record<number, PathPeer[]>` atravesando `PathContainer` → `PathDifficulty` → `PathSection`.
 
-**Las dos cosas de este task son independientes pero van juntas** porque ambas tocan `path-container.tsx`, y separarlas obligaría a dos rondas de conflictos en el mismo archivo.
+**Un solo task y un solo commit.** Los pasos intermedios dejan el type-check roto (la prop `peersByNodeId` no existe en `PathDifficulty` hasta el Step 9); eso es esperado y **no** se commitea nada hasta que el Step 11 esté verde. La verificación visual en navegador va aparte, en el Task 7, y la hace el coordinador.
 
 - [ ] **Step 1: Añadir los tipos**
 
@@ -1485,7 +1491,7 @@ Cambiar el `map` de dificultades (líneas 115-117) por:
 
 Esto **rompe el type-check hasta el Task 7**, que es donde `PathDifficulty` acepta la prop. Es esperado.
 
-- [ ] **Step 6: Verificar que lint y build fallan solo por la prop pendiente**
+- [ ] **Step 6: Comprobar que el único error pendiente es la prop que falta**
 
 ```bash
 source ~/.nvm/nvm.sh
@@ -1493,27 +1499,9 @@ cd /home/endurance/Projects/Endurance/dots/dots-webapp
 npx tsc --noEmit
 ```
 
-Esperado: un único error, sobre `peersByNodeId` no existiendo en las props de `PathDifficulty`. Cualquier otro error hay que arreglarlo aquí antes de seguir.
+Esperado: un único error, sobre `peersByNodeId` no existiendo en las props de `PathDifficulty` — lo cierra el Step 9. Cualquier **otro** error arréglalo aquí, antes de seguir.
 
-- [ ] **Step 7: Sin commit todavía**
-
-Este task deja el árbol sin compilar a propósito. Se commitea junto con el Task 7.
-
----
-
-## Task 7: Frontend — `PathPeer` y su cableado
-
-**Files:**
-- Create: `dots-webapp/lib/peer-colors.ts`
-- Create: `dots-webapp/components/path/path-peer.tsx`
-- Modify: `dots-webapp/components/path/path-difficulty.tsx`
-- Modify: `dots-webapp/components/path/path-section.tsx`
-
-**Interfaces:**
-- Consumes: `PathPeer` de `@/types/path.types` y `peersByNodeId` de `PathContainer` (Task 6).
-- Produces: `peerColor(userId: number): string` en `lib/peer-colors.ts`; componente `PathPeer` con props `{ peer: PathPeer; side: "left" | "right"; stackIndex?: number }`.
-
-- [ ] **Step 1: Crear la paleta**
+- [ ] **Step 7: Crear la paleta**
 
 Crear `dots-webapp/lib/peer-colors.ts`:
 
@@ -1541,7 +1529,7 @@ export function peerColor(userId: number): string {
 }
 ```
 
-- [ ] **Step 2: Crear el componente**
+- [ ] **Step 8: Crear el componente**
 
 Crear `dots-webapp/components/path/path-peer.tsx`:
 
@@ -1614,7 +1602,7 @@ export default function PathPeer({
 }
 ```
 
-- [ ] **Step 3: Pasar la prop por `PathDifficulty`**
+- [ ] **Step 9: Pasar la prop por `PathDifficulty`**
 
 En `dots-webapp/components/path/path-difficulty.tsx`, añadir al import de tipos `PathPeer`, ampliar la interfaz de props:
 
@@ -1645,7 +1633,7 @@ Y pasarla a cada sección (líneas 185-189):
               />
 ```
 
-- [ ] **Step 4: Renderizar en `PathSection`**
+- [ ] **Step 10: Renderizar en `PathSection`**
 
 En `dots-webapp/components/path/path-section.tsx`, añadir el import:
 
@@ -1701,7 +1689,7 @@ Y añadir el render dentro del wrapper de cada nodo, justo después del bloque d
               ))}
 ```
 
-- [ ] **Step 5: Verificar lint y build**
+- [ ] **Step 11: Verificar lint y build**
 
 ```bash
 source ~/.nvm/nvm.sh
@@ -1709,9 +1697,9 @@ cd /home/endurance/Projects/Endurance/dots/dots-webapp
 npm run lint && npx next build
 ```
 
-Esperado: lint sin errores (ojo con las reglas del compiler de React sobre el efecto nuevo del Task 6) y build completo con type-check limpio.
+Esperado: lint sin errores (ojo con las reglas del compiler de React sobre el efecto nuevo del Step 4) y build completo con type-check limpio. **Este es el gate: no commitees si algo de aquí falla.**
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 12: Commit**
 
 ```bash
 cd /home/endurance/Projects/Endurance/dots/dots-webapp
@@ -1730,11 +1718,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ---
 
-## Task 8: Verificación visual y cierre
+## Task 7: Verificación visual y cierre
 
 **Files:** ninguno nuevo; posibles ajustes de estilo en `dots-webapp/components/path/path-peer.tsx`.
 
 **Objetivo:** comprobar los tres estados visuales y que el círculo cabe en móvil. Nada de esto se puede dar por bueno leyendo el código.
+
+**Lo ejecuta el coordinador con herramientas de preview, no un subagente:** requiere dev server, sesión iniciada y medición en el navegador.
 
 - [ ] **Step 1: Arrancar el dev server y abrir el camino**
 
