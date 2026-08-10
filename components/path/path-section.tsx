@@ -3,11 +3,16 @@
 import React, { useState } from "react";
 import PathNode, { NODE_SVG_SIZE, CHECKPOINT_SVG_SIZE } from "./path-node";
 import DotyMarker from "./doty-marker";
-import type { PathSection as PathSectionType } from "@/types/path.types";
+import PathPeer from "./path-peer";
+import type {
+  PathPeer as PathPeerType,
+  PathSection as PathSectionType,
+} from "@/types/path.types";
 
 interface PathSectionProps {
   section: PathSectionType;
   accentHex: string;
+  peersByNodeId: Record<number, PathPeerType[]>;
 }
 
 /* ── Zigzag helpers (evolved from level-section) ────────────── */
@@ -24,7 +29,11 @@ const LABEL_H = 30; // px – title under the circle
 const ROW_GAP = 18; // px – vertical gap between nodes
 const NODE_W = 150; // px – node wrapper width
 
-export default function PathSection({ section, accentHex }: PathSectionProps) {
+export default function PathSection({
+  section,
+  accentHex,
+  peersByNodeId,
+}: PathSectionProps) {
   const { id, name, progress, skipped, checkpointAvailable, nodes } = section;
   const [openKey, setOpenKey] = useState<string | null>(null);
 
@@ -138,7 +147,9 @@ export default function PathSection({ section, accentHex }: PathSectionProps) {
           )}
 
           {/* Nodes */}
-          {placed.map((p, index) => (
+          {placed.map((p, index) => {
+            const peersHere = peersByNodeId[p.node.id] ?? [];
+            return (
             <div
               key={p.key}
               className="absolute"
@@ -159,11 +170,33 @@ export default function PathSection({ section, accentHex }: PathSectionProps) {
                 onOpenChange={(v) => setOpenKey(v ? p.key : null)}
                 popoverAlign={p.xPct < 35 ? "left" : p.xPct > 65 ? "right" : "center"}
               />
-              {p.node.current && (
+              {/*
+                Doty and peers claim the same slot: the interior side of the
+                node, top-aligned. There is no room for both — a row is 170px
+                tall, Doty takes ~110 and two peers need ~105 — so on a node
+                that has peers, Doty yields. The star badge and the pulse still
+                mark the current node, and a peer is information while "¡Sigue
+                aquí!" is decoration.
+              */}
+              {p.node.current && peersHere.length === 0 && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
+              {peersHere.map((peer, peerIndex) => (
+                <PathPeer
+                  key={peer.id}
+                  peer={peer}
+                  // Always toward the inside of the zigzag. Flipping to the
+                  // outside on the current node would push the peer off-screen
+                  // on the 15% and 85% slots.
+                  side={p.xPct >= 50 ? "left" : "right"}
+                  stackIndex={peerIndex}
+                  // Compensate for nodes that overshoot their 150px wrapper.
+                  offset={Math.max(0, (p.svg - NODE_W) / 2)}
+                />
+              ))}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

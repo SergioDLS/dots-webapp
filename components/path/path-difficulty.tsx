@@ -3,7 +3,7 @@
 import React from "react";
 import Doty from "@/components/ui/doty/doty";
 import PathSection from "./path-section";
-import type { PathDifficulty as PathDifficultyType } from "@/types/path.types";
+import type { PathDifficulty as PathDifficultyType, PathPeer } from "@/types/path.types";
 import {
   DIFFICULTY_COLOR_NAMES,
   DIFFICULTY_COLOR_HEX,
@@ -11,6 +11,7 @@ import {
 
 interface PathDifficultyProps {
   difficulty: PathDifficultyType;
+  peersByNodeId: Record<number, PathPeer[]>;
 }
 
 const motivational = (pct: number): { msg: string; emoji: string } => {
@@ -23,7 +24,10 @@ const motivational = (pct: number): { msg: string; emoji: string } => {
   return           { msg: "¡Nivel dominado! ¡Increíble!",            emoji: "🏆" };
 };
 
-export default function PathDifficulty({ difficulty }: PathDifficultyProps) {
+export default function PathDifficulty({
+  difficulty,
+  peersByNodeId,
+}: PathDifficultyProps) {
   const { id, name, img, progress, skipped, sections } = difficulty;
 
   // Same palette rotation as the legacy dashboard: shift by difficulty id
@@ -186,6 +190,7 @@ export default function PathDifficulty({ difficulty }: PathDifficultyProps) {
                 key={section.id}
                 section={section}
                 accentHex={DIFFICULTY_COLOR_HEX[colorName] ?? accentHex}
+                peersByNodeId={peersByNodeId}
               />
             );
           })

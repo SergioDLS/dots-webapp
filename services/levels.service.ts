@@ -1,5 +1,8 @@
 import api from "../lib/api-client";
-import type { PathResponse } from "@/types/path.types";
+import type {
+  PathNeighborsResponse,
+  PathResponse,
+} from "@/types/path.types";
 
 async function getLevelsService() {
   try {
@@ -16,4 +19,13 @@ async function getPathService(): Promise<PathResponse> {
   return response.data;
 }
 
-export { getLevelsService, getPathService };
+/**
+ * Compañeros más cercanos en el camino. Es un adorno: quien lo consuma debe
+ * degradar en silencio si falla (ver PathContainer).
+ */
+async function getPathNeighborsService(): Promise<PathNeighborsResponse> {
+  const response = await api.get("/path/neighbors");
+  return response.data;
+}
+
+export { getLevelsService, getPathService, getPathNeighborsService };
