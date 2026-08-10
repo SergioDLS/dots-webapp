@@ -171,25 +171,30 @@ export default function PathSection({
               {p.node.current && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
-              {(peersByNodeId[p.node.id] ?? []).map((peer, peerIndex) => (
-                <PathPeer
-                  key={peer.id}
-                  peer={peer}
-                  // DotyMarker ocupa el lado interior del nodo actual, así que
-                  // ahí el vecino va al opuesto. En el resto de nodos usa la
-                  // misma regla "hacia adentro" del zigzag.
-                  side={
-                    p.node.current
-                      ? p.xPct >= 50
-                        ? "right"
-                        : "left"
-                      : p.xPct >= 50
-                        ? "left"
-                        : "right"
-                  }
-                  stackIndex={peerIndex}
-                />
-              ))}
+              {(peersByNodeId[p.node.id] ?? []).map((peer, peerIndex) => {
+                // Compensate for nodes that overshoot their 150px wrapper.
+                const overshoot = Math.max(0, (p.svg - NODE_W) / 2);
+                return (
+                  <PathPeer
+                    key={peer.id}
+                    peer={peer}
+                    // DotyMarker ocupa el lado interior del nodo actual, así que
+                    // ahí el vecino va al opuesto. En el resto de nodos usa la
+                    // misma regla "hacia adentro" del zigzag.
+                    side={
+                      p.node.current
+                        ? p.xPct >= 50
+                          ? "right"
+                          : "left"
+                        : p.xPct >= 50
+                          ? "left"
+                          : "right"
+                    }
+                    stackIndex={peerIndex}
+                    offset={overshoot}
+                  />
+                );
+              })}
             </div>
           ))}
         </div>

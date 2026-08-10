@@ -9,6 +9,8 @@ interface PathPeerProps {
   side: "left" | "right";
   /** Desplazamiento vertical para apilar varios vecinos en el mismo nodo. */
   stackIndex?: number;
+  /** Desplazamiento horizontal para compensar que el nodo sobresale de su wrapper. */
+  offset?: number;
 }
 
 const CIRCLE = 34;
@@ -26,9 +28,12 @@ export default function PathPeer({
   peer,
   side,
   stackIndex = 0,
+  offset = 0,
 }: PathPeerProps) {
+  // Compensate for nodes that overshoot their 150px wrapper (e.g., checkpoints at 158px).
+  const offsetValue = offset > 0 ? `calc(100% + ${offset}px)` : "100%";
   const anchor: React.CSSProperties =
-    side === "right" ? { left: "100%" } : { right: "100%" };
+    side === "right" ? { left: offsetValue } : { right: offsetValue };
   const hex = peerColor(peer.id);
   const initial = (peer.name?.trim()?.[0] ?? "?").toUpperCase();
   const label = peer.lastName ? `${peer.name} ${peer.lastName}.` : peer.name;
