@@ -108,7 +108,12 @@ body.
 ```
 
 - Ambos campos son nullable.
-- `lastName` va recortado a la inicial, igual que hace hoy `LeaderboardEntryDto`.
+- `lastName` va recortado a la inicial **en el servidor**.
+
+  Nota: esto expone estrictamente **menos** que el leaderboard actual, al
+  contrario de lo que decía una versión anterior de este spec.
+  `LeaderboardEntryDto` manda el apellido **completo** y el recorte, cuando
+  ocurre, lo hace el cliente. Aquí el dato nunca sale del servidor.
 - `distance` se mide en nodos. `0` significa mismo nodo.
 - `id` se incluye porque el frontend deriva de él el color determinista, y porque
   habilita el paso siguiente (retar) sin cambiar el contrato.
@@ -234,7 +239,14 @@ Quedan fuera del conjunto de candidatos:
 - El propio usuario que consulta.
 - Usuarios con `blocked = true`.
 - Usuarios con `expires` vencido (coherente con las reglas de acceso cerrado).
-- Usuarios sin `current_level` — invitado nuevo con placement pendiente.
+- Usuarios que completaron el camino entero: no tienen nodo actual que mostrar.
+
+**Corrección (2026-08-10).** Una versión anterior de este spec listaba aquí
+"usuarios sin `current_level`", contradiciendo la tabla de casos borde de más
+abajo. No existe tal exclusión y no debe existir: la posición ya no se deriva de
+`users.current_level`. Alguien con placement pendiente **puede** aparecer como
+vecino en el primer nodo si tiene actividad reciente, lo cual es coherente con
+tratar a quien saltó por placement según su posición real.
 
 ### Constantes
 
@@ -256,11 +268,17 @@ Aparte y opcional, se detectó que faltan índices por `id_user` en dos tablas m
 consultadas:
 
 ```sql
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_daily_use_user
-  ON dots.daily_use(id_user);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_levels_progress_user
   ON dots.levels_progress(id_user);
 ```
+
+**Corrección (2026-08-10): el índice sobre `daily_use(id_user)` NO sirve para
+esta feature.** La query de actividad filtra por
+`GREATEST(du.updated_at, du.created_at) >= NOW() - …` sin ninguna igualdad por
+`id_user`, así que un índice por esa columna es inutilizable y la query será
+siempre un scan completo de `daily_use`. Al único sitio donde ayudaría es a la
+query de lecturas — que además es la que no afecta al resultado. Que nadie lo
+cree creyendo que acelera esto. Con ~28 usuarios da igual de todas formas.
 
 `CONCURRENTLY` evita tomar lock sobre la BD compartida de producción. Va como script
 aparte, con dry-run por defecto y `--apply` explícito, según la regla del backend. **No
