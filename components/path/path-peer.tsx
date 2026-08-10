@@ -11,6 +11,14 @@ interface PathPeerProps {
   stackIndex?: number;
   /** Desplazamiento horizontal para compensar que el nodo sobresale de su wrapper. */
   offset?: number;
+  /**
+   * Desplazamiento vertical extra cuando el nodo es el actual.
+   * DotyMarker ocupa desde top=-6 hasta ~top=104; con 112px el vecino
+   * siempre queda por debajo sin importar el stackIndex.
+   * Este valor es independiente de stackIndex: uno significa "¿cuántos
+   * vecinos hay apilados?" y el otro "¿hay que esquivar a Doty?".
+   */
+  currentNodeOffset?: number;
 }
 
 const CIRCLE = 34;
@@ -29,6 +37,7 @@ export default function PathPeer({
   side,
   stackIndex = 0,
   offset = 0,
+  currentNodeOffset = 0,
 }: PathPeerProps) {
   // Compensate for nodes that overshoot their 150px wrapper (e.g., checkpoints at 158px).
   const offsetValue = offset > 0 ? `calc(100% + ${offset}px)` : "100%";
@@ -42,7 +51,7 @@ export default function PathPeer({
     <div
       className="absolute flex flex-col items-center gap-0.5 pointer-events-none select-none"
       style={{
-        top: 18 + stackIndex * SLOT_H,
+        top: 18 + currentNodeOffset + stackIndex * SLOT_H,
         width: 72,
         zIndex: 20,
         ...anchor,

@@ -174,24 +174,26 @@ export default function PathSection({
               {(peersByNodeId[p.node.id] ?? []).map((peer, peerIndex) => {
                 // Compensate for nodes that overshoot their 150px wrapper.
                 const overshoot = Math.max(0, (p.svg - NODE_W) / 2);
+                // DotyMarker sits on top of -6px and is ~110px tall. 112px of
+                // vertical offset clears it with margin regardless of stackIndex.
+                // Both peers on the current node get the same base offset; their
+                // mutual separation is still handled by stackIndex * SLOT_H.
+                // This constant is separate from stackIndex: stackIndex means
+                // "how many peers are stacked here"; this means "dodge DotyMarker".
+                const DOTY_CLEARANCE = 112;
                 return (
                   <PathPeer
                     key={peer.id}
                     peer={peer}
-                    // DotyMarker ocupa el lado interior del nodo actual, así que
-                    // ahí el vecino va al opuesto. En el resto de nodos usa la
-                    // misma regla "hacia adentro" del zigzag.
-                    side={
-                      p.node.current
-                        ? p.xPct >= 50
-                          ? "right"
-                          : "left"
-                        : p.xPct >= 50
-                          ? "left"
-                          : "right"
-                    }
+                    // Peers always go toward the inside of the zigzag (same rule
+                    // for current and non-current nodes). On the current node,
+                    // DotyMarker goes to the interior side too, so we push the peer
+                    // *down* via currentNodeOffset instead of flipping the side,
+                    // which would send it off-screen on extreme xPct slots.
+                    side={p.xPct >= 50 ? "left" : "right"}
                     stackIndex={peerIndex}
                     offset={overshoot}
+                    currentNodeOffset={p.node.current ? DOTY_CLEARANCE : 0}
                   />
                 );
               })}

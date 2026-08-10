@@ -44,6 +44,12 @@ export default function PathContainer() {
   const { isBootstrapping } = useAuth();
   const router = useRouter();
   const [path, setPath] = useState<PathResponse | null>(null);
+  // Tracks whether the path came from GET /path (true) or the /levels adapter
+  // fallback (false). Peers use path_nodes.id as keys; the adapter uses
+  // levels.id — a different id space — so a peer could land on an arbitrary
+  // unrelated node if both responses happen to share a number. When the adapter
+  // is active, we suppress peers entirely rather than show misleading positions.
+  const [pathIsCanonical, setPathIsCanonical] = useState(false);
   const [error, setError] = useState(false);
   const [peersByNodeId, setPeersByNodeId] = useState<
     Record<number, PathPeer[]>
@@ -57,13 +63,18 @@ export default function PathContainer() {
       try {
         const data = await getPathService();
         // El backend ya marca exactamente un `current` con la regla compartida.
-        if (mounted) setPath(data);
+        if (mounted) {
+          setPath(data);
+          setPathIsCanonical(true);
+        }
       } catch {
         // Silent fallback: /path is not deployed yet → adapt /levels
         console.warn("GET /path unavailable, falling back to /levels + adapter");
         try {
           const data = await getLevelsService();
           const list = Array.isArray(data) ? data : (data?.levels ?? []);
+          // pathIsCanonical stays false: adapter uses levels.id as node ids,
+          // which is a different id space from path_nodes.id that peers reference.
           if (mounted) setPath(normalizeCurrent(adaptLevelsToPath(list)));
         } catch {
           if (mounted) setError(true);
@@ -79,8 +90,12 @@ export default function PathContainer() {
   // desplegado, el camino se ve exactamente como hoy. Sin loadError, sin botón
   // de Reintentar y sin ruido para el alumno (excepción consciente a la regla 5
   // del CLAUDE.md, que aplica a fetches que bloquean el juego).
+  //
+  // pathIsCanonical is in the dep array so this effect re-runs once GET /path
+  // succeeds and flips the flag to true. It skips early when false so peers are
+  // never drawn over the adapter's level-id nodes.
   useEffect(() => {
-    if (isBootstrapping) return;
+    if (isBootstrapping || !pathIsCanonical) return;
     let mounted = true;
     (async () => {
       try {
@@ -99,7 +114,7 @@ export default function PathContainer() {
     return () => {
       mounted = false;
     };
-  }, [isBootstrapping]);
+  }, [isBootstrapping, pathIsCanonical]);
 
   // Brand-new accounts (no placement record, zero progress) go through
   // onboarding first. Fail-open by design: the adapter fallback and any
