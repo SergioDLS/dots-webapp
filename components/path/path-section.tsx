@@ -147,7 +147,9 @@ export default function PathSection({
           )}
 
           {/* Nodes */}
-          {placed.map((p, index) => (
+          {placed.map((p, index) => {
+            const peersHere = peersByNodeId[p.node.id] ?? [];
+            return (
             <div
               key={p.key}
               className="absolute"
@@ -168,37 +170,33 @@ export default function PathSection({
                 onOpenChange={(v) => setOpenKey(v ? p.key : null)}
                 popoverAlign={p.xPct < 35 ? "left" : p.xPct > 65 ? "right" : "center"}
               />
-              {p.node.current && (
+              {/*
+                Doty and peers claim the same slot: the interior side of the
+                node, top-aligned. There is no room for both — a row is 170px
+                tall, Doty takes ~110 and two peers need ~105 — so on a node
+                that has peers, Doty yields. The star badge and the pulse still
+                mark the current node, and a peer is information while "¡Sigue
+                aquí!" is decoration.
+              */}
+              {p.node.current && peersHere.length === 0 && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
-              {(peersByNodeId[p.node.id] ?? []).map((peer, peerIndex) => {
-                // Compensate for nodes that overshoot their 150px wrapper.
-                const overshoot = Math.max(0, (p.svg - NODE_W) / 2);
-                // DotyMarker sits on top of -6px and is ~110px tall. 112px of
-                // vertical offset clears it with margin regardless of stackIndex.
-                // Both peers on the current node get the same base offset; their
-                // mutual separation is still handled by stackIndex * SLOT_H.
-                // This constant is separate from stackIndex: stackIndex means
-                // "how many peers are stacked here"; this means "dodge DotyMarker".
-                const DOTY_CLEARANCE = 112;
-                return (
-                  <PathPeer
-                    key={peer.id}
-                    peer={peer}
-                    // Peers always go toward the inside of the zigzag (same rule
-                    // for current and non-current nodes). On the current node,
-                    // DotyMarker goes to the interior side too, so we push the peer
-                    // *down* via currentNodeOffset instead of flipping the side,
-                    // which would send it off-screen on extreme xPct slots.
-                    side={p.xPct >= 50 ? "left" : "right"}
-                    stackIndex={peerIndex}
-                    offset={overshoot}
-                    currentNodeOffset={p.node.current ? DOTY_CLEARANCE : 0}
-                  />
-                );
-              })}
+              {peersHere.map((peer, peerIndex) => (
+                <PathPeer
+                  key={peer.id}
+                  peer={peer}
+                  // Always toward the inside of the zigzag. Flipping to the
+                  // outside on the current node would push the peer off-screen
+                  // on the 15% and 85% slots.
+                  side={p.xPct >= 50 ? "left" : "right"}
+                  stackIndex={peerIndex}
+                  // Compensate for nodes that overshoot their 150px wrapper.
+                  offset={Math.max(0, (p.svg - NODE_W) / 2)}
+                />
+              ))}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
