@@ -27,7 +27,8 @@ const ROUNDS = [
 ] as const;
 
 const BOARD_ROWS = 5; // visible rows per column
-const SHAKE_MS = 500;
+const SHAKE_MS = 400; // matches the dots-shake-x animation
+const LEAVE_MS = 160; // matches the CSS leave transition
 const BANNER_MS = 1200;
 const SCORE_PER_MATCH = 10;
 const SCORE_MAX_COMBO = 5; // multiplier on maxCombo at end
@@ -51,6 +52,8 @@ type Slot = {
   text: string; // displayed text
   side: "en" | "es";
   leaving: boolean; // animating out
+  stagger: number; // deal-in delay index (row); 0 = refill, no delay
+  shaken: boolean; // already shaken by a wrong match — suppresses deal-in replay
 };
 
 /** Build the initial 5-slot column from the first 5 queue items. */
@@ -58,7 +61,14 @@ function buildColumn(
   items: MatchPair[],
   side: "en" | "es",
 ): Slot[] {
-  return items.map((p) => ({ pairId: p.id, text: side === "en" ? p.en : p.es, side, leaving: false }));
+  return items.map((p, idx) => ({
+    pairId: p.id,
+    text: side === "en" ? p.en : p.es,
+    side,
+    leaving: false,
+    stagger: idx,
+    shaken: false,
+  }));
 }
 
 // ── Seed reader (inside Suspense boundary) ────────────────────────────────────
@@ -280,20 +290,31 @@ function DotMatchInner({ seed }: { seed?: number }) {
         // After animation, refill the freed slots
         setTimeout(() => {
           const replacement = nextPair();
+          // Anti-farm guard: the new ES lands at a RANDOM row (swapping with
+          // the occupant, which moves into the vacated slot). If it always
+          // landed at the vacated index, every refill would gift a guaranteed
+          // pair — tap the two fresh cells, no reading required.
+          const swapIdx = Math.floor(Math.random() * BOARD_ROWS);
           setLeftCol((prev) =>
             prev.map((s, i) =>
               i === lIdx
-                ? { pairId: replacement.id, text: replacement.en, side: "en", leaving: false }
+                ? { pairId: replacement.id, text: replacement.en, side: "en", leaving: false, stagger: 0, shaken: false }
                 : s,
             ),
           );
           setRightCol((prev) => {
-            // Place ES replacement at the vacated slot
             const updated = prev.map((s, i) =>
               i === rIdx
-                ? { pairId: replacement.id, text: replacement.es, side: "es" as const, leaving: false }
+                ? { pairId: replacement.id, text: replacement.es, side: "es" as const, leaving: false, stagger: 0, shaken: false }
                 : s,
             );
+            if (swapIdx !== rIdx) {
+              // both cells remount (pairId is in the key) with the same pop-in,
+              // so which one holds the new word stays visually ambiguous
+              const displaced = { ...updated[swapIdx], stagger: 0, shaken: false };
+              updated[swapIdx] = updated[rIdx];
+              updated[rIdx] = displaced;
+            }
             return updated;
           });
           processingRef.current = false;
@@ -319,7 +340,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
               }, BANNER_MS);
             }
           }
-        }, 250); // matches the CSS transition duration
+        }, LEAVE_MS);
       } else {
         // Wrong match
         playSound("wrong");
@@ -328,6 +349,14 @@ function DotMatchInner({ seed }: { seed?: number }) {
         // Shake animation: store the tapped indices so JSX can gate on them
         // independently of selection state (which we clear immediately below)
         setShake({ left: lIdx, right: rIdx });
+        // Mark both slots so the deal-in animation doesn't replay once the
+        // shake ends (the `animation` prop switches back afterwards)
+        setLeftCol((prev) =>
+          prev.map((s, i) => (i === lIdx ? { ...s, shaken: true } : s)),
+        );
+        setRightCol((prev) =>
+          prev.map((s, i) => (i === rIdx ? { ...s, shaken: true } : s)),
+        );
         if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
         shakeTimerRef.current = setTimeout(() => {
           setShake(null);
@@ -528,7 +557,13 @@ function DotMatchInner({ seed }: { seed?: number }) {
               </span>
               <span
                 className="font-display text-2xl font-extrabold tabular-nums"
-                style={{ color: timeColor }}
+                style={{
+                  color: timeColor,
+                  animation:
+                    timeLeft <= 10
+                      ? "dots-timer-pulse 1s ease-in-out infinite"
+                      : "none",
+                }}
               >
                 {timeLeft}s
               </span>
@@ -539,7 +574,19 @@ function DotMatchInner({ seed }: { seed?: number }) {
                 Puntos
               </span>
               <span className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
-                {score}
+                {/* keyed by value: remounts on change to retrigger the pop */}
+                <span
+                  key={score}
+                  className="inline-block"
+                  style={{
+                    animation:
+                      score > 0
+                        ? "dots-score-pop 0.25s var(--ease-out-strong)"
+                        : "none",
+                  }}
+                >
+                  {score}
+                </span>
               </span>
             </div>
           </div>
@@ -551,6 +598,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             </span>
             {combo > 0 && (
               <span
+                key={combo}
                 className="rounded-full px-3 py-0.5 text-xs font-black"
                 style={{
                   background: "color-mix(in srgb, var(--gold) 20%, transparent)",
@@ -577,24 +625,31 @@ function DotMatchInner({ seed }: { seed?: number }) {
                     onPointerUp={() => tapLeft(idx)}
                     className="dots-pressable w-full rounded-2xl border-2 px-3 py-3 text-center text-sm font-bold select-none"
                     style={{
-                      borderColor: selected
-                        ? "var(--accent)"
-                        : "var(--border)",
-                      background: selected
-                        ? "color-mix(in srgb, var(--accent) 12%, transparent)"
-                        : "var(--surface)",
+                      borderColor: slot.leaving
+                        ? "var(--success)"
+                        : selected
+                          ? "var(--accent)"
+                          : "var(--border)",
+                      background: slot.leaving
+                        ? "color-mix(in srgb, var(--success) 18%, transparent)"
+                        : selected
+                          ? "color-mix(in srgb, var(--accent) 12%, transparent)"
+                          : "var(--surface)",
                       color: "var(--foreground)",
                       opacity: slot.leaving ? 0 : 1,
-                      transform: slot.leaving
-                        ? "scale(0.8)"
+                      // no base transform: an inline one would always override
+                      // the :active translateY(4px) press from dots-pressable
+                      transform: slot.leaving ? "scale(0.8)" : undefined,
+                      animation: slot.leaving
+                        ? "none"
                         : shaking
-                          ? "translateX(4px)"
-                          : "scale(1)",
+                          ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                          : slot.shaken
+                            ? "none"
+                            : `dots-slot-in 0.22s var(--ease-out-strong) ${slot.stagger * 45}ms backwards`,
                       transition: slot.leaving
-                        ? "opacity 0.25s ease, transform 0.25s ease"
-                        : shaking
-                          ? "transform 0.05s ease"
-                          : "border-color 0.15s, background 0.15s, opacity 0.25s, transform 0.25s",
+                        ? "opacity 0.16s var(--ease-out-strong), transform 0.16s var(--ease-out-strong), border-color 0.1s, background 0.1s"
+                        : "border-color 0.15s, background 0.15s, transform 120ms ease",
                       minHeight: "3rem",
                       ["--press-color" as string]: "var(--accent-soft)",
                     }}
@@ -617,24 +672,31 @@ function DotMatchInner({ seed }: { seed?: number }) {
                     onPointerUp={() => tapRight(idx)}
                     className="dots-pressable w-full rounded-2xl border-2 px-3 py-3 text-center text-sm font-bold select-none"
                     style={{
-                      borderColor: selected
-                        ? "var(--accent)"
-                        : "var(--border)",
-                      background: selected
-                        ? "color-mix(in srgb, var(--accent) 12%, transparent)"
-                        : "var(--surface)",
+                      borderColor: slot.leaving
+                        ? "var(--success)"
+                        : selected
+                          ? "var(--accent)"
+                          : "var(--border)",
+                      background: slot.leaving
+                        ? "color-mix(in srgb, var(--success) 18%, transparent)"
+                        : selected
+                          ? "color-mix(in srgb, var(--accent) 12%, transparent)"
+                          : "var(--surface)",
                       color: "var(--foreground)",
                       opacity: slot.leaving ? 0 : 1,
-                      transform: slot.leaving
-                        ? "scale(0.8)"
+                      // no base transform: an inline one would always override
+                      // the :active translateY(4px) press from dots-pressable
+                      transform: slot.leaving ? "scale(0.8)" : undefined,
+                      animation: slot.leaving
+                        ? "none"
                         : shaking
-                          ? "translateX(-4px)"
-                          : "scale(1)",
+                          ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                          : slot.shaken
+                            ? "none"
+                            : `dots-slot-in 0.22s var(--ease-out-strong) ${slot.stagger * 45}ms backwards`,
                       transition: slot.leaving
-                        ? "opacity 0.25s ease, transform 0.25s ease"
-                        : shaking
-                          ? "transform 0.05s ease"
-                          : "border-color 0.15s, background 0.15s, opacity 0.25s, transform 0.25s",
+                        ? "opacity 0.16s var(--ease-out-strong), transform 0.16s var(--ease-out-strong), border-color 0.1s, background 0.1s"
+                        : "border-color 0.15s, background 0.15s, transform 120ms ease",
                       minHeight: "3rem",
                       ["--press-color" as string]: "var(--accent-soft)",
                     }}

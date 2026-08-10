@@ -81,6 +81,11 @@
   --radius-lg: 1.5rem;
   --radius-xl: 2rem;
 
+  /* Motion curves — strong easings for deliberate motion; the built-in
+     CSS keywords are too weak to read as intentional */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+
   color-scheme: light;
 }
 
@@ -251,6 +256,34 @@ h1, h2, h3, .font-display {
 @keyframes dots-slide-up {
   0%   { transform: translateY(14px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
+}
+
+/* board slot dealing in (game boards; pair with `backwards` fill + stagger) */
+@keyframes dots-slot-in {
+  0%   { transform: scale(0.9) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* wrong-answer shake — decaying horizontal oscillation */
+@keyframes dots-shake-x {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+
+/* HUD number bump on change (score counters; retrigger via key remount) */
+@keyframes dots-score-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* critical-time heartbeat (countdown timers) */
+@keyframes dots-timer-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
 }
 
 @keyframes dots-float {
