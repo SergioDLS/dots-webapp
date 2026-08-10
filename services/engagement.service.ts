@@ -4,9 +4,7 @@ import api from "@/lib/api-client";
 export type GameKey =
   | "dot-bombs"
   | "dont-pop"
-  | "flashcards"
   | "dotaxi"
-  | "speed-round"
   | "dot-match"
   | "true-false"
   | "memory"

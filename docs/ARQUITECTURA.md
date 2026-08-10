@@ -25,7 +25,7 @@ Fuera de `(app)` y sin sesión: `/` (login), `/forgot` (recuperar contraseña) y
 
 ## Los 14 juegos (`app/(app)/games/`)
 
-Legacy (5): dont-pop, dot-bombs (teclado físico — NO RN-safe, pendiente de reemplazo por anagrama tap), dotaxi, flashcards, speed-round.
+Legacy (3): dont-pop, dot-bombs (teclado físico — NO RN-safe; rediseño a anagrama tap aprobado, ver `docs/superpowers/specs/2026-08-10-dot-bombs-anagram-redesign.md`), dotaxi. (flashcards y speed-round fueron retirados el 2026-08-10; récords purgados.)
 
 Nuevos (9, todos RN-safe y con `?seed=` determinista donde aplica):
 
@@ -60,7 +60,7 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.
 - dot-bombs/dotaxi dependen de teclado físico (legacy, pre-RN).
-- "Salir" a mitad de memory/dot-match va a result con score parcial (decisión de diseño).
+- "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10).
 
 ## Historia
 

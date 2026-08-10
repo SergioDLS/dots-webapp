@@ -23,8 +23,6 @@ type Skin = { img?: string; emoji?: string; hue: string };
 const SKIN: Record<string, Skin> = {
   "/wordle": { emoji: "🟩", hue: "--success" },
   "/crossword": { emoji: "✏️", hue: "--primary" },
-  "/flashcards": { emoji: "🎴", hue: "--accent" },
-  "/speed-round": { emoji: "⚡", hue: "--gold" },
   "/dot-match": { emoji: "🔗", hue: "--gem" },
   "/true-false": { emoji: "🃏", hue: "--accent" },
   "/memory": { emoji: "🧠", hue: "--primary" },

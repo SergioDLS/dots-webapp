@@ -36,19 +36,6 @@ export type GameWord = {
   answered: boolean;
 };
 
-export type FlashcardOption = {
-  name: string;
-  marked: boolean;
-};
-
-export type Flashcard = {
-  title: string;
-  src: string | null;
-  options: FlashcardOption[];
-  correct: number;
-  answered: boolean;
-};
-
 export type DotaxiQuestion = {
   id: number;
   text: string;
@@ -65,11 +52,6 @@ export async function getGamesService(): Promise<Game[]> {
 
 export async function getGameWordsService(): Promise<GameWord[]> {
   const { data } = await api.get<GameWord[]>("/games/words");
-  return data;
-}
-
-export async function getFlashcardsService(): Promise<Flashcard[]> {
-  const { data } = await api.get<Flashcard[]>("/games/flashcards");
   return data;
 }
 
