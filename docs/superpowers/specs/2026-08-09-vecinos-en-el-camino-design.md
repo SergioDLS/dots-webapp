@@ -73,9 +73,17 @@ hay que revisar.
 
 **Dentro:**
 
+- Extraer el recorrido del camino a una función pura `path-walk.ts` y hacer que
+  `PathService.getPath()` la use, de modo que exista una sola regla de "nodo actual".
+- Arreglar la divergencia de `normalizeCurrent()` en el frontend (ver *Paso 2*), que hoy
+  permite que un nodo `reading` se robe la estrella de nodo actual.
 - Endpoint `GET /path/neighbors` en `dots-backend`.
 - Componente `PathPeer` y su cableado en `dots-webapp`.
-- Test de coherencia entre `/path` y el cálculo de posición de vecinos.
+- Tests con fixtures de `path-walk.ts`, incluyendo el caso de la lectura que hoy se roba
+  el nodo actual.
+
+Los dos primeros puntos no son adornos: sin ellos la distancia entre vecinos es
+incorrecta por construcción.
 
 **Fuera, a propósito:**
 
@@ -110,33 +118,74 @@ body.
 **Paso 1 — índice global del catálogo.** El orden es total y estable:
 
 ```sql
-SELECT pn.id
+SELECT pn.id, pn.type, pn.ref_id, pn.section_id
 FROM dots.path_nodes pn
 JOIN dots.section s    ON s.id = pn.section_id
 JOIN dots.difficulty d ON d.id = s.id_difficulty
-WHERE pn.enabled = true AND s.enabled = true AND d.enabled = true
+WHERE pn.enabled = true AND d.enabled = true
 ORDER BY d.id, s.id, pn.position
 ```
 
 Produce un `Map<nodeId, índice>`. Sin caché en la primera versión: es una query y son
 ~28 usuarios.
 
+Dos detalles que **deben** replicar lo que hace `getPath()`, o el índice se desalinea:
+
+- `dots.section` **no tiene columna `enabled`**; solo se filtra `path_nodes.enabled` y
+  `difficulty.enabled`. Filtrar de más aquí desplazaría todos los índices.
+- Los nodos `practice` cuyo `ref_id` apunta a un nivel deshabilitado o inexistente se
+  **omiten** del catálogo, igual que en `path.service.ts:116-119`.
+
 **Paso 2 — posición de cada usuario (el punto crítico).**
 
 `users.current_level` es FK a `levels.id`, **no** a `path_nodes.id`: son dos tablas
-distintas. Si la posición de los vecinos se calcula con una regla y `/path` marca
-`current` con otra, la feature miente en ambas direcciones a la vez — Sofía vería
-"Diego está a 2 nodos" mientras Diego ve "Sofía está a 4".
+distintas, así que ese campo **no** sirve para ubicar a nadie en el camino. Descartado.
 
-Por eso la ubicación se resuelve con **una única función batch compartida**:
+La posición real ya se calcula hoy, en el recorrido ordenado de
+`PathService.getPath()` (`path.service.ts:97-138`), con dos acumuladores
+(`frontierOpen`, `currentAssigned`) sobre el orden `difficulty.id → section.id →
+position`. Esa es la regla buena.
 
-```ts
-currentNodeIndexFor(userIds: number[]): Map<number, number>
-```
+### Divergencia detectada (bug preexistente)
 
-`/path` la usa para el usuario que consulta; `/path/neighbors` la usa para todos los
-activos. Un test debe verificar que su salida coincide con el nodo que `/path` marca
-como `current` para el mismo usuario. Sin ese test la divergencia se pudre en silencio.
+El frontend **sobrescribe** el `current` del backend con una regla distinta, en
+`normalizeCurrent()` de `path-container.tsx:15-32`:
+
+| | Excluye `checkpoint` | Excluye `reading` |
+|---|---|---|
+| Backend (`isOptional`) | sí | **sí** |
+| Frontend (`normalizeCurrent`) | sí | **no** |
+
+Consecuencia en producción hoy: **un nodo de tipo `reading` puede robarse la estrella
+de "nodo actual"**, el marcador de Doty y el auto-scroll, aunque las lecturas son
+opcionales y no cierran la frontera de desbloqueo. Es un bug que ya existe,
+independiente de esta feature.
+
+Para los vecinos es fatal: si el backend ubica a Sofía con una regla y la pantalla de
+Sofía usa otra, la distancia miente en ambas direcciones a la vez.
+
+### Resolución
+
+1. Extraer el recorrido a una **función pura** `findCurrentNodeId()` en
+   `src/modules/path/path-walk.ts`, sin dependencias de TypeORM ni de la BD — así se
+   testea con fixtures, cumpliendo la regla de no tocar la BD compartida.
+2. `PathService.getPath()` pasa a usarla (`current = node.id === currentNodeId`), de
+   modo que existe **una sola** implementación de la regla.
+3. El endpoint de vecinos usa la misma función para cada usuario activo.
+4. **Arreglar el frontend:** `normalizeCurrent()` queda restringido al fallback de
+   `/levels` + adapter, que es el único caso donde el `current` no viene calculado.
+   Cuando `/path` responde, sus flags se respetan tal cual.
+
+Con el punto 2 aplicado, la coherencia **deja de ser algo que un test vigila** y pasa a
+ser estructural: hay una sola implementación, y `getPath()` se limita a comparar
+`node.id === currentNodeId`. Un test que verificara esa igualdad sería tautológico.
+
+Lo que sí cubren los tests de `path-walk.ts` son las invariantes de la regla: que el
+nodo actual nunca sea una lectura ni un checkpoint, que las secciones superadas por test
+se atraviesen como completas, y que el catálogo omita los `practice` de niveles
+deshabilitados. Contra el riesgo real que queda —que alguien vuelva a duplicar la regla
+en otro archivo— ningún test sirve; por eso el comentario de cabecera de `path-walk.ts`
+lo dice de forma explícita.
 
 **Paso 3 — filtro de actividad (7 días).**
 
@@ -160,11 +209,19 @@ Ordenar los usuarios activos por índice.
   más avanzado es `ahead` con `distance: 0`; si va menos, es `behind` con
   `distance: 0`. Si el progreso también empata, desempata `id` ascendente.
 
-  El progreso debe leerse de **la misma fuente que `/path` usa para poblar el campo
-  `progress` de ese nodo**, no de `levels_progress` directamente: los nodos del camino
-  no son todos niveles (hay `vocab`, `grammar`, `pronunciation`, `letters`, `numbers`,
-  `reading` y `checkpoint`), y `levels_progress` solo cubre los de tipo `practice`.
-  Resolver esto por tipo de nodo es parte de `currentNodeIndexFor`.
+  El progreso **no** se lee de `levels_progress` directamente: los nodos del camino no
+  son todos niveles (hay `vocab`, `grammar`, `pronunciation`, `letters`, `numbers`,
+  `reading` y `checkpoint`) y `levels_progress` solo cubre los de tipo `practice`. La
+  regla por tipo ya existe en el método privado `PathService.nodeProgress()`
+  (`path.service.ts:213-234`) y se extrae junto con el recorrido a `path-walk.ts`:
+
+  | Tipo de nodo | Fuente del progreso |
+  |---|---|
+  | sección superada (`section_test`) | `100`, cualquier tipo |
+  | `checkpoint` | `0` si la sección no fue superada |
+  | `reading` | `100` si hay `daily_use` de esa lectura, si no `0` |
+  | `practice` | `levels_progress.progress` del `refId` |
+  | resto | `node_progress.progress` del `nodeId` |
 
 El caso `distance: 0` es deliberadamente el más visible de la feature: "Sofía está en
 tu mismo nodo, un poco más adelante" es el mensaje con más potencial motivador de
@@ -282,7 +339,8 @@ holgura suficiente para los 96 px que `DotyMarker` ya ocupa hoy sin romperse.
 | Vecino en tu mismo nodo | `distance: 0`; se ubica por progreso dentro del nodo. |
 | Dos vecinos en tu mismo nodo | Se apilan verticalmente, lado opuesto a Doty. |
 | Vecino en dificultad que no desbloqueaste | Se pinta igual: el nodo existe en tu árbol aunque esté bloqueado. Limitado en la práctica por el tope de 5 nodos. |
-| Usuario recién invitado, sin `current_level` | Excluido del conjunto. |
+| Usuario que completó el camino entero | Excluido: no tiene nodo actual que mostrar. |
+| Usuario recién invitado, sin nada de progreso | Su nodo actual es el primero del camino. En la práctica no aparece igual, porque sin filas en `daily_use` no pasa el filtro de actividad. |
 | Usuario que saltó por placement | Cuenta con su posición real, sin caso especial: es su nivel real, no un atajo. |
 | El endpoint falla | Sin vecinos, sin error visible, sin botón de reintentar. |
 
@@ -293,8 +351,10 @@ preview manual.
 
 **Backend:**
 
-- `npm test` verde, incluyendo el test de coherencia `/path` vs `currentNodeIndexFor`.
-- La lógica de selección se prueba con fixtures. **Nunca contra la BD compartida.**
+- `npm test` verde, con `path-walk.spec.ts` y `neighbors-select.spec.ts` cubriendo las
+  invariantes de la regla y la selección de vecinos.
+- Toda la lógica se prueba con fixtures y repositorios mockeados con `jest.fn()`.
+  **Nunca contra la BD compartida.**
 
 **Frontend:**
 
