@@ -106,6 +106,7 @@ function MemoryInner({ seed }: { seed?: number }) {
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedAtRef = useRef<number>(0);
   const finalSecondsRef = useRef<number>(0); // stable final time for score calculation
+  const movesRef = useRef<number>(0); // authoritative count: the victory closure's `moves` state is one behind
 
   // Load pairs (re-runs on retry via fetchAttempt)
   const [fetchAttempt, setFetchAttempt] = useState(0);
@@ -155,19 +156,19 @@ function MemoryInner({ seed }: { seed?: number }) {
     setSeconds(finalSeconds);
   }, []);
 
-  // Set final score when transitioning to result phase (using ref to avoid
-  // timing issues). Tournament mode submits once here; leaving "result"
-  // (retry) re-arms the guard so the next run counts too.
+  // Tournament/challenge submit once on result; leaving "result" (retry)
+  // re-arms the guard so the next run counts too. finalScore se setea JUNTO
+  // al cambio de phase (mismo commit): GameResult envía al montar y los
+  // efectos del hijo corren antes que los del padre — calcularlo aquí llegaba
+  // un commit tarde y enviaba 0.
   useEffect(() => {
     if (phase === "result") {
-      const computed = calcScore(finalSecondsRef.current, moves);
-      setFinalScore(computed);
-      submitTournamentScore(computed);
-      submitChallengeScore(computed);
+      submitTournamentScore(finalScore);
+      submitChallengeScore(finalScore);
     } else {
       resetTournamentSubmit();
     }
-  }, [phase, moves]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = useCallback(() => {
     // Clean up any pending timers from a previous run
@@ -176,6 +177,7 @@ function MemoryInner({ seed }: { seed?: number }) {
 
     openKeysRef.current = [];
     resolvingRef.current = false;
+    movesRef.current = 0;
     setCards(buildCards(pairs));
     setFlipped(new Set());
     setMatched(new Set());
@@ -207,6 +209,7 @@ function MemoryInner({ seed }: { seed?: number }) {
       const cardB = cards.find((c) => c.key === keyB)!;
       const isMatch = cardA.pairId === cardB.pairId;
 
+      movesRef.current += 1;
       setMoves((m) => m + 1);
 
       if (isMatch) {
@@ -220,8 +223,13 @@ function MemoryInner({ seed }: { seed?: number }) {
         // All pairs found → game over
         if (newMatched.size === MEMORY_PAIRS * 2) {
           stopTimer();
-          // Use final elapsed seconds for score — schedule slightly so timer state settles
-          setTimeout(() => setPhase("result"), 200);
+          // Score calculado AHORA (refs ya estables) y comiteado junto al
+          // cambio de phase, para que GameResult monte con el valor real
+          const computed = calcScore(finalSecondsRef.current, movesRef.current);
+          setTimeout(() => {
+            setFinalScore(computed);
+            setPhase("result");
+          }, 200);
         }
       } else {
         playSound("wrong");
@@ -365,8 +373,11 @@ function MemoryInner({ seed }: { seed?: number }) {
           >
             <button
               onClick={() => {
+                // Abandonar NO envía score: la fórmula parte de 1000 y baja,
+                // así que un "resultado parcial" al salir temprano valdría más
+                // que cualquier partida completa (exploit de torneo)
                 stopTimer();
-                setPhase("result");
+                router.push("/play");
               }}
               className="text-sm font-bold transition-colors"
               style={{ color: "var(--muted)" }}
