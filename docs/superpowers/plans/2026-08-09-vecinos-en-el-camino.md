@@ -1811,7 +1811,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ## Notas para el revisor
 
 - **El cambio de mayor riesgo es el Task 2**, porque toca la pantalla más crítica de la app. Su diff debería ser puramente mecánico: mismo recorrido, con `nodeProgressFor` y `currentNodeId` en lugar de lógica inline. Si el diff hace algo más que eso, sospecha.
-- **El Task 2 arregla un bug preexistente** (un nodo `reading` podía marcarse como actual). Es un cambio de comportamiento visible: si alguien tenía la estrella sobre una lectura, se moverá al siguiente nodo obligatorio. Es lo correcto, pero conviene saberlo antes de que alguien lo reporte como regresión.
+- **Corrección tras ejecutar el Task 2 (2026-08-10):** el bug del nodo `reading` **no** se arregla en el Task 2. El backend ya calculaba `isOptional = isCheckpoint || isReading` antes del refactor, así que `getPath()` nunca pudo marcar una lectura como actual; el Task 2 deja los DTOs de `/path` 100% idénticos, sin excepciones. El bug vive **solo** en `normalizeCurrent()` del frontend y lo cierra el **Task 6**. Es ahí donde hay un cambio de comportamiento visible: si alguien tenía la estrella sobre una lectura, se moverá al siguiente nodo obligatorio.
+- **Ningún test ejercita `PathService.getPath()`.** No existe un spec para ese método en todo el repo, así que el verde de la suite es ortogonal al refactor del Task 2 y no habría detectado una regresión ahí. La confianza en la equivalencia descansa en la comparación línea a línea que hizo la review, no en los tests.
 - **Ningún task aplica DDL.** Los dos índices que faltan (`daily_use.id_user`, `levels_progress.id_user`) están fuera de este plan a propósito; ver la sección *Migraciones* del spec.
 - **No hay caché.** Con ~28 usuarios, `place()` corre 6 queries por request a `/path/neighbors`. Si eso deja de ser aceptable, el primer paso es cachear el catálogo (que es global y cambia poco), no el resultado por usuario.
 
