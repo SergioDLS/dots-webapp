@@ -3,11 +3,16 @@
 import React, { useState } from "react";
 import PathNode, { NODE_SVG_SIZE, CHECKPOINT_SVG_SIZE } from "./path-node";
 import DotyMarker from "./doty-marker";
-import type { PathSection as PathSectionType } from "@/types/path.types";
+import PathPeer from "./path-peer";
+import type {
+  PathPeer as PathPeerType,
+  PathSection as PathSectionType,
+} from "@/types/path.types";
 
 interface PathSectionProps {
   section: PathSectionType;
   accentHex: string;
+  peersByNodeId: Record<number, PathPeerType[]>;
 }
 
 /* ── Zigzag helpers (evolved from level-section) ────────────── */
@@ -24,7 +29,11 @@ const LABEL_H = 30; // px – title under the circle
 const ROW_GAP = 18; // px – vertical gap between nodes
 const NODE_W = 150; // px – node wrapper width
 
-export default function PathSection({ section, accentHex }: PathSectionProps) {
+export default function PathSection({
+  section,
+  accentHex,
+  peersByNodeId,
+}: PathSectionProps) {
   const { id, name, progress, skipped, checkpointAvailable, nodes } = section;
   const [openKey, setOpenKey] = useState<string | null>(null);
 
@@ -162,6 +171,25 @@ export default function PathSection({ section, accentHex }: PathSectionProps) {
               {p.node.current && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
+              {(peersByNodeId[p.node.id] ?? []).map((peer, peerIndex) => (
+                <PathPeer
+                  key={peer.id}
+                  peer={peer}
+                  // DotyMarker ocupa el lado interior del nodo actual, así que
+                  // ahí el vecino va al opuesto. En el resto de nodos usa la
+                  // misma regla "hacia adentro" del zigzag.
+                  side={
+                    p.node.current
+                      ? p.xPct >= 50
+                        ? "right"
+                        : "left"
+                      : p.xPct >= 50
+                        ? "left"
+                        : "right"
+                  }
+                  stackIndex={peerIndex}
+                />
+              ))}
             </div>
           ))}
         </div>
