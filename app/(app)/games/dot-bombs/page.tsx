@@ -13,11 +13,20 @@ import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { getGameWordsService, type GameWord } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
-import { type GameMode } from "./engine";
+import { useTicker } from "@/hooks/use-ticker";
+import { playSound } from "@/lib/feedback-sounds";
+import WordImg from "@/components/ui/word-img/word-img";
+import {
+  DIFFICULTY,
+  stepBombs,
+  type Bomb,
+  type GameMode,
+} from "./engine";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
 const MAX_LIVES = 5;
+const TICKER_FPS = 30;
 
 type Phase = "intro" | "modes" | "playing" | "result";
 
@@ -53,6 +62,24 @@ function DotBombsInner({ seed }: { seed?: number }) {
   const [defusedCount, setDefusedCount] = useState(0);
   const [score, setScore] = useState(0);
 
+  // Motor en refs (el tick es la única fuente de verdad; el estado es snapshot)
+  const bombsRef = useRef<Bomb[]>([]);
+  const winTargetRef = useRef<number | null>(null); // min(winAt, pool) del modo en curso
+  const activeIdRef = useRef<number | null>(null);
+  const nextBombIdRef = useRef(1);
+  const lastSpawnAtRef = useRef(0);
+  const elapsedMsRef = useRef(0);
+  const wordCursorRef = useRef(0);
+  const livesRef = useRef(MAX_LIVES);
+  const defusedRef = useRef(0);
+  const scoreRef = useRef(0);
+
+  const [bombsSnapshot, setBombsSnapshot] = useState<Bomb[]>([]);
+  const [activeId, setActiveId] = useState<number | null>(null);
+  // Snapshots de solo-lectura para el HUD (los refs no se leen en render)
+  const [winTarget, setWinTarget] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+
   const wordsRef = useRef<GameWord[]>([]);
 
   // Fetch con patrón fetchAttempt (regla 5): el botón solo bumpea el contador
@@ -78,12 +105,108 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
   const startGame = useCallback((m: GameMode) => {
     setMode(m);
+    // meta del modo: min(20, pool) por spec — con pool corto la meta encoge
+    const cfgWin = DIFFICULTY[m].winAt;
+    winTargetRef.current =
+      cfgWin === null ? null : Math.min(cfgWin, wordsRef.current.length);
+    livesRef.current = MAX_LIVES;
+    defusedRef.current = 0;
+    scoreRef.current = 0;
+    bombsRef.current = [];
+    activeIdRef.current = null;
+    nextBombIdRef.current = 1;
+    lastSpawnAtRef.current = 0;
+    elapsedMsRef.current = 0;
+    wordCursorRef.current = 0;
     setLives(MAX_LIVES);
     setDefusedCount(0);
     setScore(0);
     setFinalScore(0);
+    setBombsSnapshot([]);
+    setActiveId(null);
+    setWinTarget(winTargetRef.current);
+    setElapsedMs(0);
     setPhase("playing");
+    // primer spawn inmediato: el primer tick ya cumple spawnEveryMs
+    lastSpawnAtRef.current = -DIFFICULTY[m].spawnEveryMs;
   }, []);
+
+  /** Fin de partida: score y phase en el MISMO commit (lección de memory —
+   *  GameResult envía al montar y los efectos del hijo corren primero). */
+  const endGame = useCallback(() => {
+    setFinalScore(scoreRef.current);
+    setDefusedCount(defusedRef.current);
+    setPhase("result");
+  }, []);
+
+  const spawnBomb = useCallback(() => {
+    const pool = wordsRef.current;
+    if (pool.length === 0) return;
+    const cfg = DIFFICULTY[mode];
+    const word = pool[wordCursorRef.current % pool.length];
+    wordCursorRef.current += 1;
+    bombsRef.current = [
+      ...bombsRef.current,
+      {
+        id: nextBombIdRef.current++,
+        word: word.title.toLowerCase(),
+        img: word.src,
+        y: 0,
+        speed: 1 / cfg.fallSeconds,
+      },
+    ];
+  }, [mode]);
+
+  const onTick = useCallback(
+    (dtMs: number) => {
+      const cfg = DIFFICULTY[mode];
+      elapsedMsRef.current += dtMs;
+
+      // survival acelera; normal va a x1 constante
+      const speedMult =
+        cfg.accelPerSecond > 0
+          ? 1 + cfg.accelPerSecond * (elapsedMsRef.current / 1000)
+          : 1;
+
+      const { bombs, landed } = stepBombs(bombsRef.current, dtMs, speedMult);
+      bombsRef.current = bombs;
+
+      // TODOS los aterrizajes del tick cuestan vida (fix del bug del booleano)
+      if (landed.length > 0) {
+        playSound("wrong");
+        livesRef.current = Math.max(0, livesRef.current - landed.length);
+        setLives(livesRef.current);
+        if (livesRef.current === 0) {
+          endGame();
+          return;
+        }
+      }
+
+      // spawn si hay hueco
+      if (
+        bombsRef.current.length < cfg.maxBombs &&
+        elapsedMsRef.current - lastSpawnAtRef.current >= cfg.spawnEveryMs
+      ) {
+        lastSpawnAtRef.current = elapsedMsRef.current;
+        spawnBomb();
+      }
+
+      // bomba activa = la más baja
+      const lowest = bombsRef.current.reduce<Bomb | null>(
+        (acc, b) => (acc === null || b.y > acc.y ? b : acc),
+        null,
+      );
+      activeIdRef.current = lowest?.id ?? null;
+
+      // snapshot para render
+      setBombsSnapshot(bombsRef.current);
+      setActiveId(activeIdRef.current);
+      setElapsedMs(elapsedMsRef.current);
+    },
+    [mode, spawnBomb, endGame],
+  );
+
+  useTicker(TICKER_FPS, onTick, phase === "playing");
 
   if (loading) {
     return (
@@ -184,12 +307,73 @@ function DotBombsInner({ seed }: { seed?: number }) {
         </div>
       )}
 
-      {/* ── Jugando (placeholder — Task 4 lo reemplaza) ── */}
+      {/* ── Jugando ── */}
       {phase === "playing" && (
         <div data-testid="battlefield" className="z-10 flex w-full max-w-sm flex-1 flex-col">
-          <p className="text-sm font-bold" style={{ color: "var(--muted)" }}>
-            modo: {mode} · vidas: {lives} · desactivadas: {defusedCount} · pts: {score}
-          </p>
+          {/* HUD */}
+          <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
+            <button
+              onPointerUp={() => {
+                // Abandonar NO envía score (misma política que memory)
+                router.push("/play");
+              }}
+              className="text-sm font-bold transition-colors"
+              style={{ color: "var(--muted)" }}
+            >
+              ← Salir
+            </button>
+            <span className="text-sm font-black tabular-nums" aria-label={`${lives} vidas`}>
+              {"❤️".repeat(lives)}
+              {"🤍".repeat(MAX_LIVES - lives)}
+            </span>
+            <div className="flex flex-col items-end">
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                {winTarget !== null
+                  ? `${defusedCount}/${winTarget}`
+                  : `${Math.floor(elapsedMs / 1000)}s`}
+              </span>
+              <span className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
+                {score}
+              </span>
+            </div>
+          </div>
+
+          {/* Cielo: las bombas caen con translateY (nunca top) */}
+          <div className="relative mt-3 w-full flex-1 overflow-hidden rounded-2xl border-2"
+            style={{
+              borderColor: "var(--border)",
+              background: "color-mix(in srgb, var(--accent) 4%, var(--surface))",
+              containerType: "size",
+            }}
+          >
+            {bombsSnapshot.map((bomb) => (
+              <div
+                key={bomb.id}
+                data-testid={`bomb-${bomb.id}`}
+                className="absolute left-0 top-0 flex w-full justify-center"
+                style={{
+                  // y∈[0,1] → recorre el alto del contenedor menos la bomba (~96px)
+                  transform: `translateY(calc(${bomb.y} * (100cqh - 96px)))`,
+                  opacity: activeId === bomb.id ? 1 : 0.7,
+                }}
+              >
+                <div
+                  className="dots-card flex flex-col items-center gap-1 px-3 py-2"
+                  style={{
+                    borderColor: activeId === bomb.id ? "var(--danger)" : "var(--border)",
+                    transform: activeId === bomb.id ? "scale(1)" : "scale(0.85)",
+                    transition: "transform 0.2s var(--ease-out-strong), border-color 0.2s",
+                  }}
+                >
+                  {bomb.img && <WordImg src={bomb.img} size="w-10 h-10" customClass="rounded" />}
+                  <span className="text-xs font-extrabold">💣 {bomb.word}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bandeja (Task 5) */}
+          <div data-testid="tray" className="mt-3 min-h-28" />
         </div>
       )}
 
