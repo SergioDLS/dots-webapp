@@ -84,6 +84,10 @@ function DotBombsInner({ seed }: { seed?: number }) {
   const [winTarget, setWinTarget] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
 
+  // Alto real del cielo en px (ver efecto de ResizeObserver más abajo)
+  const skyRef = useRef<HTMLDivElement | null>(null);
+  const [skyH, setSkyH] = useState(0);
+
   const wordsRef = useRef<GameWord[]>([]);
 
   // Bandeja de anagrama (Task 5): estado de UI + refs de combo/feedback
@@ -119,6 +123,19 @@ function DotBombsInner({ seed }: { seed?: number }) {
       if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
     };
   }, []);
+
+  // Alto del cielo en px (100cqh no resuelve con altura flex indefinida y
+  // calc(N * max(...cqh...)) evalúa a 0 en Chrome — medición real y portable)
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const el = skyRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      setSkyH(entries[0].contentRect.height);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase]);
 
   const startGame = useCallback((m: GameMode) => {
     setMode(m);
@@ -416,11 +433,10 @@ function DotBombsInner({ seed }: { seed?: number }) {
           </div>
 
           {/* Cielo: las bombas caen con translateY (nunca top) */}
-          <div className="relative mt-3 w-full flex-1 min-h-40 overflow-hidden rounded-2xl border-2"
+          <div ref={skyRef} className="relative mt-3 w-full flex-1 min-h-40 overflow-hidden rounded-2xl border-2"
             style={{
               borderColor: "var(--border)",
               background: "color-mix(in srgb, var(--accent) 4%, var(--surface))",
-              containerType: "size",
             }}
           >
             {bombsSnapshot.map((bomb) => (
@@ -429,8 +445,8 @@ function DotBombsInner({ seed }: { seed?: number }) {
                 data-testid={`bomb-${bomb.id}`}
                 className="absolute left-0 top-0 flex w-full justify-center"
                 style={{
-                  // y∈[0,1] → recorre el alto del contenedor menos la bomba, sin bajar de 0 (evita saltos hacia arriba)
-                  transform: `translateY(calc(${bomb.y} * max(0px, 100cqh - ${BOMB_H}px)))`,
+                  // y∈[0,1] → recorre el alto medido del cielo menos la bomba, sin bajar de 0 (evita saltos hacia arriba)
+                  transform: `translateY(${(bomb.y * Math.max(0, skyH - BOMB_H)).toFixed(1)}px)`,
                   opacity: activeId === bomb.id ? 1 : 0.7,
                 }}
               >
