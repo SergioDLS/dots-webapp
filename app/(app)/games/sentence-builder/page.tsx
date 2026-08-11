@@ -161,7 +161,12 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     // registro y misma voz, así que engañan más que un distractor genérico
     const cross = sentences
       .filter((_, i) => i !== sentenceIndex)
-      .flatMap((other) => other.answer);
+      .flatMap((other) => other.answer)
+      // el backend solo limpia la puntuación del último token de cada frase;
+      // sin esto una ficha `empty;` se descarta de un vistazo (y puede colisionar
+      // con una respuesta que contenga `empty`, burlando la exclusión de buildPool)
+      .map((w) => w.replace(/[.,;:!?]+$/, ""))
+      .filter((w) => w.length > 0);
     // el seed manda cuando existe, para que torneo/retos sirvan mazos idénticos
     const rng =
       seed !== undefined
@@ -295,6 +300,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
       playSound("wrong");
       const newFailed = failedChecks + 1;
       setFirstWrongIndex(wrongIdx);
+      setBonusNow(0);
 
       if (newFailed >= MAX_FAILED_CHECKS) {
         // Reveal correct answer and advance
@@ -403,6 +409,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
               "Toca las fichas para armar la frase en orden.",
               "Toca 'Comprobar' cuando estés listo.",
               "Cuanto más rápido, más bonus: hasta +60 por frase. ¡Sin reloj de derrota!",
+              `¡${sentences.length} frases!`,
             ]}
             record={record}
             throne={throne}
@@ -446,7 +453,11 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
               <div
                 className="h-1.5 w-20 overflow-hidden rounded-full"
                 style={{ background: "var(--border)" }}
-                aria-label={`Bonus ${bonusNow}`}
+                role="progressbar"
+                aria-valuenow={bonusNow}
+                aria-valuemin={0}
+                aria-valuemax={BONUS_MAX}
+                aria-label="Bonus de rapidez"
               >
                 <div
                   className="h-full w-full origin-left rounded-full"

@@ -17,7 +17,7 @@ export const BONUS_WINDOW_MS = 20000;
 export function timeBonus(elapsedMs: number, failed: boolean): number {
   if (failed) return 0;
   const left = 1 - elapsedMs / BONUS_WINDOW_MS;
-  return Math.max(0, Math.round(BONUS_MAX * left));
+  return Math.min(BONUS_MAX, Math.max(0, Math.round(BONUS_MAX * left)));
 }
 
 /** Señuelos CRUZADOS extra según el tramo de la partida (índice 0-based). */
