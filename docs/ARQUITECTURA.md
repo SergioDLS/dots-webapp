@@ -25,7 +25,7 @@ Fuera de `(app)` y sin sesión: `/` (login), `/forgot` (recuperar contraseña) y
 
 ## Los 14 juegos (`app/(app)/games/`)
 
-Legacy (3): dont-pop, dot-bombs (teclado físico — NO RN-safe; rediseño a anagrama tap aprobado, ver `docs/superpowers/specs/2026-08-10-dot-bombs-anagram-redesign.md`), dotaxi. (flashcards y speed-round fueron retirados el 2026-08-10; récords purgados.)
+Legacy (2): dont-pop, dotaxi. (flashcards y speed-round fueron retirados el 2026-08-10; récords purgados. dot-bombs fue reconstruido como anagrama tap RN-safe — spec en `docs/superpowers/specs/2026-08-10-dot-bombs-anagram-redesign.md`.)
 
 Nuevos (9, todos RN-safe y con `?seed=` determinista donde aplica):
 

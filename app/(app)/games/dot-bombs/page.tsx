@@ -242,6 +242,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
             ? buildTray(target.word, DIFFICULTY[mode].decoys, Math.random)
             : null,
         );
+        setWrongChipId(null);
       }
 
       // snapshot para render

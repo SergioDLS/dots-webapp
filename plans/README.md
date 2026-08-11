@@ -35,6 +35,4 @@ Pendientes de auditoría: audio-blitz, crossword, dont-pop, dotaxi, ghost-race,
 memory, sentence-builder, true-false, wordle, word-tower.
 
 Retirados el 2026-08-10 (récords purgados con backup en
-`dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs tiene rediseño
-aprobado a anagrama tap (spec en `docs/superpowers/specs/`), se certifica al
-reconstruirse.
+`dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar.
