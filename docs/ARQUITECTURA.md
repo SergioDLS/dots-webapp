@@ -59,7 +59,7 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
 - `GameResult` traga errores del submit sin estado de error (patrón aceptado batch-wide).
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.
-- dot-bombs/dotaxi dependen de teclado físico (legacy, pre-RN).
+- dotaxi depende de teclado físico (legacy, pre-RN).
 - "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10).
 
 ## Historia

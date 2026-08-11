@@ -46,8 +46,9 @@ const MODE_LABEL: Record<GameMode, { name: string; desc: string; emoji: string }
 function DotBombsGame() {
   const searchParams = useSearchParams();
   const seedParam = searchParams.get("seed");
-  const seed =
-    seedParam !== null && seedParam !== "" ? parseInt(seedParam, 10) : undefined;
+  const parsed =
+    seedParam !== null && seedParam !== "" ? parseInt(seedParam, 10) : NaN;
+  const seed = Number.isFinite(parsed) ? parsed : undefined;
   return <DotBombsInner seed={seed} />;
 }
 
@@ -104,7 +105,12 @@ function DotBombsInner({ seed }: { seed?: number }) {
     getGameWordsService(seed)
       .then((data) => {
         if (!active) return;
-        wordsRef.current = data.filter((w) => w.title && w.title.trim() !== "");
+        // palabras jugables: 1-10 letras a-z (la bandeja tiene alto fijo y
+        // 11+ letras + señuelos desbordan su clip → bomba indesactivable)
+        wordsRef.current = data.filter((w) => {
+          const letters = (w.title ?? "").toLowerCase().match(/[a-z]/g)?.length ?? 0;
+          return letters >= 1 && letters <= 10;
+        });
         if (wordsRef.current.length === 0) setLoadError(true);
       })
       .catch(() => {
@@ -137,8 +143,16 @@ function DotBombsInner({ seed }: { seed?: number }) {
     bombsRef.current = [];
     activeIdRef.current = null;
     nextBombIdRef.current = 1;
-    lastSpawnAtRef.current = 0;
     elapsedMsRef.current = 0;
+    // revancha con orden fresco; con seed se conserva el determinismo
+    if (seed === undefined && wordsRef.current.length > 1) {
+      const arr = [...wordsRef.current];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      wordsRef.current = arr;
+    }
     wordCursorRef.current = 0;
     comboRef.current = 0;
     if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
@@ -155,7 +169,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
     setPhase("playing");
     // primer spawn inmediato: el primer tick ya cumple spawnEveryMs
     lastSpawnAtRef.current = -DIFFICULTY[m].spawnEveryMs;
-  }, []);
+  }, [seed]);
 
   /** Fin de partida: score y phase en el MISMO commit (lección de memory —
    *  GameResult envía al montar y los efectos del hijo corren primero). */
@@ -185,6 +199,10 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
   const onTick = useCallback(
     (dtMs: number) => {
+      // un tab en background no tickea: al volver, el dt acumulado se trata
+      // como una pausa suave, no como tiempo de caída
+      const dt = Math.min(dtMs, 250);
+
       // mide el cielo desde el tick: funciona aunque no haya compositing
       // (ResizeObserver no entrega callbacks ahí) y cubre resize en vivo
       const skyEl = skyRef.current;
@@ -194,7 +212,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
       }
 
       const cfg = DIFFICULTY[mode];
-      elapsedMsRef.current += dtMs;
+      elapsedMsRef.current += dt;
 
       // survival acelera; normal va a x1 constante
       const speedMult =
@@ -202,7 +220,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
           ? 1 + cfg.accelPerSecond * (elapsedMsRef.current / 1000)
           : 1;
 
-      const { bombs, landed } = stepBombs(bombsRef.current, dtMs, speedMult);
+      const { bombs, landed } = stepBombs(bombsRef.current, dt, speedMult);
       bombsRef.current = bombs;
 
       // TODOS los aterrizajes del tick cuestan vida (fix del bug del booleano)
@@ -274,7 +292,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
       if (result === "complete") {
         playSound("correct");
         const bomb = bombsRef.current.find((b) => b.id === activeIdRef.current);
-        if (!bomb) return;
+        if (!bomb || bomb.word !== state.word) return;
         const cfg = DIFFICULTY[mode];
         const mult =
           cfg.winAt === null
