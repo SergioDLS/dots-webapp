@@ -21,12 +21,14 @@ import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
+import { useTicker } from "@/hooks/use-ticker";
+import { timeBonus, BONUS_MAX } from "./builder-rules";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TOTAL_SENTENCES = 8;
 const SCORE_BASE = 100;
-const SCORE_BONUS_CLEAN = 20;
+const TICKER_FPS = 10; // el bonus solo necesita refrescarse ~10 veces/s
 const ADVANCE_CORRECT_MS = 1200;
 const ADVANCE_WRONG_MS = 1800;
 const MAX_FAILED_CHECKS = 2;
@@ -82,6 +84,12 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Prevent double-tap / race on Comprobar
   const checkingRef = useRef(false);
+
+  // Cronómetro de la frase: el bonus decae con el tiempo pero nunca hay
+  // derrota — pasados BONUS_WINDOW_MS solo se ganan los puntos base
+  const sentenceStartRef = useRef<number>(0);
+  const bonusFrozenRef = useRef<number | null>(null); // congelado al acertar
+  const [bonusNow, setBonusNow] = useState(BONUS_MAX);
 
   // ── Load sentences ────────────────────────────────────────────────────────
 
@@ -148,9 +156,20 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     setCheckState("idle");
     setFailedChecks(0);
     setFirstWrongIndex(null);
+    sentenceStartRef.current = performance.now();
+    bonusFrozenRef.current = null;
+    setBonusNow(BONUS_MAX);
     checkingRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, sentenceIndex]);
+
+  const onTick = useCallback(() => {
+    if (bonusFrozenRef.current !== null) return; // frase resuelta: no sigue bajando
+    const elapsed = performance.now() - sentenceStartRef.current;
+    setBonusNow(timeBonus(elapsed, failedChecks > 0));
+  }, [failedChecks]);
+
+  useTicker(TICKER_FPS, onTick, phase === "playing" && checkState === "idle");
 
   // ── End game when all sentences done ─────────────────────────────────────
 
@@ -236,8 +255,13 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     if (wrongIdx === null) {
       // Correct
       playSound("correct");
-      const cleanRun = failedChecks === 0;
-      setScore((prev) => prev + SCORE_BASE + (cleanRun ? SCORE_BONUS_CLEAN : 0));
+      const earned = timeBonus(
+        performance.now() - sentenceStartRef.current,
+        failedChecks > 0,
+      );
+      bonusFrozenRef.current = earned; // congela el HUD durante la corrección
+      setBonusNow(earned);
+      setScore((prev) => prev + SCORE_BASE + earned);
       setCheckState("correct");
       advanceTimerRef.current = setTimeout(() => {
         checkingRef.current = false;
@@ -582,7 +606,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
                 className="text-sm font-black"
                 style={{ color: "var(--success)" }}
               >
-                ¡Correcto! {failedChecks === 0 ? "+120 pts 🎯" : "+100 pts"}
+                ¡Correcto! +{SCORE_BASE + bonusNow} pts {bonusNow > 0 ? "⚡" : ""}
               </p>
             </div>
           )}
