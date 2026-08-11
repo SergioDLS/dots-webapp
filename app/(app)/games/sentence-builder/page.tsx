@@ -22,11 +22,15 @@ import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 import { useTicker } from "@/hooks/use-ticker";
-import { timeBonus, BONUS_MAX } from "./builder-rules";
+import {
+  timeBonus,
+  buildPool,
+  decoyCountFor,
+  BONUS_MAX,
+} from "./builder-rules";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const TOTAL_SENTENCES = 8;
 const SCORE_BASE = 100;
 const TICKER_FPS = 10; // el bonus solo necesita refrescarse ~10 veces/s
 const ADVANCE_CORRECT_MS = 1200;
@@ -41,6 +45,20 @@ type CheckState =
   | "correct"       // correct answer
   | "wrong"         // wrong — first-error token highlighted, may retry
   | "revealed";     // second wrong — correct answer revealed, advancing
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** PRNG determinista para derivar el pool del seed (mismo mazo entre rivales). */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 // ── Seed reader (inside Suspense boundary) ────────────────────────────────────
 
@@ -66,6 +84,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   const [sentences, setSentences] = useState<BuilderSentence[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [fetchAttempt, setFetchAttempt] = useState(0);
 
   // Game state
   const [sentenceIndex, setSentenceIndex] = useState(0);
@@ -112,20 +131,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     return () => {
       active = false;
     };
-  }, [seed]);
-
-  // Reintentar (event handler — not an effect)
-  const fetchSentences = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    getSentenceBuilderService(seed)
-      .then((data) => {
-        setSentences(data);
-        setLoadError(false);
-      })
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, [seed]);
+  }, [seed, fetchAttempt]);
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -151,7 +157,19 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     if (phase !== "playing") return;
     const s = sentences[sentenceIndex];
     if (!s) return;
-    setPoolChips([...s.chips]);
+    // señuelos cruzados: palabras de las OTRAS frases de esta partida — mismo
+    // registro y misma voz, así que engañan más que un distractor genérico
+    const cross = sentences
+      .filter((_, i) => i !== sentenceIndex)
+      .flatMap((other) => other.answer);
+    // el seed manda cuando existe, para que torneo/retos sirvan mazos idénticos
+    const rng =
+      seed !== undefined
+        ? mulberry32(seed + sentenceIndex)
+        : Math.random;
+    setPoolChips(
+      buildPool(s.chips, s.answer, cross, decoyCountFor(sentenceIndex), rng),
+    );
     setTrayChips([]);
     setCheckState("idle");
     setFailedChecks(0);
@@ -331,7 +349,11 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
           Comprueba tu conexión e inténtalo de nuevo.
         </p>
         <button
-          onPointerUp={fetchSentences}
+          onPointerUp={() => {
+            setLoadError(false);
+            setLoading(true);
+            setFetchAttempt((n) => n + 1);
+          }}
           className="dots-pressable rounded-2xl px-6 py-3 text-sm font-black"
           style={{
             background: "color-mix(in srgb, var(--accent) 15%, transparent)",
@@ -375,7 +397,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
               "Escucha la narración en inglés.",
               "Toca las fichas para armar la frase en orden.",
               "Toca 'Comprobar' cuando estés listo.",
-              "Acierto sin fallos = +120 pts. ¡8 frases!",
+              "Cuanto más rápido, más bonus: hasta +60 por frase. ¡Sin reloj de derrota!",
             ]}
             record={record}
             throne={throne}
@@ -394,24 +416,42 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
           >
             <button
               onPointerUp={() => {
+                // Abandonar NO envía score: el efecto de "result" dispara
+                // submitChallengeScore y el guard del reto NO se rearma, así
+                // que salir a mitad quemaba el único intento del 1v1
                 if (advanceTimerRef.current) {
                   clearTimeout(advanceTimerRef.current);
                   advanceTimerRef.current = null;
                 }
-                setPhase("result");
+                router.push("/play");
               }}
               className="text-sm font-bold transition-colors"
               style={{ color: "var(--muted)" }}
             >
               ← Salir
             </button>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center gap-1">
               <span
                 className="text-xs font-black uppercase tracking-widest"
                 style={{ color: "var(--muted)" }}
               >
-                Frase {sentenceIndex + 1}/{TOTAL_SENTENCES}
+                Frase {sentenceIndex + 1}/{sentences.length}
               </span>
+              {/* barra de bonus: scaleX (nunca width) */}
+              <div
+                className="h-1.5 w-20 overflow-hidden rounded-full"
+                style={{ background: "var(--border)" }}
+                aria-label={`Bonus ${bonusNow}`}
+              >
+                <div
+                  className="h-full w-full origin-left rounded-full"
+                  style={{
+                    transform: `scaleX(${bonusNow / BONUS_MAX})`,
+                    background: bonusNow > 0 ? "var(--success)" : "var(--muted)",
+                    transition: "transform 0.1s linear, background 0.3s",
+                  }}
+                />
+              </div>
             </div>
             <div className="flex flex-col items-end">
               <span
