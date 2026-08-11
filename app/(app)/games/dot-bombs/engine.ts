@@ -43,12 +43,12 @@ export function stepBombs(
   };
 }
 
-/** 100 × mult × bonus de altura [1..1.5] × combo [1..2], redondeado.
+/** 40 × mult × bonus de altura [1..1.5] × combo [1..2], redondeado.
  *  y=0 (recién salida) paga 1.5; y=1 (al ras) paga 1. */
 export function bombScore(multiplier: number, y: number, combo: number): number {
   const height = 1 + 0.5 * Math.min(1, Math.max(0, 1 - y));
   const comboMult = Math.min(2, 1 + 0.1 * combo);
-  return Math.round(100 * multiplier * height * comboMult);
+  return Math.round(40 * multiplier * height * comboMult);
 }
 
 /** Survival: ×1 base, +0.1 por cada 30 s sobrevividos, tope ×3 (spec). */
