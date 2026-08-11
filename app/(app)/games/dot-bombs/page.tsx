@@ -77,6 +77,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
   const livesRef = useRef(MAX_LIVES);
   const defusedRef = useRef(0);
   const scoreRef = useRef(0);
+  const skyHRef = useRef(0);
 
   const [bombsSnapshot, setBombsSnapshot] = useState<Bomb[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -84,7 +85,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
   const [winTarget, setWinTarget] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
 
-  // Alto real del cielo en px (ver efecto de ResizeObserver más abajo)
+  // Alto real del cielo en px, medido desde onTick (ver más abajo)
   const skyRef = useRef<HTMLDivElement | null>(null);
   const [skyH, setSkyH] = useState(0);
 
@@ -123,19 +124,6 @@ function DotBombsInner({ seed }: { seed?: number }) {
       if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
     };
   }, []);
-
-  // Alto del cielo en px (100cqh no resuelve con altura flex indefinida y
-  // calc(N * max(...cqh...)) evalúa a 0 en Chrome — medición real y portable)
-  useEffect(() => {
-    if (phase !== "playing") return;
-    const el = skyRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      setSkyH(entries[0].contentRect.height);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [phase]);
 
   const startGame = useCallback((m: GameMode) => {
     setMode(m);
@@ -197,6 +185,14 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
   const onTick = useCallback(
     (dtMs: number) => {
+      // mide el cielo desde el tick: funciona aunque no haya compositing
+      // (ResizeObserver no entrega callbacks ahí) y cubre resize en vivo
+      const skyEl = skyRef.current;
+      if (skyEl && skyEl.clientHeight !== skyHRef.current) {
+        skyHRef.current = skyEl.clientHeight;
+        setSkyH(skyEl.clientHeight);
+      }
+
       const cfg = DIFFICULTY[mode];
       elapsedMsRef.current += dtMs;
 
