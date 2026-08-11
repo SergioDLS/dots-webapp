@@ -30,6 +30,7 @@ import {
 
 const MAX_LIVES = 5;
 const TICKER_FPS = 30;
+const BOMB_H = 148;
 
 type Phase = "intro" | "modes" | "playing" | "result";
 
@@ -134,6 +135,10 @@ function DotBombsInner({ seed }: { seed?: number }) {
     lastSpawnAtRef.current = 0;
     elapsedMsRef.current = 0;
     wordCursorRef.current = 0;
+    comboRef.current = 0;
+    if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
+    setTray(null);
+    setWrongChipId(null);
     setLives(MAX_LIVES);
     setDefusedCount(0);
     setScore(0);
@@ -411,7 +416,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
           </div>
 
           {/* Cielo: las bombas caen con translateY (nunca top) */}
-          <div className="relative mt-3 w-full flex-1 overflow-hidden rounded-2xl border-2"
+          <div className="relative mt-3 w-full flex-1 min-h-40 overflow-hidden rounded-2xl border-2"
             style={{
               borderColor: "var(--border)",
               background: "color-mix(in srgb, var(--accent) 4%, var(--surface))",
@@ -424,8 +429,8 @@ function DotBombsInner({ seed }: { seed?: number }) {
                 data-testid={`bomb-${bomb.id}`}
                 className="absolute left-0 top-0 flex w-full justify-center"
                 style={{
-                  // y∈[0,1] → recorre el alto del contenedor menos la bomba (~96px)
-                  transform: `translateY(calc(${bomb.y} * (100cqh - 96px)))`,
+                  // y∈[0,1] → recorre el alto del contenedor menos la bomba, sin bajar de 0 (evita saltos hacia arriba)
+                  transform: `translateY(calc(${bomb.y} * max(0px, 100cqh - ${BOMB_H}px)))`,
                   opacity: activeId === bomb.id ? 1 : 0.7,
                 }}
               >
@@ -437,15 +442,20 @@ function DotBombsInner({ seed }: { seed?: number }) {
                     transition: "transform 0.2s var(--ease-out-strong), border-color 0.2s",
                   }}
                 >
-                  {bomb.img && <WordImg src={bomb.img} size="w-10 h-10" customClass="rounded" />}
-                  <span className="text-xs font-extrabold">💣 {bomb.word}</span>
+                  <span className="text-5xl leading-none" aria-hidden>💣</span>
+                  {bomb.img && <WordImg src={bomb.img} size="w-12 h-12" customClass="rounded" />}
+                  <span className="text-sm font-extrabold">{bomb.word}</span>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Bandeja de anagrama */}
-          <div data-testid="tray" className="mt-3 flex min-h-28 flex-col items-center gap-3">
+          <div
+            data-testid="tray"
+            key={activeId ?? "none"}
+            className="mt-3 flex h-44 shrink-0 overflow-hidden flex-col items-center gap-3"
+          >
             {tray && (
               <>
                 {/* Huecos de la palabra */}
