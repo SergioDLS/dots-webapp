@@ -178,6 +178,11 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     bonusFrozenRef.current = null;
     setBonusNow(BONUS_MAX);
     checkingRef.current = false;
+    // deps a propósito incompletas: `sentences` se fija una sola vez en el
+    // efecto de carga y `seed` viene de la URL, así que ninguno cambia
+    // mientras phase === "playing" (GameIntro es inalcanzable con loading, y
+    // Reintentar solo existe en el branch de loadError). Completarlas dispara
+    // react-hooks/set-state-in-effect aquí y en el efecto de fin de partida.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, sentenceIndex]);
 

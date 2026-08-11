@@ -32,7 +32,12 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 ## Próximos juegos (barrido "uno por uno")
 
 Pendientes de auditoría: audio-blitz, crossword, dont-pop, dotaxi, ghost-race,
-memory, sentence-builder, true-false, wordle, word-tower.
+memory, true-false, wordle, word-tower.
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.
+
+Constructor (sentence-builder) fue diferenciado del buildUp de la práctica el
+2026-08-10 (bonus por tiempo + señuelos cruzados; spec en
+`docs/superpowers/specs/2026-08-10-constructor-diferenciacion.md`) — pendiente
+solo su pasada de juice.
