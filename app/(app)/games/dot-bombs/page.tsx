@@ -16,9 +16,12 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTicker } from "@/hooks/use-ticker";
 import { playSound } from "@/lib/feedback-sounds";
 import WordImg from "@/components/ui/word-img/word-img";
+import { buildTray, tapChip, type TrayState } from "./anagram";
 import {
+  bombScore,
   DIFFICULTY,
   stepBombs,
+  survivalMultiplier,
   type Bomb,
   type GameMode,
 } from "./engine";
@@ -82,6 +85,12 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
   const wordsRef = useRef<GameWord[]>([]);
 
+  // Bandeja de anagrama (Task 5): estado de UI + refs de combo/feedback
+  const [tray, setTray] = useState<TrayState | null>(null);
+  const [wrongChipId, setWrongChipId] = useState<number | null>(null);
+  const comboRef = useRef(0);
+  const wrongTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Fetch con patrón fetchAttempt (regla 5): el botón solo bumpea el contador
   const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
@@ -102,6 +111,13 @@ function DotBombsInner({ seed }: { seed?: number }) {
       active = false;
     };
   }, [seed, fetchAttempt]);
+
+  // Limpieza del timer de "ficha equivocada" al desmontar
+  useEffect(() => {
+    return () => {
+      if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
+    };
+  }, []);
 
   const startGame = useCallback((m: GameMode) => {
     setMode(m);
@@ -174,6 +190,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
       // TODOS los aterrizajes del tick cuestan vida (fix del bug del booleano)
       if (landed.length > 0) {
         playSound("wrong");
+        comboRef.current = 0; // aterrizaje = fallo
         livesRef.current = Math.max(0, livesRef.current - landed.length);
         setLives(livesRef.current);
         if (livesRef.current === 0) {
@@ -192,11 +209,22 @@ function DotBombsInner({ seed }: { seed?: number }) {
       }
 
       // bomba activa = la más baja
+      const prevActiveId = activeIdRef.current;
       const lowest = bombsRef.current.reduce<Bomb | null>(
         (acc, b) => (acc === null || b.y > acc.y ? b : acc),
         null,
       );
       activeIdRef.current = lowest?.id ?? null;
+
+      // la bandeja sigue a la bomba activa (se rearma al cambiar de objetivo)
+      if (activeIdRef.current !== prevActiveId) {
+        const target = bombsRef.current.find((b) => b.id === activeIdRef.current);
+        setTray(
+          target
+            ? buildTray(target.word, DIFFICULTY[mode].decoys, Math.random)
+            : null,
+        );
+      }
 
       // snapshot para render
       setBombsSnapshot(bombsRef.current);
@@ -207,6 +235,50 @@ function DotBombsInner({ seed }: { seed?: number }) {
   );
 
   useTicker(TICKER_FPS, onTick, phase === "playing");
+
+  const onChipTap = useCallback(
+    (chipId: number) => {
+      if (phase !== "playing" || tray === null) return;
+      const { state, result } = tapChip(tray, chipId);
+      if (result === "noop") return;
+
+      if (result === "wrong") {
+        playSound("wrong");
+        comboRef.current = 0;
+        setWrongChipId(chipId);
+        if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
+        wrongTimerRef.current = setTimeout(() => setWrongChipId(null), 400);
+        return;
+      }
+
+      setTray(state);
+      if (result === "complete") {
+        playSound("correct");
+        const bomb = bombsRef.current.find((b) => b.id === activeIdRef.current);
+        if (!bomb) return;
+        const cfg = DIFFICULTY[mode];
+        const mult =
+          cfg.winAt === null
+            ? survivalMultiplier(elapsedMsRef.current / 1000)
+            : cfg.multiplier;
+        scoreRef.current += bombScore(mult, bomb.y, comboRef.current);
+        comboRef.current += 1;
+        defusedRef.current += 1;
+        setScore(scoreRef.current);
+        setDefusedCount(defusedRef.current);
+
+        // retirar la bomba; el próximo tick elige nueva activa y rearma bandeja
+        bombsRef.current = bombsRef.current.filter((b) => b.id !== bomb.id);
+        setBombsSnapshot(bombsRef.current);
+        setTray(null);
+
+        if (winTargetRef.current !== null && defusedRef.current >= winTargetRef.current) {
+          endGame();
+        }
+      }
+    },
+    [phase, tray, mode, endGame],
+  );
 
   if (loading) {
     return (
@@ -372,8 +444,53 @@ function DotBombsInner({ seed }: { seed?: number }) {
             ))}
           </div>
 
-          {/* Bandeja (Task 5) */}
-          <div data-testid="tray" className="mt-3 min-h-28" />
+          {/* Bandeja de anagrama */}
+          <div data-testid="tray" className="mt-3 flex min-h-28 flex-col items-center gap-3">
+            {tray && (
+              <>
+                {/* Huecos de la palabra */}
+                <div className="flex flex-wrap justify-center gap-1">
+                  {tray.display.map((ch, i) => (
+                    <span
+                      key={i}
+                      className="flex h-8 w-7 items-center justify-center rounded-md border-b-4 font-display text-lg font-extrabold uppercase"
+                      style={{
+                        borderColor: i === tray.nextSlot ? "var(--accent)" : "var(--border)",
+                        color: ch === "" ? "transparent" : "var(--foreground)",
+                        animation: ch !== "" && i !== tray.nextSlot ? "none" : undefined,
+                      }}
+                    >
+                      {ch === "" ? "·" : ch}
+                    </span>
+                  ))}
+                </div>
+                {/* Fichas */}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {tray.chips.map((chip) => (
+                    <button
+                      key={chip.id}
+                      data-testid={`chip-${chip.id}`}
+                      disabled={chip.used}
+                      onPointerUp={() => onChipTap(chip.id)}
+                      className="dots-pressable h-12 w-11 rounded-xl border-2 font-display text-lg font-extrabold uppercase disabled:opacity-30"
+                      style={{
+                        borderColor: "var(--border)",
+                        background: "var(--surface)",
+                        color: "var(--foreground)",
+                        animation:
+                          wrongChipId === chip.id
+                            ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                            : `dots-slot-in 0.22s var(--ease-out-strong) ${chip.id * 30}ms backwards`,
+                        ["--press-color" as string]: "var(--accent-soft)",
+                      }}
+                    >
+                      {chip.char}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
