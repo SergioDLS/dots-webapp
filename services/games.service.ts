@@ -50,8 +50,12 @@ export async function getGamesService(): Promise<Game[]> {
   return data;
 }
 
-export async function getGameWordsService(): Promise<GameWord[]> {
-  const { data } = await api.get<GameWord[]>("/games/words");
+// seed: aceptado desde ya en el cliente (torneo/reto); el backend hoy lo
+// ignora — soporte real pendiente en dots-backend
+export async function getGameWordsService(seed?: number): Promise<GameWord[]> {
+  const { data } = await api.get<GameWord[]>("/games/words", {
+    params: seed !== undefined ? { seed } : undefined,
+  });
   return data;
 }
 

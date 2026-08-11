@@ -87,13 +87,15 @@ ignoran.
 
 ## Puntuación
 
-- Por bomba: `100 × multiplicador × bonusAltura`, donde `bonusAltura` ∈ [1, 1.5]
+- Por bomba: `40 × multiplicador × bonusAltura`, donde `bonusAltura` ∈ [1, 1.5]
   según cuánto le faltaba por caer (desactivar alto paga más — conserva la
   esencia de "responde rápido" del juego actual).
 - Combo: +10 % acumulativo por bomba consecutiva sin ficha errada (tope ×2).
-- Banda objetivo de un run Normal completo: **~1.500-2.500 puntos**, alineada
-  con audio-blitz (~2.000) y memory (≤1.000); hoy conviven escalas de 10 a
-  21.000 entre juegos.
+- Banda por modo de un run Normal completo (decisión 2026-08-10, la banda única
+  original era inalcanzable con 20 bombas × multiplicadores): easy ~0.8-1k,
+  medium ~2k, hard ~4-5k. Medium queda alineado con audio-blitz (~2.000) y
+  memory (≤1.000); hard paga premium sin irse a cinco cifras. El XP es plano
+  (15/partida +25 récord), así que la escala solo afecta récords/trono.
 - Sin clamp de score (el 1000 fijo actual hacía que todo high score de Normal
   fuera idéntico).
 
