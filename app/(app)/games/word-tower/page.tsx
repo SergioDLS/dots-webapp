@@ -91,6 +91,10 @@ function WordTowerInner({ seed }: { seed?: number }) {
   // Mirror of roundIndex so advanceRound can run its side effects outside a
   // setState updater (updaters must stay pure — StrictMode double-invokes them).
   const roundIndexRef = useRef(0);
+  /** Espejo de `lives` para decidir fuera de un updater (ver handleMissStable). */
+  const livesRef = useRef(MAX_LIVES);
+  /** La partida llegó a su fin natural, en contraposición a salir a mitad. */
+  const completedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // advanceRound + handleMissStable refs so callbacks/effects can call the
   // latest version without stale closures.
@@ -145,10 +149,16 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
   // Modo torneo: envía el score una vez al llegar a "result"; al salir
   // (reintentar) rearma el guard para que la próxima partida también cuente.
+  // Torneo/reto: solo cuentan PARTIDAS COMPLETAS (rondas agotadas o sin vidas).
+  // El récord personal sí conserva el parcial al salir — el score sube desde 0,
+  // así que abandonar nunca supera a jugar — pero el reto 1v1 gasta su único
+  // intento sin rearme, y un parcial lo quemaba.
   useEffect(() => {
     if (phase === "result") {
-      submitTournamentScore(score);
-      submitChallengeScore(score);
+      if (completedRef.current) {
+        submitTournamentScore(score);
+        submitChallengeScore(score);
+      }
     } else {
       resetTournamentSubmit();
     }
@@ -180,9 +190,18 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
   useTicker(TICKER_FPS, onTick, tickerRunning);
 
+  /** Programa un timer del juego limpiando siempre el anterior: antes se
+   *  reasignaba timerRef en cinco sitios sin clearTimeout, así que un fallo
+   *  justo al avanzar de ronda dejaba un timer huérfano corriendo. */
+  const scheduleTimer = useCallback((fn: () => void, ms: number) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(fn, ms);
+  }, []);
+
   const advanceRound = useCallback(() => {
     const next = roundIndexRef.current + 1;
-    if (next >= TOTAL_ROUNDS) {
+    if (next >= Math.min(TOTAL_ROUNDS, rounds.length)) {
+      completedRef.current = true;
       setPhase("result");
       return;
     }
@@ -197,10 +216,10 @@ function WordTowerInner({ seed }: { seed?: number }) {
     setProgress(0);
     setRoundIndex(next);
     setRoundPhase("between");
-    timerRef.current = setTimeout(() => {
+    scheduleTimer(() => {
       setRoundPhase("falling");
     }, BETWEEN_ROUNDS_MS);
-  }, [rounds]);
+  }, [rounds, scheduleTimer]);
 
   // keep ref in sync
   useEffect(() => {
@@ -213,22 +232,22 @@ function WordTowerInner({ seed }: { seed?: number }) {
     const round = rounds[roundIndex];
     setCorrectLabel(round?.correct ?? "");
     setCombo(0);
-    setLives((prev) => {
-      const next = prev - 1;
+    // Las vidas se llevan en un ref para decidir FUERA del updater: StrictMode
+    // doble-invoca los updaters, así que programar timers dentro armaba dos
+    // (el propio archivo ya evitaba ese patrón con roundIndexRef)
+    const next = Math.max(0, livesRef.current - 1);
+    livesRef.current = next;
+    setLives(next);
+    setRoundPhase("correction");
+    scheduleTimer(() => {
       if (next <= 0) {
-        setRoundPhase("correction");
-        timerRef.current = setTimeout(() => {
-          setPhase("result");
-        }, CORRECTION_MS);
-        return 0;
-      }
-      setRoundPhase("correction");
-      timerRef.current = setTimeout(() => {
+        completedRef.current = true;
+        setPhase("result");
+      } else {
         advanceRoundRef.current();
-      }, CORRECTION_MS);
-      return next;
-    });
-  }, [rounds, roundIndex]);
+      }
+    }, CORRECTION_MS);
+  }, [rounds, roundIndex, scheduleTimer]);
 
   // Keep handleMissRef in sync so the landing effect can call it stably
   useEffect(() => {
@@ -263,21 +282,29 @@ function WordTowerInner({ seed }: { seed?: number }) {
         setScore((s) => s + 100 * newCombo);
         // brief between-round pause
         setRoundPhase("between");
-        timerRef.current = setTimeout(() => {
+        scheduleTimer(() => {
           advanceRoundRef.current();
         }, BETWEEN_ROUNDS_MS);
       } else {
         handleMissStable();
       }
     },
-    [roundPhase, rounds, roundIndex, combo, handleMissStable],
+    [roundPhase, rounds, roundIndex, combo, handleMissStable, scheduleTimer],
   );
 
   // ── Start / restart ──────────────────────────────────────────────────────
 
   const startGame = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    // Revancha con rondas frescas: startGame no re-fetchea, así que sin esto
+    // las 20 rondas se repetían en el mismo orden y bastaba memorizarlas.
+    // Con seed se conserva el determinismo (torneo/retos).
+    if (seed === undefined && rounds.length > 1) {
+      setRounds((prev) => shuffled(prev));
+    }
     const firstRound = rounds[0];
+    completedRef.current = false;
+    livesRef.current = MAX_LIVES;
     roundIndexRef.current = 0;
     setRoundIndex(0);
     setLives(MAX_LIVES);
@@ -289,13 +316,16 @@ function WordTowerInner({ seed }: { seed?: number }) {
     if (firstRound) setLaneOptions(shuffled(firstRound.options));
     resolvedRef.current = false;
     setPhase("playing");
-    timerRef.current = setTimeout(() => {
+    scheduleTimer(() => {
       setRoundPhase("falling");
     }, BETWEEN_ROUNDS_MS);
-  }, [rounds]);
+  }, [rounds, seed, scheduleTimer]);
 
   // ── Derived display ──────────────────────────────────────────────────────
 
+  // La longitud real manda: con un mazo más corto que TOTAL_ROUNDS el juego
+  // seguía pidiendo rondas inexistentes y encadenaba fallos automáticos
+  const totalRounds = Math.min(TOTAL_ROUNDS, rounds.length);
   const fallY = Math.min(progress, 1) * 100; // 0 → 100 (%)
   const round = rounds[roundIndex];
 
@@ -405,7 +435,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
               className="text-xs font-black tabular-nums"
               style={{ color: "var(--muted)" }}
             >
-              {roundIndex + 1}/{TOTAL_ROUNDS}
+              {roundIndex + 1}/{totalRounds}
             </span>
 
             {/* Score */}

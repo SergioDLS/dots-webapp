@@ -31,7 +31,7 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: dont-pop, dotaxi, word-tower.
+Pendientes de auditoría: dont-pop y dotaxi (los dos legacy — son rediseños, no certificaciones).
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.
@@ -93,3 +93,20 @@ torneo y reto solo aceptan partidas completas (salir quemaba el intento del
 1v1), agotar el mazo termina la partida en vez de obligar a mirar el reloj
 bajar, los dos Salir pasan a `onPointerUp` como el resto del archivo, y murió
 una ref sin lectores. Pendiente su pasada de juice.
+
+Torre de Palabras (word-tower) certificada el 2026-08-10: `handleMissStable`
+ejecutaba efectos colaterales DENTRO del updater de `setLives` (violaba la regla
+3 y StrictMode podía restar dos vidas por fallo) — ahora decide con un
+`livesRef` fuera del updater; los cinco `timerRef.current = setTimeout` sin
+limpiar pasaron por un helper `scheduleTimer`; la revancha rebaraja las rondas
+(sin seed) en vez de repetir el mismo orden memorizable; `TOTAL_ROUNDS` cede
+ante `rounds.length` (con mazo corto el juego encadenaba fallos automáticos); y
+torneo/reto solo aceptan partidas completas. Pendiente su pasada de juice.
+
+### Guard del reto 1v1 (transversal detectado)
+
+`useChallengeMode` nunca rearma su guard, así que cualquier envío parcial quema
+el único intento. Se ha cerrado juego por juego (sentence-builder, audio-blitz,
+true-false, word-tower) gateando el envío en "partida completa", pero el arreglo
+de raíz vive en el hook: que rechace partidas incompletas o exponga el rearme
+como hace `useTournamentMode`.
