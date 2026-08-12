@@ -34,7 +34,7 @@ Nuevos (9, todos RN-safe y con `?seed=` determinista donde aplica):
 | ¿Verdad o Trampa? | true-false | swipe (pointer events) sí/no sobre pares EN-ES; trampas con falsos amigos | vocab_items + FALSE_FRIENDS |
 | Dot Match | dot-match | parejas EN/ES contrarreloj, 3 rondas 60/45/30s, combo | vocab_items |
 | Memoria Relámpago | memory | 4×4 flip cards palabra-imagen, cronómetro+movimientos | words (con img) |
-| Escucha Rápida | audio-blitz | oyes narración, eliges la palabra, 7s/pregunta | sentences con narración |
+| Escucha Rápida | audio-blitz | oyes narración, eliges la palabra, 7s/pregunta; acierto rápido paga más y se ve (+N) | sentences con narración |
 | Torre de Palabras | word-tower | palabra cae (useTicker/transform), tap al carril de su categoría, 3 vidas | vocab_packs |
 | Constructor | sentence-builder | oyes la frase, la armas con fichas en orden; bonus por rapidez y señuelos cruzados que escalan (diferenciado del buildUp de la práctica) | sentences con narración |
 | Palabra del Día | wordle | wordle diario server-side, teclado QWERTY en pantalla | vocab (server) |
@@ -60,7 +60,7 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.
 - dotaxi depende de teclado físico (legacy, pre-RN).
-- "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10).
+- "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10). En audio-blitz el parcial SÍ cuenta para el récord personal (su score sube desde 0, como dot-match), pero torneo y reto solo aceptan partidas completas (corregido 2026-08-10).
 
 ## Historia
 

@@ -32,6 +32,9 @@ const SCORE_PER_SECOND = 10;
 
 type Phase = "intro" | "playing" | "result";
 
+/** Frase de corrección partida en tres para pintarla sin inyectar HTML. */
+type Correction = { before: string; answer: string; after: string };
+
 // ── Seed reader (inside Suspense boundary) ────────────────────────────────────
 
 function AudioBlitzGame() {
@@ -60,19 +63,21 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
 
-  // Correction state: null = not showing, string = the highlighted sentence
-  const [correction, setCorrection] = useState<string | null>(null);
+  // Correction state: null = no se muestra. Guarda la frase partida en tres
+  // para pintarla con JSX; el aviso de timeout vive en su propio flag (antes
+  // compartía esta variable con un centinela "__TIMEOUT__")
+  const [correction, setCorrection] = useState<Correction | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+  // Puntos del último acierto: alimenta el "+N" y el pop del marcador (el
+  // código prometía un "brief flash" en un comentario que nunca existió)
+  const [lastGain, setLastGain] = useState<number | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Blocks re-entrant taps between a correct answer and the next question's render.
   const advancingRef = useRef(false);
 
   // Per-question timer: fires when 7s expire (= timeout → wrong)
   const handleTimeUp = useCallback(() => {
-    // Only fire if not already in correction
-    setCorrection((prev) => {
-      if (prev !== null) return prev; // already correcting, ignore
-      return "__TIMEOUT__"; // sentinel triggers correction effect below
-    });
+    setTimedOut(true);
   }, []);
 
   const {
@@ -105,24 +110,22 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   // ── Handle correction sentinel (from timeout) ────────────────────────────
 
-  // When correction is the sentinel string, replace it with the real sentence
+  // El timeout cuenta como fallo: muestra la frase completa y avanza
   useEffect(() => {
-    if (correction !== "__TIMEOUT__") return;
+    if (!timedOut) return;
+    setTimedOut(false);
     const item = items[questionIndex];
-    if (!item) {
-      setCorrection(null);
-      return;
-    }
+    if (!item) return;
     playSound("wrong");
     stopTimer();
-    const highlighted = buildHighlightedSentence(item.text, item.correct);
-    setCorrection(highlighted);
+    setLastGain(null);
+    setCorrection(buildHighlightedSentence(item.text, item.correct));
     correctionTimerRef.current = setTimeout(() => {
       setCorrection(null);
       setQuestionIndex((i) => i + 1);
     }, CORRECTION_MS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [correction]);
+  }, [timedOut]);
 
   // ── Start timer on each new question ────────────────────────────────────
 
@@ -147,12 +150,10 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  /** Replace "__" with the correct word wrapped in an accent-colored span. */
-  function buildHighlightedSentence(text: string, correct: string): string {
-    return text.replace(
-      "__",
-      `<span style="color:var(--accent);font-weight:900">${correct}</span>`,
-    );
+  /** Parte la frase en el hueco para pintarla sin inyectar HTML. */
+  function buildHighlightedSentence(text: string, correct: string): Correction {
+    const [before, ...rest] = text.split("__");
+    return { before, answer: correct, after: rest.join("__") };
   }
 
   // ── Start / restart game ─────────────────────────────────────────────────
@@ -166,16 +167,22 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     setQuestionIndex(0);
     setScore(0);
     setCorrection(null);
+    setTimedOut(false);
+    setLastGain(null);
     setPhase("playing");
     // timer starts via the phase/questionIndex effect above
   }, []);
 
-  // Modo torneo: envía el score una vez al llegar a "result"; al salir
-  // (reintentar) rearma el guard para que la próxima partida también cuente.
+  // Torneo/reto: solo cuentan PARTIDAS COMPLETAS. El score personal sí conserva
+  // el parcial al salir (sube desde 0, así que abandonar nunca supera a jugar;
+  // es la decisión de diseño de dot-match), pero el reto 1v1 gasta su único
+  // intento sin rearme — enviarle un parcial lo quemaba.
   useEffect(() => {
     if (phase === "result") {
-      submitTournamentScore(score);
-      submitChallengeScore(score);
+      if (items.length > 0 && questionIndex >= items.length) {
+        submitTournamentScore(score);
+        submitChallengeScore(score);
+      }
     } else {
       resetTournamentSubmit();
     }
@@ -195,11 +202,13 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
       if (option === item.correct) {
         playSound("correct");
         const secondsLeft = Math.floor(remaining);
-        setScore((s) => s + SCORE_BASE + secondsLeft * SCORE_PER_SECOND);
-        // Brief flash then advance — no correction overlay for correct
+        const gain = SCORE_BASE + secondsLeft * SCORE_PER_SECOND;
+        setScore((s) => s + gain);
+        setLastGain(gain);
         setQuestionIndex((i) => i + 1);
       } else {
         playSound("wrong");
+        setLastGain(null);
         const highlighted = buildHighlightedSentence(item.text, item.correct);
         setCorrection(highlighted);
         correctionTimerRef.current = setTimeout(() => {
@@ -323,11 +332,32 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
               <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
                 Puntos
               </span>
-              <span
-                className="font-display text-lg font-extrabold"
-                style={{ color: "var(--accent)" }}
-              >
-                {score}
+              <span className="flex items-baseline gap-1.5">
+                {lastGain !== null && (
+                  <span
+                    key={questionIndex}
+                    className="text-xs font-black"
+                    style={{
+                      color: "var(--success)",
+                      animation: "dots-pop-in 0.3s var(--ease-out-strong) both",
+                    }}
+                  >
+                    +{lastGain}
+                  </span>
+                )}
+                <span
+                  key={score}
+                  className="font-display text-lg font-extrabold inline-block"
+                  style={{
+                    color: "var(--accent)",
+                    animation:
+                      score > 0
+                        ? "dots-score-pop 0.25s var(--ease-out-strong)"
+                        : "none",
+                  }}
+                >
+                  {score}
+                </span>
               </span>
             </div>
           </div>
@@ -403,7 +433,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
           </div>
 
           {/* Correction overlay */}
-          {correction !== null && correction !== "__TIMEOUT__" && (
+          {correction !== null && (
             <div
               className="z-10 mt-5 w-full max-w-sm rounded-2xl px-5 py-4 text-center text-sm font-bold"
               style={{
@@ -419,9 +449,13 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
               >
                 La frase completa:
               </p>
-              <p
-                dangerouslySetInnerHTML={{ __html: correction }}
-              />
+              <p>
+                {correction.before}
+                <span style={{ color: "var(--accent)", fontWeight: 900 }}>
+                  {correction.answer}
+                </span>
+                {correction.after}
+              </p>
             </div>
           )}
         </>

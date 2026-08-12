@@ -31,8 +31,8 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: audio-blitz, crossword, dont-pop, dotaxi, true-false,
-wordle, word-tower.
+Pendientes de auditoría: crossword, dont-pop, dotaxi, true-false, wordle,
+word-tower.
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.
@@ -49,3 +49,21 @@ duraciones imbatibles), salir dejó de postear carreras truncadas, el
 longitudes reales en vez de un 12 hardcodeado. Decisión de producto: se queda
 como juego separado de audio-blitz pese a compartir banco y bucle — su endpoint
 server-side (/ghost/run) premia distinto. Pendiente su pasada de juice.
+
+Escucha Rápida (audio-blitz) certificada el 2026-08-10: `dangerouslySetInnerHTML`
+→ JSX y centinela `__TIMEOUT__` fuera del estado de la frase (mismos gemelos que
+ghost-race), torneo/reto solo aceptan partidas completas (salir quemaba el
+intento del 1v1; el parcial sí sigue contando para el récord personal, que sube
+desde 0), y el acierto por fin tiene el feedback que un comentario prometía y no
+existía: chip "+N" verde y pop del marcador.
+
+## Transversal pendiente: farmeo por `?seed=`
+
+Seis juegos aceptan `?seed=` desde la URL (dot-match, true-false, memory,
+word-tower, sentence-builder, audio-blitz): fijar un seed, memorizar el mazo y
+repetirlo infla récord y trono. El seed existe para que torneo y retos sirvan
+mazos idénticos, pero nadie comprueba que vengas de ahí. Decisión del usuario
+(2026-08-10): tratarlo en una pasada dedicada sobre los 6 juegos, no dentro de
+la certificación de cada uno — hay que fijar la regla una vez (¿ignorar el seed
+sin `?tournament=1`/`?challenge=N`? ¿aceptarlo pero no puntuar?) y verificarla
+en todos.
