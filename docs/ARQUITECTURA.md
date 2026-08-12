@@ -37,7 +37,7 @@ Nuevos (9, todos RN-safe y con `?seed=` determinista donde aplica):
 | Escucha Rápida | audio-blitz | oyes narración, eliges la palabra, 7s/pregunta; acierto rápido paga más y se ve (+N) | sentences con narración |
 | Torre de Palabras | word-tower | palabra cae (useTicker/transform), tap al carril de su categoría, 3 vidas | vocab_packs |
 | Constructor | sentence-builder | oyes la frase, la armas con fichas en orden; bonus por rapidez y señuelos cruzados que escalan (diferenciado del buildUp de la práctica) | sentences con narración |
-| Palabra del Día | wordle | wordle diario server-side, teclado QWERTY en pantalla | vocab (server) |
+| Palabra del Día | wordle | wordle diario server-side, teclado QWERTY en pantalla (compartido con crossword); intentos y longitud los manda el servidor | vocab (server) |
 | Mini Crucigrama | crossword | 5×5 diario determinista, pistas ES, 5 checks (botón deshabilitado al agotarlas; fallo de red visible) | vocab (server) |
 | Carrera Fantasma | ghost-race | corres preguntas de audio vs replay grabado de un rival (barra fantasma por timeline; el timeline registra TODA pregunta resuelta) | audio-blitz + game_runs |
 
@@ -59,9 +59,12 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
 - `GameResult` traga errores del submit sin estado de error (patrón aceptado batch-wide).
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.
-- crossword replica la fórmula de score del backend en cliente solo para
-  mostrarla (`crosswordScore`, comentada con su fuente); el arreglo de fondo es
-  que `/games/crossword/check` devuelva el score ya calculado.
+- crossword y wordle replican la fórmula de score del backend en cliente solo
+  para mostrarla (`crosswordScore` / el cálculo de wordle, comentados con su
+  fuente); el arreglo de fondo es que los endpoints devuelvan el score ya
+  calculado.
+- wordle no escucha el teclado físico (cumple la regla RN-safe: teclados =
+  botones en pantalla), así que en escritorio hay que tocar las teclas.
 - dotaxi depende de teclado físico (legacy, pre-RN).
 - "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10). En audio-blitz el parcial SÍ cuenta para el récord personal (su score sube desde 0, como dot-match), pero torneo y reto solo aceptan partidas completas (corregido 2026-08-10).
 

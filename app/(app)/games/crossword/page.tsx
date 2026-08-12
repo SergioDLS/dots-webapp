@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import DailyKeyboard from "@/components/games/shared/daily-keyboard";
+import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
 import {
   getCrosswordService,
   postCrosswordCheckService,
@@ -25,34 +27,7 @@ function crosswordScore(checksUsed: number): number {
   return Math.max(50, 300 - (checksUsed - 1) * 50);
 }
 
-// QWERTY keyboard rows — no Enter (check uses a button), ⌫ at end of row 3
-const KB_ROW1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
-const KB_ROW2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
-const KB_ROW3 = ["Z", "X", "C", "V", "B", "N", "M"];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Seconds until next UTC midnight. */
-function secondsUntilMidnightUTC(): number {
-  const now = new Date();
-  const tomorrow = new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + 1,
-    ),
-  );
-  return Math.max(0, Math.floor((tomorrow.getTime() - now.getTime()) / 1000));
-}
-
-function formatCountdown(secs: number): string {
-  if (secs <= 0) return "¡Nuevo crucigrama ya disponible!";
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m} min`;
-  return "menos de 1 min";
-}
 
 /** All [row, col] coordinates covered by a slot, in order. */
 function slotCells(slot: CrosswordSlot): [number, number][] {
@@ -252,33 +227,6 @@ function Cell({
         {letter ?? ""}
       </span>
     </div>
-  );
-}
-
-type KeyProps = { label: string; onTap: () => void; wide?: boolean };
-
-function Key({ label, onTap, wide }: KeyProps) {
-  return (
-    <button
-      onPointerUp={onTap}
-      style={{
-        minWidth: wide ? "3.5rem" : "2rem",
-        height: "3rem",
-        padding: "0 0.2rem",
-        border: "none",
-        borderRadius: "0.4rem",
-        background: "var(--surface)",
-        color: "var(--foreground)",
-        fontWeight: 700,
-        fontSize: wide ? "0.7rem" : "0.875rem",
-        cursor: "pointer",
-        userSelect: "none",
-        flexShrink: 0,
-        transition: "opacity 0.1s",
-      }}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -782,7 +730,7 @@ export default function CrosswordPage() {
                 }}
               >
                 ⏰ Nuevo crucigrama en{" "}
-                <strong>{formatCountdown(countdown)}</strong>
+                <strong>{formatCountdown(countdown, "¡Nuevo crucigrama ya disponible!")}</strong>
               </p>
               <button
                 onPointerUp={() => router.push("/play")}
@@ -856,22 +804,7 @@ export default function CrosswordPage() {
               maxWidth: "22rem",
             }}
           >
-            <div style={{ display: "flex", gap: "0.2rem", justifyContent: "center" }}>
-              {KB_ROW1.map((k) => (
-                <Key key={k} label={k} onTap={() => handleKey(k)} />
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: "0.2rem", justifyContent: "center" }}>
-              {KB_ROW2.map((k) => (
-                <Key key={k} label={k} onTap={() => handleKey(k)} />
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: "0.2rem", justifyContent: "center" }}>
-              {KB_ROW3.map((k) => (
-                <Key key={k} label={k} onTap={() => handleKey(k)} />
-              ))}
-              <Key label="⌫" wide onTap={() => handleKey("⌫")} />
-            </div>
+            <DailyKeyboard onKey={handleKey} size="sm" />
           </div>
         )}
       </div>

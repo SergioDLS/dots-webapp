@@ -31,7 +31,7 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: dont-pop, dotaxi, true-false, wordle, word-tower.
+Pendientes de auditoría: dont-pop, dotaxi, true-false, word-tower.
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.
@@ -65,12 +65,6 @@ que se limpia al reintentar), la fórmula de score duplicada quedó en un helper
 
 ## Transversales pendientes
 
-### Teclado compartido con wordle
-
-crossword y wordle duplican literalmente `KB_ROW1/2/3` y
-`secondsUntilMidnightUTC()`. Decisión del usuario (2026-08-10): extraerlo cuando
-le toque el turno a wordle, para ver los dos juegos diarios juntos.
-
 ### Farmeo por `?seed=`
 
 Seis juegos aceptan `?seed=` desde la URL (dot-match, true-false, memory,
@@ -81,3 +75,14 @@ mazos idénticos, pero nadie comprueba que vengas de ahí. Decisión del usuario
 la certificación de cada uno — hay que fijar la regla una vez (¿ignorar el seed
 sin `?tournament=1`/`?challenge=N`? ¿aceptarlo pero no puntuar?) y verificarla
 en todos.
+
+Palabra del Día (wordle) certificada el 2026-08-10, con la extracción del
+teclado compartido incluida: `components/games/shared/daily-keyboard.tsx`
+(`DailyKeyboard`, parametrizado por `marks`/`showEnter`/`size`) y
+`lib/daily-games.ts` (`secondsUntilMidnightUTC`, `formatCountdown`) sustituyen
+las copias literales que había en wordle y crossword. Arreglos propios de
+wordle: el `maxTries` del servidor por fin manda (un 6 hardcodeado dibujaba la
+cuadrícula), el fetch duplicado pasó a un solo efecto con `fetchAttempt`, la
+cuenta atrás ya no parpadea "ya disponible" en su primer frame, `bestMark`
+devuelve `Mark` (el `?? m` era código muerto) y murió una ref sin lectores.
+Pendiente su pasada de juice.

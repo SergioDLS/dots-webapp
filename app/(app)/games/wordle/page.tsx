@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import DailyKeyboard, { KEY_ENTER, KEY_BACKSPACE } from "@/components/games/shared/daily-keyboard";
+import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
 import {
   getWordleService,
   postWordleGuessService,
@@ -11,41 +13,15 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const MAX_TRIES = 6;
+/** Fallback si el estado aún no llegó; el valor real manda desde el servidor. */
+const DEFAULT_MAX_TRIES = 6;
 
 // Keyboard rows (QWERTY)
-const KB_ROW1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
-const KB_ROW2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
-const KB_ROW3 = ["Z", "X", "C", "V", "B", "N", "M"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Seconds until next UTC midnight from now. */
-function secondsUntilMidnightUTC(): number {
-  const now = new Date();
-  const tomorrow = new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + 1,
-      0,
-      0,
-      0,
-    ),
-  );
-  return Math.max(0, Math.floor((tomorrow.getTime() - now.getTime()) / 1000));
-}
-
 /** Format seconds as "Xh Ym" or "Ym" or "< 1 min". */
-function formatCountdown(secs: number): string {
-  if (secs <= 0) return "¡Nueva palabra ya disponible!";
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m} min`;
-  return "menos de 1 min";
-}
-
 /** CSS color token for a mark. */
 function markColor(mark: Mark): string {
   if (mark === "hit") return "#22c55e"; // green
@@ -54,11 +30,13 @@ function markColor(mark: Mark): string {
 }
 
 /** Best mark priority: hit > present > miss > undefined. */
-function bestMark(a: Mark | undefined, b: Mark): Mark | undefined {
+/** Prioridad hit > present > miss. `b` siempre es una marca, así que el
+ *  resultado nunca es undefined (antes el tipo lo permitía y obligaba a un
+ *  `?? m` que nunca se ejecutaba). */
+function bestMark(a: Mark | undefined, b: Mark): Mark {
   if (a === "hit" || b === "hit") return "hit";
   if (a === "present" || b === "present") return "present";
-  if (a === "miss" || b === "miss") return "miss";
-  return undefined;
+  return "miss";
 }
 
 // ── Tile component ────────────────────────────────────────────────────────────
@@ -114,51 +92,6 @@ function Tile({ letter, mark, revealed, animate, colIndex }: TileProps) {
 
 // ── Key component ─────────────────────────────────────────────────────────────
 
-type KeyProps = {
-  label: string;
-  mark: Mark | undefined;
-  onTap: (key: string) => void;
-  wide?: boolean;
-};
-
-function Key({ label, mark, onTap, wide }: KeyProps) {
-  const bg =
-    mark === "hit"
-      ? "#22c55e"
-      : mark === "present"
-        ? "#f59e0b"
-        : mark === "miss"
-          ? "var(--muted)"
-          : "var(--surface)";
-  const color =
-    mark === "hit" || mark === "present" || mark === "miss"
-      ? "#fff"
-      : "var(--foreground)";
-
-  return (
-    <button
-      onPointerUp={() => onTap(label)}
-      style={{
-        minWidth: wide ? "4rem" : "2.1rem",
-        height: "3.2rem",
-        padding: "0 0.25rem",
-        border: "none",
-        borderRadius: "0.4rem",
-        background: bg,
-        color,
-        fontWeight: 700,
-        fontSize: wide ? "0.75rem" : "0.9rem",
-        cursor: "pointer",
-        userSelect: "none",
-        flexShrink: 0,
-        transition: "background 0.2s",
-      }}
-    >
-      {label === "⌫" ? "⌫" : label}
-    </button>
-  );
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function WordlePage() {
@@ -184,25 +117,14 @@ export default function WordlePage() {
   const submittingRef = useRef(false);
 
   // Countdown to next word
-  const [countdown, setCountdown] = useState(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Arranca con el valor real: con 0 el primer frame decía "ya disponible"
+  const [countdown, setCountdown] = useState(() => secondsUntilMidnightUTC());
 
   // ── Load state on mount ───────────────────────────────────────────────────
 
-  const loadState = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    getWordleService()
-      .then((s) => {
-        setState(s);
-        setPreloadedRows(s.guesses.length);
-        setCurrentWord("");
-      })
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Load on mount via async callback — avoids synchronous setState in effect body
+  // Carga inicial y Reintentar comparten este efecto; el botón solo bumpea
+  // fetchAttempt (regla 5) — antes el mismo fetch estaba escrito dos veces
+  const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
     let active = true;
     getWordleService()
@@ -223,6 +145,12 @@ export default function WordlePage() {
     return () => {
       active = false;
     };
+  }, [fetchAttempt]);
+
+  const retryLoad = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
+    setFetchAttempt((n) => n + 1);
   }, []);
 
   // Start countdown when done — setCountdown called only inside async setInterval
@@ -231,7 +159,6 @@ export default function WordlePage() {
     if (!isDone) return;
     const tick = () => setCountdown(secondsUntilMidnightUTC());
     const id = setInterval(tick, 60_000);
-    countdownRef.current = id;
     // Initialise via the interval callback scheduled immediately
     const initId = setTimeout(tick, 0);
     return () => {
@@ -244,13 +171,15 @@ export default function WordlePage() {
   useEffect(() => {
     return () => {
       if (shakeRef.current) clearTimeout(shakeRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, []);
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
   const wordLength = state?.length ?? 5;
+  // El servidor manda: antes un MAX_TRIES = 6 hardcodeado dibujaba la
+  // cuadrícula, así que un cambio de backend la habría desincronizado
+  const maxTries = state?.maxTries ?? DEFAULT_MAX_TRIES;
   const guesses = state?.guesses ?? [];
   const done = state?.done ?? false;
 
@@ -260,7 +189,7 @@ export default function WordlePage() {
     for (let i = 0; i < g.word.length; i++) {
       const letter = g.word[i];
       const m = g.marks[i];
-      keyMarks[letter] = bestMark(keyMarks[letter], m) ?? m;
+      keyMarks[letter] = bestMark(keyMarks[letter], m);
     }
   }
 
@@ -270,12 +199,12 @@ export default function WordlePage() {
     (key: string) => {
       if (done) return;
 
-      if (key === "⌫" || key === "BACKSPACE") {
+      if (key === KEY_BACKSPACE || key === "BACKSPACE") {
         setCurrentWord((w) => w.slice(0, -1));
         return;
       }
 
-      if (key === "ENTER" || key === "↵") {
+      if (key === KEY_ENTER || key === "↵") {
         if (submittingRef.current) return;
 
         if (currentWord.length !== wordLength) {
@@ -364,7 +293,7 @@ export default function WordlePage() {
           Revisa tu conexión e inténtalo de nuevo.
         </p>
         <button
-          onPointerUp={loadState}
+          onPointerUp={retryLoad}
           style={{
             background: "var(--accent)",
             color: "var(--accent-foreground)",
@@ -389,7 +318,7 @@ export default function WordlePage() {
     revealed: boolean;
   }> = [];
 
-  for (let r = 0; r < MAX_TRIES; r++) {
+  for (let r = 0; r < maxTries; r++) {
     if (r < guesses.length) {
       // Submitted row
       rows.push({
@@ -488,7 +417,7 @@ export default function WordlePage() {
                 margin: 0,
               }}
             >
-              {wordLength} letras · {MAX_TRIES} intentos
+              {wordLength} letras · {maxTries} intentos
             </p>
           </div>
           <div style={{ width: "3rem" }} />
@@ -630,7 +559,7 @@ export default function WordlePage() {
                   margin: "0 0 0.5rem",
                 }}
               >
-                ⏰ Nueva palabra en <strong>{formatCountdown(countdown)}</strong>
+                ⏰ Nueva palabra en <strong>{formatCountdown(countdown, "¡Nueva palabra ya disponible!")}</strong>
               </p>
               <button
                 onPointerUp={() => router.push("/play")}
@@ -665,32 +594,7 @@ export default function WordlePage() {
               maxWidth: "24rem",
             }}
           >
-            {/* Row 1: Q-P */}
-            <div
-              style={{ display: "flex", gap: "0.25rem", justifyContent: "center" }}
-            >
-              {KB_ROW1.map((k) => (
-                <Key key={k} label={k} mark={keyMarks[k]} onTap={handleKey} />
-              ))}
-            </div>
-            {/* Row 2: A-L */}
-            <div
-              style={{ display: "flex", gap: "0.25rem", justifyContent: "center" }}
-            >
-              {KB_ROW2.map((k) => (
-                <Key key={k} label={k} mark={keyMarks[k]} onTap={handleKey} />
-              ))}
-            </div>
-            {/* Row 3: Enter + Z-M + ⌫ */}
-            <div
-              style={{ display: "flex", gap: "0.25rem", justifyContent: "center" }}
-            >
-              <Key label="↵" mark={undefined} onTap={() => handleKey("ENTER")} wide />
-              {KB_ROW3.map((k) => (
-                <Key key={k} label={k} mark={keyMarks[k]} onTap={handleKey} />
-              ))}
-              <Key label="⌫" mark={undefined} onTap={() => handleKey("⌫")} wide />
-            </div>
+            <DailyKeyboard onKey={handleKey} marks={keyMarks} showEnter size="md" />
           </div>
         )}
       </div>
