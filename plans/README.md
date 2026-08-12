@@ -31,7 +31,7 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: dont-pop, dotaxi, true-false, word-tower.
+Pendientes de auditoría: dont-pop, dotaxi, word-tower.
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.
@@ -86,3 +86,10 @@ cuadrícula), el fetch duplicado pasó a un solo efecto con `fetchAttempt`, la
 cuenta atrás ya no parpadea "ya disponible" en su primer frame, `bestMark`
 devuelve `Mark` (el `?? m` era código muerto) y murió una ref sin lectores.
 Pendiente su pasada de juice.
+
+¿Verdad o Trampa? (true-false) certificada el 2026-08-10: el reloj seguía vivo
+sobre la pantalla de resultado (`stop` de useCountdown no se desestructuraba),
+torneo y reto solo aceptan partidas completas (salir quemaba el intento del
+1v1), agotar el mazo termina la partida en vez de obligar a mirar el reloj
+bajar, los dos Salir pasan a `onPointerUp` como el resto del archivo, y murió
+una ref sin lectores. Pendiente su pasada de juice.

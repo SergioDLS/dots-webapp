@@ -68,16 +68,21 @@ function TrueFalseInner({ seed }: { seed?: number }) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const pointerStartXRef = useRef(0);
-  const cardRef = useRef<HTMLDivElement>(null);
+
+  // La partida llegó a su fin natural (tiempo agotado o mazo terminado), en
+  // contraposición a salir a mitad
+  const completedRef = useRef(false);
 
   const handleTimeUp = useCallback(() => {
+    completedRef.current = true;
     setPhase("result");
   }, []);
 
-  const { remaining, start: startCountdown } = useCountdown(
-    GAME_SECONDS,
-    handleTimeUp,
-  );
+  const {
+    remaining,
+    start: startCountdown,
+    stop: stopCountdown,
+  } = useCountdown(GAME_SECONDS, handleTimeUp);
 
   // Load cards on mount; re-runs on retry via fetchAttempt.
   useEffect(() => {
@@ -105,6 +110,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
   }, []);
 
   const startGame = useCallback(() => {
+    completedRef.current = false;
     setCardIndex(0);
     setScore(0);
     setStreak(0);
@@ -113,6 +119,16 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setPhase("playing");
     startCountdown();
   }, [startCountdown]);
+
+  // Mazo agotado = partida completa: antes se quedaba esperando al reloj
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (cards.length === 0 || cardIndex < cards.length) return;
+    completedRef.current = true;
+    stopCountdown();
+    const id = setTimeout(() => setPhase("result"), 900);
+    return () => clearTimeout(id);
+  }, [phase, cardIndex, cards.length, stopCountdown]);
 
   // Advance to next card
   const advance = useCallback(() => {
@@ -205,12 +221,16 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setDragX(0);
   }, []);
 
-  // Modo torneo: envía el score una vez al llegar a "result"; al salir
-  // (reintentar) rearma el guard para que la próxima partida también cuente.
+  // Torneo/reto: solo cuentan PARTIDAS COMPLETAS (se acabó el tiempo o el
+  // mazo). El score personal sí conserva el parcial al salir — sube desde 0,
+  // así que abandonar nunca supera a jugar — pero el reto 1v1 gasta su único
+  // intento sin rearme, y un parcial lo quemaba.
   useEffect(() => {
     if (phase === "result") {
-      submitTournamentScore(score);
-      submitChallengeScore(score);
+      if (completedRef.current) {
+        submitTournamentScore(score);
+        submitChallengeScore(score);
+      }
     } else {
       resetTournamentSubmit();
     }
@@ -296,7 +316,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
           {/* Exit button floats above GameIntro */}
           <div className="z-10 flex w-full max-w-sm justify-start">
             <button
-              onClick={() => router.push("/play")}
+              onPointerUp={() => router.push("/play")}
               className="text-sm font-bold transition-colors"
               style={{ color: "var(--muted)" }}
             >
@@ -328,7 +348,11 @@ function TrueFalseInner({ seed }: { seed?: number }) {
             style={{ marginBottom: "1rem" }}
           >
             <button
-              onClick={() => setPhase("result")}
+              onPointerUp={() => {
+                // el reloj seguía vivo sobre la pantalla de resultado
+                stopCountdown();
+                setPhase("result");
+              }}
               className="text-sm font-bold transition-colors"
               style={{ color: "var(--muted)" }}
             >
@@ -395,7 +419,6 @@ function TrueFalseInner({ seed }: { seed?: number }) {
 
                 {/* The card */}
                 <div
-                  ref={cardRef}
                   key={cardIndex}
                   onPointerDown={onPointerDown}
                   onPointerMove={onPointerMove}
@@ -489,14 +512,12 @@ function TrueFalseInner({ seed }: { seed?: number }) {
                 </div>
               </>
             ) : (
-              // No more cards — show a waiting state
+              // Mazo agotado: la partida termina sola (antes obligaba a mirar
+              // el reloj bajar sin nada que hacer)
               <div className="flex flex-col items-center gap-3 mt-12">
                 <span className="text-4xl">🎉</span>
                 <p className="font-display text-lg font-extrabold text-center" style={{ color: "var(--foreground)" }}>
                   ¡Todas las cartas respondidas!
-                </p>
-                <p className="text-sm font-bold" style={{ color: "var(--muted)" }}>
-                  Esperando que termine el tiempo…
                 </p>
               </div>
             )}
