@@ -164,7 +164,8 @@ function MemoryInner({ seed }: { seed?: number }) {
   useEffect(() => {
     if (phase === "result") {
       submitTournamentScore(finalScore);
-      submitChallengeScore(finalScore);
+      // salir navega a /play, así que llegar aquí = partida terminada
+      submitChallengeScore(finalScore, { completed: true });
     } else {
       resetTournamentSubmit();
     }

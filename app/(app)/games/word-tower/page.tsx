@@ -157,7 +157,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
     if (phase === "result") {
       if (completedRef.current) {
         submitTournamentScore(score);
-        submitChallengeScore(score);
+        submitChallengeScore(score, { completed: true });
       }
     } else {
       resetTournamentSubmit();

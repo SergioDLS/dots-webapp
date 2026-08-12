@@ -103,10 +103,14 @@ limpiar pasaron por un helper `scheduleTimer`; la revancha rebaraja las rondas
 ante `rounds.length` (con mazo corto el juego encadenaba fallos automáticos); y
 torneo/reto solo aceptan partidas completas. Pendiente su pasada de juice.
 
-### Guard del reto 1v1 (transversal detectado)
+### Guard del reto 1v1 — CERRADO el 2026-08-10
 
-`useChallengeMode` nunca rearma su guard, así que cualquier envío parcial quema
-el único intento. Se ha cerrado juego por juego (sentence-builder, audio-blitz,
-true-false, word-tower) gateando el envío en "partida completa", pero el arreglo
-de raíz vive en el hook: que rechace partidas incompletas o exponga el rearme
-como hace `useTournamentMode`.
+El no-rearme de `useChallengeMode` es DELIBERADO y está documentado (en un reto
+la primera partida es la que cuenta; el backend responde 409 a repetidos): el
+bug vivía en los sitios de llamada, que enviaban partidas abandonadas. Arreglo
+de raíz: `submitChallengeScore(score, { completed })` con el segundo argumento
+OBLIGATORIO — TypeScript rompe en los seis consumidores hasta que cada uno
+declare qué significa "completa" en su juego, y un juego nuevo no puede
+olvidarse por omisión. El hook además ignora los envíos con `completed: false`.
+Último consumidor con el agujero abierto (dot-match) corregido en la misma
+tanda.

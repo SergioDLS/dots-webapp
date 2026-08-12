@@ -66,6 +66,7 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
 - wordle no escucha el teclado físico (cumple la regla RN-safe: teclados =
   botones en pantalla), así que en escritorio hay que tocar las teclas.
 - dotaxi depende de teclado físico (legacy, pre-RN).
+- `submitChallengeScore(score, { completed })` exige declarar si la partida terminó: el intento del reto 1v1 se gasta a la primera (el backend 409ea repetidos) y no hay rearme, así que enviar un abandono lo quemaba. Los seis juegos con reto lo declaran explícitamente.
 - "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10). En audio-blitz, true-false y word-tower el parcial SÍ cuenta para el récord personal (su score sube desde 0, como dot-match), pero torneo y reto solo aceptan partidas completas (corregido 2026-08-10).
 
 ## Historia

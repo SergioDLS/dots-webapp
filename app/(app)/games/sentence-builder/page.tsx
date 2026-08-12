@@ -145,7 +145,8 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   useEffect(() => {
     if (phase === "result") {
       submitTournamentScore(score);
-      submitChallengeScore(score);
+      // salir navega a /play, así que llegar aquí = partida terminada
+      submitChallengeScore(score, { completed: true });
     } else {
       resetTournamentSubmit();
     }

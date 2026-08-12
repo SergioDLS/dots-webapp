@@ -129,8 +129,14 @@ function DotMatchInner({ seed }: { seed?: number }) {
   // ── Countdown (changes per round) ────────────────────────────────────────
   const currentRound = ROUNDS[Math.min(round, ROUNDS.length - 1)];
 
+  // Salir a mitad manda el parcial al récord personal (decisión de diseño: el
+  // score sube desde 0, así que abandonar nunca supera a jugar), pero el reto
+  // 1v1 gasta su único intento sin rearme — solo cuenta la partida completa
+  const completedRef = useRef(false);
+
   const handleTimeUp = useCallback(() => {
     // Time ran out — end the game with accumulated score
+    completedRef.current = true;
     setPhase("result");
   }, []);
 
@@ -229,6 +235,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
       clearTimeout(shakeTimerRef.current);
       shakeTimerRef.current = null;
     }
+    completedRef.current = false;
     setRound(0);
     setScore(0);
     setCombo(0);
@@ -325,6 +332,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             const nextRound = roundRef.current + 1;
             if (nextRound >= ROUNDS.length) {
               // Completed all rounds
+              completedRef.current = true;
               stopCountdown();
               setPhase("result");
             } else {
@@ -436,7 +444,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
   useEffect(() => {
     if (phase === "result") {
       submitTournamentScore(finalScore);
-      submitChallengeScore(finalScore);
+      submitChallengeScore(finalScore, { completed: completedRef.current });
     } else {
       resetTournamentSubmit();
     }
