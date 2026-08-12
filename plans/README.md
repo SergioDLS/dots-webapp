@@ -31,8 +31,7 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: crossword, dont-pop, dotaxi, true-false, wordle,
-word-tower.
+Pendientes de auditoría: dont-pop, dotaxi, true-false, wordle, word-tower.
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.
@@ -57,7 +56,22 @@ intento del 1v1; el parcial sí sigue contando para el récord personal, que sub
 desde 0), y el acierto por fin tiene el feedback que un comentario prometía y no
 existía: chip "+N" verde y pop del marcador.
 
-## Transversal pendiente: farmeo por `?seed=`
+Mini Crucigrama (crossword) certificado el 2026-08-10: el botón Comprobar con 0
+restantes seguía posteando al servidor (ahora `disabled` + guard de `checksLeft`
+en `handleCheck`), el fallo de red era invisible (ahora aviso con `role=status`
+que se limpia al reintentar), la fórmula de score duplicada quedó en un helper
+`crosswordScore` documentado con su fuente en el backend, la cuenta atrás bajó a
+1 s de resolución y murió una ref sin lectores. Pendiente su pasada de juice.
+
+## Transversales pendientes
+
+### Teclado compartido con wordle
+
+crossword y wordle duplican literalmente `KB_ROW1/2/3` y
+`secondsUntilMidnightUTC()`. Decisión del usuario (2026-08-10): extraerlo cuando
+le toque el turno a wordle, para ver los dos juegos diarios juntos.
+
+### Farmeo por `?seed=`
 
 Seis juegos aceptan `?seed=` desde la URL (dot-match, true-false, memory,
 word-tower, sentence-builder, audio-blitz): fijar un seed, memorizar el mazo y

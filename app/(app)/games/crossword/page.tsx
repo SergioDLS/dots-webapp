@@ -15,6 +15,16 @@ import {
 const GRID_SIZE = 5;
 const MAX_CHECKS = 5;
 
+/**
+ * Espejo de la fórmula del servidor — SOLO para mostrar los puntos ganados;
+ * el score real lo calcula y guarda el backend.
+ * Fuente: dots-backend `src/modules/daily-games/daily-games.service.ts`
+ * (CROSSWORD_BASE_SCORE / CROSSWORD_SCORE_STEP). Si cambia allí, cambia aquí.
+ */
+function crosswordScore(checksUsed: number): number {
+  return Math.max(50, 300 - (checksUsed - 1) * 50);
+}
+
 // QWERTY keyboard rows — no Enter (check uses a button), ⌫ at end of row 3
 const KB_ROW1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
 const KB_ROW2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
@@ -298,10 +308,11 @@ export default function CrosswordPage() {
 
   // Submitting guard
   const submittingRef = useRef(false);
+  // La última comprobación no llegó al servidor
+  const [checkError, setCheckError] = useState(false);
 
   // Countdown
   const [countdown, setCountdown] = useState(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Load ──────────────────────────────────────────────────────────────────
 
@@ -343,10 +354,11 @@ export default function CrosswordPage() {
   const isDone = state?.done ?? false;
   useEffect(() => {
     if (!isDone) return;
+    // 1 s de resolución: con 60 s el texto "menos de 1 min" se quedaba
+    // colgado hasta un minuto entero
     const tick = () => setCountdown(secondsUntilMidnightUTC());
     const initId = setTimeout(tick, 0);
-    const id = setInterval(tick, 60_000);
-    countdownRef.current = id;
+    const id = setInterval(tick, 1000);
     return () => { clearInterval(id); clearTimeout(initId); };
   }, [isDone]);
 
@@ -460,8 +472,11 @@ export default function CrosswordPage() {
   // ── Check ─────────────────────────────────────────────────────────────────
 
   const handleCheck = useCallback(() => {
-    if (done || submittingRef.current) return;
+    // checksLeft entra al guard: el botón se atenuaba al agotarlas pero seguía
+    // disparando POSTs al servidor
+    if (done || checksLeft <= 0 || submittingRef.current) return;
     submittingRef.current = true;
+    setCheckError(false);
 
     postCrosswordCheckService(localCells)
       .then((res: CrosswordCheckResponse) => {
@@ -470,12 +485,14 @@ export default function CrosswordPage() {
         setCorrectGrid(res.correct.map((row) => [...row]) as (boolean | null)[][]);
       })
       .catch(() => {
-        // Silently ignore — server state preserved
+        // El estado del servidor se conserva, pero el jugador tiene que saber
+        // que su comprobación no llegó (antes el fallo era invisible)
+        setCheckError(true);
       })
       .finally(() => {
         submittingRef.current = false;
       });
-  }, [done, localCells]);
+  }, [done, checksLeft, localCells]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -728,7 +745,7 @@ export default function CrosswordPage() {
                 <p style={{ color: "var(--muted)", fontSize: "0.8rem", margin: 0 }}>
                   Lo lograste con {checksUsed}{" "}
                   {checksUsed === 1 ? "comprobación" : "comprobaciones"} •{" "}
-                  {Math.max(50, 300 - (checksUsed - 1) * 50)} pts
+                  {crosswordScore(checksUsed)} pts
                 </p>
               </>
             ) : (
@@ -791,6 +808,7 @@ export default function CrosswordPage() {
         {!done && (
           <button
             onPointerUp={handleCheck}
+            disabled={checksLeft <= 0}
             style={{
               background: checksLeft > 0 ? "var(--accent)" : "var(--muted)",
               color: "var(--accent-foreground)",
@@ -807,6 +825,22 @@ export default function CrosswordPage() {
           >
             Comprobar ({checksLeft} restante{checksLeft !== 1 ? "s" : ""})
           </button>
+        )}
+
+        {/* Aviso si la comprobación no llegó al servidor */}
+        {!done && checkError && (
+          <p
+            role="status"
+            style={{
+              color: "var(--danger)",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              margin: "0.5rem 0 0",
+              textAlign: "center",
+            }}
+          >
+            No pudimos comprobar. Revisa tu conexión e inténtalo otra vez.
+          </p>
         )}
 
         {/* ── On-screen keyboard ──────────────────────────────────────────── */}
