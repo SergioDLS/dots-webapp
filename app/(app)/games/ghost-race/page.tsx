@@ -31,9 +31,11 @@ const QUESTION_SECONDS = 7;
 const CORRECTION_MS = 1500;
 const SCORE_BASE = 100;
 const SCORE_PER_SECOND = 10;
-const TOTAL_QUESTIONS = 12;
+/** Pasos del fantasma sintético de Doty (solo se usa cuando no hay rival real;
+ *  las barras y el fin de carrera miden contra las longitudes reales). */
+const DOTY_GHOST_STEPS = 12;
 
-/** Doty synthetic ghost: TOTAL_QUESTIONS steps at ~4500 ms each, mild jitter. */
+/** Doty synthetic ghost: DOTY_GHOST_STEPS steps at ~4500 ms each, mild jitter. */
 function buildDotyTimeline(seed: number): number[] {
   // Mulberry32 PRNG inline (no cross-module import)
   let a = seed >>> 0;
@@ -49,7 +51,7 @@ function buildDotyTimeline(seed: number): number[] {
   const JITTER = 800; // ±400 ms
   const timeline: number[] = [];
   let t = 0;
-  for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+  for (let i = 0; i < DOTY_GHOST_STEPS; i++) {
     t += BASE_INTERVAL + Math.round((rng() - 0.5) * JITTER);
     timeline.push(t);
   }
@@ -57,6 +59,9 @@ function buildDotyTimeline(seed: number): number[] {
 }
 
 type Phase = "intro" | "playing" | "result";
+
+/** Frase de corrección partida en tres para pintarla sin inyectar HTML. */
+type Correction = { before: string; answer: string; after: string };
 
 // ── Result card (inline — server already submitted score via /ghost/run) ───────
 
@@ -176,7 +181,11 @@ function GhostRaceInner() {
   const elapsedIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Correction state ──────────────────────────────────────────────────────
-  const [correction, setCorrection] = useState<string | null>(null);
+  // `correction` guarda la frase partida en tres para pintarla con JSX; el
+  // aviso de timeout vive en su propio flag (antes compartía esta variable con
+  // un centinela "__TIMEOUT__", dos tipos de dato en un solo estado)
+  const [correction, setCorrection] = useState<Correction | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancingRef = useRef(false);
 
@@ -187,10 +196,7 @@ function GhostRaceInner() {
   // ── Timer (per-question countdown) ───────────────────────────────────────
 
   const handleTimeUp = useCallback(() => {
-    setCorrection((prev) => {
-      if (prev !== null) return prev;
-      return "__TIMEOUT__";
-    });
+    setTimedOut(true);
   }, []);
 
   const { remaining, stop: stopTimer, start: startTimer } = useCountdown(
@@ -237,22 +243,21 @@ function GhostRaceInner() {
   // ── Correction sentinel (timeout → wrong) ────────────────────────────────
 
   useEffect(() => {
-    if (correction !== "__TIMEOUT__") return;
+    if (!timedOut) return;
+    setTimedOut(false);
     const item = items[questionIndex];
-    if (!item) {
-      setCorrection(null);
-      return;
-    }
+    if (!item) return;
     playSound("wrong");
     stopTimer();
-    const highlighted = buildHighlightedSentence(item.text, item.correct);
-    setCorrection(highlighted);
+    // igual que el fallo por tap: el timeout también es pregunta resuelta
+    setMyTimeline((tl) => [...tl, Date.now() - raceStartRef.current]);
+    setCorrection(buildHighlightedSentence(item.text, item.correct));
     correctionTimerRef.current = setTimeout(() => {
       setCorrection(null);
       setQuestionIndex((i) => i + 1);
     }, CORRECTION_MS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [correction]);
+  }, [timedOut]);
 
   // ── Start timer on each new question ─────────────────────────────────────
 
@@ -306,7 +311,7 @@ function GhostRaceInner() {
             ? ghostTimeline[ghostTimeline.length - 1]
             : Infinity;
         setBeatGhost(
-          questionIndex >= TOTAL_QUESTIONS && myLast < ghostLast,
+          questionIndex >= items.length && myLast < ghostLast,
         );
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -314,11 +319,9 @@ function GhostRaceInner() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  function buildHighlightedSentence(text: string, correct: string): string {
-    return text.replace(
-      "__",
-      `<span style="color:var(--accent);font-weight:900">${correct}</span>`,
-    );
+  function buildHighlightedSentence(text: string, correct: string): Correction {
+    const [before, ...rest] = text.split("__");
+    return { before, answer: correct, after: rest.join("__") };
   }
 
   // ── Start / restart ───────────────────────────────────────────────────────
@@ -339,6 +342,7 @@ function GhostRaceInner() {
     setMyTimeline([]);
     setElapsed(0);
     setCorrection(null);
+    setTimedOut(false);
     setBeatGhost(false);
     raceStartRef.current = Date.now();
     // Ghost elapsed clock
@@ -369,8 +373,11 @@ function GhostRaceInner() {
         setQuestionIndex((i) => i + 1);
       } else {
         playSound("wrong");
-        const highlighted = buildHighlightedSentence(item.text, item.correct);
-        setCorrection(highlighted);
+        // El timeline registra TODA pregunta resuelta, no solo los aciertos:
+        // si solo contara los aciertos, fallar a propósito acortaría la
+        // duración reportada y produciría carreras imbatibles
+        setMyTimeline((tl) => [...tl, Date.now() - raceStartRef.current]);
+        setCorrection(buildHighlightedSentence(item.text, item.correct));
         correctionTimerRef.current = setTimeout(() => {
           setCorrection(null);
           setQuestionIndex((i) => i + 1);
@@ -397,8 +404,11 @@ function GhostRaceInner() {
 
   /** How many ghost steps have elapsed by current time. */
   const ghostSteps = ghostTimeline.filter((t) => t <= elapsed).length;
-  const ghostPct = TOTAL_QUESTIONS > 0 ? ghostSteps / TOTAL_QUESTIONS : 0;
-  const myPct = TOTAL_QUESTIONS > 0 ? questionIndex / TOTAL_QUESTIONS : 0;
+  // cada barra se mide contra SU propia longitud: la del rival puede no
+  // coincidir con la de esta carrera si el backend cambia el número de preguntas
+  const ghostPct =
+    ghostTimeline.length > 0 ? ghostSteps / ghostTimeline.length : 0;
+  const myPct = items.length > 0 ? questionIndex / items.length : 0;
 
   // ── Loading / error gates ─────────────────────────────────────────────────
 
@@ -479,9 +489,12 @@ function GhostRaceInner() {
           >
             <button
               onPointerUp={() => {
+                // Abandonar NO envía la carrera: el efecto de "result" postea
+                // a /ghost/run, así que salir a mitad registraba una carrera
+                // con score y timeline truncados
                 stopTimer();
                 if (elapsedIntervalRef.current) clearInterval(elapsedIntervalRef.current);
-                setPhase("result");
+                router.push("/play");
               }}
               className="text-sm font-bold transition-colors"
               style={{ color: "var(--muted)" }}
@@ -644,7 +657,7 @@ function GhostRaceInner() {
           </div>
 
           {/* Correction overlay */}
-          {correction !== null && correction !== "__TIMEOUT__" && (
+          {correction !== null && (
             <div
               className="z-10 mt-5 w-full max-w-sm rounded-2xl px-5 py-4 text-center text-sm font-bold"
               style={{
@@ -660,7 +673,13 @@ function GhostRaceInner() {
               >
                 La frase completa:
               </p>
-              <p dangerouslySetInnerHTML={{ __html: correction }} />
+              <p>
+                {correction.before}
+                <span style={{ color: "var(--accent)", fontWeight: 900 }}>
+                  {correction.answer}
+                </span>
+                {correction.after}
+              </p>
             </div>
           )}
         </>
