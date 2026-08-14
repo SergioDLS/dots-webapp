@@ -64,8 +64,11 @@ export async function getDontPopService(): Promise<GameWord[]> {
   return data;
 }
 
-export async function getDotaxiService(): Promise<DotaxiQuestion[]> {
-  const { data } = await api.get<DotaxiQuestion[]>("/games/dotaxi");
+// seed: reenviado por convención; el backend hoy lo ignora en este endpoint
+export async function getDotaxiService(seed?: number): Promise<DotaxiQuestion[]> {
+  const { data } = await api.get<DotaxiQuestion[]>("/games/dotaxi", {
+    params: seed !== undefined ? { seed } : undefined,
+  });
   return data;
 }
 

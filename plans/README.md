@@ -31,7 +31,15 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: dont-pop y dotaxi (los dos legacy — son rediseños, no certificaciones).
+Pendientes de auditoría: dont-pop (legacy — es rediseño, no certificación).
+
+Dotaxi 2.0 (2026-08-12): rediseñado a carriles progresivos 2→3→4 por aciertos y
+hecho RN-safe — fuera el keydown como input, fuera Web Audio, el taxi y la
+carretera pasan a transform, confirmar es un botón «¡Vamos!» separado de mover
+(antes un tap mal apuntado respondía), mazo barajado con seed, y el bug de banco
+vacío cerrado. Spec en
+`docs/superpowers/specs/2026-08-12-dotaxi-carriles-progresivos.md`.
+Con esto NO queda ningún juego que bloquee la app RN salvo dont-pop.
 
 Retirados el 2026-08-10 (récords purgados con backup en
 `dots-backend/scripts/out/`): flashcards, speed-round. dot-bombs fue reconstruido como anagrama tap (2026-08-10) — pendiente solo su pasada de certificación estándar. Diferidos anotados de la review final: ignorar taps durante la transición de bandeja (~200 ms), pop de salida de bomba desactivada, y tamaño adaptativo de fichas para palabras largas.

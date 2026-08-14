@@ -1,110 +1,63 @@
 "use client";
 
 import React, {
+  Suspense,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
-import Doty from "@/components/ui/doty/doty";
-import UIButton from "@/components/ui/button/button";
+import { useRouter, useSearchParams } from "next/navigation";
+import GameIntro from "@/components/games/shared/game-intro";
+import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import Doty from "@/components/ui/doty/doty";
 import { getDotaxiService, type DotaxiQuestion } from "@/services/games.service";
+import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
+import { useChallengeMode } from "@/hooks/use-challenge-mode";
+import { useTicker } from "@/hooks/use-ticker";
+import { playSound } from "@/lib/feedback-sounds";
 import {
-  submitGameScoreService,
-  type ScoreResult,
-} from "@/services/engagement.service";
-import XpReward from "@/components/ui/xp-reward";
+  lanesForCorrect,
+  laneGeometry,
+  nearestLane,
+  buildLaneOptions,
+} from "./lanes";
 
-// ── Tunables ──────────────────────────────────────────────────────────────────
-const LANES = 3;
+// ── Constantes (heredadas del juego original) ────────────────────────────────
+
 const START_HEARTS = 5;
 const WIN_CORRECT = 10;
 const TIMER_START = 5000;
-const TIMER_STEP = 280; // shaved per round played
+const TIMER_STEP = 280; // se recorta por ronda jugada
 const TIMER_MIN = 2500;
-const RESOLVE_MS = 1300;
-const LANE_CENTERS = ["16.67%", "50%", "83.33%"]; // x of each lane
+const TICKER_FPS = 30;
+const RESOLVE_MS = 1300; // pausa tras resolver la ronda
+const TIER_NOTICE_MS = 600; // aviso "¡Carril nuevo!" al abrirse un carril
 
-type Phase = "start" | "driving" | "result" | "win" | "gameover";
+type Phase = "intro" | "playing" | "result";
 
-// ── Web Audio engine hum (toggleable) ───────────────────────────────────────────
-function useEngine() {
-  const ctxRef = useRef<AudioContext | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-  const oscRef = useRef<OscillatorNode | null>(null);
-
-  const start = useCallback(() => {
-    if (ctxRef.current) return;
-    try {
-      const Ctx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
-      const ctx = new Ctx();
-      const osc = ctx.createOscillator();
-      const filter = ctx.createBiquadFilter();
-      const gain = ctx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.value = 70;
-      filter.type = "lowpass";
-      filter.frequency.value = 320;
-      gain.gain.value = 0.04;
-      osc.connect(filter).connect(gain).connect(ctx.destination);
-      osc.start();
-      ctxRef.current = ctx;
-      gainRef.current = gain;
-      oscRef.current = osc;
-    } catch {
-      /* audio unavailable */
-    }
-  }, []);
-
-  const setSpeed = useCallback((t: number) => {
-    // t in 0..1 → engine pitch
-    if (oscRef.current && ctxRef.current) {
-      oscRef.current.frequency.setTargetAtTime(
-        62 + t * 46,
-        ctxRef.current.currentTime,
-        0.1,
-      );
-    }
-  }, []);
-
-  const setMuted = useCallback((muted: boolean) => {
-    if (gainRef.current && ctxRef.current) {
-      gainRef.current.gain.setTargetAtTime(
-        muted ? 0 : 0.04,
-        ctxRef.current.currentTime,
-        0.05,
-      );
-    }
-  }, []);
-
-  const stop = useCallback(() => {
-    try {
-      oscRef.current?.stop();
-      ctxRef.current?.close();
-    } catch {
-      /* noop */
-    }
-    ctxRef.current = null;
-    gainRef.current = null;
-    oscRef.current = null;
-  }, []);
-
-  useEffect(() => stop, [stop]);
-  return { start, setSpeed, setMuted, stop };
+/** PRNG determinista para derivar el mazo del seed (mismo mazo entre rivales). */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-const playSfx = (file: string, muted: boolean) => {
-  if (muted) return;
-  const a = new Audio(file);
-  a.volume = 0.6;
-  a.play().catch(() => {});
-};
+function shuffleWith<T>(arr: readonly T[], rng: () => number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 // ── Taxi (top-down, Doty in the cabin) ──────────────────────────────────────────
 function Taxi({
@@ -206,535 +159,563 @@ function Taxi({
   );
 }
 
-export default function DotaxiPage() {
-  const [questions, setQuestions] = useState<DotaxiQuestion[]>([]);
+// ── Lector de seed (dentro del boundary de Suspense) ────────────────────────
+
+function DotaxiGame() {
+  const searchParams = useSearchParams();
+  const seedParam = searchParams.get("seed");
+  const parsed = seedParam !== null && seedParam !== "" ? parseInt(seedParam, 10) : NaN;
+  const seed = Number.isFinite(parsed) ? parsed : undefined;
+  return <DotaxiInner seed={seed} />;
+}
+
+// ── Componente principal ─────────────────────────────────────────────────────
+
+function DotaxiInner({ seed }: { seed?: number }) {
+  const router = useRouter();
+  const { record, throne } = useGameRecords("dotaxi");
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
+  const { submitChallengeScore } = useChallengeMode();
+
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [deck, setDeck] = useState<DotaxiQuestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [phase, setPhase] = useState<Phase>("start");
-  const [round, setRound] = useState(0);
-  const [lane, setLane] = useState(1);
-  const [tilt, setTilt] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+
   const [hearts, setHearts] = useState(START_HEARTS);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(TIMER_START);
-  const [duration, setDuration] = useState(TIMER_START);
-  const [pose, setPose] = useState("13");
-  const [outcome, setOutcome] = useState<"none" | "pass" | "crash">("none");
-  const [muted, setMuted] = useState(false);
-  const [reward, setReward] = useState<ScoreResult | null>(null);
-  const scoreSubmittedRef = useRef(false);
+  const [finalScore, setFinalScore] = useState(0);
 
-  const engine = useEngine();
+  /** La partida llegó a su fin natural (ganó o se quedó sin corazones). */
+  const completedRef = useRef(false);
 
-  // refs for values read inside timers
-  const phaseRef = useRef(phase);
-  const laneRef = useRef(lane);
-  const resolvedRef = useRef(false);
-  useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
-  useEffect(() => {
-    laneRef.current = lane;
-  }, [lane]);
+  // Motor en refs; el estado es snapshot para render (regla 3)
+  const playDeckRef = useRef<DotaxiQuestion[]>([]); // mazo de ESTA partida (revancha rebaraja)
+  const roundRef = useRef(0); // rondas jugadas (para el timer decreciente)
+  const laneRef = useRef(0); // carril actual del taxi
+  const lanesRef = useRef(2); // carriles del tramo actual
+  const remainingRef = useRef(TIMER_START);
+  const resolvingRef = useRef(false);
+  const correctCountRef = useRef(0);
+  const heartsRef = useRef(START_HEARTS);
+  const scoreRef = useRef(0);
+  const comboRef = useRef(0);
+  const resolveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Timer propio (no está en el brief original): sin él, TIER_NOTICE_MS quedaba
+  // sin usar y el aviso de carril nuevo se quedaba en pantalla toda la ronda.
+  const tierNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // true mientras se ve "¡Carril nuevo!": el tick de abajo lo usa para
+  // congelar la cuenta atrás y que el aviso no se coma tiempo de lectura.
+  const noticeRef = useRef(false);
+  const roadYRef = useRef(0); // desplazamiento de la carretera (px, cíclico)
+  const roadRef = useRef<HTMLDivElement | null>(null);
+  const roadWRef = useRef(0);
 
+  const [lane, setLane] = useState(0);
+  const [lanes, setLanes] = useState(2);
+  const [laneOptions, setLaneOptions] = useState<string[]>([]);
+  const [question, setQuestion] = useState<DotaxiQuestion | null>(null);
+  const [remaining, setRemaining] = useState(TIMER_START);
+  const [outcome, setOutcome] = useState<"none" | "clear" | "crash">("none");
+  const [tierNotice, setTierNotice] = useState(false);
+  const [roadY, setRoadY] = useState(0);
+  const [roadW, setRoadW] = useState(0);
+
+  // Fetch con patrón fetchAttempt (regla 5)
+  const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    getDotaxiService()
-      .then((q) => active && setQuestions(q))
-      .catch(() => {})
-      .finally(() => active && setLoading(false));
+    getDotaxiService(seed)
+      .then((data) => {
+        if (!active) return;
+        const usable = data.filter(
+          (q) => q.correct && q.options && q.options.length > 0,
+        );
+        // Nunca se arranca sin preguntas: el juego viejo encadenaba choques
+        // automáticos y enviaba un score 0
+        if (usable.length === 0) {
+          setLoadError(true);
+          return;
+        }
+        const rng = seed !== undefined ? mulberry32(seed) : Math.random;
+        setDeck(shuffleWith(usable, rng));
+      })
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
+  }, [seed, fetchAttempt]);
+
+  useEffect(() => {
+    return () => {
+      if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
+      if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+    };
   }, []);
 
-  const question = questions.length
-    ? questions[round % questions.length]
-    : null;
-  const correctIndex = useMemo(
-    () => (question ? question.options.indexOf(question.correct) : -1),
-    [question],
-  );
+  /** Prepara la ronda `idx`: calcula el tramo, recoloca el taxi si cambió el
+   *  número de carriles y reparte las opciones por los carriles. */
+  const setupRound = useCallback(
+    (idx: number) => {
+      const q = playDeckRef.current[idx % playDeckRef.current.length];
+      if (!q) return;
 
-  // fire-and-forget: sync the run's score when the ride ends,
-  // then show "+N XP" / "New high score!" if the response arrives
-  useEffect(() => {
-    if ((phase === "win" || phase === "gameover") && !scoreSubmittedRef.current) {
-      scoreSubmittedRef.current = true;
-      submitGameScoreService("dotaxi", score)
-        .then(setReward)
-        .catch(() => {});
-    }
-  }, [phase, score]);
-
-  // reflect progress into engine pitch + mute
-  useEffect(() => {
-    engine.setMuted(muted);
-  }, [muted, engine]);
-  useEffect(() => {
-    engine.setSpeed(correctCount / WIN_CORRECT);
-  }, [correctCount, engine]);
-
-  const moveTo = useCallback(
-    (target: number) => {
-      if (phaseRef.current !== "driving") return;
-      const clamped = Math.max(0, Math.min(LANES - 1, target));
-      setLane((prev) => {
-        if (clamped !== prev) {
-          setTilt(clamped > prev ? 9 : -9);
-          setTimeout(() => setTilt(0), 250);
-        }
-        return clamped;
-      });
-    },
-    [],
-  );
-
-  const resolve = useCallback(() => {
-    if (resolvedRef.current) return;
-    resolvedRef.current = true;
-    setPhase("result");
-    const pass = laneRef.current === correctIndex;
-    setOutcome(pass ? "pass" : "crash");
-
-    // let obstacles rush in, then apply the result
-    window.setTimeout(() => {
-      if (pass) {
-        setPose("17");
-        playSfx("/sounds/answers/correct.wav", muted);
-        setCombo((c) => {
-          const next = c + 1;
-          setScore((s) => s + 100 * next);
-          return next;
-        });
-        setCorrectCount((n) => {
-          const next = n + 1;
-          if (next >= WIN_CORRECT) {
-            playSfx("/sounds/answers/correct_2.wav", muted);
-            setPhase("win");
-          }
-          return next;
-        });
+      const nextLanes = lanesForCorrect(correctCountRef.current);
+      const prevLanes = lanesRef.current;
+      // Cancela cualquier aviso pendiente de la ronda anterior antes de
+      // decidir si esta ronda dispara uno nuevo.
+      if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+      if (nextLanes !== prevLanes) {
+        laneRef.current = nearestLane(laneRef.current, prevLanes, nextLanes);
+        lanesRef.current = nextLanes;
+        setLane(laneRef.current);
+        setLanes(nextLanes);
+        setTierNotice(true);
+        noticeRef.current = true;
+        tierNoticeTimerRef.current = setTimeout(() => {
+          setTierNotice(false);
+          noticeRef.current = false;
+        }, TIER_NOTICE_MS);
       } else {
-        setPose("05");
-        playSfx("/sounds/answers/wrong.wav", muted);
-        setCombo(0);
-        setHearts((h) => {
-          const next = h - 1;
-          if (next <= 0) {
-            playSfx("/sounds/answers/wrong_2.wav", muted);
-            setPhase("gameover");
-          }
-          return next;
-        });
+        setTierNotice(false);
+        noticeRef.current = false;
       }
-    }, RESOLVE_MS - 450);
-  }, [correctIndex, muted]);
 
-  // advance to next round once a result has settled
-  useEffect(() => {
-    if (phase !== "result") return;
-    const t = setTimeout(() => {
-      if (phaseRef.current === "result") {
-        setRound((r) => r + 1);
-        setOutcome("none");
-        setPose("13");
-        resolvedRef.current = false;
-        const played = round + 1;
-        const dur = Math.max(TIMER_MIN, TIMER_START - played * TIMER_STEP);
-        setDuration(dur);
-        setTimeLeft(dur);
-        setPhase("driving");
-      }
-    }, RESOLVE_MS);
-    return () => clearTimeout(t);
-  }, [phase, round]);
+      // cuarto distractor desde OTRAS preguntas del mazo (el backend da 3)
+      const cross = playDeckRef.current
+        .filter(
+          (_, i) =>
+            i % playDeckRef.current.length !== idx % playDeckRef.current.length,
+        )
+        .map((other) => other.correct);
+      const rng =
+        seed !== undefined ? mulberry32(seed + idx) : Math.random;
 
-  // countdown timer during driving
-  useEffect(() => {
-    if (phase !== "driving") return;
-    const tick = 50;
-    const id = setInterval(() => {
-      setTimeLeft((t) => {
-        const next = t - tick;
-        if (next <= 0) {
-          clearInterval(id);
-          resolve();
-          return 0;
-        }
-        return next;
-      });
-    }, tick);
-    return () => clearInterval(id);
-  }, [phase, round, resolve]);
+      setQuestion(q);
+      setLaneOptions(buildLaneOptions(q.correct, q.options, cross, nextLanes, rng));
+      remainingRef.current = Math.max(
+        TIMER_MIN,
+        TIMER_START - TIMER_STEP * idx,
+      );
+      setRemaining(remainingRef.current);
+      setOutcome("none");
+      resolvingRef.current = false;
+    },
+    [seed],
+  );
 
-  // keyboard controls
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (phaseRef.current !== "driving") return;
-      if (e.key === "ArrowLeft") moveTo(laneRef.current - 1);
-      else if (e.key === "ArrowRight") moveTo(laneRef.current + 1);
-      else if (e.key === "1") moveTo(0);
-      else if (e.key === "2") moveTo(1);
-      else if (e.key === "3") moveTo(2);
-      else if (e.key === "Enter" || e.key === " ") resolve();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [moveTo, resolve]);
-
-  const startGame = () => {
-    engine.start();
-    setRound(0);
-    setLane(1);
+  const startGame = useCallback(() => {
+    completedRef.current = false;
     setHearts(START_HEARTS);
     setCorrectCount(0);
     setScore(0);
     setCombo(0);
-    setDuration(TIMER_START);
-    setTimeLeft(TIMER_START);
-    setPose("13");
+    setFinalScore(0);
+    roundRef.current = 0;
+    laneRef.current = 0;
+    lanesRef.current = 2;
+    correctCountRef.current = 0;
+    heartsRef.current = START_HEARTS;
+    scoreRef.current = 0;
+    comboRef.current = 0;
+    resolvingRef.current = false;
+    roadYRef.current = 0;
+    setLane(0);
+    setLanes(2);
     setOutcome("none");
-    resolvedRef.current = false;
-    scoreSubmittedRef.current = false;
-    setReward(null);
-    setPhase("driving");
-  };
+    setPhase("playing");
+    // Revancha con mazo fresco: sin esto las 15 preguntas se repiten en el
+    // mismo orden y basta memorizarlas. Con seed se conserva el determinismo.
+    playDeckRef.current =
+      seed !== undefined ? deck : shuffleWith(deck, Math.random);
+    setupRound(0);
+  }, [setupRound, deck, seed]);
+
+  const finishGame = useCallback(() => {
+    completedRef.current = true;
+    setFinalScore(scoreRef.current);
+    setPhase("result");
+  }, []);
+
+  const resolve = useCallback(() => {
+    if (resolvingRef.current || !question) return;
+    resolvingRef.current = true;
+
+    const chosen = laneOptions[laneRef.current];
+    const hit = chosen === question.correct;
+
+    if (hit) {
+      playSound("correct");
+      comboRef.current += 1;
+      scoreRef.current += 100 * comboRef.current;
+      correctCountRef.current += 1;
+      setScore(scoreRef.current);
+      setCorrectCount(correctCountRef.current);
+      setCombo(comboRef.current);
+      setOutcome("clear");
+    } else {
+      playSound("wrong");
+      comboRef.current = 0;
+      heartsRef.current = Math.max(0, heartsRef.current - 1);
+      setHearts(heartsRef.current);
+      setCombo(0);
+      setOutcome("crash");
+    }
+
+    if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
+    resolveTimerRef.current = setTimeout(() => {
+      if (correctCountRef.current >= WIN_CORRECT || heartsRef.current <= 0) {
+        finishGame();
+        return;
+      }
+      roundRef.current += 1;
+      setupRound(roundRef.current);
+    }, RESOLVE_MS);
+  }, [question, laneOptions, setupRound, finishGame]);
+
+  // Torneo/reto: solo partidas completas. El score personal conserva el
+  // parcial al salir (sube desde 0, como dot-match).
+  useEffect(() => {
+    if (phase === "result") {
+      if (completedRef.current) {
+        submitTournamentScore(finalScore);
+        submitChallengeScore(finalScore, { completed: true });
+      }
+    } else {
+      resetTournamentSubmit();
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onTick = useCallback(
+    (dtMs: number) => {
+      // ancho de la carretera en px: translateX(%) sería relativo al propio
+      // elemento, así que el centro del carril hay que calcularlo en píxeles
+      const roadEl = roadRef.current;
+      if (roadEl && roadEl.clientWidth !== roadWRef.current) {
+        roadWRef.current = roadEl.clientWidth;
+        setRoadW(roadEl.clientWidth);
+      }
+
+      // carretera en movimiento: translateY cíclico (nunca background-position)
+      roadYRef.current = (roadYRef.current + dtMs * 0.12) % 64;
+      setRoadY(roadYRef.current);
+
+      if (resolvingRef.current) return;
+      if (noticeRef.current) return; // el aviso congela la cuenta atrás
+      remainingRef.current = Math.max(0, remainingRef.current - dtMs);
+      setRemaining(remainingRef.current);
+      if (remainingRef.current <= 0) resolve(); // se acabó el tiempo = fallo
+    },
+    [resolve],
+  );
+
+  useTicker(TICKER_FPS, onTick, phase === "playing");
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Spinner title="Warming up the engine..." />
+        <Spinner title="Calentando el motor…" />
       </div>
     );
   }
 
-  const progress = correctCount / WIN_CORRECT;
-  const timeFrac = Math.max(0, timeLeft / duration);
-
-  // sentence split around the blank
-  const parts = question ? question.text.split("__") : ["", ""];
-
-  return (
-    <div
-      className="relative flex min-h-screen w-full flex-col overflow-hidden"
-      style={{
-        // day → sunset as you progress
-        background: `linear-gradient(180deg,
-          hsl(${210 - progress * 190}, ${60 + progress * 20}%, ${72 - progress * 18}%) 0%,
-          hsl(${250 - progress * 30}, 45%, ${40 - progress * 8}%) 100%)`,
-        transition: "background 0.8s linear",
-      }}
-    >
-      {/* ── HUD ── */}
-      <div className="z-30 flex items-center justify-between gap-2 px-4 py-3">
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+          No se pudo cargar el trayecto.
+        </p>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Comprueba tu conexión e inténtalo de nuevo.
+        </p>
         <button
-          onClick={() => window.location.assign("/levels")}
-          className="rounded-full bg-black/25 px-3 py-1.5 text-sm font-bold text-white backdrop-blur hover:bg-black/40 transition"
+          onPointerUp={() => {
+            setLoadError(false);
+            setLoading(true);
+            setFetchAttempt((n) => n + 1);
+          }}
+          className="dots-pressable rounded-2xl px-6 py-3 text-sm font-bold"
+          style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
         >
-          ← Exit
-        </button>
-
-        <div className="flex items-center gap-3 rounded-full bg-black/25 px-3 py-1.5 backdrop-blur">
-          <div className="flex items-center gap-0.5">
-            {Array.from({ length: START_HEARTS }).map((_, i) => (
-              <span
-                key={i}
-                className="text-base leading-none"
-                style={{
-                  filter: i < hearts ? "none" : "grayscale(1)",
-                  opacity: i < hearts ? 1 : 0.3,
-                }}
-              >
-                ❤️
-              </span>
-            ))}
-          </div>
-          <span className="text-sm font-extrabold text-white tabular-nums">
-            🏁 {correctCount}/{WIN_CORRECT}
-          </span>
-        </div>
-
-        <button
-          onClick={() => setMuted((m) => !m)}
-          className="rounded-full bg-black/25 px-3 py-1.5 text-sm text-white backdrop-blur hover:bg-black/40 transition"
-          aria-label="Toggle sound"
-        >
-          {muted ? "🔇" : "🔊"}
+          Reintentar
         </button>
       </div>
+    );
+  }
 
-      {/* score + combo */}
-      {phase !== "start" && (
-        <div className="z-30 flex items-center justify-center gap-3 -mt-1">
-          <span className="rounded-full bg-black/25 px-3 py-1 text-sm font-extrabold text-white tabular-nums backdrop-blur">
-            {score} pts
-          </span>
-          {combo > 1 && (
-            <span
-              className="rounded-full bg-(--accent) px-3 py-1 text-sm font-black text-white"
-              style={{ animation: "dots-pop-in 0.3s ease-out" }}
+  // El taxi nunca debe caer en un carril sin cartel: si buildLaneOptions
+  // devolvió menos opciones que carriles, se recorta al último carril CON
+  // cartel real para posicionar y recolocar el taxi.
+  const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
+
+  return (
+    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+      {phase === "intro" && (
+        <>
+          <div className="z-10 flex w-full max-w-sm justify-start">
+            <button
+              onPointerUp={() => router.push("/play")}
+              className="text-sm font-bold transition-colors"
+              style={{ color: "var(--muted)" }}
             >
-              Combo x{combo}!
-            </span>
-          )}
-        </div>
+              ← Salir
+            </button>
+          </div>
+          <GameIntro
+            emoji="🚕"
+            title="Dotaxi"
+            howTo={[
+              "Lee la frase con el hueco y busca la palabra que encaja.",
+              "Toca el carril de esa palabra para mover el taxi.",
+              "Pulsa «¡Vamos!» para confirmar antes de que se acabe el tiempo.",
+              "Empiezas con 2 carriles; según aciertas se abren más (¡hasta 4!).",
+              `${WIN_CORRECT} aciertos para llegar. Tienes ${START_HEARTS} corazones.`,
+            ]}
+            record={record}
+            throne={throne}
+            onStart={startGame}
+          />
+        </>
       )}
 
-      {/* ── Road ── */}
-      <div className="relative flex-1">
-        {/* roadside grass */}
-        <div className="absolute inset-y-0 left-0 w-[10%] bg-[#3f8f55]/70" />
-        <div className="absolute inset-y-0 right-0 w-[10%] bg-[#3f8f55]/70" />
+      {phase === "playing" && (
+        <div data-testid="road" className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3">
+          {/* HUD */}
+          <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
+            <button
+              onPointerUp={() => {
+                // Abandonar: el parcial cuenta para el récord, no para el reto
+                if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
+                if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+                setFinalScore(scoreRef.current);
+                setPhase("result");
+              }}
+              className="text-sm font-bold transition-colors"
+              style={{ color: "var(--muted)" }}
+            >
+              ← Salir
+            </button>
+            <span className="text-sm font-black" aria-label={`${hearts} corazones`}>
+              {"❤️".repeat(hearts)}
+              {"🤍".repeat(START_HEARTS - hearts)}
+            </span>
+            <div className="flex flex-col items-end">
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                {correctCount}/{WIN_CORRECT}
+              </span>
+              <span className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
+                {score}
+              </span>
+              {combo > 1 && (
+                <span
+                  key={combo}
+                  className="rounded-full px-2 py-0.5 text-xs font-black"
+                  style={{
+                    background: "color-mix(in srgb, var(--gold) 20%, transparent)",
+                    color: "var(--gold-edge)",
+                    border: "2px solid color-mix(in srgb, var(--gold) 50%, transparent)",
+                    animation: "dots-pop-in 0.15s var(--ease-out-strong) both",
+                  }}
+                >
+                  🔥 x{combo}
+                </span>
+              )}
+            </div>
+          </div>
 
-        {/* asphalt */}
-        <div className="absolute inset-y-0 left-[10%] right-[10%] overflow-hidden bg-[#2c2750]">
-          {/* lane divider dashes (scrolling) */}
-          {[33.33, 66.66].map((x) => (
+          {/* Frase con el hueco */}
+          <div className="dots-card px-4 py-3 text-center">
+            <p className="text-base font-extrabold">
+              {question?.text.split("__")[0]}
+              <span
+                className="mx-1 inline-block min-w-12 rounded-md border-b-4 px-2"
+                style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+              >
+                ?
+              </span>
+              {question?.text.split("__")[1] ?? ""}
+            </p>
+          </div>
+
+          {/* Barra de tiempo (scaleX, nunca width) */}
+          <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "var(--border)" }}>
             <div
-              key={x}
-              className="absolute top-0 bottom-0"
+              className="h-full w-full origin-left rounded-full"
               style={{
-                left: `${x}%`,
-                width: 6,
-                transform: "translateX(-50%)",
-                backgroundImage:
-                  "linear-gradient(#ffe34d 0 60%, transparent 60% 100%)",
-                backgroundSize: "100% 64px",
-                animation:
-                  phase === "driving" || phase === "result"
-                    ? `dotaxi-road ${Math.max(0.25, 0.7 - progress * 0.4)}s linear infinite`
-                    : "none",
+                transform: `scaleX(${Math.max(0, remaining) / TIMER_START})`,
+                background: remaining > TIMER_START * 0.3 ? "var(--success)" : "var(--danger)",
               }}
             />
-          ))}
+          </div>
 
-          {/* speed lines */}
-          {(phase === "driving" || phase === "result") &&
-            Array.from({ length: 5 }).map((_, i) => (
+          {/* Carretera */}
+          <div
+            ref={roadRef}
+            className="relative w-full flex-1 overflow-hidden rounded-2xl border-2"
+            style={{ borderColor: "var(--border)", background: "color-mix(in srgb, var(--foreground) 8%, var(--surface))" }}
+          >
+            {/* rayas de carril desplazándose con translateY */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-0"
+              style={{
+                height: "200%",
+                transform: `translateY(${roadY - 64}px)`,
+                backgroundImage:
+                  "repeating-linear-gradient(to bottom, var(--border) 0 24px, transparent 24px 64px)",
+                backgroundSize: "2px 100%",
+                backgroundRepeat: "repeat-y",
+                backgroundPosition: "center",
+                opacity: 0.5,
+              }}
+            />
+
+            {/* líneas de velocidad: sensación de marcha (solo transform/opacity) */}
+            {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="absolute w-0.5 rounded-full bg-white/40"
+                aria-hidden
+                className="absolute w-0.5 rounded-full"
                 style={{
-                  left: `${12 + i * 18}%`,
-                  height: 50 + (i % 3) * 26,
-                  animation: `dotaxi-speedline ${Math.max(0.5, 1.1 - progress * 0.6)}s linear ${i * 0.18}s infinite`,
+                  left: `${12 + i * 19}%`,
+                  height: "18%",
+                  background: "var(--border)",
+                  opacity: 0.55,
+                  animation: `dotaxi-speedline ${0.7 + (i % 3) * 0.15}s linear ${i * 0.13}s infinite`,
                 }}
               />
             ))}
 
-          {/* lane option signs / obstacles */}
-          {question &&
-            (phase === "driving" || phase === "result") &&
-            Array.from({ length: LANES }).map((_, i) => {
-              const isCorrect = i === correctIndex;
-              if (phase === "driving") {
-                return (
-                  <div
-                    key={i}
-                    className="absolute -translate-x-1/2"
-                    style={{
-                      left: LANE_CENTERS[i],
-                      top: "14%",
-                      animation: "dots-float 2.2s ease-in-out infinite",
-                    }}
-                  >
-                    <div className="dots-card flex items-center justify-center px-4 py-3 min-w-24 text-center">
-                      <span className="text-base font-extrabold capitalize text-foreground">
-                        {question.options[i].toLowerCase()}
-                      </span>
-                    </div>
-                  </div>
-                );
-              }
-              // result phase: clear lane vs obstacle rushing down
+            {/* carteles de opción, uno por carril */}
+            {laneOptions.map((opt, i) => {
+              const { widthPct, centersPct } = laneGeometry(lanes);
+              const isClear = outcome !== "none" && opt === question?.correct;
+              const isBlocked = outcome !== "none" && !isClear;
               return (
-                <div
-                  key={i}
-                  className="absolute -translate-x-1/2 flex flex-col items-center"
+                <button
+                  key={`${i}-${opt}`}
+                  data-testid={`lane-${i}`}
+                  onPointerUp={() => {
+                    if (resolvingRef.current) return;
+                    laneRef.current = i;
+                    setLane(i);
+                  }}
+                  className={`absolute top-3 dots-card px-1 py-2 font-extrabold break-words leading-tight ${
+                    lanes >= 4 ? "text-[10px]" : "text-xs"
+                  }`}
                   style={{
-                    left: LANE_CENTERS[i],
-                    top: "62%",
-                    transition: "top 0.8s ease-in",
-                    animation: "none",
+                    left: `${centersPct[i]}%`,
+                    width: `${widthPct * 0.94}%`,
+                    transform: "translateX(-50%)",
+                    borderColor: isClear
+                      ? "var(--success)"
+                      : isBlocked
+                        ? "var(--danger)"
+                        : lane === i
+                          ? "var(--accent)"
+                          : "var(--border)",
+                    transition: "border-color 0.2s",
                   }}
                 >
-                  {isCorrect ? (
-                    <div
-                      className="rounded-full bg-(--success) px-4 py-2 text-sm font-black text-white shadow-lg"
-                      style={{ animation: "dots-pop-in 0.4s ease-out" }}
-                    >
-                      ✓ CLEAR
-                    </div>
-                  ) : (
-                    <span
-                      className="text-5xl"
-                      style={{ animation: "dots-pop-in 0.3s ease-out" }}
-                    >
-                      🚧
-                    </span>
-                  )}
-                </div>
+                  {outcome === "none" ? opt : isClear ? "✓" : "🚧"}
+                </button>
               );
             })}
 
-          {/* tap zones (mobile) */}
-          {phase === "driving" &&
-            Array.from({ length: LANES }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => (lane === i ? resolve() : moveTo(i))}
-                aria-label={`Lane ${i + 1}`}
-                className="absolute top-0 bottom-0 cursor-pointer"
-                style={{ left: `${(i * 100) / LANES}%`, width: `${100 / LANES}%` }}
-              />
-            ))}
-
-          {/* the taxi */}
-          {phase !== "start" && (
+            {/* Taxi: translateX (nunca left) */}
             <div
-              className="absolute -translate-x-1/2 z-20"
+              data-testid="taxi"
+              className="absolute bottom-4"
               style={{
-                left: LANE_CENTERS[lane],
-                bottom: "6%",
-                transition: "left 0.32s cubic-bezier(.34,1.4,.64,1)",
+                left: 0,
+                transform: `translateX(${
+                  (laneGeometry(effectiveLanes).centersPct[
+                    Math.min(lane, effectiveLanes - 1)
+                  ] /
+                    100) *
+                  roadW
+                }px) translateX(-50%)`,
+                // sin transición hasta medir la carretera: si no, el taxi se
+                // desliza desde el borde izquierdo al empezar cada partida
+                transition:
+                  roadW > 0 ? "transform 0.28s var(--ease-out-strong)" : "none",
               }}
             >
-              <Taxi tilt={tilt} crashing={outcome === "crash"} pose={pose} />
-            </div>
-          )}
-
-          {/* damage flash — base opacity 0 so it only shows while animating */}
-          {outcome === "crash" && (
-            <div
-              className="pointer-events-none absolute inset-0 z-30 bg-red-600"
-              style={{ opacity: 0, animation: "dotaxi-flash 0.5s ease-out" }}
-            />
-          )}
-        </div>
-
-        {/* ── Timer bar (during driving) ── */}
-        {phase === "driving" && (
-          <div className="absolute left-1/2 top-2 z-30 w-[70%] -translate-x-1/2">
-            <div className="h-2.5 overflow-hidden rounded-full bg-black/30">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${timeFrac * 100}%`,
-                  background:
-                    timeFrac > 0.4 ? "var(--success)" : "var(--danger)",
-                  transition: "width 0.05s linear",
-                }}
+              <Taxi
+                tilt={0}
+                crashing={outcome === "crash"}
+                pose={outcome === "clear" ? "17" : outcome === "crash" ? "05" : "02"}
               />
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* ── Question prompt ── */}
-      {phase === "driving" && question && (
-        <div className="z-30 px-4 pb-5 pt-3">
-          <div className="dots-card mx-auto flex max-w-lg flex-col items-center gap-1 px-5 py-3 text-center">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
-              Steer into the right word!
-            </span>
-            <p className="text-lg font-extrabold text-foreground">
-              {parts[0]}
-              <span className="mx-1 inline-block min-w-12 rounded-md border-b-4 border-(--accent) px-2 text-(--accent)">
-                ?
-              </span>
-              {parts[1]}
-            </p>
+            {/* aviso de carril nuevo */}
+            {tierNotice && (
+              <div
+                data-testid="tier-notice"
+                className="absolute inset-x-0 top-1/2 text-center font-display text-xl font-extrabold"
+                style={{
+                  color: "var(--accent)",
+                  animation: "dots-pop-in 0.3s var(--ease-out-strong) both",
+                }}
+              >
+                ¡Carril nuevo!
+              </div>
+            )}
           </div>
+
+          {/* Confirmar: separado de moverse (antes tocar tu carril confirmaba) */}
+          <button
+            data-testid="go"
+            onPointerUp={resolve}
+            disabled={outcome !== "none"}
+            className="dots-pressable w-full rounded-2xl py-4 text-base font-extrabold disabled:opacity-40"
+            style={{
+              background: "var(--accent)",
+              color: "var(--accent-contrast)",
+              ["--press-color" as string]: "var(--accent-edge)",
+            }}
+          >
+            ¡Vamos!
+          </button>
         </div>
       )}
 
-      {/* ── Start / Win / Gameover overlays ── */}
-      {(phase === "start" || phase === "win" || phase === "gameover") && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
-          <div className="dots-card flex max-w-md flex-col items-center gap-5 px-8 py-10 text-center">
-            {phase === "start" && (
-              <>
-                <div style={{ animation: "dots-float 3s ease-in-out infinite" }}>
-                  <Doty pose="13" size="small" />
-                </div>
-                <h2 className="font-display text-3xl font-extrabold text-foreground">
-                  Dotaxi 🚕
-                </h2>
-                <p className="max-w-sm text-sm font-semibold text-(--muted)">
-                  Doty&apos;s driving! Read each sentence and steer into the lane
-                  with the missing word. The right lane is clear — the wrong
-                  ones have potholes. Reach the destination with{" "}
-                  <b>{WIN_CORRECT} correct answers</b> before you take{" "}
-                  <b>{START_HEARTS} hits</b>.
-                </p>
-                <p className="text-xs font-bold text-(--muted)">
-                  ← → or 1 / 2 / 3 to steer · tap a lane on mobile
-                </p>
-                <UIButton tone="accent" onClick={startGame}>
-                  Start driving
-                </UIButton>
-              </>
-            )}
-            {phase === "win" && (
-              <>
-                <Image
-                  src="/images/PopIt/win.gif"
-                  alt=""
-                  width={150}
-                  height={150}
-                  unoptimized
-                />
-                <h2 className="font-display text-3xl font-extrabold text-foreground">
-                  You reached the destination! 🏁
-                </h2>
-                <Doty pose="17" size="small" />
-                <p className="text-sm font-bold text-(--muted)">
-                  Score: {score} · {correctCount}/{WIN_CORRECT} correct
-                </p>
-                <XpReward reward={reward} />
-                <div className="flex w-full max-w-xs flex-col gap-3">
-                  <UIButton tone="accent" fullWidth onClick={startGame}>
-                    Drive again
-                  </UIButton>
-                  <UIButton
-                    tone="neutral"
-                    fullWidth
-                    onClick={() => window.location.assign("/levels")}
-                  >
-                    Back to levels
-                  </UIButton>
-                </div>
-              </>
-            )}
-            {phase === "gameover" && (
-              <>
-                <Doty pose="05" size="medium" />
-                <h2 className="font-display text-3xl font-extrabold text-foreground">
-                  The taxi broke down! 🔧
-                </h2>
-                <p className="text-sm font-bold text-(--muted)">
-                  You got {correctCount}/{WIN_CORRECT} · Score: {score}
-                </p>
-                <XpReward reward={reward} />
-                <div className="flex w-full max-w-xs flex-col gap-3">
-                  <UIButton tone="accent" fullWidth onClick={startGame}>
-                    Try again
-                  </UIButton>
-                  <UIButton
-                    tone="neutral"
-                    fullWidth
-                    onClick={() => window.location.assign("/levels")}
-                  >
-                    Back to levels
-                  </UIButton>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+      {phase === "result" && (
+        <GameResult
+          gameKey="dotaxi"
+          score={finalScore}
+          onReplay={startGame}
+          onExit={() => router.push("/play")}
+          extra={
+            <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
+              {correctCount}/{WIN_CORRECT} aciertos
+            </p>
+          }
+        />
       )}
     </div>
+  );
+}
+
+// ── Export con puerta de Suspense (useSearchParams, regla 6) ────────────────
+
+export default function DotaxiPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Spinner title="Cargando…" />
+        </div>
+      }
+    >
+      <DotaxiGame />
+    </Suspense>
   );
 }
