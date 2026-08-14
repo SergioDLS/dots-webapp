@@ -29,6 +29,7 @@ export function laneGeometry(lanes: number): {
   widthPct: number;
   centersPct: number[];
 } {
+  if (lanes <= 0) return { widthPct: 100, centersPct: [50] };
   const widthPct = 100 / lanes;
   const centersPct = Array.from(
     { length: lanes },

@@ -185,12 +185,14 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [hearts, setHearts] = useState(START_HEARTS);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
 
   /** La partida llegó a su fin natural (ganó o se quedó sin corazones). */
   const completedRef = useRef(false);
 
   // Motor en refs; el estado es snapshot para render (regla 3)
+  const playDeckRef = useRef<DotaxiQuestion[]>([]); // mazo de ESTA partida (revancha rebaraja)
   const roundRef = useRef(0); // rondas jugadas (para el timer decreciente)
   const laneRef = useRef(0); // carril actual del taxi
   const lanesRef = useRef(2); // carriles del tramo actual
@@ -204,6 +206,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
   // Timer propio (no está en el brief original): sin él, TIER_NOTICE_MS quedaba
   // sin usar y el aviso de carril nuevo se quedaba en pantalla toda la ronda.
   const tierNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // true mientras se ve "¡Carril nuevo!": el tick de abajo lo usa para
+  // congelar la cuenta atrás y que el aviso no se coma tiempo de lectura.
+  const noticeRef = useRef(false);
   const roadYRef = useRef(0); // desplazamiento de la carretera (px, cíclico)
   const roadRef = useRef<HTMLDivElement | null>(null);
   const roadWRef = useRef(0);
@@ -222,7 +227,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    getDotaxiService()
+    getDotaxiService(seed)
       .then((data) => {
         if (!active) return;
         const usable = data.filter(
@@ -259,7 +264,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
    *  número de carriles y reparte las opciones por los carriles. */
   const setupRound = useCallback(
     (idx: number) => {
-      const q = deck[idx % deck.length];
+      const q = playDeckRef.current[idx % playDeckRef.current.length];
       if (!q) return;
 
       const nextLanes = lanesForCorrect(correctCountRef.current);
@@ -273,16 +278,22 @@ function DotaxiInner({ seed }: { seed?: number }) {
         setLane(laneRef.current);
         setLanes(nextLanes);
         setTierNotice(true);
+        noticeRef.current = true;
         tierNoticeTimerRef.current = setTimeout(() => {
           setTierNotice(false);
+          noticeRef.current = false;
         }, TIER_NOTICE_MS);
       } else {
         setTierNotice(false);
+        noticeRef.current = false;
       }
 
       // cuarto distractor desde OTRAS preguntas del mazo (el backend da 3)
-      const cross = deck
-        .filter((_, i) => i % deck.length !== idx % deck.length)
+      const cross = playDeckRef.current
+        .filter(
+          (_, i) =>
+            i % playDeckRef.current.length !== idx % playDeckRef.current.length,
+        )
         .map((other) => other.correct);
       const rng =
         seed !== undefined ? mulberry32(seed + idx) : Math.random;
@@ -297,7 +308,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setOutcome("none");
       resolvingRef.current = false;
     },
-    [deck, seed],
+    [seed],
   );
 
   const startGame = useCallback(() => {
@@ -305,6 +316,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setHearts(START_HEARTS);
     setCorrectCount(0);
     setScore(0);
+    setCombo(0);
     setFinalScore(0);
     roundRef.current = 0;
     laneRef.current = 0;
@@ -319,8 +331,12 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setLanes(2);
     setOutcome("none");
     setPhase("playing");
+    // Revancha con mazo fresco: sin esto las 15 preguntas se repiten en el
+    // mismo orden y basta memorizarlas. Con seed se conserva el determinismo.
+    playDeckRef.current =
+      seed !== undefined ? deck : shuffleWith(deck, Math.random);
     setupRound(0);
-  }, [setupRound]);
+  }, [setupRound, deck, seed]);
 
   const finishGame = useCallback(() => {
     completedRef.current = true;
@@ -342,12 +358,14 @@ function DotaxiInner({ seed }: { seed?: number }) {
       correctCountRef.current += 1;
       setScore(scoreRef.current);
       setCorrectCount(correctCountRef.current);
+      setCombo(comboRef.current);
       setOutcome("clear");
     } else {
       playSound("wrong");
       comboRef.current = 0;
       heartsRef.current = Math.max(0, heartsRef.current - 1);
       setHearts(heartsRef.current);
+      setCombo(0);
       setOutcome("crash");
     }
 
@@ -390,6 +408,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setRoadY(roadYRef.current);
 
       if (resolvingRef.current) return;
+      if (noticeRef.current) return; // el aviso congela la cuenta atrás
       remainingRef.current = Math.max(0, remainingRef.current - dtMs);
       setRemaining(remainingRef.current);
       if (remainingRef.current <= 0) resolve(); // se acabó el tiempo = fallo
@@ -430,6 +449,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
       </div>
     );
   }
+
+  // El taxi nunca debe caer en un carril sin cartel: si buildLaneOptions
+  // devolvió menos opciones que carriles, se recorta al último carril CON
+  // cartel real para posicionar y recolocar el taxi.
+  const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
@@ -489,6 +513,20 @@ function DotaxiInner({ seed }: { seed?: number }) {
               <span className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
                 {score}
               </span>
+              {combo > 1 && (
+                <span
+                  key={combo}
+                  className="rounded-full px-2 py-0.5 text-xs font-black"
+                  style={{
+                    background: "color-mix(in srgb, var(--gold) 20%, transparent)",
+                    color: "var(--gold-edge)",
+                    border: "2px solid color-mix(in srgb, var(--gold) 50%, transparent)",
+                    animation: "dots-pop-in 0.15s var(--ease-out-strong) both",
+                  }}
+                >
+                  🔥 x{combo}
+                </span>
+              )}
             </div>
           </div>
 
@@ -539,6 +577,22 @@ function DotaxiInner({ seed }: { seed?: number }) {
               }}
             />
 
+            {/* líneas de velocidad: sensación de marcha (solo transform/opacity) */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                aria-hidden
+                className="absolute w-0.5 rounded-full"
+                style={{
+                  left: `${12 + i * 19}%`,
+                  height: "18%",
+                  background: "var(--border)",
+                  opacity: 0.55,
+                  animation: `dotaxi-speedline ${0.7 + (i % 3) * 0.15}s linear ${i * 0.13}s infinite`,
+                }}
+              />
+            ))}
+
             {/* carteles de opción, uno por carril */}
             {laneOptions.map((opt, i) => {
               const { widthPct, centersPct } = laneGeometry(lanes);
@@ -553,10 +607,12 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     laneRef.current = i;
                     setLane(i);
                   }}
-                  className="absolute top-3 dots-card px-1 py-2 text-xs font-extrabold"
+                  className={`absolute top-3 dots-card px-1 py-2 font-extrabold break-words leading-tight ${
+                    lanes >= 4 ? "text-[10px]" : "text-xs"
+                  }`}
                   style={{
                     left: `${centersPct[i]}%`,
-                    width: `${widthPct * 0.86}%`,
+                    width: `${widthPct * 0.94}%`,
                     transform: "translateX(-50%)",
                     borderColor: isClear
                       ? "var(--success)"
@@ -580,7 +636,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
               style={{
                 left: 0,
                 transform: `translateX(${
-                  (laneGeometry(lanes).centersPct[Math.min(lane, lanes - 1)] / 100) * roadW
+                  (laneGeometry(effectiveLanes).centersPct[
+                    Math.min(lane, effectiveLanes - 1)
+                  ] /
+                    100) *
+                  roadW
                 }px) translateX(-50%)`,
                 // sin transición hasta medir la carretera: si no, el taxi se
                 // desliza desde el borde izquierdo al empezar cada partida
@@ -588,7 +648,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
                   roadW > 0 ? "transform 0.28s var(--ease-out-strong)" : "none",
               }}
             >
-              <Taxi tilt={0} crashing={outcome === "crash"} pose="02" />
+              <Taxi
+                tilt={0}
+                crashing={outcome === "crash"}
+                pose={outcome === "clear" ? "17" : outcome === "crash" ? "05" : "02"}
+              />
             </div>
 
             {/* aviso de carril nuevo */}
