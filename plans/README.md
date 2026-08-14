@@ -76,16 +76,20 @@ que se limpia al reintentar), la fórmula de score duplicada quedó en un helper
 
 ## Transversales pendientes
 
-### Farmeo por `?seed=`
+### Farmeo por `?seed=` — CERRADO el 2026-08-12
 
-Seis juegos aceptan `?seed=` desde la URL (dot-match, true-false, memory,
-word-tower, sentence-builder, audio-blitz): fijar un seed, memorizar el mazo y
-repetirlo infla récord y trono. El seed existe para que torneo y retos sirvan
-mazos idénticos, pero nadie comprueba que vengas de ahí. Decisión del usuario
-(2026-08-10): tratarlo en una pasada dedicada sobre los 6 juegos, no dentro de
-la certificación de cada uno — hay que fijar la regla una vez (¿ignorar el seed
-sin `?tournament=1`/`?challenge=N`? ¿aceptarlo pero no puntuar?) y verificarla
-en todos.
+Regla fijada: **el seed solo se honra en modo competitivo** (`?tournament=1` o
+`?challenge=<id>`); en juego libre se ignora y el mazo es aleatorio. Se eligió
+frente a "aceptarlo pero no puntuar" porque esa alternativa obligaba a
+distinguir partidas puntuables de las que no en seis sitios distintos — la misma
+clase de complejidad repartida que ya costó cinco bugs con el guard del reto.
+
+Implementado en `hooks/use-game-seed.ts` (`useGameSeed()`), consumido por los
+seis juegos seedables, que antes repetían el mismo lector de 5 líneas. El hook
+además descarta valores no finitos, así que un `?seed=abc` deja de propagar
+`NaN` a los fetchers. Verificado en navegador los cinco casos: libre+seed →
+ignorado; torneo → honrado; reto → honrado; seed no numérico → undefined;
+`seed=0` en torneo → honrado (un `||` lo habría descartado por falsy).
 
 Palabra del Día (wordle) certificada el 2026-08-10, con la extracción del
 teclado compartido incluida: `components/games/shared/daily-keyboard.tsx`

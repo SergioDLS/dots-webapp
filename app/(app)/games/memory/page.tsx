@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -17,6 +17,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
+import { useGameSeed } from "@/hooks/use-game-seed";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -67,12 +68,8 @@ function buildCards(pairs: MemoryPair[]): Card[] {
 // ── Seed reader (inside Suspense boundary) ────────────────────────────────────
 
 function MemoryGame() {
-  const searchParams = useSearchParams();
-  const seedParam = searchParams.get("seed");
-  const seed =
-    seedParam !== null && seedParam !== ""
-      ? parseInt(seedParam, 10)
-      : undefined;
+  // El seed solo cuenta en torneo/reto (ver useGameSeed)
+  const seed = useGameSeed();
   return <MemoryInner seed={seed} />;
 }
 
