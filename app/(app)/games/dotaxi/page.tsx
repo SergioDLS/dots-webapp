@@ -205,6 +205,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
   // sin usar y el aviso de carril nuevo se quedaba en pantalla toda la ronda.
   const tierNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const roadYRef = useRef(0); // desplazamiento de la carretera (px, cíclico)
+  const roadRef = useRef<HTMLDivElement | null>(null);
+  const roadWRef = useRef(0);
 
   const [lane, setLane] = useState(0);
   const [lanes, setLanes] = useState(2);
@@ -214,6 +216,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [outcome, setOutcome] = useState<"none" | "clear" | "crash">("none");
   const [tierNotice, setTierNotice] = useState(false);
   const [roadY, setRoadY] = useState(0);
+  const [roadW, setRoadW] = useState(0);
 
   // Fetch con patrón fetchAttempt (regla 5)
   const [fetchAttempt, setFetchAttempt] = useState(0);
@@ -374,6 +377,14 @@ function DotaxiInner({ seed }: { seed?: number }) {
 
   const onTick = useCallback(
     (dtMs: number) => {
+      // ancho de la carretera en px: translateX(%) sería relativo al propio
+      // elemento, así que el centro del carril hay que calcularlo en píxeles
+      const roadEl = roadRef.current;
+      if (roadEl && roadEl.clientWidth !== roadWRef.current) {
+        roadWRef.current = roadEl.clientWidth;
+        setRoadW(roadEl.clientWidth);
+      }
+
       // carretera en movimiento: translateY cíclico (nunca background-position)
       roadYRef.current = (roadYRef.current + dtMs * 0.12) % 64;
       setRoadY(roadYRef.current);
@@ -458,6 +469,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
               onPointerUp={() => {
                 // Abandonar: el parcial cuenta para el récord, no para el reto
                 if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
+                if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
                 setFinalScore(scoreRef.current);
                 setPhase("result");
               }}
@@ -507,6 +519,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
 
           {/* Carretera */}
           <div
+            ref={roadRef}
             className="relative w-full flex-1 overflow-hidden rounded-2xl border-2"
             style={{ borderColor: "var(--border)", background: "color-mix(in srgb, var(--foreground) 8%, var(--surface))" }}
           >
@@ -565,9 +578,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
               data-testid="taxi"
               className="absolute bottom-4"
               style={{
-                left: `${laneGeometry(lanes).centersPct[Math.min(lane, lanes - 1)]}%`,
-                transform: "translateX(-50%)",
-                transition: "left 0.28s var(--ease-out-strong)",
+                left: 0,
+                transform: `translateX(${
+                  (laneGeometry(lanes).centersPct[Math.min(lane, lanes - 1)] / 100) * roadW
+                }px) translateX(-50%)`,
+                transition: "transform 0.28s var(--ease-out-strong)",
               }}
             >
               <Taxi tilt={0} crashing={outcome === "crash"} pose="02" />
