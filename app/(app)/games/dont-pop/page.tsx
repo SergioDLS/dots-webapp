@@ -391,8 +391,13 @@ function DontPopGame() {
           onExit={() => router.push("/play")}
           extra={
             <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
-              {outcome === "land" ? "🛬 Aterrizaje perfecto" : "💥 ¡Reventó!"} ·{" "}
-              {cleared}/{words.length} palabras
+              {/* tres desenlaces: abandonar no es reventar */}
+              {outcome === "land"
+                ? "🛬 Aterrizaje perfecto"
+                : outcome === "crash"
+                  ? "💥 ¡Reventó!"
+                  : "🪂 Vuelo interrumpido"}{" "}
+              · {cleared}/{words.length} palabras
             </p>
           }
         />
