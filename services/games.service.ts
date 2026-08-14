@@ -59,8 +59,11 @@ export async function getGameWordsService(seed?: number): Promise<GameWord[]> {
   return data;
 }
 
-export async function getDontPopService(): Promise<GameWord[]> {
-  const { data } = await api.get<GameWord[]>("/games/dont-pop");
+// seed: reenviado por convención; el backend hoy lo ignora en este endpoint
+export async function getDontPopService(seed?: number): Promise<GameWord[]> {
+  const { data } = await api.get<GameWord[]>("/games/dont-pop", {
+    params: seed !== undefined ? { seed } : undefined,
+  });
   return data;
 }
 

@@ -4,7 +4,7 @@ Actualizado: 2026-07-22 (post rediseño total + tanda juegos/social). Complement
 
 ## La app en una línea
 
-Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lecciones intercaladas, repaso SRS, economía de gemas, 14 minijuegos y capa social (torneo, retos 1v1, rivalidades, trono, carrera fantasma). Mascota: Doty (`components/ui/doty/doty.tsx`, poses en `public/images/Doty/DOTTY-POSES-XX.png`).
+Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lecciones intercaladas, repaso SRS, economía de gemas, 12 minijuegos y capa social (torneo, retos 1v1, rivalidades, trono, carrera fantasma). Mascota: Doty (`components/ui/doty/doty.tsx`, poses en `public/images/Doty/DOTTY-POSES-XX.png`).
 
 ## Navegación (tabs del hub)
 
@@ -23,11 +23,11 @@ Flujos inmersivos (sin chrome): `/practice`, `/lesson/{pronunciation,grammar,voc
 
 Fuera de `(app)` y sin sesión: `/` (login), `/forgot` (recuperar contraseña) y `/invite/[token]` (aceptar invitación y crear la cuenta). Esta última es la **única vía de alta que existe en la app** — no hay registro público. El panel de invitaciones vive en `/admin/users`, pestaña *Invitations*.
 
-## Los 14 juegos (`app/(app)/games/`)
+## Los 12 juegos (`app/(app)/games/`)
 
-Legacy (1): dont-pop. (flashcards y speed-round fueron retirados el 2026-08-10; récords purgados. dot-bombs fue reconstruido como anagrama tap RN-safe — spec en `docs/superpowers/specs/2026-08-10-dot-bombs-anagram-redesign.md`.)
+Legacy: **ninguno**. (flashcards y speed-round fueron retirados el 2026-08-10 con sus récords purgados; dot-bombs, dotaxi y dont-pop fueron reconstruidos RN-safe — specs en `docs/superpowers/specs/`.)
 
-Nuevos (10, todos RN-safe y con `?seed=` determinista donde aplica):
+Nuevos (12, todos RN-safe y con `?seed=` determinista donde aplica):
 
 | Juego | key | Mecánica | Contenido |
 |---|---|---|---|
@@ -40,6 +40,8 @@ Nuevos (10, todos RN-safe y con `?seed=` determinista donde aplica):
 | Palabra del Día | wordle | wordle diario server-side, teclado QWERTY en pantalla (compartido con crossword); intentos y longitud los manda el servidor | vocab (server) |
 | Mini Crucigrama | crossword | 5×5 diario determinista, pistas ES, 5 checks (botón deshabilitado al agotarlas; fallo de red visible) | vocab (server) |
 | Carrera Fantasma | ghost-race | corres preguntas de audio vs replay grabado de un rival (barra fantasma por timeline; el timeline registra TODA pregunta resuelta) | audio-blitz + game_runs |
+| Dot Bombs | dot-bombs | caen bombas con imagen y palabra; desactivas deletreando con fichas de anagrama (tap); modos easy/medium/hard y survival | words (con img) |
+| ¡No lo revientes! | dont-pop | sin reloj: el globo se infla solo y ES la presión; imagen + 3 palabras, acertar desinfla y fallar infla; responder tranquilo paga más | words (con img) |
 | Dotaxi | dotaxi | frase con hueco; mueves el taxi al carril de la palabra y confirmas con «¡Vamos!»; los carriles crecen 2→3→4 con los aciertos | dotaxi (frases) |
 
 Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar → `GameIntro` (récord propio + trono vía `useGameRecords`) → juego → `GameResult` (score una vez; muestra +XP, récord, trono robado). Hooks `useTournamentMode` (`?tournament=1`) y `useChallengeMode` (`?challenge=<id>`) envían scores adicionales a sus endpoints al llegar a result.
@@ -68,7 +70,8 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
   botones en pantalla), así que en escritorio hay que tocar las teclas.
 - `useGameSeed()` (hooks/) es el único lector de `?seed=`: lo honra SOLO con `?tournament=1` o `?challenge=<id>`, así que fijar un seed a mano en juego libre ya no permite memorizar el mazo y farmear récord/trono.
 - `submitChallengeScore(score, { completed })` exige declarar si la partida terminó: el intento del reto 1v1 se gasta a la primera (el backend 409ea repetidos) y no hay rearme, así que enviar un abandono lo quemaba. Los seis juegos con reto lo declaran explícitamente.
-- "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10). En audio-blitz, true-false, word-tower y dotaxi el parcial SÍ cuenta para el récord personal (su score sube desde 0, como dot-match), pero torneo y reto solo aceptan partidas completas (corregido 2026-08-10).
+- "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10). En audio-blitz, true-false, word-tower, dotaxi y dont-pop el parcial SÍ cuenta para el récord personal (su score sube desde 0, como dot-match), pero torneo y reto solo aceptan partidas completas (corregido 2026-08-10).
+- `/games/dont-pop` tampoco acepta seed: no debe entrar en reto ni torneo hasta que el endpoint lo honre.
 - `/games/dotaxi` IGNORA el `seed` (el backend baraja con Math.random), así que dos rivales reciben mazos distintos: dotaxi NO debe entrar en `CHALLENGE_GAMES` ni en la rotación de torneo hasta que el endpoint lo honre.
 
 ## Historia

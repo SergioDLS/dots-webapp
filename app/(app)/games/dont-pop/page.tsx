@@ -1,199 +1,272 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import Doty from "@/components/ui/doty/doty";
-import WordImg from "@/components/ui/word-img/word-img";
-import UIButton from "@/components/ui/button/button";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useRouter } from "next/navigation";
+import GameIntro from "@/components/games/shared/game-intro";
+import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
-import HotAirBalloon, {
-  type BalloonPhase,
-} from "@/components/games/dont-pop/hot-air-balloon";
+import WordImg from "@/components/ui/word-img/word-img";
+import HotAirBalloon from "@/components/games/dont-pop/hot-air-balloon";
 import { getDontPopService, type GameWord } from "@/services/games.service";
-import {
-  submitGameScoreService,
-  type ScoreResult,
-} from "@/services/engagement.service";
-import XpReward from "@/components/ui/xp-reward";
+import { useGameRecords } from "@/hooks/use-game-records";
+import { useTournamentMode } from "@/hooks/use-tournament-mode";
+import { useChallengeMode } from "@/hooks/use-challenge-mode";
+import { useGameSeed } from "@/hooks/use-game-seed";
+import { playSound } from "@/lib/feedback-sounds";
+import { buildRound, roundScore } from "./rounds";
 
-// Pressure model (same tuning as the mobile app): the balloon inflates on
-// its own — it IS the timer. Right answers vent air, wrong ones pump it in.
+// ── Constantes (mecánica heredada: el globo ES el reloj) ────────────────────
+
 const PRESSURE_MAX = 100;
 const START_PRESSURE = 15;
 const INFLATE_PER_SEC = 6;
 const CORRECT_DEFLATE = 25;
 const WRONG_INFLATE = 30;
 const TICK_MS = 100;
-const CRASH_DELAY_MS = 1500; // let the burst + fall play out
+const CRASH_DELAY_MS = 1500; // deja que revienten y caiga
 const LANDING_DELAY_MS = 1400;
 
-type Place = "start" | "game" | "endgame";
-type Option = { text: string; id: number };
+type Phase = "intro" | "playing" | "result";
+type Outcome = "none" | "crash" | "land";
 
-export default function DontPopPage() {
-  const [place, setPlace] = useState<Place>("start");
-  const [phase, setPhase] = useState<BalloonPhase>("flying");
-  const [pressure, setPressure] = useState(START_PRESSURE);
-  const [index, setIndex] = useState(-1);
-  const [options, setOptions] = useState<Option[]>([]);
-  const [data, setData] = useState<GameWord[]>([]);
+/** PRNG determinista para derivar las rondas del seed. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ── Lector de seed (dentro del boundary de Suspense) ─────────────────────────
+
+function DontPopGame() {
+  const router = useRouter();
+  const seed = useGameSeed();
+  const { record, throne } = useGameRecords("dont-pop");
+  const { submitTournamentScore, resetTournamentSubmit } = useTournamentMode();
+  const { submitChallengeScore } = useChallengeMode();
+
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [words, setWords] = useState<GameWord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [won, setWon] = useState(false);
-  const [reward, setReward] = useState<ScoreResult | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
-  // score = words cleared this run; refs because the endgame path resets state
+  // Snapshots para render
+  const [pressure, setPressure] = useState(START_PRESSURE);
+  const [score, setScore] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
+  const [cleared, setCleared] = useState(0);
+  const [current, setCurrent] = useState<{ word: GameWord; options: string[] } | null>(null);
+  const [outcome, setOutcome] = useState<Outcome>("none");
+
+  // Motor en refs
+  const pressureRef = useRef(START_PRESSURE);
   const scoreRef = useRef(0);
-  const scoreSubmittedRef = useRef(false);
-  const pressureRef = useRef(pressure);
-  const phaseRef = useRef(phase);
-  useEffect(() => {
-    pressureRef.current = pressure;
-  }, [pressure]);
-  useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
+  const clearedRef = useRef(0);
+  const answeredRef = useRef<Set<number>>(new Set());
+  const roundSeqRef = useRef(0);
+  const resolvingRef = useRef(false);
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** La partida terminó de forma natural (reventó o aterrizó). */
+  const completedRef = useRef(false);
 
+  // ── Carga (patrón fetchAttempt, regla 5) ──────────────────────────────────
+  const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    getDontPopService()
-      .then((words) => {
-        if (active) setData(words.map((w) => ({ ...w, answered: false })));
+    getDontPopService(seed)
+      .then((data) => {
+        if (!active) return;
+        const usable = data.filter((w) => w.title && w.title.trim() !== "");
+        // Nunca arrancar sin palabras: el juego viejo daba victoria instantánea
+        // con score 0 cuando el fetch fallaba
+        if (usable.length === 0) {
+          setLoadError(true);
+          return;
+        }
+        setWords(usable);
       })
-      .catch(() => {})
-      .finally(() => active && setLoading(false));
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchAttempt, seed]);
 
-  const answeredCount = data.filter((d) => d.answered).length;
-
-  const submitScore = useCallback(() => {
-    if (scoreSubmittedRef.current) return;
-    scoreSubmittedRef.current = true;
-    submitGameScoreService("dont-pop", scoreRef.current)
-      .then(setReward)
-      .catch(() => {});
-  }, []);
-
-  // Balloon burst: play the fall, then show the endgame card.
-  const crash = useCallback(() => {
-    if (phaseRef.current !== "flying") return;
-    setPhase("exploded");
-    setWon(false);
-    submitScore();
-    setTimeout(() => setPlace("endgame"), CRASH_DELAY_MS);
-  }, [submitScore]);
-
-  // All words cleared: gentle touchdown, then the endgame card.
-  const land = useCallback(() => {
-    if (phaseRef.current !== "flying") return;
-    setPhase("landed");
-    setWon(true);
-    submitScore();
-    setTimeout(() => setPlace("endgame"), LANDING_DELAY_MS);
-  }, [submitScore]);
-
-  // Build the next round: find an unanswered word, pair it with a distractor.
-  const nextRound = useCallback(() => {
-    setData((current) => {
-      const firstUnanswered = current.findIndex((d) => !d.answered);
-      if (firstUnanswered === -1) {
-        land();
-        return current;
-      }
-
-      setIndex((prevIndex) => {
-        let newIndex = prevIndex + 1;
-        if (newIndex >= current.length) newIndex = 0;
-        let guard = 0;
-        while (current[newIndex]?.answered && guard < current.length) {
-          newIndex = (newIndex + 1) % current.length;
-          guard++;
-        }
-
-        let distractor = Math.floor(Math.random() * current.length);
-        if (distractor === newIndex) {
-          distractor = (distractor + 1) % current.length;
-        }
-
-        const correctOpt = {
-          text: current[newIndex].title,
-          id: current[newIndex].id,
-        };
-        const wrongOpt = {
-          text: current[distractor].title,
-          id: current[distractor].id,
-        };
-        setOptions(
-          Math.random() < 0.5
-            ? [correctOpt, wrongOpt]
-            : [wrongOpt, correctOpt],
-        );
-        return newIndex;
-      });
-
-      return current;
-    });
-  }, [land]);
-
-  // Inflation loop — stops as soon as the balloon isn't flying anymore.
+  // Limpieza de timers
   useEffect(() => {
-    if (place !== "game" || phase !== "flying") return;
-    const interval = setInterval(() => {
-      if (pressureRef.current >= PRESSURE_MAX) {
-        crash();
-      } else {
-        setPressure((p) =>
-          Math.min(PRESSURE_MAX, p + INFLATE_PER_SEC * (TICK_MS / 1000)),
-        );
+    return () => {
+      if (endTimerRef.current) clearTimeout(endTimerRef.current);
+      if (tickRef.current) clearInterval(tickRef.current);
+    };
+  }, []);
+
+  const rngFor = useCallback(
+    (n: number) => (seed !== undefined ? mulberry32(seed + n) : Math.random),
+    [seed],
+  );
+
+  const finishGame = useCallback((how: Outcome) => {
+    completedRef.current = true;
+    setOutcome(how);
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    endTimerRef.current = setTimeout(
+      () => {
+        setFinalScore(scoreRef.current);
+        setPhase("result");
+      },
+      how === "crash" ? CRASH_DELAY_MS : LANDING_DELAY_MS,
+    );
+  }, []);
+
+  /** Arma la siguiente ronda; si no quedan palabras, aterriza. */
+  const advance = useCallback(() => {
+    roundSeqRef.current += 1;
+    const next = buildRound(words, answeredRef.current, rngFor(roundSeqRef.current));
+    if (next === null) {
+      resolvingRef.current = true;
+      finishGame("land");
+      return;
+    }
+    setCurrent(next);
+    resolvingRef.current = false;
+  }, [words, rngFor, finishGame]);
+
+  const startGame = useCallback(() => {
+    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    if (tickRef.current) clearInterval(tickRef.current);
+    completedRef.current = false;
+    pressureRef.current = START_PRESSURE;
+    scoreRef.current = 0;
+    clearedRef.current = 0;
+    answeredRef.current = new Set();
+    roundSeqRef.current = 0;
+    resolvingRef.current = false;
+    setPressure(START_PRESSURE);
+    setScore(0);
+    setCleared(0);
+    setFinalScore(0);
+    setOutcome("none");
+    setPhase("playing");
+
+    const first = buildRound(words, new Set(), rngFor(0));
+    setCurrent(first);
+    if (first === null) {
+      // defensivo: el gate de carga ya impide llegar aquí sin palabras
+      setLoadError(true);
+      return;
+    }
+
+    tickRef.current = setInterval(() => {
+      if (resolvingRef.current) return;
+      const next = Math.min(
+        PRESSURE_MAX,
+        pressureRef.current + INFLATE_PER_SEC * (TICK_MS / 1000),
+      );
+      pressureRef.current = next;
+      setPressure(next);
+      if (next >= PRESSURE_MAX) {
+        resolvingRef.current = true;
+        playSound("wrong");
+        finishGame("crash");
       }
     }, TICK_MS);
-    return () => clearInterval(interval);
-  }, [place, phase, crash]);
+  }, [words, rngFor, finishGame]);
 
-  const start = () => {
-    setPressure(START_PRESSURE);
-    setIndex(-1);
-    setPhase("flying");
-    phaseRef.current = "flying";
-    scoreRef.current = 0;
-    scoreSubmittedRef.current = false;
-    setReward(null);
-    setData((prev) => prev.map((d) => ({ ...d, answered: false })));
-    setPlace("game");
-    setTimeout(() => nextRound(), 0);
-  };
-
-  const answer = (optId: number) => {
-    if (place !== "game" || phase !== "flying" || index < 0) return;
-    const current = data[index];
-    if (!current) return;
-
-    if (optId === current.id) {
-      scoreRef.current += 1;
-      setData((prev) => {
-        const copy = [...prev];
-        copy[index] = { ...copy[index], answered: true };
-        return copy;
-      });
-      setPressure((p) => Math.max(0, p - CORRECT_DEFLATE));
-      nextRound();
-    } else {
-      const next = pressureRef.current + WRONG_INFLATE;
-      if (next >= PRESSURE_MAX) {
-        setPressure(PRESSURE_MAX);
-        crash();
-      } else {
-        setPressure(next);
-        nextRound();
+  // Torneo/reto: solo partidas completas
+  useEffect(() => {
+    if (phase === "result") {
+      if (completedRef.current) {
+        submitTournamentScore(finalScore);
+        submitChallengeScore(finalScore, { completed: true });
       }
+    } else {
+      resetTournamentSubmit();
     }
-  };
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const answer = useCallback(
+    (option: string) => {
+      if (phase !== "playing" || outcome !== "none" || resolvingRef.current || current === null) return;
+
+      if (option === current.word.title) {
+        playSound("correct");
+        // El bonus se calcula con la presión ANTES de desinflar: premia haber
+        // respondido con el globo tranquilo
+        scoreRef.current += roundScore(pressureRef.current);
+        clearedRef.current += 1;
+        answeredRef.current.add(current.word.id);
+        pressureRef.current = Math.max(0, pressureRef.current - CORRECT_DEFLATE);
+        setScore(scoreRef.current);
+        setCleared(clearedRef.current);
+        setPressure(pressureRef.current);
+        advance();
+      } else {
+        playSound("wrong");
+        const next = Math.min(PRESSURE_MAX, pressureRef.current + WRONG_INFLATE);
+        pressureRef.current = next;
+        setPressure(next);
+        if (next >= PRESSURE_MAX) {
+          resolvingRef.current = true;
+          finishGame("crash");
+        } else {
+          // Fallar también cambia de palabra: con 3 opciones, quedarse en la
+          // misma bastaría para sacar el punto descartando por eliminación.
+          // La fallada no se marca respondida: puede volver a salir después.
+          advance();
+        }
+      }
+    },
+    [phase, outcome, current, advance, finishGame],
+  );
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Spinner title="Loading game..." />
+        <Spinner title="Inflando el globo…" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+          No se pudo preparar el vuelo.
+        </p>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Comprueba tu conexión e inténtalo de nuevo.
+        </p>
+        <button
+          onPointerUp={() => {
+            setLoadError(false);
+            setLoading(true);
+            setFetchAttempt((n) => n + 1);
+          }}
+          className="dots-pressable rounded-2xl px-6 py-3 text-sm font-bold"
+          style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -201,174 +274,160 @@ export default function DontPopPage() {
   const danger = pressure / PRESSURE_MAX;
 
   return (
-    <div
-      className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6"
-      style={{
-        background:
-          "linear-gradient(to bottom, var(--sky-top, #7ec8f5) 0%, var(--sky-bottom, #cdeafd) 78%, transparent 78%)",
-      }}
-    >
-      <style>{`
-        @keyframes dp-cloud {
-          from { transform: translateX(-18vw); }
-          to { transform: translateX(110vw); }
-        }
-      `}</style>
-
-      {/* drifting clouds */}
-      {[
-        { top: "12%", dur: "46s", delay: "0s", scale: 1 },
-        { top: "28%", dur: "62s", delay: "-24s", scale: 0.7 },
-        { top: "48%", dur: "54s", delay: "-40s", scale: 1.2 },
-      ].map((c, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="pointer-events-none absolute left-0 text-6xl opacity-70"
-          style={{
-            top: c.top,
-            transform: `scale(${c.scale})`,
-            animation: `dp-cloud ${c.dur} linear ${c.delay} infinite`,
-          }}
-        >
-          ☁️
-        </span>
-      ))}
-
-      {/* ground strip */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 h-[22%] w-full"
-        style={{
-          background:
-            "linear-gradient(to bottom, var(--success) 0%, color-mix(in srgb, var(--success) 70%, black) 100%)",
-          opacity: 0.85,
-        }}
-      />
-
-      {/* Top bar */}
-      <div className="dots-card z-10 flex w-full max-w-xl items-center justify-between gap-3 px-4 py-3">
-        <button
-          onClick={() => window.location.assign("/levels")}
-          className="text-sm font-bold text-(--muted) hover:text-(--accent) transition-colors"
-        >
-          ← Exit
-        </button>
-        <span className="font-display text-lg font-extrabold text-(--accent)">
-          Don&apos;t Pop!
-        </span>
-        <span className="text-sm font-bold text-(--muted) tabular-nums">
-          {answeredCount}/{data.length}
-        </span>
-      </div>
-
-      {/* Play area */}
-      <div className="relative z-10 mt-4 flex w-full max-w-xl flex-1 flex-col items-center">
-        {place === "start" && (
-          <div className="dots-card mt-8 flex flex-col items-center gap-6 px-8 py-12 text-center">
-            <div style={{ animation: "dots-float 3s ease-in-out infinite" }}>
-              <HotAirBalloon pressure={0.25} phase="flying" />
-            </div>
-            <h2 className="font-display text-2xl font-extrabold text-foreground">
-              Keep Doty in the air!
-            </h2>
-            <p className="max-w-sm text-sm font-semibold text-(--muted)">
-              Doty&apos;s balloon inflates on its own. Right answers let air
-              out — wrong ones pump it up. If it bursts, Doty falls! Clear all{" "}
-              {data.length} words to land safely.
-            </p>
-            <UIButton tone="accent" onClick={start}>
-              Start flying
-            </UIButton>
+    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+      {phase === "intro" && (
+        <>
+          <div className="z-10 flex w-full max-w-sm justify-start">
+            <button
+              onPointerUp={() => router.push("/play")}
+              className="text-sm font-bold transition-colors"
+              style={{ color: "var(--muted)" }}
+            >
+              ← Salir
+            </button>
           </div>
-        )}
+          <GameIntro
+            emoji="🎈"
+            title="¡No lo revientes!"
+            howTo={[
+              "No hay reloj: el globo es el reloj. Se infla solo.",
+              "Mira la imagen y toca la palabra correcta en inglés.",
+              "Acertar desinfla el globo; fallar lo infla de golpe.",
+              "Cuanto más tranquilo respondas, más puntos ganas.",
+              `Responde las ${words.length} palabras para aterrizar.`,
+            ]}
+            record={record}
+            throne={throne}
+            onStart={startGame}
+          />
+        </>
+      )}
 
-        {place === "game" && index >= 0 && data[index] && (
-          <>
-            {/* Pressure meter */}
-            <div className="mt-2 h-3 w-full max-w-sm overflow-hidden rounded-full border-2 border-(--border) bg-(--surface)">
-              <div
-                className="h-full rounded-full transition-all duration-200"
+      {phase === "playing" && (
+        <div
+          data-testid="sky"
+          className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3 rounded-2xl p-3"
+          style={{ background: "linear-gradient(180deg, var(--sky-top), var(--sky-bottom))" }}
+        >
+          {/* HUD */}
+          <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
+            <button
+              onPointerUp={() => {
+                // Abandonar: el parcial cuenta para el récord, no para el reto
+                if (endTimerRef.current) clearTimeout(endTimerRef.current);
+                if (tickRef.current) clearInterval(tickRef.current);
+                setFinalScore(scoreRef.current);
+                setPhase("result");
+              }}
+              className="text-sm font-bold transition-colors"
+              style={{ color: "var(--muted)" }}
+            >
+              ← Salir
+            </button>
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+              {cleared}/{words.length}
+            </span>
+            <span className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
+              {score}
+            </span>
+          </div>
+
+          {/* Barra de presión (scaleX, nunca width) */}
+          <div
+            className="h-2.5 w-full overflow-hidden rounded-full"
+            style={{ background: "var(--border)" }}
+            role="progressbar"
+            aria-valuenow={Math.round(pressure)}
+            aria-valuemin={0}
+            aria-valuemax={PRESSURE_MAX}
+            aria-label="Presión del globo"
+          >
+            <div
+              data-testid="pressure-bar"
+              className="h-full w-full origin-left rounded-full"
+              style={{
+                transform: `scaleX(${danger})`,
+                background: danger > 0.75 ? "var(--danger)" : danger > 0.5 ? "var(--gold)" : "var(--success)",
+                transition: "transform 0.1s linear, background 0.3s",
+              }}
+            />
+          </div>
+
+          {/* Globo */}
+          <div className="flex justify-center">
+            <HotAirBalloon
+              phase={outcome === "crash" ? "exploded" : outcome === "land" ? "landed" : "flying"}
+              pressure={danger}
+            />
+          </div>
+
+          {/* Imagen de la palabra */}
+          {current && (
+            <div className="dots-card flex flex-col items-center gap-2 px-4 py-3">
+              {current.word.src && (
+                <WordImg src={current.word.src} size="w-24 h-24" customClass="rounded-xl" />
+              )}
+            </div>
+          )}
+
+          {/* Opciones */}
+          <div className="flex flex-col gap-2">
+            {current?.options.map((opt) => (
+              <button
+                key={opt}
+                data-testid={`opt-${opt}`}
+                onPointerUp={() => answer(opt)}
+                disabled={outcome !== "none"}
+                className="dots-pressable w-full rounded-2xl border-2 px-4 py-3 text-base font-extrabold disabled:opacity-40"
                 style={{
-                  width: `${Math.round(danger * 100)}%`,
-                  background:
-                    danger > 0.72
-                      ? "var(--danger)"
-                      : danger > 0.45
-                        ? "var(--sun)"
-                        : "var(--success)",
+                  borderColor: "var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--foreground)",
+                  ["--press-color" as string]: "var(--accent-soft)",
                 }}
-              />
-            </div>
-
-            {/* Balloon scene */}
-            <div className="relative mt-3 flex h-80 w-full items-start justify-center">
-              <HotAirBalloon pressure={danger} phase={phase} />
-
-              <div
-                className="dots-card absolute right-0 top-6 flex flex-col items-center gap-2 px-5 py-4"
-                style={{ animation: "dots-pop-in 0.3s ease-out both" }}
               >
-                <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
-                  What is this?
-                </span>
-                {data[index].src && (
-                  <WordImg
-                    key={data[index].src}
-                    src={data[index].src}
-                    size="medium"
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Options */}
-            <div className="grid w-full grid-cols-2 gap-4">
-              {options.map((opt, i) => (
-                <button
-                  key={`${opt.id}-${i}`}
-                  onClick={() => answer(opt.id)}
-                  disabled={phase !== "flying"}
-                  className="dots-pressable rounded-2xl bg-(--surface) border-2 border-(--border) px-4 py-6 text-lg font-extrabold text-foreground [--press-color:var(--border)] hover:border-(--accent) hover:text-(--accent) disabled:opacity-60"
-                >
-                  {opt.text}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {place === "endgame" && (
-          <div className="dots-card mt-8 flex flex-col items-center gap-5 px-8 py-12 text-center">
-            {won ? (
-              <HotAirBalloon pressure={0.1} phase="landed" />
-            ) : (
-              <Doty pose="05" size="small" animation="sad" />
-            )}
-            <h2 className="font-display text-3xl font-extrabold text-foreground">
-              {won
-                ? "Safe landing! 🎈"
-                : "The balloon popped — down goes Doty!"}
-            </h2>
-            <p className="text-sm font-semibold text-(--muted)">
-              {answeredCount} word{answeredCount === 1 ? "" : "s"} correct
-            </p>
-            <XpReward reward={reward} />
-            <div className="flex w-full max-w-xs flex-col gap-3">
-              <UIButton tone="accent" onClick={start} fullWidth>
-                Fly again
-              </UIButton>
-              <UIButton
-                tone="neutral"
-                onClick={() => window.location.assign("/levels")}
-                fullWidth
-              >
-                Back to levels
-              </UIButton>
-            </div>
+                {opt}
+              </button>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {phase === "result" && (
+        <GameResult
+          gameKey="dont-pop"
+          score={finalScore}
+          onReplay={startGame}
+          onExit={() => router.push("/play")}
+          extra={
+            <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
+              {/* tres desenlaces: abandonar no es reventar */}
+              {outcome === "land"
+                ? "🛬 Aterrizaje perfecto"
+                : outcome === "crash"
+                  ? "💥 ¡Reventó!"
+                  : "🪂 Vuelo interrumpido"}{" "}
+              · {cleared}/{words.length} palabras
+            </p>
+          }
+        />
+      )}
     </div>
+  );
+}
+
+// ── Export con puerta de Suspense (useSearchParams, regla 6) ─────────────────
+
+export default function DontPopPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Spinner title="Cargando…" />
+        </div>
+      }
+    >
+      <DontPopGame />
+    </Suspense>
   );
 }
