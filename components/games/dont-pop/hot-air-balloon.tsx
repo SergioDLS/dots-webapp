@@ -76,13 +76,10 @@ export default function HotAirBalloon({
       {phase !== "exploded" ? (
         <div
           style={{
+            position: "relative",
             transform: `scale(${phase === "landed" ? 0.92 : scale})`,
             transformOrigin: "bottom center",
-            transition: "transform 0.25s ease-out, filter 0.3s ease-out",
-            filter:
-              danger > 0.55 && phase === "flying"
-                ? `hue-rotate(-${Math.round((danger - 0.55) * 90)}deg) saturate(${1 + danger * 0.8})`
-                : undefined,
+            transition: "transform 0.25s ease-out",
             animation: trembling ? "dp-tremble 0.18s linear infinite" : undefined,
           }}
         >
@@ -108,6 +105,22 @@ export default function HotAirBalloon({
             {/* throat ring */}
             <rect x="61" y="134" width="28" height="9" rx="4" fill="#8a5a2b" />
           </svg>
+
+          {/* Aviso de reventón: capa roja por OPACIDAD. Antes se lograba
+              animando un filtro CSS de tono/saturación, que no es portable a RN. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              background: "var(--danger)",
+              mixBlendMode: "multiply",
+              opacity:
+                phase === "flying" && danger > 0.55
+                  ? Math.min(0.55, (danger - 0.55) * 1.2)
+                  : 0,
+              transition: "opacity 0.3s ease-out",
+            }}
+          />
         </div>
       ) : (
         // Burst: expanding ring + flying shards where the envelope was
