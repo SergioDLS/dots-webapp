@@ -405,10 +405,17 @@ h1, h2, h3, .font-display {
   100% { transform: translateY(120vh); opacity: 0; }
 }
 
+/* Movimiento reducido ≠ cero feedback. Lo que marea son los desplazamientos,
+   rotaciones y escalados, no los cambios de color: se anulan los keyframes
+   (todos los nuestros mueven algo) y las transiciones de `transform`, pero
+   color/opacidad/borde/sombra conservan su duración normal, así que el juego
+   sigue diciendo "acertaste" o "fallaste" con la misma claridad.
+   Antes este bloque mataba TODA transición a 0.01 ms y dejaba la app muda. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-property: opacity, color, background-color, background,
+      border-color, box-shadow, filter !important;
   }
 }

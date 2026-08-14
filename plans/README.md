@@ -20,10 +20,13 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Hallazgos aparcados (fuera del piloto)
 
-- `globals.css:391` — el bloque `prefers-reduced-motion` aniquila TODA
-  animación/transición (0.01 ms). Lo correcto es conservar feedback de opacidad
-  y quitar solo desplazamientos. Es decisión global de la app, no de un juego:
-  tratarlo en una pasada propia.
+- `prefers-reduced-motion` — RESUELTO el 2026-08-12. El bloque mataba TODA
+  animación y transición (0.01 ms), dejando la app muda para quien activa la
+  preferencia. Ahora los keyframes siguen anulados (todos los nuestros mueven
+  algo) pero `transition-property` se restringe a opacidad/color/borde/sombra/
+  filtro: el movimiento desaparece y el feedback de "acertaste/fallaste" se
+  conserva con su duración normal. Verificado en navegador: `transform` sale de
+  la lista de propiedades transicionables y los keyframes quedan en 1e-05s.
 - `GameResult` (shared) — candidato a count-up del score y stagger ya presente;
   tocarlo afecta a los 14 juegos a la vez: dejarlo para el final del barrido.
 - Banner de ronda — sale por unmount seco; se compensa con el stagger de
