@@ -85,7 +85,7 @@ function DontPopGame() {
   const [fetchAttempt, setFetchAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    getDontPopService()
+    getDontPopService(seed)
       .then((data) => {
         if (!active) return;
         const usable = data.filter((w) => w.title && w.title.trim() !== "");
@@ -106,7 +106,7 @@ function DontPopGame() {
     return () => {
       active = false;
     };
-  }, [fetchAttempt]);
+  }, [fetchAttempt, seed]);
 
   // Limpieza de timers
   useEffect(() => {
@@ -143,6 +143,7 @@ function DontPopGame() {
     roundSeqRef.current += 1;
     const next = buildRound(words, answeredRef.current, rngFor(roundSeqRef.current));
     if (next === null) {
+      resolvingRef.current = true;
       finishGame("land");
       return;
     }
@@ -205,7 +206,7 @@ function DontPopGame() {
 
   const answer = useCallback(
     (option: string) => {
-      if (phase !== "playing" || resolvingRef.current || current === null) return;
+      if (phase !== "playing" || outcome !== "none" || resolvingRef.current || current === null) return;
 
       if (option === current.word.title) {
         playSound("correct");
@@ -227,10 +228,15 @@ function DontPopGame() {
         if (next >= PRESSURE_MAX) {
           resolvingRef.current = true;
           finishGame("crash");
+        } else {
+          // Fallar también cambia de palabra: con 3 opciones, quedarse en la
+          // misma bastaría para sacar el punto descartando por eliminación.
+          // La fallada no se marca respondida: puede volver a salir después.
+          advance();
         }
       }
     },
-    [phase, current, advance, finishGame],
+    [phase, outcome, current, advance, finishGame],
   );
 
   if (loading) {
@@ -298,7 +304,11 @@ function DontPopGame() {
       )}
 
       {phase === "playing" && (
-        <div data-testid="sky" className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3">
+        <div
+          data-testid="sky"
+          className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3 rounded-2xl p-3"
+          style={{ background: "linear-gradient(180deg, var(--sky-top), var(--sky-bottom))" }}
+        >
           {/* HUD */}
           <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
             <button

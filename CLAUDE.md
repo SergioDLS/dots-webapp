@@ -19,7 +19,7 @@ No hay test runner de componentes: la verificación es lint + build + preview ma
 ## Estructura
 
 - `app/(app)/(hub)/` — páginas con chrome (nav + HUD): levels (Camino), review, quests, play, profile, shop. El layout del grupo pone el chrome; **los flujos inmersivos viven FUERA del grupo** (lesson/, practice/, checkpoint/, games/, readings/, onboarding/) y no llevan nav.
-- `app/(app)/games/<key>/page.tsx` — un juego por carpeta (14 juegos).
+- `app/(app)/games/<key>/page.tsx` — un juego por carpeta (12 juegos).
 - `components/games/shared/` — `GameIntro` (pantalla de inicio; es el gesto de usuario que legaliza el autoplay de audio) y `GameResult` (envía el score UNA vez, StrictMode-safe).
 - `hooks/` — use-countdown, use-ticker (rAF), use-game-records (récord+trono), use-tournament-mode, use-challenge-mode, use-rival-watch, use-lesson-series, use-lesson-keys.
 - `services/*.service.ts` — fetchers axios sobre `lib/api-client.ts`. **El access token vive EN MEMORIA** (refresh token en cookie HttpOnly).

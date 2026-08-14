@@ -51,7 +51,9 @@ fallar solo cuesta presión, el azar es una estrategia viable. Se pasa a **3
 opciones**, que baja el azar al 33 % sin tocar el ritmo. Los distractores salen
 de otras palabras del mazo, **excluyendo las ya respondidas** y sin repetirse
 entre sí (hoy un distractor puede ser una palabra ya contestada, lo que delata
-la respuesta por eliminación).
+la respuesta por eliminación). Fallar pasa a otra palabra (la fallada vuelve
+más adelante): si se quedara la misma, bastaría descartar opciones para sacar
+el punto por eliminación.
 
 Si el mazo es tan corto que no hay 3 opciones distintas, se juega con las que
 haya — nunca se renderiza un botón vacío ni dos botones iguales.
@@ -112,8 +114,9 @@ visual, `opacity` pura.
 ## Se conserva
 
 El globo dibujado (`hot-air-balloon.tsx`), su balanceo, el cielo con degradado
-(`--sky-top`/`--sky-bottom`), Doty en la cesta, la caída al reventar y el
-aterrizaje suave.
+(`--sky-top`/`--sky-bottom`); las nubes a la deriva y la franja de suelo NO se
+restituyen (decisión 2026-08-12, fuera de alcance), Doty en la cesta, la caída
+al reventar y el aterrizaje suave.
 
 ## Referencias
 

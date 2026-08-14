@@ -76,7 +76,6 @@ export default function HotAirBalloon({
       {phase !== "exploded" ? (
         <div
           style={{
-            position: "relative",
             transform: `scale(${phase === "landed" ? 0.92 : scale})`,
             transformOrigin: "bottom center",
             transition: "transform 0.25s ease-out",
@@ -100,27 +99,29 @@ export default function HotAirBalloon({
                 />
               );
             })}
+            {/* Tinte de peligro: se pinta sobre los MISMOS gores, así el rojo
+                sigue la silueta del globo. Solo opacidad — nada de filter ni
+                mixBlendMode (ninguno de los dos es portable a RN). */}
+            {phase === "flying" && danger > 0.55 &&
+              GORES.map((_, i) => {
+                const n = GORES.length;
+                const spread = 70 * (1 - Math.abs((i - (n - 1) / 2) / ((n - 1) / 2)) * 0.15);
+                const cx = 75 + (i - (n - 1) / 2) * (spread / ((n - 1) / 2 + 0.4));
+                const w = 46 - Math.abs(i - (n - 1) / 2) * 9;
+                return (
+                  <path
+                    key={`danger-${i}`}
+                    d={`M75 4 C ${cx - w} 30, ${cx - w} 100, 75 138 C ${cx + w} 100, ${cx + w} 30, 75 4 Z`}
+                    fill="var(--danger)"
+                    opacity={Math.min(0.6, (danger - 0.55) * 1.35)}
+                  />
+                );
+              })}
             {/* sheen */}
             <ellipse cx="56" cy="46" rx="16" ry="26" fill="white" opacity="0.22" />
             {/* throat ring */}
             <rect x="61" y="134" width="28" height="9" rx="4" fill="#8a5a2b" />
           </svg>
-
-          {/* Aviso de reventón: capa roja por OPACIDAD. Antes se lograba
-              animando un filtro CSS de tono/saturación, que no es portable a RN. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-full"
-            style={{
-              background: "var(--danger)",
-              mixBlendMode: "multiply",
-              opacity:
-                phase === "flying" && danger > 0.55
-                  ? Math.min(0.55, (danger - 0.55) * 1.2)
-                  : 0,
-              transition: "opacity 0.3s ease-out",
-            }}
-          />
         </div>
       ) : (
         // Burst: expanding ring + flying shards where the envelope was
