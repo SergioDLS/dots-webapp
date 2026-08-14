@@ -34,7 +34,7 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
 
 ## Próximos juegos (barrido "uno por uno")
 
-Pendientes de auditoría: dont-pop (legacy — es rediseño, no certificación).
+Pendientes de auditoría: **ninguno** — los 11 juegos están certificados o reconstruidos.
 
 Dotaxi 2.0 (2026-08-12): rediseñado a carriles progresivos 2→3→4 por aciertos y
 hecho RN-safe — fuera el keydown como input, fuera Web Audio, el taxi y la
@@ -129,3 +129,14 @@ declare qué significa "completa" en su juego, y un juego nuevo no puede
 olvidarse por omisión. El hook además ignora los envíos con `completed: false`.
 Último consumidor con el agujero abierto (dot-match) corregido en la misma
 tanda.
+
+Don't Pop 2.0 (2026-08-12) — último legacy modernizado. Conserva su mecánica
+única (no hay reloj: el globo se infla solo y es la presión) y cambia: 3
+opciones en vez de 2 (adivinar acertaba el 50 %), score con fórmula
+`100 + 60×calma` en vez del conteo de palabras (escala incomparable con el
+resto), aviso de peligro por OPACIDAD en vez de animar `filter`
+(hue-rotate/saturate no es portable), regla 3 saneada — el viejo llamaba
+`land()` y `setIndex` DENTRO del updater de `setData` —, retry por estado que
+cierra la victoria falsa con score 0 cuando el fetch caía, español,
+GameIntro/GameResult, `router.push` y seed vía `useGameSeed`. Spec en
+`docs/superpowers/specs/2026-08-12-dont-pop-modernizacion.md`.
