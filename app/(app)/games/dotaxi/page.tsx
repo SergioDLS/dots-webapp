@@ -582,7 +582,10 @@ function DotaxiInner({ seed }: { seed?: number }) {
                 transform: `translateX(${
                   (laneGeometry(lanes).centersPct[Math.min(lane, lanes - 1)] / 100) * roadW
                 }px) translateX(-50%)`,
-                transition: "transform 0.28s var(--ease-out-strong)",
+                // sin transición hasta medir la carretera: si no, el taxi se
+                // desliza desde el borde izquierdo al empezar cada partida
+                transition:
+                  roadW > 0 ? "transform 0.28s var(--ease-out-strong)" : "none",
               }}
             >
               <Taxi tilt={0} crashing={outcome === "crash"} pose="02" />
