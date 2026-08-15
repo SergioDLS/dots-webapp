@@ -106,12 +106,23 @@ Siguen pendientes (ninguno bloquea nada):
   `dots-slot-in`; no es un `animationDelay` y ya está.
 - **Chips que solo animan al montar**: ninguno — word-tower y true-false se
   arreglaron en `1f8b400`.
-- **Escribir no da feedback**: celdas de crossword (`219-228`) y casillas de
-  wordle; las teclas de `DailyKeyboard` no usan `dots-pressable`. Es el mismo
-  arreglo en el componente compartido, así que conviene hacerlo de una vez.
-- **El ↵ de wordle es un botón muerto durante el envío**, igual que lo era
-  "Comprobar" en crossword. Arreglarlo pide un estado de "en vuelo" en
-  `DailyKeyboard`, que es compartido: entra con el punto anterior.
+- ✅ **Escribir no daba feedback** — HECHO. Las teclas de `DailyKeyboard` usan
+  `dots-pressable` (con la sombra de presión siguiendo al color de la tecla:
+  en las marcadas de wordle una sombra gris se veía como suciedad sobre el
+  verde), y la letra recién escrita da un golpe seco tanto en la casilla de
+  wordle como en la celda de crossword.
+- ✅ **El ↵ de wordle era un botón muerto durante el envío** — HECHO, vía una
+  prop `enterBusy` en el componente compartido.
+
+Sigue abierto, encontrado al medir el teclado:
+
+- **El teclado de wordle desborda 10 px a lo ancho en un móvil de 375 px.** Es
+  **previo** a la pasada de juice (medido con y sin los cambios: `scrollWidth`
+  385 en ambos casos). La primera fila necesita 372 px (10 teclas de
+  `minWidth: 2.1rem` + 9 huecos de 0.25 rem) dentro de una fila de 351 px, y
+  `flexShrink: 0` impide que encojan. Arreglo directo: bajar el tamaño `md` al
+  del `sm` (2 rem y 0.2 rem de hueco → 348,8 px, entra justo). No lo apliqué
+  porque achica las teclas y eso es una decisión visual, no un bug de código.
 
 ## Verificación
 
@@ -137,3 +148,21 @@ de axios interceptado. Lo medido, no lo leído:
   la ficha culpable.
 - **wordle**: la tarjeta de victoria entra con `dots-pop-in` y el 🎉 gira con
   `dots-star-spin`.
+- **`DailyKeyboard`**: las teclas resuelven `box-shadow: 0 4px 0` con el color
+  correcto (verde oscuro bajo la tecla verde, no gris). Escribir una letra
+  remonta **solo** su casilla — medido: al teclear la quinta letra el array de
+  remontes es `[false,false,false,false,true]`, así que las ya escritas no
+  repiten su pop. Con el envío en vuelo el ↵ pasa a "…", `disabled`, opacidad
+  0,55, mientras el ⌫ sigue vivo.
+
+### Una trampa que se repite
+
+El `transition` inline **pisa entero** al de la clase. `dots-pressable` define
+`transition: transform 120ms, box-shadow 120ms, filter 150ms`, y el `style`
+inline de la tecla traía su propio `transition: background 0.2s` — resultado:
+la tecla se hundía de golpe, sin interpolar. Es el mismo mecanismo que hizo que
+`dp-tremble` anulara el hinchado del globo en dont-pop (`3474b32`), solo que
+allí era una animación pisando un transform inline y aquí es al revés.
+
+**Regla**: al añadir `dots-pressable` a algo que ya tiene `transition` inline,
+repite sus tres propiedades en el inline o no se moverá.

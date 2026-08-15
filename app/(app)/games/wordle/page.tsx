@@ -79,10 +79,14 @@ function Tile({ letter, mark, revealed, animate, colIndex }: TileProps) {
         fontFamily: "var(--font-display, sans-serif)",
         userSelect: "none",
         transform: revealed && mark ? "rotateX(0deg)" : undefined,
+        // La letra recién escrita da un golpe seco; la fila enviada voltea.
+        // El remonte por `key` (en la fila) es lo que relanza el pop.
         animation:
           revealed && mark && animate
             ? `wordle-flip 0.4s ease ${delay} both`
-            : undefined,
+            : !revealed && letter
+              ? "dots-score-pop 0.18s var(--ease-out-strong)"
+              : undefined,
         transition: "background 0.1s, border-color 0.1s",
       }}
     >
@@ -118,8 +122,10 @@ export default function WordlePage() {
   // causas distintas con feedback idéntico.
   const [submitError, setSubmitError] = useState(false);
 
-  // Submitting guard (prevents double-submit)
+  // Submitting guard (prevents double-submit). El ref decide, el estado se lo
+  // cuenta al teclado: un ref no re-renderiza y por eso el ↵ no se enteraba.
   const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Countdown to next word
   // Arranca con el valor real: con 0 el primer frame decía "ya disponible"
@@ -223,6 +229,7 @@ export default function WordlePage() {
         }
 
         submittingRef.current = true;
+        setSubmitting(true);
         setSubmitError(false);
         postWordleGuessService(currentWord)
           .then((s) => {
@@ -238,6 +245,7 @@ export default function WordlePage() {
           })
           .finally(() => {
             submittingRef.current = false;
+            setSubmitting(false);
           });
         return;
       }
@@ -454,7 +462,10 @@ export default function WordlePage() {
                   const mark = row.marks[cIdx] as Mark | null;
                   return (
                     <Tile
-                      key={cIdx}
+                      // La letra entra en la `key` para que escribirla remonte
+                      // la casilla y su pop se reproduzca; `revealed` también,
+                      // porque el volteo del envío necesita el mismo remonte
+                      key={`${cIdx}:${letter}:${row.revealed}`}
                       letter={letter}
                       mark={mark}
                       revealed={row.revealed}
@@ -592,17 +603,24 @@ export default function WordlePage() {
         {/* ── On-screen keyboard ──────────────────────────────────────────── */}
         {!done && (
           <div
+            // El espaciado entre filas lo lleva ahora DailyKeyboard, que es
+            // quien sabe cuánto mide su sombra de presión
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "0.35rem",
               marginTop: "auto",
               paddingTop: "0.5rem",
               width: "100%",
               maxWidth: "24rem",
             }}
           >
-            <DailyKeyboard onKey={handleKey} marks={keyMarks} showEnter size="md" />
+            <DailyKeyboard
+              onKey={handleKey}
+              marks={keyMarks}
+              showEnter
+              enterBusy={submitting}
+              size="md"
+            />
           </div>
         )}
       </div>

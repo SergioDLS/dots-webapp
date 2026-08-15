@@ -165,3 +165,17 @@ Regla que dejó la pasada: **la Motion library de `app/globals.css` ya cubre
 casi todo**. Los ocho ítems se cerraron sin añadir un solo keyframe nuevo — el
 trabajo era aplicar `dots-shake-x` / `dots-slot-in` / `dots-timer-pulse` donde
 faltaban y matar las copias locales (`wordle-shake`, `cw-pop`, dos `spin`).
+
+Cerrado después (2026-08-15): **`DailyKeyboard`**, el teclado compartido de los
+dos diarios. Las teclas eran rectángulos inertes — el único sitio de la app
+donde pulsar algo no se sentía — y en wordle el ↵ se quedaba mudo mientras el
+intento viajaba, el mismo agujero que tenía «Comprobar» en crossword. Ahora
+usan `dots-pressable` con la sombra de presión siguiendo al color de la tecla,
+el ↵ acepta una prop `enterBusy`, y la letra recién escrita da un golpe seco en
+las dos rejillas. El componente pasa además a llevar su propio ritmo vertical:
+la sombra mide 4 px y se comía el hueco entre filas que ponía cada juego.
+
+**Trampa a recordar**: un `transition` inline pisa entero al de la clase. Al
+poner `dots-pressable` sobre un elemento que ya tenía `transition` inline, hubo
+que repetir sus tres propiedades o la tecla se hundía sin interpolar. Es el
+mismo mecanismo del temblor de dont-pop, al revés.

@@ -221,12 +221,19 @@ function Cell({
           {slotNumber}
         </span>
       )}
+      {/* La `key` con la letra remonta el span en cada pulsación, que es lo
+          que relanza el pop: escribir no daba ninguna señal de haber entrado */}
       <span
+        key={letter ?? ""}
         style={{
           fontWeight: 800,
           fontSize: "1.1rem",
           fontFamily: "var(--font-display, sans-serif)",
           color: textColor,
+          display: "inline-block",
+          animation: letter
+            ? "dots-score-pop 0.18s var(--ease-out-strong)"
+            : undefined,
         }}
       >
         {letter ?? ""}
@@ -809,10 +816,10 @@ export default function CrosswordPage() {
         {/* ── On-screen keyboard ──────────────────────────────────────────── */}
         {!done && (
           <div
+            // El espaciado entre filas lo lleva ahora DailyKeyboard
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "0.3rem",
               marginTop: "auto",
               paddingTop: "0.5rem",
               width: "100%",
