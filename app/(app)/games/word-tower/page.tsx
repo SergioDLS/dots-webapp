@@ -82,6 +82,9 @@ function WordTowerInner({ seed }: { seed?: number }) {
   const [roundPhase, setRoundPhase] = useState<RoundPhase>("falling");
   const [laneOptions, setLaneOptions] = useState<string[]>([]);
   const [correctLabel, setCorrectLabel] = useState<string>("");
+  /** Carril tocado al fallar, para saber cuál sacudir (dots-shake-x). Se
+   *  limpia al armar la ronda siguiente. */
+  const [tappedLane, setTappedLane] = useState<string | null>(null);
 
   // Ref guards
   const resolvedRef = useRef(false); // prevents tap + landing race
@@ -209,6 +212,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
       setLaneOptions(shuffled(nextRound.options));
       setCorrectLabel("");
     }
+    setTappedLane(null);
     resolvedRef.current = false;
     setProgress(0);
     setRoundIndex(next);
@@ -283,6 +287,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
           advanceRoundRef.current();
         }, BETWEEN_ROUNDS_MS);
       } else {
+        setTappedLane(option);
         handleMissStable();
       }
     },
@@ -416,15 +421,25 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
             {/* Lives */}
             <div className="flex gap-0.5">
-              {Array.from({ length: MAX_LIVES }).map((_, i) => (
-                <span
-                  key={i}
-                  className="text-lg"
-                  style={{ opacity: i < lives ? 1 : 0.2 }}
-                >
-                  ❤️
-                </span>
-              ))}
+              {Array.from({ length: MAX_LIVES }).map((_, i) => {
+                // El corazón recién perdido es el de índice === lives; la key
+                // distinta remonta el span para que dots-heart-break repita.
+                const justBroke = i === lives;
+                return (
+                  <span
+                    key={justBroke ? `heart-break-${i}-${lives}` : `heart-${i}`}
+                    className="text-lg"
+                    style={{
+                      opacity: i < lives ? 1 : 0.2,
+                      animation: justBroke
+                        ? "dots-heart-break 0.6s var(--ease-out-strong) both"
+                        : "none",
+                    }}
+                  >
+                    ❤️
+                  </span>
+                );
+              })}
             </div>
 
             {/* Round */}
@@ -444,8 +459,15 @@ function WordTowerInner({ seed }: { seed?: number }) {
                 Pts
               </span>
               <span
-                className="font-display text-base font-extrabold tabular-nums"
-                style={{ color: "var(--accent)" }}
+                key={score}
+                className="font-display text-base font-extrabold tabular-nums inline-block"
+                style={{
+                  color: "var(--accent)",
+                  animation:
+                    score > 0
+                      ? "dots-score-pop 0.25s var(--ease-out-strong)"
+                      : "none",
+                }}
               >
                 {score}
               </span>
@@ -454,6 +476,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
             {/* Combo */}
             {combo > 1 && (
               <span
+                key={combo}
                 className="rounded-full px-2 py-0.5 text-xs font-black"
                 style={{
                   background:
@@ -540,6 +563,8 @@ function WordTowerInner({ seed }: { seed?: number }) {
                 roundPhase === "correction" && opt === correctLabel;
               const isWrong =
                 roundPhase === "correction" && opt !== correctLabel;
+              const isTapped =
+                roundPhase === "correction" && opt === tappedLane;
 
               return (
                 <button
@@ -563,6 +588,9 @@ function WordTowerInner({ seed }: { seed?: number }) {
                       : isWrong
                         ? "var(--muted)"
                         : "var(--accent)",
+                    animation: isTapped
+                      ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                      : "none",
                     transition: "background 0.2s, border-color 0.2s",
                   }}
                 >

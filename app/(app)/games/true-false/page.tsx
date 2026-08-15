@@ -58,6 +58,8 @@ function TrueFalseInner({ seed }: { seed?: number }) {
   const [streak, setStreak] = useState(0);
   const [multiplier, setMultiplier] = useState(1);
   const [correction, setCorrection] = useState<string | null>(null);
+  // Puntos del último acierto: alimenta el "+N" y el pop del marcador.
+  const [lastGain, setLastGain] = useState<number | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Swipe state
@@ -112,6 +114,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setStreak(0);
     setMultiplier(1);
     setCorrection(null);
+    setLastGain(null);
     setPhase("playing");
     startCountdown();
   }, [startCountdown]);
@@ -144,14 +147,21 @@ function TrueFalseInner({ seed }: { seed?: number }) {
         playSound("correct");
         const newStreak = streak + 1;
         const newMultiplier = Math.min(MAX_MULTIPLIER, Math.floor(newStreak / STREAK_STEP) + 1);
+        const gain = 10 * newMultiplier;
         setStreak(newStreak);
         setMultiplier(newMultiplier);
-        setScore((sc) => sc + 10 * newMultiplier);
+        setScore((sc) => sc + gain);
+        setLastGain(gain);
         advance();
       } else {
         playSound("wrong");
         setStreak(0);
         setMultiplier(1);
+        setLastGain(null);
+        // advance() (que hace setDragX(0)) no corre hasta CORRECTION_MS
+        // después — sin este reset inmediato la carta quedaba congelada
+        // torcida ese tiempo entero, como si el juego se hubiera colgado.
+        setDragX(0);
 
         // Build correction text
         let correctionText: string;
@@ -356,8 +366,14 @@ function TrueFalseInner({ seed }: { seed?: number }) {
             </button>
             <div className="flex flex-col items-center">
               <span
-                className="font-display text-2xl font-extrabold tabular-nums"
-                style={{ color: timeColor }}
+                className="font-display text-2xl font-extrabold tabular-nums inline-block"
+                style={{
+                  color: timeColor,
+                  animation:
+                    timeLeft <= 10
+                      ? "dots-timer-pulse 1s ease-in-out infinite"
+                      : "none",
+                }}
               >
                 {timeLeft}s
               </span>
@@ -366,8 +382,32 @@ function TrueFalseInner({ seed }: { seed?: number }) {
               <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
                 Puntos
               </span>
-              <span className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
-                {score}
+              <span className="flex items-baseline gap-1.5">
+                {lastGain !== null && (
+                  <span
+                    key={cardIndex}
+                    className="text-xs font-black"
+                    style={{
+                      color: "var(--success)",
+                      animation: "dots-pop-in 0.3s var(--ease-out-strong) both",
+                    }}
+                  >
+                    +{lastGain}
+                  </span>
+                )}
+                <span
+                  key={score}
+                  className="font-display text-lg font-extrabold inline-block"
+                  style={{
+                    color: "var(--accent)",
+                    animation:
+                      score > 0
+                        ? "dots-score-pop 0.25s var(--ease-out-strong)"
+                        : "none",
+                  }}
+                >
+                  {score}
+                </span>
               </span>
             </div>
           </div>
@@ -378,6 +418,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
               Racha: {streak}
             </span>
             <span
+              key={multiplier}
               className="rounded-full px-3 py-0.5 text-xs font-black"
               style={{
                 background: multiplier > 1
@@ -387,6 +428,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
                 border: multiplier > 1
                   ? "2px solid color-mix(in srgb, var(--gold) 50%, transparent)"
                   : "2px solid var(--border)",
+                animation: "dots-pop-in 0.15s ease-out both",
               }}
             >
               ×{multiplier}
@@ -413,50 +455,64 @@ function TrueFalseInner({ seed }: { seed?: number }) {
                   </div>
                 )}
 
-                {/* The card */}
+                {/* Shake wrapper: the card's own transform is already driven
+                    by the drag calculation (translateX + rotate), so the
+                    fail-shake needs its own node — sharing the element would
+                    let the animation's transform win over the inline drag
+                    style and the card would lose its swipe position. */}
                 <div
                   key={cardIndex}
-                  onPointerDown={onPointerDown}
-                  onPointerMove={onPointerMove}
-                  onPointerUp={onPointerUp}
-                  onPointerCancel={onPointerCancel}
-                  className="dots-card flex w-full flex-col items-center gap-4 px-8 py-10 select-none"
+                  className="w-full"
                   style={{
-                    ...cardStyle,
-                    animation: !dragging ? "dots-pop-in 0.3s ease-out both" : undefined,
+                    animation:
+                      correction !== null
+                        ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                        : "none",
                   }}
                 >
-                  <span
-                    className="text-xs font-black uppercase tracking-widest"
-                    style={{ color: "var(--muted)" }}
-                  >
-                    ¿Verdad o Trampa?
-                  </span>
-                  <span
-                    className="font-display text-3xl font-extrabold text-center"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    {card.en}
-                  </span>
                   <div
-                    className="h-px w-16"
-                    style={{ background: "var(--border)" }}
-                  />
-                  <span
-                    className="text-xl font-bold text-center"
-                    style={{ color: "var(--accent)" }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerCancel={onPointerCancel}
+                    className="dots-card flex w-full flex-col items-center gap-4 px-8 py-10 select-none"
+                    style={{
+                      ...cardStyle,
+                      animation: !dragging ? "dots-pop-in 0.3s ease-out both" : undefined,
+                    }}
                   >
-                    {card.es}
-                  </span>
+                    <span
+                      className="text-xs font-black uppercase tracking-widest"
+                      style={{ color: "var(--muted)" }}
+                    >
+                      ¿Verdad o Trampa?
+                    </span>
+                    <span
+                      className="font-display text-3xl font-extrabold text-center"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      {card.en}
+                    </span>
+                    <div
+                      className="h-px w-16"
+                      style={{ background: "var(--border)" }}
+                    />
+                    <span
+                      className="text-xl font-bold text-center"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      {card.es}
+                    </span>
 
-                  {/* Swipe guide arrows */}
-                  <div className="flex w-full items-center justify-between mt-2">
-                    <span className="text-xs font-bold" style={{ color: "var(--danger)" }}>
-                      ← Trampa
-                    </span>
-                    <span className="text-xs font-bold" style={{ color: "var(--success)" }}>
-                      Verdad →
-                    </span>
+                    {/* Swipe guide arrows */}
+                    <div className="flex w-full items-center justify-between mt-2">
+                      <span className="text-xs font-bold" style={{ color: "var(--danger)" }}>
+                        ← Trampa
+                      </span>
+                      <span className="text-xs font-bold" style={{ color: "var(--success)" }}>
+                        Verdad →
+                      </span>
+                    </div>
                   </div>
                 </div>
 
