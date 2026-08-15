@@ -74,12 +74,20 @@ export default function HotAirBalloon({
 
       {/* Envelope */}
       {phase !== "exploded" ? (
+        // Dos capas: el temblor define `transform: rotate()` y una animación
+        // GANA al style inline, así que si compartieran elemento el globo
+        // perdería su hinchado justo en el tramo de máxima tensión.
+        <div
+          style={{
+            transformOrigin: "bottom center",
+            animation: trembling ? "dp-tremble 0.18s linear infinite" : undefined,
+          }}
+        >
         <div
           style={{
             transform: `scale(${phase === "landed" ? 0.92 : scale})`,
             transformOrigin: "bottom center",
             transition: "transform 0.25s ease-out",
-            animation: trembling ? "dp-tremble 0.18s linear infinite" : undefined,
           }}
         >
           <svg width="150" height="170" viewBox="0 0 150 170" aria-hidden>
@@ -122,6 +130,7 @@ export default function HotAirBalloon({
             {/* throat ring */}
             <rect x="61" y="134" width="28" height="9" rx="4" fill="#8a5a2b" />
           </svg>
+        </div>
         </div>
       ) : (
         // Burst: expanding ring + flying shards where the envelope was
