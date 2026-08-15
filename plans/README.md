@@ -27,8 +27,9 @@ con `transform`/`opacity`, sin canvas, sin keydown (regla 2 del CLAUDE.md).
   filtro: el movimiento desaparece y el feedback de "acertaste/fallaste" se
   conserva con su duración normal. Verificado en navegador: `transform` sale de
   la lista de propiedades transicionables y los keyframes quedan en 1e-05s.
-- `GameResult` (shared) — candidato a count-up del score y stagger ya presente;
-  tocarlo afecta a los 14 juegos a la vez: dejarlo para el final del barrido.
+- `GameResult` (shared) — RESUELTO el 2026-08-12: el marcador sube contando
+  (`hooks/use-count-up.ts`), lo que mejora la pantalla de fin de partida de los
+  12 juegos a la vez.
 - Banner de ronda — sale por unmount seco; se compensa con el stagger de
   entrada del tablero (001). Revisitar solo si tras el piloto aún se siente brusco.
 
@@ -139,3 +140,10 @@ resto), aviso de peligro por OPACIDAD en vez de animar `filter`
 cierra la victoria falsa con score 0 cuando el fetch caía, español,
 GameIntro/GameResult, `router.push` y seed vía `useGameSeed`. Spec en
 `docs/superpowers/specs/2026-08-12-dont-pop-modernizacion.md`.
+
+## Pasada de juice — en curso (2026-08-12)
+
+Auditoría completa de los 7 juegos que faltaban, con 21 hallazgos priorizados y
+líneas exactas: **[005-juice-backlog.md](005-juice-backlog.md)**. Dos ítems ya
+cerrados (count-up de GameResult; el temblor de dont-pop que anulaba el
+hinchado). El backlog está ordenado por impacto y cada ítem cabe en un commit.
