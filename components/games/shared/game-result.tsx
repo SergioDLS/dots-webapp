@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
+import { useCountUp } from "@/hooks/use-count-up";
 import {
   submitGameScoreService,
   type ScoreResult,
@@ -48,6 +49,9 @@ export default function GameResult({
   const tookThrone = result?.tookThrone ?? false;
   const dethronedName = result?.dethronedName ?? null;
 
+  // El marcador sube contando en vez de aparecer seco (respeta reduced-motion)
+  const shownScore = useCountUp(score);
+
   const isNewRecord = result?.isNewHighScore ?? false;
   const dotyPose = isNewRecord ? "07" : "02";
 
@@ -79,14 +83,19 @@ export default function GameResult({
             Puntuación
           </span>
           <span
-            className="font-display text-5xl font-extrabold"
+            className="font-display text-5xl font-extrabold tabular-nums inline-block"
             style={{
               background: "linear-gradient(135deg, var(--accent), #fbbf24)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              // pop al llegar al total: remonta por key cuando la cuenta acaba
+              animation:
+                shownScore === score && score > 0
+                  ? "dots-score-pop 0.3s var(--ease-out-strong)"
+                  : "none",
             }}
           >
-            {score}
+            {shownScore}
           </span>
         </div>
 
