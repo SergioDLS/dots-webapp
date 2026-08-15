@@ -1,6 +1,7 @@
 # 005 — Backlog de juice (auditoría 2026-08-12)
 
-- **Status**: TODO (2 ítems ya hechos, ver abajo)
+- **Status**: **top 8 CERRADO** (2026-08-15). Quedan los MEDIO/BAJO agrupados
+  que no cayeron de paso; ver la sección final.
 - **Método**: auditoría con la vara de `improve-animations` sobre los 7 juegos
   que aún no habían tenido pasada de juice.
 - **Restricción**: animación solo `transform`/`opacity`. Reutilizar la Motion
@@ -9,10 +10,16 @@
 ## Dato transversal
 
 En audio-blitz, true-false, word-tower, sentence-builder, ghost-race, crossword
-y wordle hay **cero usos** de `dots-shake-x`, `dots-slot-in` y
-`dots-timer-pulse`. Los keyframes existen y están probados en dot-match y
-dot-bombs, pero ninguno de estos siete los toca. La mayor parte del backlog es
-*aplicar lo que ya está escrito*, no diseñar nada nuevo.
+y wordle había **cero usos** de `dots-shake-x`, `dots-slot-in` y
+`dots-timer-pulse`. Los keyframes existían y estaban probados en dot-match y
+dot-bombs, pero ninguno de estos siete los tocaba. La mayor parte del backlog
+resultó ser *aplicar lo que ya estaba escrito*, no diseñar nada nuevo — y esa
+predicción se cumplió: los ocho ítems se cerraron sin añadir un solo keyframe.
+
+Un hallazgo de propina, no de animación sino de bug: **el spinner de carga de
+wordle no giraba**. Era una rueda dibujada a mano que pedía `@keyframes spin`,
+y ese keyframe vivía en el `<style>` del render normal — que con `loading` en
+true nunca llega a montarse. Ambos diarios pasan ahora al `Spinner` compartido.
 
 ## Hecho
 
@@ -25,7 +32,11 @@ dot-bombs, pero ninguno de estos siete los toca. La mayor parte del backlog es
   por encima del 72 % de presión el globo perdía su `scale` justo en el tramo de
   máxima tensión. Temblor y escala viven ahora en capas distintas.
 
-## Top 8 por impacto (orden de ataque)
+## Top 8 por impacto — TODOS HECHOS
+
+Los ocho quedaron aplicados y verificados en navegador contra las páginas
+reales (banco temporal con el adapter de axios interceptado). Se conserva el
+enunciado original de cada uno como registro de qué se arregló y por qué.
 
 1. **word-tower — perder una vida es solo `opacity: 0.2`**
    `word-tower/page.tsx:417-428` (disparado desde `227-247`). El evento más
@@ -73,27 +84,56 @@ pulsaste** (`541-542`: todos los no-correctos se pintan gris idéntico) y
 
 ## Hallazgos MEDIO/BAJO agrupados
 
-- **Entradas sin escalonar**: opciones de audio-blitz (`413-430`) y de
-  ghost-race (`640-657`), pool de sentence-builder (`608-624`), rejilla de
-  crossword al cargar (`622-660`). Todos → `dots-slot-in` con delay por índice.
-- **Chips que solo animan al montar**: combo de word-tower (`455-469`, le falta
-  `key={combo}`) y multiplicador de true-false (`380-393`, sin `key` ni
-  animación).
-- **Timers sin pulso en zona crítica**: audio-blitz (`370-378`, además anima
-  `width`) y true-false (`358-363`). → `dots-timer-pulse` + `scaleX`.
+Cayeron de paso, por estar en el mismo archivo que un ítem del top 8:
+
+- ✅ **Entradas sin escalonar** en audio-blitz (opciones, 0/45/90/135 ms) y en
+  el pool de sentence-builder (0…210 ms).
+- ✅ **Timers que animaban `width`**: audio-blitz y las tres barras de
+  ghost-race pasan a `scaleX` con `transform-origin: left`; el contenedor del
+  timer de audio-blitz late con `dots-timer-pulse` por debajo de 3 s.
+- ✅ **Keyframes duplicados muertos**: `wordle-shake` → `dots-shake-x`,
+  `cw-pop` → `dots-pop-in`, y los dos `spin` locales murieron al pasar ambos
+  diarios al `Spinner` compartido.
+- ✅ **wordle — el error de red se veía idéntico a "palabra incompleta"**:
+  ahora el fallo de envío añade un aviso con `role="status"`; el temblor a
+  secas sigue significando "te faltan letras".
+
+Siguen pendientes (ninguno bloquea nada):
+
+- **Entradas sin escalonar** que quedaron fuera: opciones de ghost-race
+  (`640-657`) y rejilla de crossword al cargar (`622-660`). La rejilla necesita
+  distinguir la entrada inicial de la cascada del veredicto, que ya usa
+  `dots-slot-in`; no es un `animationDelay` y ya está.
+- **Chips que solo animan al montar**: ninguno — word-tower y true-false se
+  arreglaron en `1f8b400`.
 - **Escribir no da feedback**: celdas de crossword (`219-228`) y casillas de
-  wordle (`52-90`); las teclas de `DailyKeyboard` no usan `dots-pressable`.
-- **Keyframes duplicados que deberían morir**: `wordle-shake`
-  (`wordle/page.tsx:359-365`) es copia literal de `dots-shake-x`; `cw-pop`
-  (`crossword/page.tsx:518-525`) lo es de `dots-pop-in`; `spin` está duplicado
-  en ambos diarios.
-- **wordle — el error de red se ve idéntico a "palabra incompleta"**
-  (`207-234`): el `catch` dispara el mismo shake de 400 ms que la validación
-  local. Dos causas distintas, feedback indistinguible.
+  wordle; las teclas de `DailyKeyboard` no usan `dots-pressable`. Es el mismo
+  arreglo en el componente compartido, así que conviene hacerlo de una vez.
+- **El ↵ de wordle es un botón muerto durante el envío**, igual que lo era
+  "Comprobar" en crossword. Arreglarlo pide un estado de "en vuelo" en
+  `DailyKeyboard`, que es compartido: entra con el punto anterior.
 
-## Cómo atacarlo
+## Verificación
 
-Cada ítem del top 8 es autocontenido y cabe en un commit. El orden propuesto ya
-está por impacto. Los MEDIO/BAJO agrupados se prestan a una sola pasada
-mecánica (aplicar `dots-slot-in`/`key=`/`dots-timer-pulse` donde falta y borrar
-los keyframes duplicados).
+Los ocho se comprobaron en navegador montando las páginas reales con el adapter
+de axios interceptado. Lo medido, no lo leído:
+
+- **crossword**: durante el envío el botón dice "Comprobando…", `disabled`,
+  opacidad 0,7. Al llegar el veredicto, 16 casillas correctas con `dots-slot-in`
+  escalonado sin huecos (0, 25, 50 … 375 ms) y 5 incorrectas con `dots-shake-x`
+  a la vez. Una segunda comprobación con idéntico veredicto vuelve a repartir
+  (los nodos remontan por `key`), que es justo lo que el contador `checkRound`
+  existe para garantizar.
+- **ghost-race**: durante la ida y vuelta a `/ghost/run` la tarjeta muestra ⏳
+  "Comparando la carrera…" con `aria-label="resolviendo"`; al resolver salta a
+  🏆 con `dots-star-spin` y el bloque remonta con `dots-pop-in`. Antes ese hueco
+  decía "perdiste" a todo el mundo. Las tres barras miden `scaleX` y **cero
+  divs transicionan `width`**.
+- **audio-blitz**: al fallar, el botón tocado queda con `dots-shake-x` + tinte
+  danger y el correcto con tinte verde, **ambos a opacidad 1** — el
+  `disabled:opacity-40` apagaba justo los dos que hay que mirar.
+- **sentence-builder**: el primer fallo tiembla la bandeja entera y la tiñe de
+  danger (antes `wrong` caía al gris neutro), conservando el `scale(1.05)` de
+  la ficha culpable.
+- **wordle**: la tarjeta de victoria entra con `dots-pop-in` y el 🎉 gira con
+  `dots-star-spin`.

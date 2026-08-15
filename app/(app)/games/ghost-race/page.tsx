@@ -67,7 +67,8 @@ type Correction = { before: string; answer: string; after: string };
 
 interface ResultCardProps {
   score: number;
-  beatGhost: boolean;
+  /** `null` mientras el servidor resuelve el duelo — ver comentario abajo. */
+  beatGhost: boolean | null;
   ghostName: string;
   onReplay: () => void;
   onExit: () => void;
@@ -91,24 +92,53 @@ function ResultCard({
         className="dots-card flex w-full max-w-sm flex-col items-center gap-6 px-8 py-10 text-center"
         style={{ animation: "dots-pop-in 0.4s ease-out both" }}
       >
-        <div className="text-6xl" role="img" aria-label={beatGhost ? "ganaste" : "perdiste"}>
-          {beatGhost ? "🏆" : "👻"}
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <h2
-            className="font-display text-2xl font-extrabold"
-            style={{ color: "var(--foreground)" }}
+        {/*
+          El veredicto se remonta por `key` cuando pasa de pendiente a resuelto,
+          así el desenlace ENTRA con un pop en vez de cambiar de texto seco.
+          Antes `beatGhost` arrancaba en `false` y quien había ganado leía
+          primero que había perdido.
+        */}
+        <div
+          key={String(beatGhost)}
+          className="flex flex-col items-center gap-3"
+          style={{ animation: "dots-pop-in 0.35s var(--ease-out-strong) both" }}
+        >
+          <div
+            className="text-6xl"
+            role="img"
+            aria-label={
+              beatGhost === null ? "resolviendo" : beatGhost ? "ganaste" : "perdiste"
+            }
+            style={
+              beatGhost
+                ? { animation: "dots-star-spin 0.7s var(--ease-out-strong) 0.2s both" }
+                : beatGhost === null
+                  ? { animation: "dots-float 1.6s ease-in-out infinite" }
+                  : undefined
+            }
           >
-            {beatGhost
-              ? "¡Ganaste la carrera!"
-              : `${ghostName} fue más rápido`}
-          </h2>
-          <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
-            {beatGhost
-              ? `¡Le ganaste a ${ghostName}!`
-              : "¡La próxima vez lo superas!"}
-          </p>
+            {beatGhost === null ? "⏳" : beatGhost ? "🏆" : "👻"}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <h2
+              className="font-display text-2xl font-extrabold"
+              style={{ color: "var(--foreground)" }}
+            >
+              {beatGhost === null
+                ? "Comparando la carrera…"
+                : beatGhost
+                  ? "¡Ganaste la carrera!"
+                  : `${ghostName} fue más rápido`}
+            </h2>
+            <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
+              {beatGhost === null
+                ? `Viendo quién llegó antes, si tú o ${ghostName}`
+                : beatGhost
+                  ? `¡Le ganaste a ${ghostName}!`
+                  : "¡La próxima vez lo superas!"}
+            </p>
+          </div>
         </div>
 
         <div
@@ -190,7 +220,9 @@ function GhostRaceInner() {
   const advancingRef = useRef(false);
 
   // ── Result state ──────────────────────────────────────────────────────────
-  const [beatGhost, setBeatGhost] = useState(false);
+  // `null` = el duelo aún no está resuelto. Arrancar en `false` mostraba
+  // "perdiste" a todo el mundo durante la ida y vuelta a /ghost/run.
+  const [beatGhost, setBeatGhost] = useState<boolean | null>(null);
   const runSubmittedRef = useRef(false);
 
   // ── Timer (per-question countdown) ───────────────────────────────────────
@@ -343,7 +375,7 @@ function GhostRaceInner() {
     setElapsed(0);
     setCorrection(null);
     setTimedOut(false);
-    setBeatGhost(false);
+    setBeatGhost(null);
     raceStartRef.current = Date.now();
     // Ghost elapsed clock
     elapsedIntervalRef.current = setInterval(() => {
@@ -409,6 +441,12 @@ function GhostRaceInner() {
   const ghostPct =
     ghostTimeline.length > 0 ? ghostSteps / ghostTimeline.length : 0;
   const myPct = items.length > 0 ? questionIndex / items.length : 0;
+  /**
+   * Quién va delante ahora mismo; `null` en empate, para que en un empate no
+   * pulse nadie. Es la única señal de que hay un duelo en marcha mientras se
+   * juega: las dos barras se mueven, pero cuál va ganando no se leía.
+   */
+  const leading = myPct === ghostPct ? null : myPct > ghostPct;
 
   // ── Loading / error gates ─────────────────────────────────────────────────
 
@@ -536,10 +574,11 @@ function GhostRaceInner() {
             <div
               style={{
                 height: "100%",
-                width: `${timerPct * 100}%`,
+                width: "100%",
+                transformOrigin: "left",
+                transform: `scaleX(${timerPct})`,
                 background: timerColor,
-                transition: "width 0.1s linear, background 0.3s ease",
-                borderRadius: "9999px",
+                transition: "transform 0.1s linear, background 0.3s ease",
               }}
             />
           </div>
@@ -550,7 +589,16 @@ function GhostRaceInner() {
           >
             {/* Player bar */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black w-5 text-center">🟦</span>
+              <span
+                className="text-xs font-black w-5 text-center"
+                style={
+                  leading
+                    ? { animation: "dots-timer-pulse 1s ease-in-out infinite" }
+                    : undefined
+                }
+              >
+                🟦
+              </span>
               <div
                 className="flex-1 overflow-hidden rounded-full"
                 style={{
@@ -558,24 +606,43 @@ function GhostRaceInner() {
                   background: "color-mix(in srgb, var(--border) 50%, transparent)",
                 }}
               >
+                {/* scaleX en vez de width: `width` no es animable en RN y el
+                    compositor no la puede mover en su propio hilo */}
                 <div
                   style={{
                     height: "100%",
-                    width: `${myPct * 100}%`,
+                    width: "100%",
+                    transformOrigin: "left",
+                    transform: `scaleX(${myPct})`,
                     background: "var(--accent)",
-                    borderRadius: "9999px",
-                    transition: "width 0.2s ease",
+                    transition: "transform 0.2s var(--ease-out-strong)",
                   }}
                 />
               </div>
-              <span className="text-xs font-bold w-6 text-right" style={{ color: "var(--accent)" }}>
+              <span
+                key={questionIndex}
+                className="text-xs font-bold w-6 text-right inline-block"
+                style={{
+                  color: "var(--accent)",
+                  animation: "dots-score-pop 0.3s var(--ease-out-strong)",
+                }}
+              >
                 {questionIndex}
               </span>
             </div>
 
             {/* Ghost bar */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black w-5 text-center">👻</span>
+              <span
+                className="text-xs font-black w-5 text-center"
+                style={
+                  leading === false
+                    ? { animation: "dots-timer-pulse 1s ease-in-out infinite" }
+                    : undefined
+                }
+              >
+                👻
+              </span>
               <div
                 className="flex-1 overflow-hidden rounded-full"
                 style={{
@@ -586,16 +653,23 @@ function GhostRaceInner() {
                 <div
                   style={{
                     height: "100%",
-                    width: `${ghostPct * 100}%`,
+                    width: "100%",
+                    transformOrigin: "left",
+                    transform: `scaleX(${ghostPct})`,
                     background: "color-mix(in srgb, var(--muted) 60%, transparent)",
-                    borderRadius: "9999px",
-                    transition: "width 0.3s ease",
+                    transition: "transform 0.3s var(--ease-out-strong)",
                   }}
                 />
               </div>
+              {/* El fantasma avanza solo, sin que el jugador toque nada: si su
+                  contador no da un salto visible, adelantarte pasa inadvertido */}
               <span
-                className="text-xs font-bold w-6 text-right"
-                style={{ color: "var(--muted)" }}
+                key={ghostSteps}
+                className="text-xs font-bold w-6 text-right inline-block"
+                style={{
+                  color: "var(--muted)",
+                  animation: "dots-pop-in 0.3s var(--ease-out-strong)",
+                }}
               >
                 {ghostSteps}
               </span>

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import DailyKeyboard from "@/components/games/shared/daily-keyboard";
+import Spinner from "@/components/ui/Spinner/Spinner";
 import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
 import {
   getCrosswordService,
@@ -128,6 +129,8 @@ type CellProps = {
   correctState: "correct" | "incorrect" | "neutral"; // tint from last check
   isAnswer: boolean;     // revealed answer (done-lost) — show in distinct style
   slotNumber?: number;   // small number label in corner
+  /** Shorthand de animación del veredicto; se relanza remontando por `key`. */
+  animation?: string;
   onTap: () => void;
 };
 
@@ -139,6 +142,7 @@ function Cell({
   correctState,
   isAnswer,
   slotNumber,
+  animation,
   onTap,
 }: CellProps) {
   if (isBlack) {
@@ -199,6 +203,7 @@ function Cell({
         cursor: "pointer",
         userSelect: "none",
         transition: "background 0.15s, border-color 0.15s",
+        animation,
       }}
     >
       {slotNumber !== undefined && (
@@ -254,8 +259,12 @@ export default function CrosswordPage() {
   const [activeDir, setActiveDir] = useState<"A" | "D">("A");
   const [activeCursor, setActiveCursor] = useState<[number, number] | null>(null);
 
-  // Submitting guard
+  // Submitting guard (ref para el guard, estado para que el botón se entere)
   const submittingRef = useRef(false);
+  const [checking, setChecking] = useState(false);
+  // Sube con cada veredicto: entra en la `key` de las casillas tintadas para
+  // relanzar su animación aunque el tinte no cambie respecto a la vez anterior.
+  const [checkRound, setCheckRound] = useState(0);
   // La última comprobación no llegó al servidor
   const [checkError, setCheckError] = useState(false);
 
@@ -346,6 +355,18 @@ export default function CrosswordPage() {
     }
   }
 
+  // Orden de entrada del veredicto: las aciertadas se reparten en cascada con
+  // índice sin huecos (si escalonara por fila×columna, las casillas negras
+  // dejarían pausas muertas en medio del reparto).
+  const correctOrder = new Map<string, number>();
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (correctGrid[r]?.[c] === true) {
+        correctOrder.set(`${r},${c}`, correctOrder.size);
+      }
+    }
+  }
+
   // Active clue label
   const activeClue = activeSlot
     ? `${slotLabel(activeSlot)} · ${activeSlot.clueEs}`
@@ -424,6 +445,7 @@ export default function CrosswordPage() {
     // disparando POSTs al servidor
     if (done || checksLeft <= 0 || submittingRef.current) return;
     submittingRef.current = true;
+    setChecking(true);
     setCheckError(false);
 
     postCrosswordCheckService(localCells)
@@ -431,6 +453,7 @@ export default function CrosswordPage() {
         setState(res);
         setLocalCells(res.cells.map((row) => [...row]));
         setCorrectGrid(res.correct.map((row) => [...row]) as (boolean | null)[][]);
+        setCheckRound((n) => n + 1);
       })
       .catch(() => {
         // El estado del servidor se conserva, pero el jugador tiene que saber
@@ -439,37 +462,18 @@ export default function CrosswordPage() {
       })
       .finally(() => {
         submittingRef.current = false;
+        setChecking(false);
       });
   }, [done, checksLeft, localCells]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
+    // Spinner compartido: el de aquí era una rueda a mano con su propio
+    // @keyframes spin duplicado
     return (
-      <div
-        style={{
-          display: "flex",
-          minHeight: "100svh",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "0.75rem",
-        }}
-      >
-        <div
-          style={{
-            width: "2rem",
-            height: "2rem",
-            border: "3px solid var(--border)",
-            borderTopColor: "var(--accent)",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-          }}
-        />
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-          Cargando crucigrama de hoy…
-        </p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="flex min-h-[100svh] items-center justify-center">
+        <Spinner title="Cargando crucigrama de hoy…" />
       </div>
     );
   }
@@ -513,17 +517,11 @@ export default function CrosswordPage() {
     );
   }
 
+  // `spin` solo lo usa la rama de carga, que lleva su propio <style>, y
+  // `cw-pop` era una copia literal de `dots-pop-in`: ambos keyframes locales
+  // sobraban aquí.
   return (
     <>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes cw-pop {
-          0% { transform: scale(0.85); opacity: 0; }
-          60% { transform: scale(1.05); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
-
       <div
         style={{
           display: "flex",
@@ -643,9 +641,20 @@ export default function CrosswordPage() {
 
               const cornerNum = cornerNumbers.get(key);
 
+              // El veredicto se reparte: las correctas caen en cascada, las
+              // incorrectas tiemblan todas a la vez.
+              const flash =
+                correctState === "correct"
+                  ? `dots-slot-in 0.32s var(--ease-out-strong) ${
+                      (correctOrder.get(key) ?? 0) * 25
+                    }ms both`
+                  : correctState === "incorrect"
+                    ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                    : undefined;
+
               return (
                 <Cell
-                  key={key}
+                  key={correctState === "neutral" ? key : `${key}:${checkRound}`}
                   letter={letter}
                   isBlack={isBlack}
                   isActive={isActive}
@@ -653,6 +662,7 @@ export default function CrosswordPage() {
                   correctState={correctState}
                   isAnswer={isAnswer}
                   slotNumber={cornerNum}
+                  animation={flash}
                   onTap={() => handleCellTap(row, col)}
                 />
               );
@@ -674,7 +684,7 @@ export default function CrosswordPage() {
               display: "flex",
               flexDirection: "column",
               gap: "0.5rem",
-              animation: "cw-pop 0.4s ease both",
+              animation: "dots-pop-in 0.4s var(--ease-out-strong) both",
             }}
           >
             {won ? (
@@ -756,7 +766,7 @@ export default function CrosswordPage() {
         {!done && (
           <button
             onPointerUp={handleCheck}
-            disabled={checksLeft <= 0}
+            disabled={checksLeft <= 0 || checking}
             style={{
               background: checksLeft > 0 ? "var(--accent)" : "var(--muted)",
               color: "var(--accent-foreground)",
@@ -765,13 +775,18 @@ export default function CrosswordPage() {
               padding: "0.75rem 2rem",
               fontWeight: 700,
               fontSize: "0.95rem",
-              cursor: checksLeft > 0 ? "pointer" : "default",
+              cursor: checksLeft > 0 && !checking ? "pointer" : "default",
               maxWidth: "22rem",
               width: "100%",
-              opacity: checksLeft > 0 ? 1 : 0.6,
+              // El envío tarda lo que tarde la red: sin este acuse el jugador
+              // creía que su tap no había entrado y volvía a pulsar
+              opacity: checksLeft <= 0 ? 0.6 : checking ? 0.7 : 1,
+              transition: "opacity 0.15s",
             }}
           >
-            Comprobar ({checksLeft} restante{checksLeft !== 1 ? "s" : ""})
+            {checking
+              ? "Comprobando…"
+              : `Comprobar (${checksLeft} restante${checksLeft !== 1 ? "s" : ""})`}
           </button>
         )}
 

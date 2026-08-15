@@ -141,9 +141,27 @@ cierra la victoria falsa con score 0 cuando el fetch caía, español,
 GameIntro/GameResult, `router.push` y seed vía `useGameSeed`. Spec en
 `docs/superpowers/specs/2026-08-12-dont-pop-modernizacion.md`.
 
-## Pasada de juice — en curso (2026-08-12)
+## Pasada de juice — top 8 CERRADO (2026-08-15)
 
 Auditoría completa de los 7 juegos que faltaban, con 21 hallazgos priorizados y
-líneas exactas: **[005-juice-backlog.md](005-juice-backlog.md)**. Dos ítems ya
-cerrados (count-up de GameResult; el temblor de dont-pop que anulaba el
-hinchado). El backlog está ordenado por impacto y cada ítem cabe en un commit.
+líneas exactas: **[005-juice-backlog.md](005-juice-backlog.md)**. **Los ocho
+ítems de mayor impacto están aplicados y verificados en navegador**; quedan
+solo MEDIO/BAJO anotados allí, ninguno bloqueante.
+
+Los cinco commits: count-up de `GameResult` (afecta a los 12 juegos a la vez),
+el temblor de dont-pop que anulaba el hinchado del globo, word-tower +
+true-false, y esta última tanda con crossword / ghost-race / audio-blitz /
+sentence-builder / wordle.
+
+Dos bugs reales salieron de la pasada, no solo asperezas visuales:
+
+- **El spinner de carga de wordle no giraba.** Pedía `@keyframes spin` y ese
+  keyframe estaba en el `<style>` del render normal, que con `loading` en true
+  nunca se monta. Ambos diarios usan ya el `Spinner` compartido.
+- **`dots-heart-break` animaba `filter`**, propiedad prohibida por la regla 2,
+  escondida en la librería compartida.
+
+Regla que dejó la pasada: **la Motion library de `app/globals.css` ya cubre
+casi todo**. Los ocho ítems se cerraron sin añadir un solo keyframe nuevo — el
+trabajo era aplicar `dots-shake-x` / `dots-slot-in` / `dots-timer-pulse` donde
+faltaban y matar las copias locales (`wordle-shake`, `cw-pop`, dos `spin`).

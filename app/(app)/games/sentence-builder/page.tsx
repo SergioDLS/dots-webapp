@@ -334,6 +334,9 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     trayChips.length === sentence.answer.length &&
     checkState === "idle";
 
+  /** El pool está recién servido: nadie ha movido una ficha a la bandeja. */
+  const freshPool = trayChips.length === 0 && checkState === "idle";
+
   // ── Loading / error screens ───────────────────────────────────────────────
 
   if (loading) {
@@ -525,16 +528,23 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
               background:
                 checkState === "correct"
                   ? "color-mix(in srgb, var(--success) 10%, transparent)"
-                  : checkState === "revealed"
+                  : checkState === "wrong" || checkState === "revealed"
                     ? "color-mix(in srgb, var(--danger) 8%, transparent)"
                     : "color-mix(in srgb, var(--border) 40%, transparent)",
               border:
                 checkState === "correct"
                   ? "2px solid color-mix(in srgb, var(--success) 40%, transparent)"
-                  : checkState === "revealed"
+                  : checkState === "wrong" || checkState === "revealed"
                     ? "2px solid color-mix(in srgb, var(--danger) 40%, transparent)"
                     : "2px dashed color-mix(in srgb, var(--border) 70%, transparent)",
               transition: "background 0.3s, border-color 0.3s",
+              // El primer fallo solo agrandaba un 5 % la ficha culpable: el
+              // rechazo hay que sentirlo en la frase entera, que es lo que el
+              // jugador acaba de armar
+              animation:
+                checkState === "wrong"
+                  ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                  : undefined,
             }}
           >
             {/* Revealed correct answer tokens */}
@@ -617,6 +627,13 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
                   color: "var(--foreground)",
                   opacity: checkState !== "idle" ? 0.4 : 1,
                   transition: "opacity 0.2s",
+                  // Solo con la bandeja vacía: las fichas van keyed por índice,
+                  // así que cada tap remonta las siguientes y el reparto se
+                  // repetiría a media ronda
+                  animation:
+                    freshPool
+                      ? `dots-slot-in 0.28s var(--ease-out-strong) ${i * 35}ms both`
+                      : undefined,
                 }}
               >
                 {chip}

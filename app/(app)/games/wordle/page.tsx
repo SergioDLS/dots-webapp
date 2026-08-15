@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import DailyKeyboard, { KEY_ENTER, KEY_BACKSPACE } from "@/components/games/shared/daily-keyboard";
+import Spinner from "@/components/ui/Spinner/Spinner";
 import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
 import {
   getWordleService,
@@ -112,6 +113,10 @@ export default function WordlePage() {
   // Shake animation on bad submit
   const [shaking, setShaking] = useState(false);
   const shakeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // El intento no llegó al servidor. Sin esto, quedarse sin red y escribir una
+  // palabra a medias producían exactamente el mismo temblor de 400 ms: dos
+  // causas distintas con feedback idéntico.
+  const [submitError, setSubmitError] = useState(false);
 
   // Submitting guard (prevents double-submit)
   const submittingRef = useRef(false);
@@ -200,6 +205,7 @@ export default function WordlePage() {
       if (done) return;
 
       if (key === KEY_BACKSPACE || key === "BACKSPACE") {
+        setSubmitError(false);
         setCurrentWord((w) => w.slice(0, -1));
         return;
       }
@@ -210,12 +216,14 @@ export default function WordlePage() {
         if (currentWord.length !== wordLength) {
           // Shake the current row
           setShaking(true);
+          setSubmitError(false); // palabra incompleta: no es un fallo de red
           if (shakeRef.current) clearTimeout(shakeRef.current);
           shakeRef.current = setTimeout(() => setShaking(false), 400);
           return;
         }
 
         submittingRef.current = true;
+        setSubmitError(false);
         postWordleGuessService(currentWord)
           .then((s) => {
             setState(s);
@@ -224,6 +232,7 @@ export default function WordlePage() {
           .catch(() => {
             // On error, shake to signal failure
             setShaking(true);
+            setSubmitError(true);
             if (shakeRef.current) clearTimeout(shakeRef.current);
             shakeRef.current = setTimeout(() => setShaking(false), 400);
           })
@@ -235,6 +244,7 @@ export default function WordlePage() {
 
       // Letter key
       if (/^[A-Z]$/.test(key) && currentWord.length < wordLength) {
+        setSubmitError(false);
         setCurrentWord((w) => w + key);
       }
     },
@@ -244,30 +254,13 @@ export default function WordlePage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
+    // Spinner compartido. El de aquí era una rueda dibujada a mano que pedía
+    // `@keyframes spin`, y ese keyframe vive en el <style> del render normal
+    // — que con `loading` en true nunca llega a montarse. O sea: la rueda no
+    // giraba, era un anillo quieto.
     return (
-      <div
-        style={{
-          display: "flex",
-          minHeight: "100svh",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "0.75rem",
-        }}
-      >
-        <div
-          style={{
-            width: "2rem",
-            height: "2rem",
-            border: "3px solid var(--border)",
-            borderTopColor: "var(--accent)",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-          }}
-        />
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-          Cargando palabra del día…
-        </p>
+      <div className="flex min-h-[100svh] items-center justify-center">
+        <Spinner title="Cargando palabra del día…" />
       </div>
     );
   }
@@ -356,14 +349,6 @@ export default function WordlePage() {
           50% { transform: rotateX(-90deg); }
           100% { transform: rotateX(0deg); }
         }
-        @keyframes wordle-shake {
-          0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-6px); }
-          40% { transform: translateX(6px); }
-          60% { transform: translateX(-4px); }
-          80% { transform: translateX(4px); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       <div
@@ -460,7 +445,7 @@ export default function WordlePage() {
                   gap: "0.4rem",
                   animation:
                     isCurrentRow && shaking
-                      ? "wordle-shake 0.4s ease"
+                      ? "dots-shake-x 0.4s var(--ease-out-strong)"
                       : undefined,
                 }}
               >
@@ -483,6 +468,24 @@ export default function WordlePage() {
           })}
         </div>
 
+        {/* Aviso si el intento no llegó al servidor (distinto del temblor de
+            "palabra incompleta", que no lleva texto) */}
+        {!done && submitError && (
+          <p
+            role="status"
+            style={{
+              color: "var(--danger)",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              margin: 0,
+              textAlign: "center",
+              animation: "dots-pop-in 0.25s var(--ease-out-strong) both",
+            }}
+          >
+            No pudimos enviar tu intento. Revisa tu conexión y pulsa ↵ otra vez.
+          </p>
+        )}
+
         {/* ── Done card ───────────────────────────────────────────────────── */}
         {done && state && (
           <div
@@ -497,6 +500,9 @@ export default function WordlePage() {
               display: "flex",
               flexDirection: "column",
               gap: "0.5rem",
+              // Acertar la palabra del día es el desenlace del juego y aparecía
+              // como una tarjeta estática, sin un solo fotograma de celebración
+              animation: "dots-pop-in 0.4s var(--ease-out-strong) both",
             }}
           >
             {state.won ? (
@@ -505,6 +511,8 @@ export default function WordlePage() {
                   style={{
                     fontSize: "1.5rem",
                     margin: 0,
+                    animation:
+                      "dots-star-spin 0.8s var(--ease-out-strong) 0.25s both",
                   }}
                 >
                   🎉

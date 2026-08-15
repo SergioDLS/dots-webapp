@@ -68,6 +68,10 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
   // Puntos del último acierto: alimenta el "+N" y el pop del marcador (el
   // código prometía un "brief flash" en un comentario que nunca existió)
   const [lastGain, setLastGain] = useState<number | null>(null);
+  // Opción que el jugador tocó al fallar. Sin esto la corrección enseña cuál
+  // era la buena pero no cuál elegiste, y con 4 opciones parecidas eso deja al
+  // jugador sin saber qué acaba de hacer mal.
+  const [wrongPick, setWrongPick] = useState<string | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Blocks re-entrant taps between a correct answer and the next question's render.
   const advancingRef = useRef(false);
@@ -116,6 +120,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     playSound("wrong");
     stopTimer();
     setLastGain(null);
+    setWrongPick(null); // se acabó el tiempo: no hay opción tocada que marcar
     setCorrection(buildHighlightedSentence(item.text, item.correct));
     correctionTimerRef.current = setTimeout(() => {
       setCorrection(null);
@@ -166,6 +171,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     setCorrection(null);
     setTimedOut(false);
     setLastGain(null);
+    setWrongPick(null);
     setPhase("playing");
     // timer starts via the phase/questionIndex effect above
   }, []);
@@ -202,10 +208,12 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
         const gain = SCORE_BASE + secondsLeft * SCORE_PER_SECOND;
         setScore((s) => s + gain);
         setLastGain(gain);
+        setWrongPick(null);
         setQuestionIndex((i) => i + 1);
       } else {
         playSound("wrong");
         setLastGain(null);
+        setWrongPick(option);
         const highlighted = buildHighlightedSentence(item.text, item.correct);
         setCorrection(highlighted);
         correctionTimerRef.current = setTimeout(() => {
@@ -365,15 +373,24 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
             style={{
               height: "6px",
               background: "color-mix(in srgb, var(--border) 60%, transparent)",
+              // el pulso va en el contenedor: si latiera la barra interior
+              // pelearía con el scaleX que marca el tiempo restante
+              animation:
+                remaining <= 3 && remaining > 0
+                  ? "dots-timer-pulse 0.6s ease-in-out infinite"
+                  : undefined,
             }}
           >
+            {/* scaleX en vez de width: RN no anima width y el compositor sí
+                puede mover un transform sin pasar por layout */}
             <div
               style={{
                 height: "100%",
-                width: `${timerPct * 100}%`,
+                width: "100%",
+                transformOrigin: "left",
+                transform: `scaleX(${timerPct})`,
                 background: timerColor,
-                transition: "width 0.1s linear, background 0.3s ease",
-                borderRadius: "9999px",
+                transition: "transform 0.1s linear, background 0.3s ease",
               }}
             />
           </div>
@@ -411,22 +428,44 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
           {/* Options grid */}
           <div className="z-10 grid w-full max-w-sm grid-cols-2 gap-3">
-            {item.options.map((opt) => (
-              <button
-                key={opt}
-                onPointerUp={() => tapOption(opt)}
-                disabled={correction !== null}
-                className="dots-pressable rounded-2xl border-2 px-4 py-4 text-center text-base font-bold disabled:opacity-40"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "var(--surface)",
-                  color: "var(--foreground)",
-                  ["--press-color" as string]: "var(--accent-soft)",
-                }}
-              >
-                {opt}
-              </button>
-            ))}
+            {item.options.map((opt, i) => {
+              // Solo se marca cuando ya hay veredicto (la corrección en pantalla)
+              const isCorrect = correction !== null && opt === item.correct;
+              const isWrongPick = correction !== null && opt === wrongPick;
+              return (
+                <button
+                  // La `key` lleva la pregunta para que las opciones remonten en
+                  // cada ronda y su entrada escalonada se vuelva a reproducir
+                  key={`${questionIndex}:${opt}`}
+                  onPointerUp={() => tapOption(opt)}
+                  disabled={correction !== null}
+                  className="dots-pressable rounded-2xl border-2 px-4 py-4 text-center text-base font-bold disabled:opacity-40"
+                  style={{
+                    borderColor: isCorrect
+                      ? "#22c55e"
+                      : isWrongPick
+                        ? "var(--danger)"
+                        : "var(--border)",
+                    background: isCorrect
+                      ? "color-mix(in srgb, #22c55e 16%, var(--surface))"
+                      : isWrongPick
+                        ? "color-mix(in srgb, var(--danger) 14%, var(--surface))"
+                        : "var(--surface)",
+                    color: "var(--foreground)",
+                    ["--press-color" as string]: "var(--accent-soft)",
+                    // el atenuado de `disabled:` apagaría justo las dos que hay
+                    // que mirar
+                    ...(isCorrect || isWrongPick ? { opacity: 1 } : null),
+                    animation: isWrongPick
+                      ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                      : `dots-slot-in 0.3s var(--ease-out-strong) ${i * 45}ms both`,
+                    transition: "background 0.2s, border-color 0.2s",
+                  }}
+                >
+                  {opt}
+                </button>
+              );
+            })}
           </div>
 
           {/* Correction overlay */}
