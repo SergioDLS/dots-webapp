@@ -175,6 +175,13 @@ el ↵ acepta una prop `enterBusy`, y la letra recién escrita da un golpe seco 
 las dos rejillas. El componente pasa además a llevar su propio ritmo vertical:
 la sombra mide 4 px y se comía el hueco entre filas que ponía cada juego.
 
+Las teclas pasan además a **ancho fluido y uniforme**
+(`--kb-key: calc((100% - 9 * gap) / 10)`): antes eran rem fijos con
+`flexShrink: 0`, así que en pantallas estrechas el teclado se salía en vez de
+encoger — wordle desbordaba 10 px en un móvil de 375 px, y crossword tenía el
+mismo bug latente a 360 px. Verificado sin desbordamiento a 320, 360, 375 y
+1280 px; en escritorio el tope del contenedor deja las teclas como estaban.
+
 **Trampa a recordar**: un `transition` inline pisa entero al de la clase. Al
 poner `dots-pressable` sobre un elemento que ya tenía `transition` inline, hubo
 que repetir sus tres propiedades o la tecla se hundía sin interpolar. Es el

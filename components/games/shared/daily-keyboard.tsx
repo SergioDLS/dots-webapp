@@ -52,9 +52,14 @@ function Key({ label, mark, onTap, wide, size, disabled }: KeyProps) {
       // único sitio de la app donde pulsar algo no se sentía.
       className="dots-pressable"
       style={{
-        minWidth: wide ? (md ? "4rem" : "3.5rem") : md ? "2.1rem" : "2rem",
+        // Ancho fluido y UNIFORME entre filas: la unidad sale de la fila más
+        // larga (10 teclas) y las demás se centran con el sobrante, que es
+        // como se comporta un teclado de móvil de verdad. Antes era un ancho
+        // fijo en rem con `flexShrink: 0`, así que en pantallas estrechas el
+        // teclado se salía en vez de encoger.
+        width: wide ? "calc(var(--kb-key) * 1.5)" : "var(--kb-key)",
         height: md ? "3.2rem" : "3rem",
-        padding: md ? "0 0.25rem" : "0 0.2rem",
+        padding: 0,
         border: "none",
         borderRadius: "0.4rem",
         background: bg,
@@ -120,6 +125,13 @@ export default function DailyKeyboard({
     display: "flex",
     flexDirection: "column",
     gap: size === "md" ? "0.55rem" : "0.5rem",
+    width: "100%",
+    // Unidad de tecla: lo que sobra de la fila más larga (10 teclas, 9 huecos)
+    // repartido entre 10. El `100%` se resuelve contra la fila donde se usa, y
+    // las tres filas miden lo mismo, así que el ancho sale uniforme.
+    // El `maxWidth` del contenedor de cada juego pone el techo: en escritorio
+    // da ~35 px (md) y ~32 px (sm), o sea lo mismo de siempre.
+    ["--kb-key" as string]: `calc((100% - 9 * ${gap}) / 10)`,
   };
 
   return (

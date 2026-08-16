@@ -114,15 +114,20 @@ Siguen pendientes (ninguno bloquea nada):
 - ✅ **El ↵ de wordle era un botón muerto durante el envío** — HECHO, vía una
   prop `enterBusy` en el componente compartido.
 
-Sigue abierto, encontrado al medir el teclado:
+- ✅ **El teclado de wordle desbordaba 10 px a lo ancho en un móvil de 375 px**
+  — HECHO. Era **previo** a la pasada de juice (medido con y sin los cambios:
+  `scrollWidth` 385 en ambos casos). La primera fila pedía 372 px (10 teclas de
+  `minWidth: 2.1rem` + 9 huecos) dentro de una fila de 351 px, y
+  `flexShrink: 0` impedía que encogieran.
 
-- **El teclado de wordle desborda 10 px a lo ancho en un móvil de 375 px.** Es
-  **previo** a la pasada de juice (medido con y sin los cambios: `scrollWidth`
-  385 en ambos casos). La primera fila necesita 372 px (10 teclas de
-  `minWidth: 2.1rem` + 9 huecos de 0.25 rem) dentro de una fila de 351 px, y
-  `flexShrink: 0` impide que encojan. Arreglo directo: bajar el tamaño `md` al
-  del `sm` (2 rem y 0.2 rem de hueco → 348,8 px, entra justo). No lo apliqué
-  porque achica las teclas y eso es una decisión visual, no un bug de código.
+  El arreglo apuntado aquí (bajar `md` al tamaño de `sm`) resultó ser el
+  equivocado: salvaba los 375 px y nada más. A 360 px —el Android más común—
+  `sm` también se salía, así que crossword tenía el mismo bug latente. La
+  medida correcta no es un rem fijo sino **ancho fluido y uniforme**:
+  `--kb-key: calc((100% - 9 * gap) / 10)`, la unidad sale de la fila más larga
+  y las otras dos se centran con el sobrante, que es como se comporta un
+  teclado de móvil de verdad. El `maxWidth` del contenedor pone el techo, así
+  que en escritorio queda igual que siempre.
 
 ## Verificación
 
@@ -154,6 +159,15 @@ de axios interceptado. Lo medido, no lo leído:
   remontes es `[false,false,false,false,true]`, así que las ya escritas no
   repiten su pop. Con el envío en vuelo el ↵ pasa a "…", `disabled`, opacidad
   0,55, mientras el ⌫ sigue vivo.
+- **Anchos del teclado**, medidos en cuatro viewports (Q, A y Z siempre miden
+  lo mismo, o sea que el ancho es uniforme entre filas, y las anchas 1,5×):
+
+  | ancho | scrollWidth | ¿desborda? | tecla (wordle) |
+  | --- | --- | --- | --- |
+  | 320 px | 320 | no | 26,00 px |
+  | 360 px | 360 | no | 30,00 px |
+  | 375 px | 375 | **no** (antes 385, sí) | 31,50 px |
+  | ≥ 1280 px | 1280 | no | 34,80 px (tope del contenedor) |
 
 ### Una trampa que se repite
 
