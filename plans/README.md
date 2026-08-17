@@ -175,6 +175,20 @@ el ↵ acepta una prop `enterBusy`, y la letra recién escrita da un golpe seco 
 las dos rejillas. El componente pasa además a llevar su propio ritmo vertical:
 la sombra mide 4 px y se comía el hueco entre filas que ponía cada juego.
 
+**Barrido de anchos fijos en los 12 juegos** (2026-08-16), tras el tercer bug
+de la misma familia. Tabla juego por juego en el backlog. Resultado: tres rotos
+(teclado de los diarios, rejilla de wordle y **dot-bombs**) y el resto sanos.
+
+**dot-bombs era el peor, y no desbordaba: recortaba.** Sus huecos y fichas van
+en un `h-44 overflow-hidden` y con `flex-wrap` envuelven hacia abajo hasta
+salirse del clip. A 320 px, con una palabra de 10 letras en modo Caos, **7 de
+las 12 fichas quedaban fuera del recorte** — intocables, o sea bomba imposible
+de desactivar. Medido jugando: partida terminada sola con 0 bombas
+desactivadas. A 375 px entraba con cero holgura. Ya había un guard (filtrar a
+1-10 letras, con un comentario que describe el riesgo) pero calibrado para
+pantallas anchas. Arreglado dimensionando por **filas**, que es la restricción
+real: huecos siempre en una, fichas como mucho en dos.
+
 **La rejilla de wordle** (2026-08-16) tenía el mismo mal: casillas de `3rem`
 fijos, y como el backend sirve palabras de 4 a 6 letras, con 6 el tablero pide
 320 px — en un móvil de 320 se comía el padding entero y quedaba pegado a los

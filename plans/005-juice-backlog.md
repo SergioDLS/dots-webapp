@@ -181,10 +181,55 @@ de axios interceptado. Lo medido, no lo leído:
   | 375 px | 375 | **no** (antes 385, sí) | 31,50 px |
   | ≥ 1280 px | 1280 | no | 34,80 px (tope del contenedor) |
 
+### Barrido de anchos fijos en los 12 juegos (2026-08-16)
+
+Repaso completo tras el tercer bug de la misma familia. Método: grep de
+`gridTemplateColumns` fijos, `width/minWidth` en rem/px y clases `w-N` de
+Tailwind, y luego **medición en navegador a 320 px de los sospechosos**.
+
+| juego | veredicto |
+| --- | --- |
+| **dot-bombs** | **ROTO — arreglado.** Ver abajo, era el peor de todos. |
+| **wordle** (rejilla) | ROTO — arreglado (`dfd9dc6`). |
+| **wordle/crossword** (teclado) | ROTO — arreglado (`4902fba`). |
+| crossword (rejilla) | Sano, medido: 256 px en 296, 40 de holgura, 5×5 fija. |
+| memory | Sano, y es el modelo a seguir: `repeat(4, 1fr)` + `aspectRatio`. |
+| audio-blitz, ghost-race | Sanos: `grid-cols-2` es `1fr 1fr`. |
+| dotaxi | Sano: los `w-3`/`w-0.5` son luces del taxi y la línea del carril (absolutos); el `min-w-12` es un hueco `inline-block` que fluye con el texto. |
+| true-false | Sano: el `w-16` es una divisoria de `h-px`. |
+| dont-pop, sentence-builder, dot-match, word-tower | Sanos: sus anchos fijos son elementos únicos centrados (globo, botón 🔊 de `w-20`) o blobs decorativos. |
+
+Los `h-80 w-80` que salen en casi todos los juegos son los blobs de fondo
+(`pointer-events-none absolute/fixed` + `blur-3xl`): no ocupan layout.
+
+**dot-bombs era el peor porque no desbordaba, recortaba.** Los huecos (`w-7`)
+y las fichas (`w-11`) van dentro de un `h-44 overflow-hidden`, y con
+`flex-wrap` no se salen a lo ancho: envuelven hacia abajo hasta salirse del
+clip. A 320 px, palabra de 10 letras en Caos (10 huecos + 12 fichas):
+**7 de las 12 fichas quedaban fuera del recorte**, o sea intocables, o sea
+bomba imposible de desactivar. Medido jugando: la partida terminó sola con
+**0 bombas desactivadas** y los 5 corazones perdidos. A 375 px entraba, pero
+con `scrollHeight 176 / clientHeight 176`: cero holgura.
+
+Ya existía un guard —filtrar palabras a 1-10 letras, con un comentario que
+describe justo este riesgo— pero estaba calibrado para pantallas anchas.
+
+Arreglo: los dos anchos fluidos con tope, dimensionados por su restricción
+real, que es de **filas**, no de píxeles — los huecos siempre en una fila y
+las fichas como mucho en dos (`ceil(n/2)` por fila). Así 32 + 12 + 104 = 148 px
+entran en los 176 del clip. Medido: a 320 px, huecos de 25,2 px en 1 fila,
+fichas de 41,3 en 2 filas, 0 recortadas, 28 px de holgura; a 375 px vuelven a
+sus 28 y 44 px de siempre.
+
+De paso, un detalle que costó una iteración: las dos filas necesitan `w-full`.
+El padre es `items-center`, así que sin él encogen al contenido y el `100%` de
+los anchos fluidos se vuelve circular — la primera medición dio **huecos de
+4,3 px**.
+
 ### Anchos fijos en rem: el patrón que hay que vigilar
 
-Tres bugs de la misma familia en dos días, todos por medir en rem lo que
-depende del ancho de la pantalla:
+Cuatro bugs de la misma familia, todos por medir en rem lo que depende del
+ancho de la pantalla:
 
 1. El teclado de wordle (10 teclas de `2.1rem` + `flexShrink: 0`) desbordaba a
    375 px. Arreglado con `--kb-key` fluida.

@@ -481,21 +481,48 @@ function DotBombsInner({ seed }: { seed?: number }) {
             ))}
           </div>
 
-          {/* Bandeja de anagrama */}
+          {/*
+            Bandeja de anagrama. Su alto es fijo (h-44) y recorta, así que las
+            fichas TIENEN que caber: una ficha recortada es intocable y deja la
+            bomba sin desactivar. Con anchos fijos, a 320 px una palabra de 10
+            letras en Caos dejaba 7 de 12 fichas fuera del clip y la partida
+            era imperdonablemente injugable (medido: 0 bombas desactivadas).
+            Por eso los dos anchos son fluidos con tope:
+              · huecos → siempre en UNA fila
+              · fichas → como mucho DOS (de ahí el ceil(n/2) por fila)
+            32 px de huecos + 12 de hueco + 104 de dos filas de fichas = 148,
+            que entra en los 176 del clip con margen.
+          */}
           <div
             data-testid="tray"
             key={activeId ?? "none"}
             className="mt-3 flex h-44 shrink-0 overflow-hidden flex-col items-center gap-3"
+            style={
+              tray
+                ? {
+                    ["--db-slot" as string]: `min(1.75rem, calc((100% - ${
+                      tray.display.length - 1
+                    } * 0.25rem) / ${tray.display.length}))`,
+                    ["--db-chip" as string]: `min(2.75rem, calc((100% - ${
+                      Math.ceil(tray.chips.length / 2) - 1
+                    } * 0.5rem) / ${Math.ceil(tray.chips.length / 2)}))`,
+                  }
+                : undefined
+            }
           >
             {tray && (
               <>
-                {/* Huecos de la palabra */}
-                <div className="flex flex-wrap justify-center gap-1">
+                {/* Huecos de la palabra. `w-full` no es cosmético: el padre es
+                    `items-center`, así que sin él la fila encoge al contenido y
+                    el `100%` de los anchos fluidos se vuelve circular (medido:
+                    huecos de 4,3 px). */}
+                <div className="flex w-full flex-wrap justify-center gap-1">
                   {tray.display.map((ch, i) => (
                     <span
                       key={i}
-                      className="flex h-8 w-7 items-center justify-center rounded-md border-b-4 font-display text-lg font-extrabold uppercase"
+                      className="flex h-8 items-center justify-center rounded-md border-b-4 font-display text-lg font-extrabold uppercase"
                       style={{
+                        width: "var(--db-slot)",
                         borderColor: i === tray.nextSlot ? "var(--accent)" : "var(--border)",
                         color: ch === "" ? "transparent" : "var(--foreground)",
                         animation: ch !== "" && i !== tray.nextSlot ? "none" : undefined,
@@ -505,16 +532,17 @@ function DotBombsInner({ seed }: { seed?: number }) {
                     </span>
                   ))}
                 </div>
-                {/* Fichas */}
-                <div className="flex flex-wrap justify-center gap-2">
+                {/* Fichas — mismo motivo que arriba para el `w-full` */}
+                <div className="flex w-full flex-wrap justify-center gap-2">
                   {tray.chips.map((chip) => (
                     <button
                       key={chip.id}
                       data-testid={`chip-${chip.id}`}
                       disabled={chip.used}
                       onPointerUp={() => onChipTap(chip.id)}
-                      className="dots-pressable h-12 w-11 rounded-xl border-2 font-display text-lg font-extrabold uppercase disabled:opacity-30"
+                      className="dots-pressable h-12 rounded-xl border-2 font-display text-lg font-extrabold uppercase disabled:opacity-30"
                       style={{
+                        width: "var(--db-chip)",
                         borderColor: "var(--border)",
                         background: "var(--surface)",
                         color: "var(--foreground)",
