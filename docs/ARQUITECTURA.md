@@ -23,6 +23,20 @@ Flujos inmersivos (sin chrome): `/practice`, `/lesson/{pronunciation,grammar,voc
 
 Fuera de `(app)` y sin sesión: `/` (login), `/forgot` (recuperar contraseña) y `/invite/[token]` (aceptar invitación y crear la cuenta). Esta última es la **única vía de alta que existe en la app** — no hay registro público. El panel de invitaciones vive en `/admin/users`, pestaña *Invitations*.
 
+### PWA — instalable desde el 2026-08-16
+
+`app/manifest.ts` (tipado con `MetadataRoute.Manifest`) hace la app
+instalable: icono propio, sin barra del navegador y **bloqueada en vertical**
+—`orientation: "portrait"`, que solo ata a la app ya instalada; en el
+navegador se sigue pudiendo girar—. Los iconos viven en `public/icons/`
+(dos `any` y dos `maskable`, que Android necesita porque recorta al 80 %
+central) y en `app/apple-icon.png`, que va ahí y no en `public/` porque es la
+convención de fichero que hace que Next emita el `<link rel="apple-touch-icon">`.
+
+**No hay service worker**: la app instalada necesita red, y sin conexión
+muestra el error del navegador. El push sigue delegado a la futura app React
+Native. Spec: `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md`.
+
 ## Los 12 juegos (`app/(app)/games/`)
 
 Legacy: **ninguno**. (flashcards y speed-round fueron retirados el 2026-08-10 con sus récords purgados; dot-bombs, dotaxi y dont-pop fueron reconstruidos RN-safe — specs en `docs/superpowers/specs/`.)

@@ -19,7 +19,7 @@ Rediseño total de la cara estudiante: UI mucho más intuitiva, divertida y visu
 | Gemas compran | Escudos de racha · cosméticos Doty · gestos Doty · boost XP x2 (15 min) · rescate en modos con stakes |
 | Vidas | **Solo checkpoints + arcade**. Camino: infinitas, fallo re-encola hasta acertar. A 0 vidas: modal rescate con gemas o reiniciar gratis. Modo desafío descartado (farmeo de XP) |
 | Explicar fallo | **Sí, en todas las lecciones**: al fallar, mini-explicación del porqué (Doty). Convierte el error en aprendizaje — lever educativo central |
-| Notificaciones / PWA | **Fuera de la web**: push y hábito los asume la futura app React Native (tokens nativos, iOS sólido). La web queda responsive sin service worker |
+| Notificaciones / PWA | **Fuera de la web**: push y hábito los asume la futura app React Native (tokens nativos, iOS sólido). La web queda responsive sin service worker — **REVERTIDO EN PARTE (2026-08-16)**: la app es instalable vía manifest, sin service worker. El push sigue delegado a la app nativa, que era el motivo real de esta fila. Ver `2026-08-16-pwa-manifest-design.md` |
 | Ramas | Mergear `redesign/learning-path` a main (ambos repos, verificada E2E); rediseño en rama nueva `redesign/total` |
 
 Anti-decisiones (respaldadas por evidencia): sin corazones globales (backlash Energy 2025; la web de Duolingo nunca los tuvo), sin encadenamiento infinito de lecciones (bingers churnean más), máximo 1 notificación/día (cuando exista, en la app RN), gamificación premia — nunca castiga el aprender.
@@ -148,7 +148,7 @@ Nuevas: `quest_templates`, `user_quests`, `gem_ledger`, `shop_items`, `user_item
 
 **Reusado, no reconstruido**: XP/niveles, racha+escudos, misión diaria (1/día), badges, leaderboard all/semanal, juegos, lecturas (ver "Estado actual").
 **Descartado por ahora**: misiones 3/día + cofres, liga con divisiones (basta reusar lo existente).
-**Diferido (fuera de este rediseño)**: historias con personajes (espera elenco + `ELEVENLABS_API_KEY`); PWA/push (lo asume la futura app React Native).
+**Diferido (fuera de este rediseño)**: historias con personajes (espera elenco + `ELEVENLABS_API_KEY`); push (lo asume la futura app React Native; la PWA instalable sí se hizo, 2026-08-16).
 
 ## Riesgos
 
