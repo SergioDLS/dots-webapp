@@ -440,8 +440,22 @@ function MemoryInner({ seed }: { seed?: number }) {
             </div>
           </div>
 
-          {/* 4×4 grid */}
-          <div className="z-10 grid w-full max-w-sm gap-2" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+          {/*
+            4×4. Las tarjetas son cuadradas, así que el alto del tablero LO
+            MANDA su ancho: acotarlo solo por ancho (`max-w-sm`) dejaba el
+            tablero de 384 px de alto en un móvil en horizontal de 375, con la
+            mitad de las tarjetas bajo la línea de flotación — en un juego
+            cronometrado donde ver el tablero entero es todo el punto.
+            Los 11 rem que se restan son el HUD de arriba más el aire de abajo.
+            En vertical no cambia nada: ahí manda `w-full`.
+          */}
+          <div
+            className="z-10 grid w-full gap-2"
+            style={{
+              gridTemplateColumns: "repeat(4, 1fr)",
+              maxWidth: "min(24rem, calc(100svh - 11rem))",
+            }}
+          >
             {cards.map((card) => {
               const faceUp = isCardFaceUp(card);
               const isMatched = isCardMatched(card);

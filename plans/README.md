@@ -175,6 +175,21 @@ el ↵ acepta una prop `enterBusy`, y la letra recién escrita da un golpe seco 
 las dos rejillas. El componente pasa además a llevar su propio ritmo vertical:
 la sombra mide 4 px y se comía el hueco entre filas que ponía cada juego.
 
+**Barrido de altos fijos** (2026-08-16), el eje vertical del anterior, medido
+también **en horizontal** (667×375). Dos sustos resultaron falsas alarmas y
+quedan documentados en el backlog para no reinvestigarlos: el
+`min-h-screen … overflow-hidden` de 11 juegos no recorta (el bloque crece), y
+el `min-h-screen … justify-center` de 30 y pico sitios no deja nada
+inalcanzable arriba (eso solo pasa con `height` fijo, no con `min-height`).
+
+Lo único real fue **memory en horizontal**: sus tarjetas son cuadradas, así que
+el alto del tablero lo manda su ancho, y acotarlo solo por ancho lo dejaba en
+384 px dentro de una pantalla de 375 — 8 de 16 tarjetas fuera de pantalla, con
+el cronómetro corriendo. Ahora el tope cuenta también la altura. Anotado sin
+tocar: en pantallas bajas hay que scrollear para llegar a «¡Empezar!» en
+`GameIntro`; se alcanza y no se recorta nada, pero apretar esa pantalla es una
+decisión de diseño.
+
 **Barrido de anchos fijos en los 12 juegos** (2026-08-16), tras el tercer bug
 de la misma familia. Tabla juego por juego en el backlog. Resultado: tres rotos
 (teclado de los diarios, rejilla de wordle y **dot-bombs**) y el resto sanos.

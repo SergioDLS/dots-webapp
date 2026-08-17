@@ -226,6 +226,47 @@ El padre es `items-center`, así que sin él encogen al contenido y el `100%` de
 los anchos fluidos se vuelve circular — la primera medición dio **huecos de
 4,3 px**.
 
+### Barrido de altos fijos (2026-08-16)
+
+Mismo método, eje vertical, midiendo en 320×568 (el móvil más bajo), 375×667 y
+**667×375 en horizontal**, que es donde se rompe todo.
+
+Dos sustos que resultaron ser falsas alarmas, y conviene dejarlos escritos
+para no volver a investigarlos:
+
+- **`min-h-screen … overflow-hidden` en la raíz de 11 juegos.** Ese
+  `overflow-hidden` está para los blobs decorativos y **no recorta**: el bloque
+  crece con el contenido, así que lo que sobra sale por abajo y la página
+  scrollea normal.
+- **`min-h-screen … justify-center` en 30 y pico sitios.** El clásico "el
+  contenido centrado se sale por arriba y no se alcanza con scroll" **no
+  aplica**: eso pasa con `height` fijo, no con `min-height`, porque el
+  contenedor crece y deja de haber sobrante que repartir. Medido en
+  `GameIntro` y `GameResult` a 320×568 y en horizontal:
+  `inalcanzableArriba: 0` en todos los casos.
+
+Lo único real:
+
+- ✅ **memory en horizontal** — ARREGLADO. Las tarjetas son cuadradas, así que
+  **el alto del tablero lo manda su ancho**, y acotarlo solo por ancho
+  (`max-w-sm`) lo dejaba en 384 px de alto dentro de una pantalla de 375:
+  **8 de las 16 tarjetas bajo la línea de flotación**, en un juego cronometrado
+  donde ver el tablero entero es todo el punto. Ahora el tope es
+  `min(24rem, calc(100svh - 11rem))`. Medido: en horizontal el tablero pasa de
+  384 a 199 px, las 16 tarjetas visibles y **sin scroll**; en vertical no
+  cambia nada (320→288 px, 375→343 px, ambos ya con las 16 visibles).
+  No hay manifest ni bloqueo de orientación en el proyecto, así que el
+  horizontal es alcanzable y no estaba cubierto.
+- **`GameIntro` pide scroll para llegar a «¡Empezar!» en pantallas bajas**
+  (320×568 y horizontal). No es un bug —se alcanza, nada queda recortado— pero
+  el botón principal de la pantalla compartida por los 12 juegos cae fuera del
+  primer pantallazo. Igual con «Otra vez»/«Salir» en `GameResult`. Anotado, no
+  tocado: apretar esas dos pantallas es una decisión de diseño.
+
+El resto de altos fijos son barras de progreso (`h-1.5`/`h-2`/`h-2.5`, todas
+`w-full`), el globo de dont-pop y los blobs. El `h-44` de dot-bombs era el
+único alto fijo que recortaba contenido interactivo, y ya está resuelto.
+
 ### Anchos fijos en rem: el patrón que hay que vigilar
 
 Cuatro bugs de la misma familia, todos por medir en rem lo que depende del
