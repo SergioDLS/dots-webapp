@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Baloo_2, Geist_Mono, Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
@@ -34,19 +34,6 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Respaldo sin JS. El color de verdad lo fija el script del <head>, porque el
- * tema de esta app lo manda `localStorage["dots-theme"]`, no el esquema del
- * sistema: sin esa segunda capa, quien tenga el SO en oscuro y la app en claro
- * vería la barra de estado oscura sobre una app clara.
- */
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fff7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#14122e" },
-  ],
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,20 +45,18 @@ export default function RootLayout({
         {/*
           Aplica el tema guardado ANTES del primer paint (evita flash) y deja
           exactamente una <meta name="theme-color"> autoritativa, sin `media`.
-          El export `viewport` de arriba declara dos <meta theme-color> con
-          media query (el respaldo sin JS); este script las reemplaza por una
-          sola. El MutationObserver existe porque React 19 hidrata esas dos
-          <meta> del `viewport` buscando en el DOM por (name+content) —sin
-          mirar `media`— y si no encuentra una que matchee exactamente,
-          crea una nueva con su `media` original intacto. Como este script
-          deja una sola etiqueta con el content del tema activo, React
-          reclama esa y crea de cero la otra mitad estática justo después de
-          hidratar: sin el observer reaparecería una segunda etiqueta con
-          `media`, el defecto exacto que este mecanismo debía impedir.
+          No existe `viewport.themeColor` en este layout: React no gestiona
+          ninguna <meta name="theme-color"> propia, así que no hay hidratación
+          que pueda reclamar la etiqueta de este script ni recrear una
+          segunda con media query. El borrado defensivo (querySelectorAll +
+          remove antes de insertar) no es por eso — es solo para que el
+          script siga siendo idempotente si llegara a ejecutarse más de una
+          vez. Si necesitas reintroducir `viewport.themeColor`, vuelve a leer
+          por qué se quitó antes de hacerlo (commit que simplificó esto).
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var want=function(){return document.documentElement.getAttribute("data-theme")==="dark"?"#14122e":"#fff7fb";};var sync=function(){var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var m=document.createElement("meta");m.setAttribute("name","theme-color");m.setAttribute("content",want());document.head.appendChild(m);};sync();if(window.MutationObserver&&!window.__dotsThemeObs){window.__dotsThemeObs=new MutationObserver(function(){var tags=document.querySelectorAll('meta[name="theme-color"]');if(tags.length!==1||tags[0].getAttribute("media")||tags[0].getAttribute("content")!==want())sync();});window.__dotsThemeObs.observe(document.head,{childList:true});}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var m=document.createElement("meta");m.setAttribute("name","theme-color");m.setAttribute("content",t==="dark"?"#14122e":"#fff7fb");document.head.appendChild(m);}catch(e){}})();`,
           }}
         />
       </head>
