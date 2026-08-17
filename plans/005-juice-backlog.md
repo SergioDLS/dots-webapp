@@ -181,6 +181,27 @@ de axios interceptado. Lo medido, no lo leído:
   | 375 px | 375 | **no** (antes 385, sí) | 31,50 px |
   | ≥ 1280 px | 1280 | no | 34,80 px (tope del contenedor) |
 
+### Anchos fijos en rem: el patrón que hay que vigilar
+
+Tres bugs de la misma familia en dos días, todos por medir en rem lo que
+depende del ancho de la pantalla:
+
+1. El teclado de wordle (10 teclas de `2.1rem` + `flexShrink: 0`) desbordaba a
+   375 px. Arreglado con `--kb-key` fluida.
+2. **La rejilla de wordle** (casillas de `3rem`): el backend sirve palabras de
+   4 a 6 letras (`WORDLE_MIN_LEN`/`MAX_LEN`), y con 6 el tablero pide 320 px.
+   En un móvil de 320 se comía los 24 px de padding y quedaba pegado a los dos
+   bordes; por debajo de eso, scroll horizontal. Arreglado con `--wd-tile`
+   fluida y `aspect-ratio: 1` para que la casilla siga cuadrada.
+3. Crossword: **medido, está a salvo** — 256 px en 296 disponibles a 320 px,
+   40 de holgura, y su rejilla es 5×5 fija en cliente y servidor, así que no
+   puede crecer. No se tocó.
+
+Lección de verificación, no de CSS: el bug 2 sobrevivió a la ronda anterior
+porque el banco servía una palabra de 5 letras, que es justo la que entra.
+**Cuando una medida depende de un dato del servidor, hay que probar los
+extremos del rango, no un valor cualquiera.**
+
 ### Una trampa que se repite
 
 El `transition` inline **pisa entero** al de la clase. `dots-pressable` define

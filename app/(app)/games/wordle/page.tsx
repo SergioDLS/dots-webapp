@@ -65,8 +65,12 @@ function Tile({ letter, mark, revealed, animate, colIndex }: TileProps) {
   return (
     <div
       style={{
-        width: "3rem",
-        height: "3rem",
+        // La unidad la fija la rejilla según la longitud de la palabra del día
+        width: "var(--wd-tile)",
+        // Cuadrada sin alto fijo: un alto en % se resolvería contra la altura
+        // del padre, no contra la anchura, así que aquí manda `aspect-ratio`
+        // (que Yoga también entiende, o sea que sigue siendo portable a RN)
+        aspectRatio: "1",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -436,11 +440,21 @@ export default function WordlePage() {
         )}
 
         {/* ── Grid ────────────────────────────────────────────────────────── */}
+        {/*
+          La rejilla se adapta al ancho. Antes las casillas medían 3 rem fijos,
+          así que con una palabra de 6 letras (el backend sirve de 4 a 6) el
+          tablero pedía 320 px: en un móvil de 320 se comía el padding entero y
+          quedaba pegado a los dos bordes, y por debajo de eso desbordaba.
+          El `maxWidth` mantiene el tamaño de siempre en cuanto hay sitio.
+        */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             gap: "0.4rem",
+            width: "100%",
+            maxWidth: `calc(${wordLength} * 3rem + ${wordLength - 1} * 0.4rem)`,
+            ["--wd-tile" as string]: `calc((100% - ${wordLength - 1} * 0.4rem) / ${wordLength})`,
           }}
         >
           {rows.map((row, rIdx) => {

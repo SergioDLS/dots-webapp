@@ -175,6 +175,16 @@ el ↵ acepta una prop `enterBusy`, y la letra recién escrita da un golpe seco 
 las dos rejillas. El componente pasa además a llevar su propio ritmo vertical:
 la sombra mide 4 px y se comía el hueco entre filas que ponía cada juego.
 
+**La rejilla de wordle** (2026-08-16) tenía el mismo mal: casillas de `3rem`
+fijos, y como el backend sirve palabras de 4 a 6 letras, con 6 el tablero pide
+320 px — en un móvil de 320 se comía el padding entero y quedaba pegado a los
+bordes, y por debajo desbordaba. Ahora la casilla es `--wd-tile` fluida con
+`aspect-ratio: 1`, con tope de 3 rem para que en cuanto hay sitio quede como
+siempre. Crossword se midió y está a salvo (40 px de holgura, rejilla 5×5 fija).
+Sobrevivió a la ronda anterior porque el banco servía una palabra de 5 letras,
+que es justo la que entra: **cuando una medida depende de un dato del servidor,
+hay que probar los extremos del rango**.
+
 Las teclas pasan además a **ancho fluido y uniforme**
 (`--kb-key: calc((100% - 9 * gap) / 10)`): antes eran rem fijos con
 `flexShrink: 0`, así que en pantallas estrechas el teclado se salía en vez de
