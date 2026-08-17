@@ -1,7 +1,7 @@
 # 005 — Backlog de juice (auditoría 2026-08-12)
 
-- **Status**: **top 8 CERRADO** (2026-08-15). Quedan los MEDIO/BAJO agrupados
-  que no cayeron de paso; ver la sección final.
+- **Status**: **CERRADO** (2026-08-16). Los 21 hallazgos —top 8 y MEDIO/BAJO—
+  están aplicados y verificados en navegador.
 - **Método**: auditoría con la vara de `improve-animations` sobre los 7 juegos
   que aún no habían tenido pasada de juice.
 - **Restricción**: animación solo `transform`/`opacity`. Reutilizar la Motion
@@ -82,9 +82,10 @@ pulsaste** (`541-542`: todos los no-correctos se pintan gris idéntico) y
 **true-false — la carta se queda congelada torcida 1200 ms tras fallar**
 (`151-172`: la rama de fallo no resetea `dragX`).
 
-## Hallazgos MEDIO/BAJO agrupados
+## Hallazgos MEDIO/BAJO agrupados — TODOS HECHOS
 
-Cayeron de paso, por estar en el mismo archivo que un ítem del top 8:
+Los primeros cayeron de paso, por estar en el mismo archivo que un ítem del
+top 8; el resto se cerró después:
 
 - ✅ **Entradas sin escalonar** en audio-blitz (opciones, 0/45/90/135 ms) y en
   el pool de sentence-builder (0…210 ms).
@@ -98,12 +99,17 @@ Cayeron de paso, por estar en el mismo archivo que un ítem del top 8:
   ahora el fallo de envío añade un aviso con `role="status"`; el temblor a
   secas sigue significando "te faltan letras".
 
-Siguen pendientes (ninguno bloquea nada):
+- ✅ **Entradas sin escalonar, las dos que faltaban** — HECHO. Opciones de
+  ghost-race (0/45/90/135 ms) y rejilla de crossword al cargar (21 casillas,
+  0…320 ms en pasos de 16, sin huecos donde están las negras).
 
-- **Entradas sin escalonar** que quedaron fuera: opciones de ghost-race
-  (`640-657`) y rejilla de crossword al cargar (`622-660`). La rejilla necesita
-  distinguir la entrada inicial de la cascada del veredicto, que ya usa
-  `dots-slot-in`; no es un `animationDelay` y ya está.
+  La rejilla tenía la trampa que anotaba este backlog: hay que distinguir la
+  entrada inicial de la cascada del veredicto, que usa el mismo keyframe. Se
+  resuelve con un guard `checkRound === 0`, y no es decorativo — una casilla
+  vuelve a `neutral` al editarla tras una comprobación, y como su `key` vuelve
+  entonces a la forma sin ronda, **remonta**. Verificado en navegador: al
+  editar una casilla ya tintada, `remontada: true` pero animación
+  `(ninguna)`. Sin el guard, el tablero repetiría su entrada a media partida.
 - **Chips que solo animan al montar**: ninguno — word-tower y true-false se
   arreglaron en `1f8b400`.
 - ✅ **Escribir no daba feedback** — HECHO. Las teclas de `DailyKeyboard` usan
@@ -153,6 +159,12 @@ de axios interceptado. Lo medido, no lo leído:
   la ficha culpable.
 - **wordle**: la tarjeta de victoria entra con `dots-pop-in` y el 🎉 gira con
   `dots-star-spin`.
+- **ghost-race (fallo)**: el botón tocado tiembla con tinte danger y el
+  correcto se tiñe de verde, los dos a opacidad 1. **No estaba en el backlog**:
+  se auditó ese fallo solo en audio-blitz, pero los dos juegos son gemelos
+  documentados (mismo banco, mismo bucle, misma rejilla de opciones), así que
+  arreglar uno y dejar el otro habría sido peor que cualquiera de los dos
+  estados.
 - **`DailyKeyboard`**: las teclas resuelven `box-shadow: 0 4px 0` con el color
   correcto (verde oscuro bajo la tecla verde, no gris). Escribir una letra
   remonta **solo** su casilla — medido: al teclear la quinta letra el array de

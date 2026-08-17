@@ -364,13 +364,15 @@ export default function CrosswordPage() {
 
   // Orden de entrada del veredicto: las aciertadas se reparten en cascada con
   // índice sin huecos (si escalonara por fila×columna, las casillas negras
-  // dejarían pausas muertas en medio del reparto).
+  // dejarían pausas muertas en medio del reparto). El mismo criterio vale para
+  // el reparto inicial del tablero, contando todas las casillas jugables.
   const correctOrder = new Map<string, number>();
+  const whiteOrder = new Map<string, number>();
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
-      if (correctGrid[r]?.[c] === true) {
-        correctOrder.set(`${r},${c}`, correctOrder.size);
-      }
+      const k = `${r},${c}`;
+      if (correctGrid[r]?.[c] === true) correctOrder.set(k, correctOrder.size);
+      if (whiteCells.has(k)) whiteOrder.set(k, whiteOrder.size);
     }
   }
 
@@ -649,7 +651,13 @@ export default function CrosswordPage() {
               const cornerNum = cornerNumbers.get(key);
 
               // El veredicto se reparte: las correctas caen en cascada, las
-              // incorrectas tiemblan todas a la vez.
+              // incorrectas tiemblan todas a la vez. Sin veredicto todavía, el
+              // tablero se reparte al cargar.
+              //
+              // El `checkRound === 0` no es decorativo: una casilla vuelve a
+              // `neutral` al editarla después de una comprobación, y como su
+              // `key` vuelve entonces a la forma sin ronda, remontaría — sin
+              // este guard el tablero repetiría su entrada a media partida.
               const flash =
                 correctState === "correct"
                   ? `dots-slot-in 0.32s var(--ease-out-strong) ${
@@ -657,7 +665,11 @@ export default function CrosswordPage() {
                     }ms both`
                   : correctState === "incorrect"
                     ? "dots-shake-x 0.4s var(--ease-out-strong)"
-                    : undefined;
+                    : checkRound === 0
+                      ? `dots-slot-in 0.3s var(--ease-out-strong) ${
+                          (whiteOrder.get(key) ?? 0) * 16
+                        }ms both`
+                      : undefined;
 
               return (
                 <Cell

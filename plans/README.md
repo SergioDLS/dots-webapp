@@ -141,12 +141,12 @@ cierra la victoria falsa con score 0 cuando el fetch caía, español,
 GameIntro/GameResult, `router.push` y seed vía `useGameSeed`. Spec en
 `docs/superpowers/specs/2026-08-12-dont-pop-modernizacion.md`.
 
-## Pasada de juice — top 8 CERRADO (2026-08-15)
+## Pasada de juice — CERRADA (2026-08-16)
 
 Auditoría completa de los 7 juegos que faltaban, con 21 hallazgos priorizados y
-líneas exactas: **[005-juice-backlog.md](005-juice-backlog.md)**. **Los ocho
-ítems de mayor impacto están aplicados y verificados en navegador**; quedan
-solo MEDIO/BAJO anotados allí, ninguno bloqueante.
+líneas exactas: **[005-juice-backlog.md](005-juice-backlog.md)**. **Los 21
+están aplicados y verificados en navegador** — top 8 y MEDIO/BAJO. No queda
+nada abierto.
 
 Los cinco commits: count-up de `GameResult` (afecta a los 12 juegos a la vez),
 el temblor de dont-pop que anulaba el hinchado del globo, word-tower +
@@ -186,3 +186,12 @@ mismo bug latente a 360 px. Verificado sin desbordamiento a 320, 360, 375 y
 poner `dots-pressable` sobre un elemento que ya tenía `transition` inline, hubo
 que repetir sus tres propiedades o la tecla se hundía sin interpolar. Es el
 mismo mecanismo del temblor de dont-pop, al revés.
+
+Cierre de los MEDIO/BAJO (2026-08-16): las opciones de ghost-race entran
+escalonadas y su fallo por fin marca el botón tocado —no estaba en el backlog,
+pero es el gemelo documentado de audio-blitz y dejar uno arreglado y el otro no
+habría sido peor que cualquiera de los dos estados—, y la rejilla de crossword
+se reparte al cargar. Esta última necesita un guard `checkRound === 0` porque
+comparte keyframe con la cascada del veredicto: una casilla vuelve a `neutral`
+al editarla tras comprobar, y entonces **remonta**; sin el guard el tablero
+repetiría su entrada a media partida.

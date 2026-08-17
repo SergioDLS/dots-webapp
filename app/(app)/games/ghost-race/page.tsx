@@ -216,6 +216,10 @@ function GhostRaceInner() {
   // un centinela "__TIMEOUT__", dos tipos de dato en un solo estado)
   const [correction, setCorrection] = useState<Correction | null>(null);
   const [timedOut, setTimedOut] = useState(false);
+  // Opción tocada al fallar. Mismo arreglo que en audio-blitz (su gemelo:
+  // comparten banco y bucle): la corrección enseñaba cuál era la buena pero no
+  // cuál habías elegido tú.
+  const [wrongPick, setWrongPick] = useState<string | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancingRef = useRef(false);
 
@@ -281,6 +285,7 @@ function GhostRaceInner() {
     if (!item) return;
     playSound("wrong");
     stopTimer();
+    setWrongPick(null); // se acabó el tiempo: no hay opción tocada que marcar
     // igual que el fallo por tap: el timeout también es pregunta resuelta
     setMyTimeline((tl) => [...tl, Date.now() - raceStartRef.current]);
     setCorrection(buildHighlightedSentence(item.text, item.correct));
@@ -375,6 +380,7 @@ function GhostRaceInner() {
     setElapsed(0);
     setCorrection(null);
     setTimedOut(false);
+    setWrongPick(null);
     setBeatGhost(null);
     raceStartRef.current = Date.now();
     // Ghost elapsed clock
@@ -402,9 +408,11 @@ function GhostRaceInner() {
         // Record timestamp
         const ts = Date.now() - raceStartRef.current;
         setMyTimeline((tl) => [...tl, ts]);
+        setWrongPick(null);
         setQuestionIndex((i) => i + 1);
       } else {
         playSound("wrong");
+        setWrongPick(option);
         // El timeline registra TODA pregunta resuelta, no solo los aciertos:
         // si solo contara los aciertos, fallar a propósito acortaría la
         // duración reportada y produciría carreras imbatibles
@@ -712,22 +720,43 @@ function GhostRaceInner() {
 
           {/* Options grid */}
           <div className="z-10 grid w-full max-w-sm grid-cols-2 gap-3">
-            {item.options.map((opt) => (
-              <button
-                key={opt}
-                onPointerUp={() => tapOption(opt)}
-                disabled={correction !== null}
-                className="dots-pressable rounded-2xl border-2 px-4 py-4 text-center text-base font-bold disabled:opacity-40"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "var(--surface)",
-                  color: "var(--foreground)",
-                  ["--press-color" as string]: "var(--accent-soft)",
-                }}
-              >
-                {opt}
-              </button>
-            ))}
+            {item.options.map((opt, i) => {
+              const isCorrect = correction !== null && opt === item.correct;
+              const isWrongPick = correction !== null && opt === wrongPick;
+              return (
+                <button
+                  // La pregunta entra en la `key` para que las opciones
+                  // remonten cada ronda y su entrada escalonada se repita
+                  key={`${questionIndex}:${opt}`}
+                  onPointerUp={() => tapOption(opt)}
+                  disabled={correction !== null}
+                  className="dots-pressable rounded-2xl border-2 px-4 py-4 text-center text-base font-bold disabled:opacity-40"
+                  style={{
+                    borderColor: isCorrect
+                      ? "#22c55e"
+                      : isWrongPick
+                        ? "var(--danger)"
+                        : "var(--border)",
+                    background: isCorrect
+                      ? "color-mix(in srgb, #22c55e 16%, var(--surface))"
+                      : isWrongPick
+                        ? "color-mix(in srgb, var(--danger) 14%, var(--surface))"
+                        : "var(--surface)",
+                    color: "var(--foreground)",
+                    ["--press-color" as string]: "var(--accent-soft)",
+                    // el atenuado de `disabled:` apagaría justo las dos que hay
+                    // que mirar
+                    ...(isCorrect || isWrongPick ? { opacity: 1 } : null),
+                    animation: isWrongPick
+                      ? "dots-shake-x 0.4s var(--ease-out-strong)"
+                      : `dots-slot-in 0.3s var(--ease-out-strong) ${i * 45}ms both`,
+                    transition: "background 0.2s, border-color 0.2s",
+                  }}
+                >
+                  {opt}
+                </button>
+              );
+            })}
           </div>
 
           {/* Correction overlay */}
