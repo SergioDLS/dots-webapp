@@ -108,16 +108,37 @@ que la app no tiene. `#fff7fb` es `--background` en claro.
 
 ## 3. Cableado en `app/layout.tsx`
 
-- `export const viewport: Viewport` con `themeColor` por media query: `#fff7fb`
-  en claro y `#14122e` en oscuro (los dos `--background` reales de
-  `globals.css`).
-- **Una línea añadida al script anti-flash del `<head>`** para que fije el
-  `theme-color` real. Ver abajo por qué las media queries no bastan.
+**Diseño final** (corregido durante la Task 3 de la implementación, no en
+esta planificación — ver las dos subsecciones de abajo para el porqué
+completo): no existe `export const viewport` ni `themeColor`. El script
+anti-flash del `<head>` es la **única** fuente de verdad para la barra de
+estado:
+
+- Lee `localStorage["dots-theme"]`, vuelca `data-theme` y `colorScheme` como
+  ya hacía.
+- Borra con `querySelectorAll` cualquier `<meta name="theme-color">`
+  existente y crea **una sola**, sin atributo `media`, con el color del tema
+  resuelto. El borrado es defensivo/idempotente (por si el script llegara a
+  correr más de una vez), no una pelea con React: al no existir `viewport`,
+  React no gestiona ninguna etiqueta `theme-color` propia y no hay
+  hidratación que reclame ni recree nada.
+- `components/theme-toggle.tsx` hace exactamente la misma limpieza +
+  inserción en su `applyTheme()`, para que cambiar de tema en caliente
+  actualice la barra sin esperar a la siguiente recarga.
+
+Sin cambios respecto al diseño original:
+
 - En `metadata`, `appleWebApp` con `capable: true`, `statusBarStyle:
   "default"` y el `title` corto.
 - El `<link rel="manifest">` y el `<link rel="apple-touch-icon">` **no se
   escriben a mano**: los pone Next por existir `app/manifest.ts` y
   `app/apple-icon.png`.
+
+**Precio aceptado**: sin JavaScript no hay `theme-color` en absoluto — ni
+siquiera el respaldo por media query que este spec proponía originalmente
+(ver abajo). Es irrelevante: esta es una SPA de React con el token de sesión
+en memoria, así que sin JS no hay login, ni juegos, ni nada que una barra de
+estado bien pintada pudiera proteger.
 
 ### Por qué las media queries solas se equivocarían *(corregido al planificar)*
 
@@ -133,10 +154,59 @@ primer pintado y vuelca en `data-theme`. El bloque
 (JS desactivado).
 
 Con media queries a secas, cualquiera con el SO en oscuro y la app en claro
-—o al revés— vería la barra de estado de un tema y la app del otro. Por eso van
-dos capas: las media queries como respaldo sin JS, y el script, que ya calcula
-el tema, fijando además el `content` de la `<meta name="theme-color">`. Es una
-línea en código que ya existe y ya corre en el momento justo.
+—o al revés— vería la barra de estado de un tema y la app del otro. La
+corrección de entonces, al escribir el plan, fue proponer **dos capas**: las
+media queries (`viewport.themeColor`) como respaldo sin JS, y el script, que
+ya calcula el tema, fijando además el `content` de la `<meta
+name="theme-color">` real.
+
+### Por qué se descartaron las dos capas *(corregido durante la Task 3, no al planificar)*
+
+Las dos capas se implementaron tal cual (commit `4c5402e`) y parecían
+correctas, pero fallaban en la práctica:
+
+1. **El mecanismo fallaba justo en el escenario que decía resolver.**
+   `viewport.themeColor` como array hace que Next emita **dos**
+   `<meta name="theme-color">`, una por media query (`light` y `dark`). El
+   script fijaba el color con `document.querySelector` en **singular**, que
+   siempre agarra la primera de las dos — la de `light` — y nunca tocaba la
+   de `dark`. Un móvil con el sistema operativo en oscuro obedece esa segunda
+   etiqueta por su propia media query, sin mirar el script; si la app (vía
+   `localStorage`) estaba en claro, la barra se quedaba oscura de todos
+   modos. Exactamente el caso que las dos capas decían cubrir.
+2. **El primer parche no bastaba, y el segundo peleaba con React.** Cambiar
+   el script a `querySelectorAll` + borrar todas + insertar una sola
+   arreglaba el caso anterior en aislamiento (commit `145a836`), pero no en
+   una carga real: React 19 hidrata las dos `<meta theme-color>` que
+   `viewport` declaraba emparejando por `(name, content)` sin mirar `media`,
+   reclama la etiqueta que el script dejó para uno de los dos huecos y
+   **recrea la otra mitad estática** justo después de hidratar — con lo que
+   cada carga completa volvía a terminar en dos etiquetas. Se cerró con un
+   `MutationObserver` sobre `document.head` que revertía la recreación en
+   cuanto ocurría.
+
+   Funcionaba (verificado en las cuatro combinaciones SO×app), pero
+   significaba mantener un observer permanente peleándose con el
+   reconciliador de React por una barra de estado: frágil ante cualquier
+   subida de versión de React o Next, mal negocio a cambio de tan poco.
+
+**Diseño final** (commit `e82e24e`): se elimina `themeColor` del `viewport` —y
+con él el export entero, que quedaba vacío—. Al no declarar ya nadie una
+`<meta name="theme-color">` vía metadata de Next, React no gestiona esa
+etiqueta y no hay hidratación que la reclame ni que recree nada. El script
+inline pasa a ser la única fuente: `querySelectorAll` + borrar todas +
+insertar una sola sin `media`. `components/theme-toggle.tsx` replica la misma
+limpieza al cambiar de tema en caliente (un bug aparte que la misma revisión
+encontró: su `applyTheme()` no tocaba `theme-color`, así que la barra se
+quedaba congelada hasta la siguiente recarga).
+
+El precio es el que ya se anotó arriba: sin JavaScript no hay `theme-color`
+en absoluto, ni el respaldo por media query que había en el diseño de dos
+capas. Se acepta porque en una SPA con el token en memoria, sin JS no hay app
+que proteger. Detalle completo (incluida la cita del código de hidratación de
+React que causaba la recreación) en
+`docs/superpowers/plans/2026-08-16-pwa-manifest.md` (Task 3, anotaciones de
+los Steps 1 y 3).
 
 ## 4. Corregir el spec de julio
 

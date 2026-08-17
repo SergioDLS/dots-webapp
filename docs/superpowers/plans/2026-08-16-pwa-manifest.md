@@ -342,6 +342,15 @@ cualquiera que tenga el SO en oscuro y la app en claro, o al revés. Por eso hay
 dos capas: las media queries como respaldo sin JS, y una línea añadida al
 script que ya existe para que fije el color real. No quites ninguna de las dos.
 
+> **Anotado post-ejecución (2026-08-16):** el diagnóstico de arriba (por qué
+> media-queries-a-secas fallarían) sigue siendo correcto, pero la solución de
+> "dos capas" que propone esta última frase —y que los Steps 1 y 3 de abajo
+> implementan tal cual— se construyó y se **descartó** dentro de esta misma
+> Task 3, en dos rondas de corrección posteriores a la primera ejecución. Ver
+> las anotaciones en el Step 1 y en el Step 3, y
+> `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md` sección 3 para el
+> diseño final y el porqué completo.
+
 - [ ] **Step 1: Añadir los imports y el export de viewport**
 
 En `app/layout.tsx`, cambia la primera línea de import:
@@ -372,6 +381,21 @@ export const viewport: Viewport = {
   ],
 };
 ```
+
+> **Anotado post-ejecución (2026-08-16):** este `export const viewport` se
+> escribió y se ejecutó tal cual (commit `4c5402e`), pero se **eliminó por
+> completo** dos commits después (`e82e24e`), junto con el import de
+> `Viewport` que quedaba sin uso. Razón: `themeColor` como array hace que
+> Next emita dos `<meta name="theme-color">` (una por media query), y el
+> script del Step 3 tocaba solo una con `querySelector` en singular — nunca
+> la de `dark`, justo el caso que este comentario decía cubrir ("quien tenga
+> el SO en oscuro y la app en claro"). Un primer intento (`145a836`) lo
+> parcheó con un `MutationObserver` sobre `document.head`, porque React 19
+> reclama y recrea esas etiquetas durante la hidratación; se descartó por
+> frágil — pelearse con el reconciliador de React por una barra de estado no
+> compensaba. Diseño final: sin `viewport`, sin `themeColor`; una sola fuente
+> de verdad, el script del Step 3 ya corregido (ver su anotación). Detalle
+> completo en `2026-08-16-pwa-manifest-design.md` sección 3.
 
 - [ ] **Step 2: Añadir los metadatos de iOS**
 
@@ -405,6 +429,28 @@ __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";docum
 
 Lo añadido es solo la parte final: busca la `<meta name="theme-color">`, la
 crea si no está, y le pone el color del tema resuelto.
+
+> **Anotado post-ejecución (2026-08-16):** este one-liner (con
+> `querySelector` en singular) se ejecutó tal cual (commit `4c5402e`) y
+> resultó tener el bug descrito en la anotación del Step 1: solo tocaba una
+> de las dos etiquetas que `viewport` declaraba, nunca la de `dark`. Se
+> corrigió dos veces más dentro de esta misma Task 3:
+>
+> 1. (`145a836`) a `querySelectorAll` + borrar todas las
+>    `meta[name="theme-color"]` + insertar una sola sin `media`, más un
+>    `MutationObserver` añadido al mismo script para deshacer la recreación
+>    que la hidratación de React 19 provocaba tras cada carga completa.
+> 2. (`e82e24e`, diseño final) se quitó `viewport` por completo — ver la
+>    anotación del Step 1 — y con él dejó de hacer falta el observer: el
+>    script quedó en `querySelectorAll` + borrar todas + insertar una sola
+>    **sin `media`**, sin nada más.
+>
+> `components/theme-toggle.tsx` replica esa misma limpieza en su
+> `applyTheme()` al cambiar de tema en caliente (bug separado, encontrado en
+> la misma revisión: el toggle no tocaba `theme-color` y la barra se quedaba
+> congelada hasta la siguiente recarga). Código final en `app/layout.tsx`;
+> diseño final y porqué completo en
+> `2026-08-16-pwa-manifest-design.md` sección 3.
 
 - [ ] **Step 4: Type-check, lint y build**
 
@@ -479,6 +525,13 @@ sistema — el bloque prefers-color-scheme de globals.css está acotado a
 quien tenga el SO en oscuro y la app en claro vería la barra oscura sobre una
 app clara."
 ```
+
+> **Anotado post-ejecución (2026-08-16):** este fue el primero de tres
+> commits de la Task 3 (`4c5402e`). El diseño de "dos capas" que describe su
+> propio mensaje quedó descartado por los dos commits siguientes (`145a836`,
+> `e82e24e`) — ver las anotaciones de los Steps 1 y 3 más arriba para el
+> porqué y el diseño final. Este mensaje se deja tal cual porque es un commit
+> real ya hecho: reescribirlo falsearía el historial de git.
 
 ---
 
