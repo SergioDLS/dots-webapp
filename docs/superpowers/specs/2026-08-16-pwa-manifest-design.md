@@ -2,8 +2,10 @@
 
 - **Fecha**: 2026-08-16
 - **Estado**: diseño aprobado por Sergio.
-- **Alcance**: `app/manifest.ts` (nuevo), `app/layout.tsx`, `public/icons/`
-  (nuevo). Solo frontend, sin tocar backend ni BD.
+- **Alcance**: `app/manifest.ts` y `app/apple-icon.png` (nuevos),
+  `app/layout.tsx`, `public/icons/` (nuevo). Solo frontend, sin tocar backend
+  ni BD.
+- **Plan de implementación**: `docs/superpowers/plans/2026-08-16-pwa-manifest.md`
 
 ## Contexto
 
@@ -49,7 +51,7 @@ Tres familias, cada una porque un consumidor distinto la exige:
 | --- | --- | --- | --- | --- |
 | `icon-<n>.png` | 192, 512 | `any` | transparente | burbuja al 80 % |
 | `icon-maskable-<n>.png` | 192, 512 | `maskable` | `#fff7fb` | burbuja al 60 % |
-| `apple-touch-icon.png` | 180 | — | `#fff7fb` opaco | igual que `any` |
+| `app/apple-icon.png` | 180 | — | `#fff7fb` opaco | igual que `any` |
 
 "Burbuja al N %" significa: extender el recorte a un lienzo cuadrado centrado
 de lado `406 / N`, y reescalar ese cuadrado al tamaño final. Con el lado mayor
@@ -62,9 +64,15 @@ Por qué las tres:
   squircle…). La zona segura es el **80 % central**; lo de fuera se pierde. Sin
   un icono maskable, Android usa el de `any` y le muerde los bordes a la
   burbuja. Por eso este va al 60 %, con fondo sólido que rellena las esquinas.
-- **`apple-touch-icon.png`**: iOS **ignora los iconos del manifest**. Sin este
-  archivo en la raíz, el icono de la pantalla de inicio es una captura de la
-  página. Y **no puede llevar transparencia**: iOS la compone contra negro.
+- **`app/apple-icon.png`**: iOS **ignora los iconos del manifest**. Sin este
+  archivo, el icono de la pantalla de inicio es una captura de la página. Y
+  **no puede llevar transparencia**: iOS la compone contra negro.
+
+  Va en `app/` y no en `public/` porque es una **convención de fichero de
+  Next**: al detectarlo emite solo el `<link rel="apple-touch-icon">`. En
+  `public/apple-touch-icon.png` el archivo se serviría igual y Safari lo
+  encontraría por la ruta conocida, pero no habría etiqueta — y el punto 5 de
+  la verificación comprueba justo eso.
 
 Los tamaños 192 y 512 son el mínimo que pide Chrome para considerar la app
 instalable, y 512 es el que alimenta el splash.
@@ -100,17 +108,35 @@ que la app no tiene. `#fff7fb` es `--background` en claro.
 
 ## 3. Cableado en `app/layout.tsx`
 
-- `export const viewport: Viewport` con `themeColor` sensible al esquema:
-  `#fff7fb` en claro y `#14122e` en oscuro (los dos `--background` reales de
-  `globals.css`). El manifest solo admite un color estático; esto es lo que
-  hace que la barra de estado acompañe al tema que el usuario tenga puesto.
+- `export const viewport: Viewport` con `themeColor` por media query: `#fff7fb`
+  en claro y `#14122e` en oscuro (los dos `--background` reales de
+  `globals.css`).
+- **Una línea añadida al script anti-flash del `<head>`** para que fije el
+  `theme-color` real. Ver abajo por qué las media queries no bastan.
 - En `metadata`, `appleWebApp` con `capable: true`, `statusBarStyle:
   "default"` y el `title` corto.
-- El `<link rel="manifest">` **no se escribe a mano**: lo pone Next al existir
-  `app/manifest.ts`.
+- El `<link rel="manifest">` y el `<link rel="apple-touch-icon">` **no se
+  escriben a mano**: los pone Next por existir `app/manifest.ts` y
+  `app/apple-icon.png`.
 
-No se toca el script anti-flash del `<head>`, que ya resuelve el tema antes del
-primer pintado y seguirá haciéndolo dentro de la app instalada.
+### Por qué las media queries solas se equivocarían *(corregido al planificar)*
+
+Este spec decía en su primera versión que el `themeColor` por media query era
+"lo que hace que la barra acompañe al tema que el usuario tenga puesto". **Es
+falso**, y se vio al leer el layout con detalle para escribir el plan.
+
+El tema de esta app **no lo decide el sistema operativo**: lo decide
+`localStorage["dots-theme"]`, que un script inline del `<head>` lee antes del
+primer pintado y vuelca en `data-theme`. El bloque
+`@media (prefers-color-scheme: dark)` de `globals.css` está acotado a
+`:root:not([data-theme])`, o sea que **solo actúa si ese script no ha corrido**
+(JS desactivado).
+
+Con media queries a secas, cualquiera con el SO en oscuro y la app en claro
+—o al revés— vería la barra de estado de un tema y la app del otro. Por eso van
+dos capas: las media queries como respaldo sin JS, y el script, que ya calcula
+el tema, fijando además el `content` de la `<meta name="theme-color">`. Es una
+línea en código que ya existe y ya corre en el momento justo.
 
 ## 4. Corregir el spec de julio
 
@@ -132,7 +158,7 @@ Todo comprobable sin instalar nada:
    identify`); un manifest que apunta a un icono inexistente es peor que no
    tener manifest, porque Chrome marca la app como no instalable sin decir por
    qué.
-4. `apple-touch-icon.png` **sin canal alfa** (`magick identify -format "%A"`
+4. `app/apple-icon.png` **sin canal alfa** (`magick identify -format "%A"`
    debe dar `False`/`Undefined`).
 5. El HTML servido incluye `<link rel="manifest">` y el `apple-touch-icon`.
 6. La burbuja del icono maskable cabe en el 80 % central: comprobar que el
