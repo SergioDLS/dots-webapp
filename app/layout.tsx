@@ -55,10 +55,23 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        {/* Apply saved theme BEFORE first paint to prevent flash */}
+        {/*
+          Aplica el tema guardado ANTES del primer paint (evita flash) y deja
+          exactamente una <meta name="theme-color"> autoritativa, sin `media`.
+          El export `viewport` de arriba declara dos <meta theme-color> con
+          media query (el respaldo sin JS); este script las reemplaza por una
+          sola. El MutationObserver existe porque React 19 hidrata esas dos
+          <meta> del `viewport` buscando en el DOM por (name+content) —sin
+          mirar `media`— y si no encuentra una que matchee exactamente,
+          crea una nueva con su `media` original intacto. Como este script
+          deja una sola etiqueta con el content del tema activo, React
+          reclama esa y crea de cero la otra mitad estática justo después de
+          hidratar: sin el observer reaparecería una segunda etiqueta con
+          `media`, el defecto exacto que este mecanismo debía impedir.
+        */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement("meta");m.setAttribute("name","theme-color");document.head.appendChild(m);}m.setAttribute("content",t==="dark"?"#14122e":"#fff7fb");}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var want=function(){return document.documentElement.getAttribute("data-theme")==="dark"?"#14122e":"#fff7fb";};var sync=function(){var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var m=document.createElement("meta");m.setAttribute("name","theme-color");m.setAttribute("content",want());document.head.appendChild(m);};sync();if(window.MutationObserver&&!window.__dotsThemeObs){window.__dotsThemeObs=new MutationObserver(function(){var tags=document.querySelectorAll('meta[name="theme-color"]');if(tags.length!==1||tags[0].getAttribute("media")||tags[0].getAttribute("content")!==want())sync();});window.__dotsThemeObs.observe(document.head,{childList:true});}}catch(e){}})();`,
           }}
         />
       </head>

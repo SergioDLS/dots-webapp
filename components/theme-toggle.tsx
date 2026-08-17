@@ -6,12 +6,30 @@ type Mode = "light" | "dark";
 
 const STORAGE_KEY = "dots-theme";
 
+// Mismo color que el script anti-flash de app/layout.tsx y que
+// app/manifest.ts. Debe existir siempre exactamente una
+// meta[name="theme-color"] sin atributo `media`: esa es la etiqueta
+// autoritativa que gobierna la barra de estado, así que el toggle no puede
+// divergir de la semántica del script inline (limpiar todas, insertar una).
+const THEME_COLOR: Record<Mode, string> = {
+  light: "#fff7fb",
+  dark: "#14122e",
+};
+
 const applyTheme = (resolved: "light" | "dark") => {
   const root = document.documentElement;
   root.setAttribute("data-theme", resolved);
   if (resolved === "dark") root.classList.add("dark");
   else root.classList.remove("dark");
   root.style.colorScheme = resolved;
+
+  document
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((el) => el.remove());
+  const meta = document.createElement("meta");
+  meta.setAttribute("name", "theme-color");
+  meta.setAttribute("content", THEME_COLOR[resolved]);
+  document.head.appendChild(meta);
 };
 
 const cycle: Record<Mode, Mode> = { light: "dark", dark: "light" };
