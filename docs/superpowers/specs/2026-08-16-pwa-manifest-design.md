@@ -106,6 +106,17 @@ redundante.
 `theme_color` tiñe la barra de estado; un acento ahí se lee como una cabecera
 que la app no tiene. `#fff7fb` es `--background` en claro.
 
+**Congelados en claro, a propósito** *(límite aceptado, no bug)*:
+`background_color` y `theme_color` son estáticos porque el manifest es un
+fichero que el navegador lee **antes de que corra cualquier script** — no
+puede consultar `localStorage["dots-theme"]`. Quien instale la app con el
+tema oscuro puesto ve el splash de arranque (Android pinta
+`background_color`/`theme_color` con el icono encima mientras React aún no
+montó) en `#fff7fb`, y recién pasa a oscuro cuando el script anti-flash y la
+app corren. Es el único sitio donde "la barra acompaña al tema" no se
+cumple, y no tiene arreglo con un manifest estático: no se cambia el
+manifest por esto.
+
 ## 3. Cableado en `app/layout.tsx`
 
 **Diseño final** (corregido durante la Task 3 de la implementación, no en
@@ -125,6 +136,16 @@ estado:
 - `components/theme-toggle.tsx` hace exactamente la misma limpieza +
   inserción en su `applyTheme()`, para que cambiar de tema en caliente
   actualice la barra sin esperar a la siguiente recarga.
+
+**Matiz honesto**: "única fuente de verdad" vale en la pestaña del navegador
+y en la app instalada en Android/Chrome. En una app **añadida a la pantalla
+de inicio de iOS**, la barra de estado la gobierna
+`apple-mobile-web-app-status-bar-style` (el `statusBarStyle` de
+`appleWebApp` en `metadata`, fijo en `"default"`): ese meta es estático, no
+sabe nada de `localStorage["dots-theme"]` y no tiene ninguna variante que lo
+haga seguir el tema. El script del `<head>` sigue siendo la única fuente de
+verdad en todo lo demás; en iOS instalado, esta es la excepción, y no tiene
+arreglo — ese meta no admite una versión "según el tema".
 
 Sin cambios respecto al diseño original:
 

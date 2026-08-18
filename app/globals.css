@@ -12,6 +12,10 @@
 /* Palette is canonical and mirrored in dots-app/lib/theme.ts — keep both in sync. */
 :root {
   /* Backgrounds */
+  /* --background también vive en TS como THEME_COLORS.light
+     (lib/theme-colors.ts, usado por app/manifest.ts y el script anti-flash /
+     theme-toggle de app/layout.tsx). Las custom properties no se importan
+     desde TS, así que son dos fuentes: cambia las dos a la vez. */
   --background: #fff7fb;     /* blush canvas */
   --surface:    #ffffff;     /* cards pop on the blush canvas */
   --surface-2:  #fff0f7;     /* nested / subtle panels */
@@ -100,6 +104,9 @@
 
 /* ─── Dark theme ──────────────────────────────────────────── */
 :root[data-theme="dark"] {
+  /* --background también vive en TS como THEME_COLORS.dark
+     (lib/theme-colors.ts). Misma nota que en el :root de arriba: cambia
+     los dos a la vez. */
   --background: #14122e;     /* deep navy */
   --surface:    #201a4d;
   --surface-2:  #1b1640;

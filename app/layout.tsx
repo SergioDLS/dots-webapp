@@ -3,6 +3,7 @@ import { Baloo_2, Geist_Mono, Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
+import { THEME_COLORS } from "@/lib/theme-colors";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -25,8 +26,13 @@ export const metadata: Metadata = {
   title: "dots — Aprende inglés jugando",
   description:
     "Aprende inglés de verdad con Doty: lecciones cortas, rachas y juegos que enganchan.",
-  // iOS ignora el manifest: la instalación desde "Añadir a pantalla de inicio"
-  // se configura con estos metadatos y con app/apple-icon.png
+  // Esto NO es lo que activa el modo standalone en iOS: desde Safari 15.4,
+  // iOS ya lee el `display` del manifest (app/manifest.ts) igual que
+  // Android, así que ese modo lo da el manifest, no appleWebApp.capable.
+  // Next 16 emite `mobile-web-app-capable` para `capable: true` (no
+  // `apple-mobile-web-app-capable`, que es el nombre viejo). Lo que iOS sí
+  // ignora del manifest es `orientation` y los `icons` — por eso sigue
+  // haciendo falta app/apple-icon.png.
   appleWebApp: {
     capable: true,
     title: "dots",
@@ -53,10 +59,13 @@ export default function RootLayout({
           script siga siendo idempotente si llegara a ejecutarse más de una
           vez. Si necesitas reintroducir `viewport.themeColor`, vuelve a leer
           por qué se quitó antes de hacerlo (commit que simplificó esto).
+          Los dos colores se interpolan desde THEME_COLORS
+          (lib/theme-colors.ts), la misma constante que usan app/manifest.ts
+          y components/theme-toggle.tsx — no los reescribas a mano aquí.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var m=document.createElement("meta");m.setAttribute("name","theme-color");m.setAttribute("content",t==="dark"?"#14122e":"#fff7fb");document.head.appendChild(m);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var m=document.createElement("meta");m.setAttribute("name","theme-color");m.setAttribute("content",t==="dark"?"${THEME_COLORS.dark}":"${THEME_COLORS.light}");document.head.appendChild(m);}catch(e){}})();`,
           }}
         />
       </head>

@@ -43,7 +43,16 @@ export default function Login() {
   const [incorrect, setIncorrect] = useState(false);
   const [msg, setMsg] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const { setAccessToken } = useAuth();
+  const { accessToken, isBootstrapping, setAccessToken } = useAuth();
+
+  // auth-context ya rehidrata la sesión al montar (cookie HttpOnly de
+  // refresh). Si terminó y hay token, no tiene sentido mostrar el login: en
+  // una pestaña normal es solo una molestia, pero en la PWA instalada
+  // (display: standalone, sin barra de direcciones) es una ratonera sin
+  // salida. `replace`, no `push`, para que el botón atrás no vuelva aquí.
+  useEffect(() => {
+    if (!isBootstrapping && accessToken) router.replace("/levels");
+  }, [isBootstrapping, accessToken, router]);
 
   // Si el refresh falló con 403 (bloqueado o vencido), api-client guarda el
   // motivo en sessionStorage antes de redirigir aquí. Lo leemos al montar,

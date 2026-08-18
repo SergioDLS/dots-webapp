@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { THEME_COLORS } from "@/lib/theme-colors";
 
 type Mode = "light" | "dark";
 
 const STORAGE_KEY = "dots-theme";
 
-// Mismo color que el script anti-flash de app/layout.tsx y que
-// app/manifest.ts. Debe existir siempre exactamente una
-// meta[name="theme-color"] sin atributo `media`: esa es la etiqueta
-// autoritativa que gobierna la barra de estado, así que el toggle no puede
-// divergir de la semántica del script inline (limpiar todas, insertar una).
-const THEME_COLOR: Record<Mode, string> = {
-  light: "#fff7fb",
-  dark: "#14122e",
-};
+// THEME_COLORS es la misma constante (lib/theme-colors.ts) que usan el
+// script anti-flash de app/layout.tsx y app/manifest.ts. Debe existir
+// siempre exactamente una meta[name="theme-color"] sin atributo `media`: esa
+// es la etiqueta autoritativa que gobierna la barra de estado, así que el
+// toggle no puede divergir de la semántica del script inline (limpiar
+// todas, insertar una).
 
 const applyTheme = (resolved: "light" | "dark") => {
   const root = document.documentElement;
@@ -28,7 +26,7 @@ const applyTheme = (resolved: "light" | "dark") => {
     .forEach((el) => el.remove());
   const meta = document.createElement("meta");
   meta.setAttribute("name", "theme-color");
-  meta.setAttribute("content", THEME_COLOR[resolved]);
+  meta.setAttribute("content", THEME_COLORS[resolved]);
   document.head.appendChild(meta);
 };
 

@@ -37,7 +37,7 @@ Tras aplicar, hay que **reconstruir/redeployar el backend** (`npm run build` + r
 - **Efecto x2 del boost de XP**: la compra fija `users.xp_boost_until`, pero el doblado de XP en los sitios de award falta (requeriría leer el timestamp al otorgar XP; se evitó tocar el entity Users por seguridad de migración).
 - **Modal de rescate con gemas** en checkpoints/arcade (a 0 vidas): requiere cablear el gasto de gemas en `checkpoint-exam` y los juegos.
 - **Explicar-al-fallar en práctica de oraciones y vocab**: práctica tiene máquina de estados propia; vocab es matching (se explica solo).
-- **Historias con personajes** y **PWA/push**: fuera de alcance (esperan elenco+ElevenLabs / los asume la app React Native).
+- **Historias con personajes** y **push**: fuera de alcance (esperan elenco+ElevenLabs / los asume la app React Native; la PWA instalable sí se hizo, 2026-08-16, ver `2026-08-16-pwa-manifest-design.md`).
 - **ELEVENLABS_API_KEY + voice_ids** de doty/doty-fem (pendiente desde learning-path) para generar los audios del seed.
 
 ## Notas

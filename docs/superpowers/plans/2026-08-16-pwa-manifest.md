@@ -472,6 +472,8 @@ DOM que existen las tres etiquetas:
 JSON.stringify({
   manifest: document.querySelector('link[rel="manifest"]')?.getAttribute("href"),
   apple: document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute("href"),
+  themeColorTags: document.querySelectorAll('meta[name="theme-color"]').length,
+  themeColorMedia: document.querySelector('meta[name="theme-color"]')?.getAttribute("media"),
   themeColor: document.querySelector('meta[name="theme-color"]')?.getAttribute("content"),
   dataTheme: document.documentElement.getAttribute("data-theme"),
 })
@@ -479,8 +481,18 @@ JSON.stringify({
 
 Expected: `manifest` es `/manifest.webmanifest`; `apple` **no es null** y
 empieza por `/apple-icon` (Next le añade un hash de caché, así que no compares
-la cadena entera); y **`themeColor` coincide con `dataTheme`**: `#fff7fb` si
-`data-theme` es `light`, `#14122e` si es `dark`.
+la cadena entera); **`themeColorTags` es exactamente `1`** y
+**`themeColorMedia` es `null`**; y **`themeColor` coincide con `dataTheme`**:
+`#fff7fb` si `data-theme` es `light`, `#14122e` si es `dark`.
+
+Los dos primeros no son redundantes con el tercero: el diseño con
+`viewport.themeColor` por media query que se descartó (ver la anotación del
+Step 1) también dejaba `themeColor` en el valor esperado, porque
+`querySelector` en singular siempre agarra la primera de las dos etiquetas y
+su `content` coincidía — pero seguían siendo **dos** `<meta
+name="theme-color">`, una de ellas con `media`. Sin
+`themeColorTags`/`themeColorMedia` este check no distingue ese bug del
+arreglo.
 
 Si `apple` sale `null`, el archivo no está en `app/apple-icon.png` — revisa la
 Task 1, porque en `public/` no genera etiqueta.
@@ -497,13 +509,24 @@ Tras recargar, vuelve a leer:
 
 ```js
 JSON.stringify({
+  themeColorTags: document.querySelectorAll('meta[name="theme-color"]').length,
+  themeColorMedia: document.querySelector('meta[name="theme-color"]')?.getAttribute("media"),
   themeColor: document.querySelector('meta[name="theme-color"]')?.getAttribute("content"),
   dataTheme: document.documentElement.getAttribute("data-theme"),
 })
 ```
 
-Expected: `themeColor` `#14122e` y `dataTheme` `dark`, **independientemente**
-del esquema del sistema. Deja el estado como estaba después:
+Expected: `themeColorTags` `1`, `themeColorMedia` `null`, `themeColor`
+`#14122e` y `dataTheme` `dark`, **independientemente** del esquema del
+sistema. Mismo motivo que en el Step 5: con `dots-theme=dark`, el diseño
+descartado también mostraba `themeColor` `#14122e` aquí, porque
+`querySelector` en singular agarra siempre la primera de las dos etiquetas
+(la de `light`) y el script bugueado le escribía encima el valor de `dark`.
+La segunda etiqueta (`media="(prefers-color-scheme: dark)"`, la que un
+navegador real honra si el SO está en oscuro) quedaba sin tocar, estática
+desde que Next la renderizó. `document.querySelector` no sabe nada del SO:
+por eso el conteo y el `media` son los que habrían delatado el bug, no el
+color. Deja el estado como estaba después:
 `localStorage.setItem("dots-theme","light")`.
 
 - [ ] **Step 7: Commit**
