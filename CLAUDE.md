@@ -7,7 +7,7 @@ Repo hermano: `../dots-backend` (NestJS en `:4000`, normalmente corriendo con wa
 ## Comandos
 
 ```bash
-source ~/.nvm/nvm.sh        # SIEMPRE antes de node/npm (Node 22 vía nvm)
+source ~/.nvm/nvm.sh && nvm use   # SIEMPRE antes de node/npm — `nvm use` lee el .nvmrc (Node 24)
 npm run dev                 # dev server :3000
 npm run lint                # eslint (incluye reglas del compiler de React)
 npx next build              # build de producción CON type-check — debe pasar antes de commitear
