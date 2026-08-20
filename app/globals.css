@@ -234,6 +234,37 @@ h1, h2, h3, .font-display {
   box-shadow: var(--shadow-card);
 }
 
+/* ─── Pantallas bajas ──────────────────────────────────────────
+   Las pantallas compartidas de inicio y resultado (GameIntro y GameResult,
+   que ven los 12 juegos) aprietan su aire cuando la pantalla es baja, para
+   que el botón principal entre en el primer pantallazo. Medido a 320×568 con
+   el peor caso —4 reglas, récord y trono—: de los 954 px de contenido, 264
+   eran paddings y huecos, o sea casi media pantalla de aire.
+
+   Solo se recorta AIRE: no se oculta ni se encoge ningún contenido, así que
+   no hay nada que el jugador pueda perderse.
+
+   El corte va por ALTO de viewport, no por ancho: el problema es la altura, y
+   un móvil apaisado (375 px de alto) lo sufre más que uno vertical estrecho.
+   En apaisado no se pretende que entre todo —no cabe sin ocultar contenido—;
+   ahí la página scrollea, que es aceptable porque los juegos están pensados
+   en vertical. Decisión del 2026-08-20. */
+@media (max-height: 700px) {
+  .dots-compact-shell {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  .dots-compact-card {
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+  .dots-compact-list {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+}
+
 /* Pressable 3-D button base: pair with a --press-color */
 .dots-pressable {
   --press-color: var(--border);

@@ -31,7 +31,7 @@ export default function GameIntro({
   onStart,
 }: GameIntroProps) {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8">
+    <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 py-8">
       {/* Fondo decorativo */}
       <div
         aria-hidden
@@ -40,7 +40,7 @@ export default function GameIntro({
       />
 
       <div
-        className="dots-card flex w-full max-w-sm flex-col items-center gap-6 px-8 py-10 text-center"
+        className="dots-card dots-compact-card flex w-full max-w-sm flex-col items-center gap-6 px-8 py-10 text-center"
         style={{ animation: "dots-pop-in 0.4s ease-out both" }}
       >
         {/* Doty con pose de bienvenida */}
@@ -59,7 +59,7 @@ export default function GameIntro({
         </div>
 
         {/* Cómo se juega */}
-        <div className="w-full rounded-2xl px-5 py-4 text-left"
+        <div className="dots-compact-list w-full rounded-2xl px-5 py-4 text-left"
           style={{ background: "var(--surface)", border: "2px solid var(--border)" }}
         >
           <p className="mb-2 text-xs font-black uppercase tracking-widest text-(--muted)">

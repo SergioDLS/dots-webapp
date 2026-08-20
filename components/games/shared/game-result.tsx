@@ -56,7 +56,7 @@ export default function GameResult({
   const dotyPose = isNewRecord ? "07" : "02";
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8">
+    <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 py-8">
       {/* Fondo decorativo */}
       <div
         aria-hidden
@@ -65,7 +65,7 @@ export default function GameResult({
       />
 
       <div
-        className="dots-card flex w-full max-w-sm flex-col items-center gap-6 px-8 py-10 text-center"
+        className="dots-card dots-compact-card flex w-full max-w-sm flex-col items-center gap-6 px-8 py-10 text-center"
         style={{ animation: "dots-pop-in 0.4s ease-out both" }}
       >
         {/* Doty celebrando o contenta */}
