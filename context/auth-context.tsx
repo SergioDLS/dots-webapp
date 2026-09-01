@@ -57,6 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(null);
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("user");
+        // window.location a propósito (par de lib/api-client.ts): en logout
+        // la recarga completa ES el objetivo — descarta todo estado en memoria.
         window.location.replace("/");
       }
     }
