@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Doty from "../ui/doty/doty";
 import Image from "next/image";
 import {
@@ -10,6 +11,7 @@ import {
 const Lock = "/images/Lock_icon.png";
 
 export default function ReadingsList() {
+  const router = useRouter();
   const [readings, setReadings] = useState<ReadingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [hover, setHover] = useState<number | null>(null);
@@ -51,7 +53,7 @@ export default function ReadingsList() {
             disabled={!item.unlocked}
             onMouseEnter={() => setHover(item.id)}
             onMouseLeave={() => setHover(null)}
-            onClick={() => item.unlocked && window.location.assign(`/readings/${item.id}`)}
+            onClick={() => item.unlocked && router.push(`/readings/${item.id}`)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[.98] disabled:opacity-55 disabled:cursor-not-allowed"
             style={{
               background: hover === item.id && item.unlocked ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "var(--background)",

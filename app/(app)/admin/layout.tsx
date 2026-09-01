@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { ADMIN_PROFILE } from "@/constants";
 import Doty from "@/components/ui/doty/doty";
@@ -28,6 +28,7 @@ export default function AdminLayout({
 }) {
   const { isBootstrapping, accessToken } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
 
   // Two-pass: server render is "checking"; after hydration we can read the
   // stored profile. Derived (not setState-in-effect) to keep renders clean.
@@ -51,8 +52,8 @@ export default function AdminLayout({
 
   // Side-effect only: bounce unauthenticated visitors to login.
   useEffect(() => {
-    if (!isBootstrapping && !accessToken) window.location.replace("/");
-  }, [isBootstrapping, accessToken]);
+    if (!isBootstrapping && !accessToken) router.replace("/");
+  }, [isBootstrapping, accessToken, router]);
 
   if (access === "checking") {
     return (

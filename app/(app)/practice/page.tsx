@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -23,7 +23,8 @@ import {
 // that hooks like `useSearchParams()` are isolated and can be rendered
 // inside a Suspense boundary. This addresses cases where router-read
 // hooks should be resolved inside a suspense/async boundary.
-function PracticeClient() {
+function PracticeClient({ onRestart }: { onRestart: () => void }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "0";
   const { isBootstrapping } = useAuth();
@@ -72,10 +73,11 @@ function PracticeClient() {
     setConfirmReady(true);
   };
 
-  const goToLevels = () => window.location.replace("/levels");
+  const goToLevels = () => router.replace("/levels");
 
   const confirmSelectedHandler = () => {
-    if(isFinalMode) {
+    if (isFinalMode) {
+      if (mode === "gameover") return onRestart();
       goToLevels();
       return;
     }
@@ -165,8 +167,6 @@ function PracticeClient() {
   };
 
   const whatsNextHandler = () => {
-    if (mode === "finished" || mode === "perfect") return goToLevels();
-    if (mode === "gameover") return window.location.reload();
     if (mode !== "streak") {
       if (answered >= totalSentences) return levelFinishedHandler();
       const lastDigit = Number(String(streak).slice(-1));
@@ -260,9 +260,12 @@ function PracticeClient() {
 }
 
 export default function Practice() {
+  // "Try again" (gameover) reinicia remontando PracticeClient vía key: resetea
+  // todo el estado (mazo, vidas, racha) y el efecto de fetch corre de nuevo.
+  const [round, setRound] = useState(0);
   return (
     <Suspense fallback={<div className="flex h-full items-center justify-center"><Spinner /></div>}>
-      <PracticeClient />
+      <PracticeClient key={round} onRestart={() => setRound((r) => r + 1)} />
     </Suspense>
   );
 }

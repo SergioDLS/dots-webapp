@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import UIButton from "@/components/ui/button/button";
@@ -18,6 +18,7 @@ import {
 type Stage = "read" | "quiz" | "result";
 
 export default function ReadingPage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "0";
   const { isBootstrapping } = useAuth();
@@ -56,7 +57,7 @@ export default function ReadingPage() {
       : `${BASE_URL_SOUNDS}/${reading.src}`
     : null;
 
-  const goToLevels = () => window.location.assign("/levels");
+  const goToLevels = () => router.push("/levels");
 
   const submit = () => {
     if (!allAnswered || submitting) return;

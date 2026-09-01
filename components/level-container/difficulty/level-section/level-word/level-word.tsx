@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import WordImg from "@/components/ui/word-img/word-img";
 
@@ -53,6 +54,7 @@ export default function LevelWord({
   current = false,
   animationIndex = 0,
 }: LevelWordProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -120,7 +122,7 @@ export default function LevelWord({
     .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
     .join(" ");
 
-  const goTo = (path: string) => window.location.replace(`${path}?id=${id}`);
+  const goTo = (path: string) => router.replace(`${path}?id=${id}`);
 
   /* ── Sizes ──────────────────────────────────────────────── */
   const CIRCLE = 112;
