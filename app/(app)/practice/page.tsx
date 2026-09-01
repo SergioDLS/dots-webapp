@@ -44,13 +44,18 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   const [confirmLabel, setConfirmLabel] = useState("Confirm");
   const [confirmReady, setConfirmReady] = useState(false);
   const [reward, setReward] = useState<ProgressReward | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [fetchAttempt, setFetchAttempt] = useState(0);
 
   // ── Fetch ───────────────────────────────────────────────────────────────
+  // Corre al montar y cada vez que "Reintentar" bumpea fetchAttempt.
   useEffect(() => {
     if (isBootstrapping) return; // wait for auth to finish before calling API
+    let active = true;
     api
       .get<PracticeSentence[]>(`/sentences/practice/${id}`)
       .then((res) => {
+        if (!active) return;
         if (res.data.length > 0) {
           setArraySentences(res.data);
           setTotalSentences(res.data.length);
@@ -59,8 +64,13 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
           setNoSentences(true);
         }
       })
-      .catch(console.error);
-  }, [id, isBootstrapping]);
+      .catch(() => {
+        if (active) setLoadError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id, isBootstrapping, fetchAttempt]);
 
   useEffect(() => {
     if (lifes <= 0) levelFinishedHandler();
@@ -230,6 +240,34 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
           onConfirm={confirmSelectedHandler}
         />
       </>
+    );
+  } else if (loadError) {
+    content = (
+      <div
+        className="flex flex-col items-center gap-5 py-16"
+        style={{ animation: "dots-pop-in 0.5s ease-out both" }}
+      >
+        <div style={{ animation: "dots-heart-pop 2s ease-in-out infinite" }}>
+          <Doty pose="05" size="small" />
+        </div>
+        <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
+          No pudimos cargar la práctica.
+        </p>
+        <div className="flex gap-3">
+          <UIButton
+            onClick={() => {
+              // fetchAttempt retry: bump the counter, the effect re-fetches.
+              setLoadError(false);
+              setFetchAttempt((n) => n + 1);
+            }}
+          >
+            Reintentar
+          </UIButton>
+          <UIButton tone="neutral" onClick={goToLevels}>
+            ← Back to levels
+          </UIButton>
+        </div>
+      </div>
     );
   } else if (noSentences) {
     content = (
