@@ -212,7 +212,15 @@
 }
 
 /* ─── Base ────────────────────────────────────────────────── */
+/* Sin rebote de overscroll: en Android standalone el pull-to-refresh
+   recarga la página y tira el access token en memoria (regla dura 1);
+   en medio de un juego además pierde la partida. */
+html {
+  overscroll-behavior-y: none;
+}
+
 body {
+  overscroll-behavior-y: none;
   background-color: var(--background);
   /* The brand IS dots — sprinkle the canvas with them */
   background-image: radial-gradient(var(--dot) 1.5px, transparent 1.5px);
@@ -252,7 +260,9 @@ h1, h2, h3, .font-display {
 @media (max-height: 700px) {
   .dots-compact-shell {
     padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    /* max(): en iOS standalone el CTA no pisa el home indicator;
+       donde no hay inset, env() = 0 y queda el 0.75rem de siempre. */
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
   .dots-compact-card {
     gap: 0.75rem;

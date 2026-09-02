@@ -6,9 +6,10 @@ import { THEME_COLORS } from "@/lib/theme-colors";
  * su `<link rel="manifest">` solo por existir este archivo — no hay que
  * enlazarlo a mano en el layout.
  *
- * Sin service worker a propósito: esta tanda hace la app INSTALABLE, no
- * offline. El push sigue delegado a la futura app React Native (ver
- * docs/superpowers/specs/2026-08-16-pwa-manifest-design.md).
+ * El service worker vive en public/sw.js (lo registra
+ * components/pwa/sw-register.tsx): offline de cortesía y cache de estáticos,
+ * nunca HTML ni API. El push del SO sigue delegado a la futura app React
+ * Native (ver docs/superpowers/specs/2026-08-16-pwa-manifest-design.md).
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -42,5 +43,27 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
       { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
+    // Accesos del long-press (Android) / click derecho (desktop). Solo
+    // Chromium; iOS los ignora. Las etiquetas replican las tabs del hub.
+    shortcuts: [
+      {
+        name: "Camino",
+        url: "/levels",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Juegos",
+        url: "/play",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Repaso",
+        url: "/review",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+    ],
+    // En desktop instalado reutiliza la ventana existente en vez de abrir
+    // otra; donde no está soportado se ignora sin efecto.
+    launch_handler: { client_mode: ["navigate-existing", "auto"] },
   };
 }

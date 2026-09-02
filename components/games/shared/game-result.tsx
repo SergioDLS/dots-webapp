@@ -56,7 +56,7 @@ export default function GameResult({
   const dotyPose = isNewRecord ? "07" : "02";
 
   return (
-    <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 py-8">
+    <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
       {/* Fondo decorativo */}
       <div
         aria-hidden

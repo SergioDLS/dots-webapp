@@ -537,7 +537,9 @@ export default function CrosswordPage() {
           flexDirection: "column",
           alignItems: "center",
           minHeight: "100svh",
-          padding: "1rem 0.75rem 1.5rem",
+          padding: "1rem 0.75rem",
+          // El teclado en pantalla no pisa el home indicator (iOS standalone).
+          paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",
           gap: "0.75rem",
         }}
       >

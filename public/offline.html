@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sin conexión — dots</title>
+<!--
+  Página offline que sirve el service worker (public/sw.js) cuando una
+  navegación falla sin red. 100 % autónoma A PROPÓSITO: cero chunks de
+  Next (tras un deploy estarían purgados), cero fuentes externas, CSS
+  inline. Los colores están duplicados a mano desde lib/theme-colors.ts y
+  app/globals.css (un HTML estático no puede importarlos): si cambia la
+  paleta, cambiar aquí también — mismo precedente documentado que
+  THEME_COLORS. Si tocas este archivo, bumpea SW_VERSION en public/sw.js.
+-->
+<script>
+  // Versión mínima del anti-flash de app/layout.tsx: misma clave dots-theme.
+  try {
+    if ((localStorage.getItem("dots-theme") || "light") === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+</script>
+<style>
+  :root {
+    --background: #fff7fb;
+    --dot: #f4dcea;
+    --foreground: #201a4d;
+    --muted: #6a6690;
+    --accent: #e5077e;
+    --accent-edge: #b0005c;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --background: #14122e;
+    --dot: #1b1640;
+    --foreground: #f4f2ff;
+    --muted: #b6aee0;
+    --accent: #ff3d9e;
+    --accent-edge: #c1156f;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    display: grid;
+    place-items: center;
+    min-height: 100svh;
+    padding: 1.5rem;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    background-color: var(--background);
+    background-image: radial-gradient(var(--dot) 1.5px, transparent 1.5px);
+    background-size: 26px 26px;
+    color: var(--foreground);
+    font-family: ui-rounded, "Nunito", ui-sans-serif, system-ui, sans-serif;
+    text-align: center;
+    overscroll-behavior-y: none;
+  }
+  main { max-width: 22rem; display: grid; gap: 0.75rem; justify-items: center; }
+  img { width: 96px; height: 96px; }
+  h1 { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+  p { font-size: 0.9375rem; font-weight: 600; color: var(--muted); }
+  button {
+    margin-top: 0.5rem;
+    padding: 0.75rem 2rem;
+    border: 0;
+    border-radius: 1rem;
+    background: var(--accent);
+    box-shadow: 0 4px 0 var(--accent-edge);
+    color: #fff;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  button:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-edge); }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" alt="" />
+  <h1>¡Ups, sin conexión!</h1>
+  <p>Doty buscó internet por todos lados y nada. Revisa tu conexión y vuelve a intentarlo — tu racha te espera.</p>
+  <!-- reload() aquí es correcto y no viola la regla 5: en esta página no hay
+       app ni token en memoria; reintenta la navegación que el SW interceptó. -->
+  <button onclick="location.reload()">Reintentar</button>
+</main>
+</body>
+</html>

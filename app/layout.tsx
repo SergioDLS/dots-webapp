@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_2, Geist_Mono, Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
+import SwRegister from "@/components/pwa/sw-register";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 const nunito = Nunito({
@@ -40,6 +41,16 @@ export const metadata: Metadata = {
   },
 };
 
+// viewportFit: "cover" activa env(safe-area-inset-*) en iOS: sin él los
+// paddings safe-area de la app (nav del hub, teclados de juegos, footers de
+// lección) evalúan a 0 y el contenido queda bajo el home indicator en la PWA
+// instalada. PROHIBIDO añadir themeColor aquí: la única fuente de
+// <meta name="theme-color"> es el script anti-flash de abajo (ver su
+// comentario y la saga que lo explica).
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,10 +62,10 @@ export default function RootLayout({
         {/*
           Aplica el tema guardado ANTES del primer paint (evita flash) y deja
           exactamente una <meta name="theme-color"> autoritativa, sin `media`.
-          No existe `viewport.themeColor` en este layout: React no gestiona
-          ninguna <meta name="theme-color"> propia, así que no hay hidratación
-          que pueda reclamar la etiqueta de este script ni recrear una
-          segunda con media query. El borrado defensivo (querySelectorAll +
+          El `viewport` exportado arriba define SOLO viewportFit — jamás
+          themeColor: React no gestiona ninguna <meta name="theme-color">
+          propia, así que no hay hidratación que pueda reclamar la etiqueta
+          de este script ni recrear una segunda con media query. El borrado defensivo (querySelectorAll +
           remove antes de insertar) no es por eso — es solo para que el
           script siga siendo idempotente si llegara a ejecutarse más de una
           vez. Si necesitas reintroducir `viewport.themeColor`, vuelve a leer
@@ -72,6 +83,8 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${baloo.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Fuera de AuthProvider a propósito: el SW no depende de la sesión. */}
+        <SwRegister />
         <AuthProvider>
           <AuthSync />
           {children}

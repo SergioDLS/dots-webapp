@@ -21,7 +21,7 @@ export default function LessonFooter({
   if (finalMode) {
     return (
       <div
-        className="w-full"
+        className="w-full pb-[env(safe-area-inset-bottom)]"
         style={{ animation: "dots-pop-in 0.4s ease-out both" }}
       >
         <UIButton tone="accent" onClick={onConfirm} fullWidth>
@@ -32,7 +32,7 @@ export default function LessonFooter({
   }
   return (
     <div
-      className="flex gap-3 w-full"
+      className="flex gap-3 w-full pb-[env(safe-area-inset-bottom)]"
       style={{ animation: "dots-slide-up 0.3s ease-out 0.1s both" }}
     >
       <UIButton tone="neutral" onClick={onExit}>
