@@ -221,6 +221,13 @@ html {
 
 body {
   overscroll-behavior-y: none;
+  /* Contrapeso del viewportFit: "cover" del layout: sin esto, en landscape
+     con notch (iPhone Pro, browser o PWA — iOS ignora el `orientation` del
+     manifest) el contenido quedaría cortado por el sensor housing. En
+     portrait ambos insets son 0 y no cambia nada. Los elementos `fixed` no
+     heredan este padding: la nav los pone por su cuenta (app-nav.tsx). */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   background-color: var(--background);
   /* The brand IS dots — sprinkle the canvas with them */
   background-image: radial-gradient(var(--dot) 1.5px, transparent 1.5px);

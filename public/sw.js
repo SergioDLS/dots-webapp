@@ -19,7 +19,7 @@ const MEDIA = `dots-media-${SW_VERSION}`; //     runtime, con trim
 
 const OFFLINE_URL = "/offline.html";
 // Rutas EXACTAS como las pide la app (lib/feedback-sounds.ts, manifest).
-// Si una 404ea, addAll aborta el install completo: verificar al tocar.
+// Si una 404ea, el install entero falla: verificar al tocar esta lista.
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/icons/icon-192.png",
@@ -27,15 +27,26 @@ const PRECACHE_URLS = [
   "/sounds/answers/wrong.wav",
 ];
 
+// Holgado a propósito: el build entero son ~55 estáticos (51 chunks + css +
+// 3 fuentes), así que el trim nunca desaloja algo vivo.
 const STATIC_MAX = 150;
 const MEDIA_MAX = 80;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(PRECACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting()),
+    (async () => {
+      const cache = await caches.open(PRECACHE);
+      // cache: "reload" salta el HTTP cache: un install nuevo siempre guarda
+      // la copia del deploy actual, nunca una offline.html revalidada vieja.
+      await Promise.all(
+        PRECACHE_URLS.map(async (url) => {
+          const res = await fetch(url, { cache: "reload" });
+          if (!res.ok) throw new Error(`precache ${url}: ${res.status}`);
+          await cache.put(url, res);
+        }),
+      );
+      await self.skipWaiting();
+    })(),
   );
 });
 
@@ -64,26 +75,34 @@ async function trim(cacheName, max) {
   for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]);
 }
 
+/* Guardar en cache NUNCA debe tumbar una respuesta que la red ya entregó:
+   put rechaza con QuotaExceededError (disco del dispositivo lleno) y con
+   TypeError ante un 206. Sin este catch, un disco lleno dejaría la app sin
+   chunks —ChunkLoadError en todo— mientras el SW controle la página. */
+function putSafe(cacheName, request, response, max) {
+  caches
+    .open(cacheName)
+    .then((cache) => cache.put(request, response))
+    .then(() => trim(cacheName, max))
+    .catch(() => {});
+}
+
 async function cacheFirst(request, cacheName, max) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+  // match global (no cache.match del runtime): los assets precacheados se
+  // piden por su ruta normal y aterrizan aquí, así que hay que ver PRECACHE
+  // también — si no, el icono de offline.html no cargaría justamente sin red.
+  const cached = await caches.match(request);
   if (cached) return cached;
   const res = await fetch(request);
-  if (res.ok) {
-    await cache.put(request, res.clone());
-    trim(cacheName, max); // sin await: limpieza oportunista
-  }
+  if (res.ok) putSafe(cacheName, request, res.clone(), max);
   return res;
 }
 
 async function staleWhileRevalidate(request, cacheName, max) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+  const cached = await caches.match(request);
   const network = fetch(request)
     .then((res) => {
-      if (res.ok) {
-        cache.put(request, res.clone()).then(() => trim(cacheName, max));
-      }
+      if (res.ok) putSafe(cacheName, request, res.clone(), max);
       return res;
     })
     .catch(() => undefined);
@@ -94,7 +113,15 @@ async function staleWhileRevalidate(request, cacheName, max) {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return; //             POST/PUT/DELETE: ni mirarlos
-  if (req.headers.has("range")) return; //         seek de audio: directo a red
+  // Los media elements mandan `Range: bytes=0-` ya en su PRIMERA petición, no
+  // solo al hacer seek: expulsar todo lo que traiga Range dejaría los .wav
+  // precacheados inservibles. Un rango que arranca en 0 se satisface con la
+  // respuesta completa (200 ante Range es válido y los reproductores lo
+  // aceptan); un seek real (offset > 0) necesita un 206 que no construimos,
+  // así que ese sí va directo a red. Ojo: el único <audio controls> de la app
+  // (admin) es cross-origin, así que aquí solo caen sonidos locales.
+  const range = req.headers.get("range");
+  if (range && range.replace(/\s/g, "") !== "bytes=0-") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // API/Cloudinary: intactos
 

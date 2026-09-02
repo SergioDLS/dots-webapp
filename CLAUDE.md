@@ -36,6 +36,8 @@ No hay test runner de componentes: la verificación es lint + build + preview ma
 7. Juegos seedables aceptan `?seed=` y lo pasan al fetcher (torneo/reto/fantasma dependen de eso para mazos idénticos).
 8. **Acceso solo por invitación.** No hay registro público: `POST /auth/register` fue eliminado del backend. La única ruta capaz de crear un usuario es `POST /auth/invitations/accept`, y exige un token válido de 48 h atado a un correo. Si necesitas una cuenta de prueba, invítate desde `/admin/users` → pestaña *Invitations*. El login respeta además `users.expires`, y el refresh revalida `blocked` contra la BD, así que desactivar a alguien lo expulsa en menos de 15 minutos.
 
+9. **PWA / service worker.** El SW (`public/sw.js`) solo intercepta GETs same-origin: nunca la API, Cloudinary, HTML ni RSC. Si tocas `public/offline.html` (o cualquier ruta de `PRECACHE_URLS`), **bumpea `SW_VERSION`** en el mismo commit: sin eso los clientes instalados siguen sirviendo la copia vieja para siempre, porque el único disparador de update es el byte-diff de `sw.js`. Emergencia: `public/sw.kill.js` lleva el procedimiento en su cabecera. Para probarlo hace falta build de producción (`npm run start`, config `dots-webapp-prod` del launch.json) — en dev el registro se desactiva a propósito.
+
 ## Contexto ampliado
 
 - `docs/ARQUITECTURA.md` — mapa completo (rutas, juegos, hooks, flujos).

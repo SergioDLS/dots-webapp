@@ -55,6 +55,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Even if the server call fails, clear the local session.
     } finally {
       setAccessToken(null);
+      // Los avatares pasan por /_next/image, que el service worker cachea:
+      // en un equipo compartido (una academia) quedarían legibles para el
+      // siguiente que entre. Best-effort y por prefijo, para no depender de
+      // SW_VERSION; los otros caches solo tienen assets públicos del build.
+      if (typeof caches !== "undefined") {
+        try {
+          const names = await caches.keys();
+          await Promise.all(
+            names
+              .filter((n) => n.startsWith("dots-media-"))
+              .map((n) => caches.delete(n)),
+          );
+        } catch {
+          /* ignore */
+        }
+      }
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("user");
         // window.location a propósito (par de lib/api-client.ts): en logout

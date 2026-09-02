@@ -57,7 +57,7 @@ export default function AppNav() {
       {/* ── Riel desktop ─────────────────────────────────────── */}
       <nav
         aria-label="Navegación principal"
-        className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-40 md:w-[84px] md:items-center md:gap-1 md:border-r md:border-(--border) md:bg-(--surface) md:py-5"
+        className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-40 md:w-[84px] md:items-center md:gap-1 md:border-r md:border-(--border) md:bg-(--surface) md:py-5 md:ps-[env(safe-area-inset-left)]"
       >
         <Link
           href="/levels"
@@ -94,7 +94,7 @@ export default function AppNav() {
       {/* ── Barra inferior móvil ─────────────────────────────── */}
       <nav
         aria-label="Navegación principal"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-(--border) bg-(--surface) pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-(--border) bg-(--surface) pb-[env(safe-area-inset-bottom)] ps-[env(safe-area-inset-left)] pe-[env(safe-area-inset-right)] md:hidden"
       >
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
