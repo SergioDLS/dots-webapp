@@ -350,10 +350,11 @@ pasa a `oh-no`, no a `triste`).
 | 11 | riendo | 1 + personaje `doty-scientist` |
 | 12 | idea | 2 |
 | 13 | senalando | 2 |
+| 14 | saludando (es el saludo sin anteojos) | 1 (dont-pop, Doty en la canasta) |
 | 16 | bienvenido | — |
 | 17 | saludando | 10 + difficulty advanced + personaje `doty-fem` |
 | 18 | halloween | — |
-| 08, 10, 14, 15, 19–22 | sin uso; se borran | — |
+| 08, 10, 15, 19–22 | sin uso; se borran | — |
 
 Cambios de datos derivados (3 filas, vía script del backend §7):
 `difficulty.img` → `bienvenido` (beginner), `sigue-asi` (intermediate),
