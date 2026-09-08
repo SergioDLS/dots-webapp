@@ -62,3 +62,35 @@ def output_path(piece: dict, fase: str, repo_root: Path, raw_root: Path) -> Path
     if g == "characters":
         return Path(raw_root) / fase / "out/characters" / f"{s}.png"
     return Path(raw_root) / fase / "out/app-icon.png"
+
+
+def build_prompt(piece: dict, style: dict) -> str:
+    use_oref = bool(piece.get("oref"))
+    mascot = use_oref or bool(piece.get("sref_only"))
+    body = [piece["prefix"]]
+    if mascot:
+        body += [style["character"], piece["prompt"], style["style_block"]]
+    else:
+        body += [piece["prompt"], style["icon_block"]]
+    flags = [f"--ar {style['aspect']}", f"--stylize {style['stylize']}"]
+    model = piece.get("model")
+    if model:
+        flags.append(f"--v {model}")
+    if use_oref:
+        flags.append(f"--oref {style['oref_file']} --ow {piece.get('ow', style['ow'])}")
+    if style.get("sref"):
+        flags.append(f"--sref {style['sref']} --sw {style['sw']}")
+    flags.append("--no " + ", ".join(style["negative"]))
+    return ", ".join(body) + " " + " ".join(flags)
+
+
+def emit_prompts(cat: dict, style: dict) -> str:
+    lines = [f"# {cat['fase']} — prompts", "",
+             "Pega cada prompt tal cual. En la web, arrastra `ref-hero.png` al slot de Omni Reference "
+             "cuando el prompt lleve `--oref`, y la hoja/código al de Style Reference cuando lleve `--sref`.",
+             "Descarga la imagen elegida a la carpeta de este lote sin renombrarla.", ""]
+    for i, p in enumerate(cat["pieces"], 1):
+        target = f"{p['group']}/{p['slug']}.png"
+        status = " ✅" if p.get("done") else ""
+        lines += [f"{i}. `{p['slug']}` → `{target}`{status}", "", "```", build_prompt(p, style), "```", ""]
+    return "\n".join(lines)
