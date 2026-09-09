@@ -163,6 +163,61 @@ mismo `--sref`.
 Los `null` se rellenan con lo medido. Ningún prompt de fase 1 se emite hasta
 que este archivo está completo.
 
+## 2-bis. Resultado real de la fase 0 (2026-09-09) — cambia el método
+
+**La fase 0 hizo su trabajo: invalidó el método que este spec había diseñado.**
+Ejecutada con 8 trabajos contra Midjourney **V8.2**, plan Basic.
+
+### El camino no es V7 + Omni Reference, es V8.2 + Edit Model
+
+| | V7 + `--oref` | V8.2 + Edit Model |
+|---|---|---|
+| GPU por trabajo (medido) | 2,0 min | **1,0 min** |
+| Contorno navy de marca | 1 de 8 salidas | 4 de 4 |
+| Transfiere a una pose nueva | sí | sí (verificado con `pensando`) |
+| Consistencia entre las 4 candidatas | baja | alta |
+
+En V8.x Midjourney retiró el bin de Omni-reference y lo sustituyó por el Edit
+Model (la fila "Attach to prompt" de la web). `--oref`/`--ow` siguen existiendo,
+pero solo bajo V7 — y V7 rinde peor y cuesta el doble.
+
+**Consecuencia de presupuesto:** la fase 1 pasa de ~12,9 h (≈ 4 meses de Basic)
+a **1,6–3,2 h**, que cabe en un ciclo. El mes de Standard que §9 daba por
+necesario deja de serlo.
+
+### Cómo funciona el Edit Model, y las dos reglas que impone
+
+Se le da **una imagen fuente** y **una instrucción de qué cambiar**. Hereda de
+la fuente el acabado *y el encuadre*. De ahí las dos reglas:
+
+1. **Fuente fija, nunca encadenar.** Las 97 piezas parten siempre de la misma
+   imagen patrón. Encadenar (pieza 1 → 2 → 3) acumula deriva.
+2. **La instrucción nombra los colores de marca, siempre.** Lo que no se
+   nombra, deriva. Medido sobre la misma pose y la misma fuente:
+   - sin nombrarlos → contorno `#D2006E` (magenta), distancia al navy 183
+   - nombrándolos → contorno `#001E28` (navy), distancia al navy **60**
+
+### La imagen patrón
+
+`dots/imagenes/mj/fase-0/ref-patron.png`: el `ref-hero.png` recortado al
+contenido y centrado en un lienzo **1024×1024 blanco con margen**. El cuadrado
+importa porque el Edit hereda el encuadre: con la fuente de 870×787 las salidas
+venían recortadas sin cuerpo entero.
+
+### Corrección al canon: Doty NO lleva zapatos
+
+§2.3 de este spec exigía "zapatos magenta oscuro". **Es un error mío al leer la
+hoja de marca**: ampliada, los pies del Doty original son rosa liso y lo navy
+del pie levantado es la planta, no un zapato. Midjourney tenía razón al no
+producirlos. El criterio queda eliminado, y con él el criterio 3 de §2.3.
+
+### Lo que queda obsoleto de §2
+
+La matriz de prueba de §2.2 (`--ow` 100 vs 300, modelo por defecto vs `--v 7`)
+no aplica: `--ow` es de V7. Además `--oref` fuerza V7 aunque la cuenta esté en
+V8, así que el eje del modelo nunca midió nada. Se conserva escrita solo como
+registro de lo que se probó.
+
 ## 3. Fase 1 — Catálogo de piezas (97)
 
 Cada pieza tiene un **slug** (nombre de archivo y clave del registro), un
@@ -391,6 +446,38 @@ cambios.
 | `scripts/mj/process.py` | el pipeline (subcomandos abajo) |
 | `scripts/mj/compose-icons.mjs`, `compose-splash.mjs` | derivados del icono y splash con sharp (Node, porque sharp ya está en `node_modules`) |
 | `scripts/check-doty-assets.mjs` | verificación registro ↔ disco |
+
+### 5.1-bis Formato de prompt tras la fase 0
+
+Hay **dos formas** de pieza, según si es la mascota o no. El campo que decide
+se llama `mascot` (antes `oref`, renombrado porque `--oref` ya no se usa).
+
+**Piezas de mascota (`mascot: true`) — instrucción de Edit.** Se pega junto a
+`ref-patron.png` adjunta como fuente. Sin flags: el Edit Model no los toma.
+
+```
+<prefix>, <prompt>, <brand_lock>, <framing>
+```
+
+Por ejemplo, para `feliz`:
+
+> Doty beaming with joy, standing upright, arms slightly open, big happy smile,
+> keep the dark navy outline, the navy eyes with white highlights and the
+> hot-pink body, full body centered, plain white background, no shadow on the
+> floor
+
+El `prefix` sigue abriendo la instrucción por la misma razón de siempre:
+Midjourney nombra la descarga con las primeras palabras, y de ahí sale el mapeo
+de vuelta a la pieza. La regla de colisión de prefijos sigue vigente.
+
+**Piezas que no son la mascota (`mascot: false`) — texto a imagen, sin cambios.**
+Son los 6 `icons` y los 12 `games`: iconos planos donde una fuente con Doty no
+tiene sentido. Conservan el formato con `--ar`, `--stylize` y `--no`.
+
+`style.json` cambia en consecuencia: `oref_file`, `ow`, `sw` y `sref` quedan
+obsoletos; entran `edit_source`, `brand_lock` y `framing`. Los bloques
+`icon_block`, `negative`, `aspect` y `stylize` siguen sirviendo a la segunda
+forma.
 
 ### 5.2 Subcomandos de `process.py`
 
