@@ -830,6 +830,10 @@ git add scripts/mj && git commit -m "feat(mj): recorte, centrado, redimensión y
 ```
 Expected: `23 passed`.
 
+> **Nota post-implementación (revisión final de rama):** esta función se
+> renombró a `halo_thickness_px` (grosor en px, no fracción del sprite). Ver
+> `mjlib.py` para la versión y el razonamiento vigentes.
+
 ---
 
 ### Task 7: `--apply`: rembg inyectable, escritura, `done`, `REPORT.md`
@@ -1008,6 +1012,12 @@ Expected: la lista incluye `CUDAExecutionProvider`. Si solo aparece `CPUExecutio
 ```bash
 git add scripts/mj && git commit -m "feat(mj): apply con rembg, marcado done e informe por lote"
 ```
+
+> **Nota post-implementación (revisión final de rama):** `HALO_THRESHOLD`
+> terminó en `2.0` (px, no fracción) y se mide sobre la salida de `remover`,
+> ANTES de `trim_square_resize` — medirla después dejaba que el resize
+> inflara o escondiera el halo real. Esto reemplaza la formulación original
+> de esta tarea; ver `mjlib.py::halo_thickness_px`.
 
 ---
 

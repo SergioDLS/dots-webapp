@@ -414,8 +414,11 @@ cambios.
      ambiguas, procesamiento fallido (excepción en una pieza), duplicados (mismo
      archivo asignado a dos piezas), y **alerta de halo** cuando la banda
      semitransparente rosa alrededor del sujeto mide más de 2 px de grosor
-     (píxeles semitransparentes rosados / largo del contorno). Un sprite limpio
-     mide ~1.4 px en cualquier silueta y resolución.
+     (píxeles semitransparentes rosados / largo del contorno), medido sobre la
+     salida de rembg antes de redimensionar. Un sprite limpio mide ~1.4 px en
+     cualquier silueta y resolución. Es un canario, no una garantía: solo ve
+     fleco rosado saturado, así que uno difuminado a blanco o gris — el que de
+     verdad se nota en el tema oscuro de la app — no dispara la alerta.
 
 ### 5.3 Reglas
 

@@ -159,6 +159,18 @@ def test_prefix_contained_in_another_is_rejected(tmp_path):
     with pytest.raises(mjlib.CatalogError, match="collides"):
         mjlib.load_catalog(p)
 
+def test_slug_must_be_lowercase_kebab_case(tmp_path):
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(slug="Bad_Slug")]})
+    with pytest.raises(mjlib.CatalogError, match="kebab-case"):
+        mjlib.load_catalog(p)
+
+def test_prefix_that_normalizes_to_empty_is_rejected(tmp_path):
+    # un prefix hecho solo de puntuación normaliza a "" y ese "" es substring de
+    # cualquier nombre de archivo: coincidiría con todas las descargas.
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(prefix="!!! --- ???")]})
+    with pytest.raises(mjlib.CatalogError, match="empty"):
+        mjlib.load_catalog(p)
+
 def test_render_dry_run_marks_done_pieces():
     cat = {"fase": "x", "pieces": [piece(done=True)]}
     assert mjlib.render_dry_run(cat, {"feliz": []}) == "HECHO    feliz"
@@ -244,6 +256,19 @@ def test_trim_square_resize_clamps_a_degenerate_margin():
     assert out.getbbox() is not None
 
 
+def test_trim_square_resize_ignores_rgb_of_a_transparent_background():
+    # rembg suele dejar el blanco del fondo con alfa 0. Si se perdiera el
+    # alpha_only=True (o Pillow cambiara su default), getbbox consideraría ese
+    # blanco como contenido y el recorte sería un no-op sobre el lienzo entero.
+    im = Image.new("RGBA", (200, 200), (255, 255, 255, 0))
+    for x in range(50, 150):
+        for y in range(80, 120):
+            im.putpixel((x, y), (255, 31, 143, 255))
+    out = mjlib.trim_square_resize(im, 128, margin=0.0)
+    bbox = out.getbbox()
+    assert bbox[0] == 0 and bbox[2] == 128  # el sujeto (más ancho que alto) llena el lienzo
+
+
 def raw_png(dirpath, name):
     im = Image.new("RGBA", (300, 300), (255, 255, 255, 255))
     for x in range(100, 200):
@@ -295,10 +320,16 @@ def test_apply_pick_resolves_ambiguity_and_skips_existing(tmp_path):
 
 
 def test_render_report_sections():
+    # failed y duplicates no vacíos: desempaquetan tuplas de 2 y 3 elementos, así
+    # que un orden de desempaquetado cambiado en render_report debe romper esto.
     txt = mjlib.render_report({"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": ["wow"],
-                               "ambiguous": ["triste"], "halo": [("feliz", 2.5)], "failed": [], "duplicates": []})
+                               "ambiguous": ["triste"], "halo": [("feliz", 2.5)],
+                               "failed": [("bailando", "RuntimeError: modelo caído")],
+                               "duplicates": [("dot-bombs", "sergio_archivo.png", "wordle")]})
     assert "# fase-1 — REPORT" in txt and "## Hechas (1)" in txt and "- wow" in txt
     assert "feliz (2.50 px)" in txt
+    assert "bailando: RuntimeError: modelo caído" in txt
+    assert "dot-bombs y wordle -> sergio_archivo.png" in txt
 
 
 def test_halo_thickness_distingue_halo_de_antialiasing():

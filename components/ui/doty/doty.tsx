@@ -18,7 +18,12 @@ interface DotyProps {
   animation?: DotyAnimation;
   /** Burbuja de texto sobre Doty. */
   say?: string;
-  /** Sombra por CSS (drop-shadow). Los PNG nacen sin sombra a propósito. */
+  /**
+   * Sombra por CSS (drop-shadow). Los PNG nuevos nacen sin sombra a propósito
+   * (spec §4.3). Sin especificar, se activa sola en cuanto la pose deja de
+   * apuntar a un sprite legacy (que ya trae la elipse dibujada); pásalo
+   * explícito (`true`/`false`) para forzarla en cualquier caso.
+   */
   shadow?: boolean;
 }
 
@@ -57,10 +62,15 @@ export default function Doty({
   customClass = "",
   animation = "none",
   say,
-  shadow = true,
+  shadow,
 }: DotyProps) {
   // Guardia de runtime: un `as DotyPose` mal puesto cae a la cara amable, no a un 404.
   const entry = POSES[isDotyPose(pose) ? pose : FALLBACK_POSE];
+  // Los 22 sprites legacy traen la elipse de sombra dibujada; el arte nuevo nace sin
+  // ella y la recibe por CSS (spec §4.3). Mientras una pose siga apuntando a un legacy,
+  // sumar el drop-shadow duplicaría la sombra — así que se activa por sprite, no en
+  // bloque, y cada pieza empieza a proyectarla sola en cuanto llega su arte real.
+  const conSombra = shadow ?? !entry.src.includes("DOTTY-POSES");
   const img = (
     <Image
       src={entry.src}
@@ -69,7 +79,7 @@ export default function Doty({
       width={1024}
       height={1024}
       sizes={`${SIZE_PX[size]}px`}
-      className={`h-auto select-none ${sizeClass[size]} ${animationClass[animation]} ${shadow ? "doty-shadow" : ""} ${customClass}`}
+      className={`h-auto select-none ${sizeClass[size]} ${animationClass[animation]} ${conSombra ? "doty-shadow" : ""} ${customClass}`}
       priority
       draggable={false}
     />

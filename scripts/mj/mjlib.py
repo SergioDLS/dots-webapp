@@ -1,4 +1,8 @@
-"""Funciones puras del pipeline de arte de Doty. Sin rembg aquí: lo importa process.py."""
+"""Pipeline de arte de Doty. `apply_batch` sí toca disco (recorre directorios, abre y
+guarda PNG, reescribe el catálogo) — la costura no es "sin efectos", es que ninguna
+dependencia externa queda sin inyectar: rembg lo pasa process.py como `remover`, y toda
+ruta de E/S llega como parámetro en vez de resolverse adentro. Eso es lo que permite
+probar `apply_batch` con un remover falso y un `tmp_path`, sin mockear nada de verdad."""
 from __future__ import annotations
 import json
 import re
@@ -9,6 +13,10 @@ from PIL import Image, ImageChops, ImageFilter
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
 EXTRA_GROUPS = ("games", "characters", "app-icon")
 LEGACY_RE = re.compile(r"^(0[1-9]|1[0-9]|2[0-2])$")
+# El slug se interpola tal cual en una ruta de disco (output_path) y en una clave
+# de TypeScript generada (_ts_key cita pero no escapa) — kebab-case en minúsculas
+# es lo único seguro para ambos destinos.
+SLUG_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 class CatalogError(ValueError):
@@ -34,10 +42,14 @@ def validate_catalog(cat: dict) -> None:
         if not slug or slug in slugs:
             raise CatalogError(f"duplicate or missing slug: {slug!r}")
         slugs.add(slug)
+        if not (isinstance(slug, str) and SLUG_RE.fullmatch(slug)):
+            raise CatalogError(f"{slug!r}: slug must be lowercase kebab-case (a-z0-9, hyphen-separated)")
         prefix = p.get("prefix")
         if not prefix:
             raise CatalogError(f"missing prefix for {slug!r}")
         norm = normalize(prefix)
+        if not norm:
+            raise CatalogError(f"{slug!r}: prefix {prefix!r} normalizes to empty — would match every filename")
         for other_norm, other_slug in prefixes.items():
             if norm in other_norm or other_norm in norm:
                 raise CatalogError(
@@ -179,7 +191,7 @@ def render_dry_run(cat: dict, matches: dict[str, list[str]]) -> str:
 
 def trim_square_resize(img: "Image.Image", size: int, margin: float = 0.04) -> "Image.Image":
     img = img.convert("RGBA")
-    bbox = img.getbbox()
+    bbox = img.getbbox(alpha_only=True)
     if bbox is None:
         raise ValueError("empty image (fully transparent)")
     content = img.crop(bbox)
@@ -199,17 +211,19 @@ def halo_thickness_px(img: "Image.Image") -> float:
     alrededor del sujeto: cuenta de esos píxeles dividida por el largo del contorno.
 
     El antialiasing de un sprite limpio deja una banda de ~1.4 px en cualquier
-    silueta y a cualquier resolución; un halo de rembg la engrosa proporcionalmente.
-    Se mide grosor y no una fracción del sprite porque la fracción depende de la
-    silueta y del tamaño: la de Doty (pelo en picos, extremidades finas) tiene mucho
-    más perímetro por área que un círculo, y a 512 px un sprite limpio ya daba más
-    del 2 % — los rangos limpio/con-halo se solapaban entre formas.
+    silueta y a cualquier resolución. Se mide grosor y no una fracción del sprite
+    porque la fracción depende de la silueta y del tamaño: la de Doty (pelo en
+    picos, extremidades finas) tiene mucho más perímetro por área que un círculo,
+    y a 512 px un sprite limpio ya daba más del 2 % — los rangos limpio/con-halo
+    se solapaban entre formas.
 
-    Nota: la medida asume que la fuente es al menos tan grande como el destino.
-    Una fuente muy upscalada (ej: 512 px a 1024 px) desenfoca la arista alfa en
-    una banda genuinamente gruesa que se lee como halo sin tener uno. Los
-    descargas de Midjourney son ~1024 px nativas, así que esto no se espera
-    en condiciones normales.
+    Es un canario, no un veredicto: solo cuenta píxeles con 0 < alfa < 255 que
+    además son rosados saturados (r>180, g<120). Un fleco difuminado hacia blanco,
+    o un fleco gris/blanco liso, le es invisible — y la app vive en tema oscuro,
+    donde ese es justamente el fleco que se nota. Debe llamarse sobre la salida
+    de `remover`, ANTES de `trim_square_resize`: redimensionar (sobre todo si
+    amplía) desenfoca la arista alfa y infla o esconde la medida sin que el
+    halo real haya cambiado.
     """
     img = img.convert("RGBA")
     a = img.getchannel("A")
@@ -280,7 +294,7 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             rep["failed"].append((slug, f"{type(exc).__name__}: {exc}"))
             continue
         consumed[chosen] = slug
-        grosor = halo_thickness_px(out)
+        grosor = halo_thickness_px(cut)
         if grosor > HALO_THRESHOLD:
             rep["halo"].append((slug, grosor))
         p["done"] = True

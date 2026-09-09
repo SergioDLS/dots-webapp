@@ -26,6 +26,8 @@ interface DotyStickerProps {
 }
 
 export default function DotySticker({ kind, size = "mini" }: DotyStickerProps) {
-  const pose = `sticker-${kind}` as DotyPose;
+  // Anotado, no casteado: si un slug de sticker desapareciera del registro,
+  // esta asignación deja de tipar (TS2322) en vez de compilar en silencio.
+  const pose: DotyPose = `sticker-${kind}`;
   return <Doty pose={pose} size={size} shadow={false} say={STICKER_TEXT[kind]} />;
 }

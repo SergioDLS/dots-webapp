@@ -44,6 +44,17 @@ def cmd_dry_run(fase: str, raw: Path) -> int:
     return 0
 
 
+def parse_picks(picks: list[str]) -> dict[str, str]:
+    """--pick SLUG=ARCHIVO, uno por uno. Sale con mensaje claro si a alguno le falta el '='."""
+    pick_map: dict[str, str] = {}
+    for raw_pick in picks:
+        if "=" not in raw_pick:
+            sys.exit(f"--pick inválido (falta '='): {raw_pick!r}. Formato esperado SLUG=ARCHIVO")
+        slug, file = raw_pick.split("=", 1)
+        pick_map[slug] = file
+    return pick_map
+
+
 def cmd_apply(fase: str, raw: Path, picks: list[str], force: bool) -> int:
     from rembg import new_session, remove  # perezoso: pesa y solo hace falta aquí
     session = new_session("isnet-general-use")
@@ -55,9 +66,14 @@ def cmd_apply(fase: str, raw: Path, picks: list[str], force: bool) -> int:
 
     cpath = batch_path(fase)
     cat = mjlib.load_catalog(cpath)
-    pick_map = dict(p.split("=", 1) for p in picks)
+    pick_map = parse_picks(picks)
+    known_slugs = {p["slug"] for p in cat["pieces"]}
+    for slug in pick_map:
+        if slug not in known_slugs:
+            print(f"advertencia: --pick {slug}=... no corresponde a ningún slug del catálogo", file=sys.stderr)
     rep = mjlib.apply_batch(cat, cpath, raw, REPO, remover, picks=pick_map, force=force)
     report = raw / fase / "REPORT.md"
+    report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(mjlib.render_report(rep), encoding="utf-8")
     print(mjlib.render_report(rep))
     print(f"→ {report}")

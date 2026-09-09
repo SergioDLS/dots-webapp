@@ -492,7 +492,9 @@ h1, h2, h3, .font-display {
   60%      { transform: rotate(-4deg); }
   80%      { transform: rotate(2deg); }
 }
-.doty-wave { animation: doty-wave 1.6s ease-in-out infinite; transform-origin: 70% 80%; }
+/* 70% 80% asumía una proporción de arte que todavía no existe; centrado abajo
+   lee como un vaivén desde los pies en cualquier silueta, legacy o nueva. */
+.doty-wave { animation: doty-wave 1.6s ease-in-out infinite; transform-origin: center bottom; }
 
 /* Movimiento reducido ≠ cero feedback. Lo que marea son los desplazamientos,
    rotaciones y escalados, no los cambios de color: se anulan los keyframes
