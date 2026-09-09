@@ -477,8 +477,8 @@
     {
       "slug": "libro",
       "group": "accessories",
-      "prefix": "Doty holding a navy book",
-      "prompt": "holding a closed navy blue book with both hands against the chest",
+      "prefix": "Doty hugging a cyan book",
+      "prompt": "holding a closed cyan book with a pink spine with both hands against the chest, content smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
@@ -492,7 +492,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_gripping_a_giant_pencil_holding_an_oversized_y_daad5d07-4695-4c27-b3e2-4bdf2c06e12c_3.png"
     },
     {
       "slug": "laptop",
@@ -502,13 +503,14 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_carrying_an_open_laptop_holding_an_open_grey_l_480acbe1-36cc-40c7-ab8f-291d9cd0cb0d_3.png"
     },
     {
       "slug": "tablet",
       "group": "accessories",
-      "prefix": "Doty showing off a tablet",
-      "prompt": "holding a navy blue tablet flat, screen facing outward, proud smile",
+      "prefix": "Doty showing a light grey tablet",
+      "prompt": "holding a light grey tablet flat with a glowing cyan screen facing outward, proud smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
@@ -522,7 +524,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_displaying_a_blue_phone_holding_a_blue_smartph_294cde94-c660-494d-bd59-9a0cdb7857c8_0.png"
     },
     {
       "slug": "mochila",
@@ -532,13 +535,14 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_wearing_a_backpack_backpack_straps_over_both_s_323e9098-3372-40a4-b7d0-e322a927a167_1.png"
     },
     {
       "slug": "taza",
       "group": "accessories",
-      "prefix": "Doty sipping from a mug",
-      "prompt": "holding a navy blue mug with both hands, a thick curl of steam rising from the rim and touching it, cozy smile",
+      "prefix": "Doty sipping from a cyan mug",
+      "prompt": "holding a cyan mug with both hands close to the chest, eyes closed, cozy content smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
@@ -547,8 +551,8 @@
     {
       "slug": "diploma",
       "group": "accessories",
-      "prefix": "Doty clasping a diploma scroll",
-      "prompt": "holding a rolled navy diploma tied with a cyan ribbon, calm proud smile",
+      "prefix": "Doty holding a cream diploma",
+      "prompt": "holding a rolled cream-coloured diploma tied with a cyan ribbon, calm proud smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
@@ -562,7 +566,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_presenting_a_shiny_trophy_holding_a_gold_and_p_96a3b396-39bf-4e99-8460-7cb2c113784c_2.png"
     },
     {
       "slug": "microfono",
@@ -572,7 +577,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_singing_into_a_microphone_holding_a_cyan_micro_52e33e3b-a34f-46ce-9820-fd274ad75f94_1.png"
     },
     {
       "slug": "bandera-uk",
@@ -582,7 +588,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_waving_a_UK_flag_holding_a_small_British_flag__188ed031-0e30-4596-b9a9-704144448c8b_1.png"
     },
     {
       "slug": "bandera-usa",
@@ -592,7 +599,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_holding_a_USA_flag_holding_a_small_American_fl_1d180ba4-864f-479f-8962-43efce93e115_2.png"
     },
     {
       "slug": "maleta",
@@ -602,7 +610,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_rolling_a_travel_suitcase_pulling_a_grey_rolli_2b8c6af2-fd9a-4ae0-baee-1e8914679c11_0.png"
     },
     {
       "slug": "lentes",
@@ -613,7 +622,8 @@
       "mascot": true,
       "glasses": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_sporting_round_glasses_wearing_round_navy-fram_446125a0-57e0-4590-9e87-db58d560b215_0.png"
     },
     {
       "slug": "idea",
@@ -623,13 +633,14 @@
       "size": 1024,
       "mascot": true,
       "fallback": "12",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_struck_by_a_bright_idea_a_glowing_yellow_outli_2aa33f38-5860-4dac-b2df-2c2092f16900_2.png"
     },
     {
       "slug": "globo",
       "group": "accessories",
-      "prefix": "Doty floating with a balloon",
-      "prompt": "holding a short thick string tied to a pink balloon just above the head, feet lifting off the ground, delighted grin",
+      "prefix": "Doty floating with a pink balloon",
+      "prompt": "holding a short thick string tied to a bright pink balloon just above the head, feet lifting off the ground, delighted grin",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
