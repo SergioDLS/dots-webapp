@@ -242,3 +242,60 @@ def test_trim_square_resize_clamps_a_degenerate_margin():
     out = mjlib.trim_square_resize(blob(), 64, margin=0.5)
     assert out.size == (64, 64)
     assert out.getbbox() is not None
+
+
+def raw_png(dirpath, name):
+    im = Image.new("RGBA", (300, 300), (255, 255, 255, 255))
+    for x in range(100, 200):
+        for y in range(120, 180):
+            im.putpixel((x, y), (255, 31, 143, 255))
+    im.save(dirpath / name)
+
+
+def fake_remover(im):
+    # vuelve transparente todo píxel blanco puro
+    im = im.convert("RGBA")
+    data = [(0, 0, 0, 0) if (r, g, b) == (255, 255, 255) else (r, g, b, a) for r, g, b, a in im.getdata()]
+    out = Image.new("RGBA", im.size)
+    out.putdata(data)
+    return out
+
+
+def test_apply_writes_marks_done_and_reports(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c1.png")
+    raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c2.png")
+    cat = {"fase": "fase-1", "pieces": [
+        piece(size=64),
+        piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64),
+        piece(slug="wow", prefix="Doty amazed", fallback="06", size=64),
+    ]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    out = repo / "public/images/Doty/expressions/feliz.png"
+    assert out.exists() and Image.open(out).size == (64, 64)
+    assert rep["done"] == ["feliz"] and rep["ambiguous"] == ["triste"] and rep["missing"] == ["wow"]
+    saved = json.loads(cpath.read_text())
+    assert saved["pieces"][0]["done"] is True and saved["pieces"][1]["done"] is False
+
+
+def test_apply_pick_resolves_ambiguity_and_skips_existing(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c1.png")
+    raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c2.png")
+    cat = {"fase": "fase-1", "pieces": [piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64), piece(done=True)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover, picks={"triste": "sergio_Doty_feeling_sad_c2.png"})
+    assert rep["done"] == ["triste"] and rep["skipped"] == ["feliz"]
+    rep2 = mjlib.apply_batch(mjlib.load_catalog(cpath), cpath, raw, repo, fake_remover)
+    assert rep2["skipped"] == ["triste", "feliz"] and rep2["done"] == []
+
+
+def test_render_report_sections():
+    txt = mjlib.render_report({"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": ["wow"],
+                               "ambiguous": ["triste"], "halo": [("feliz", 0.05)]})
+    assert "# fase-1 — REPORT" in txt and "## Hechas (1)" in txt and "- wow" in txt
+    assert "feliz (5.0%)" in txt

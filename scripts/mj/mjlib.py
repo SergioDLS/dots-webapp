@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Callable
 from PIL import Image
 
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
@@ -198,3 +199,63 @@ def halo_ratio(img: "Image.Image") -> float:
         return 0.0
     pink = sum(1 for r, g, _ in edge if r > 180 and g < 120)
     return pink / len(edge)
+
+
+HALO_THRESHOLD = 0.02
+
+
+def save_catalog(cat: dict, path: Path) -> None:
+    Path(path).write_text(json.dumps(cat, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
+                remover: Callable[["Image.Image"], "Image.Image"],
+                picks: dict[str, str] | None = None, force: bool = False) -> dict:
+    picks = picks or {}
+    fase = cat["fase"]
+    raw_dir = Path(raw_root) / fase
+    files = [f.name for f in raw_dir.iterdir() if f.is_file()] if raw_dir.exists() else []
+    matches = match_downloads(cat, files)
+    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": []}
+    for p in cat["pieces"]:
+        slug = p["slug"]
+        target = output_path(p, fase, repo_root, raw_root)
+        if p.get("done") and not force:
+            rep["skipped"].append(slug)
+            continue
+        chosen = picks.get(slug)
+        cands = matches.get(slug, [])
+        if not chosen:
+            if len(cands) == 1:
+                chosen = cands[0]
+            elif cands:
+                rep["ambiguous"].append(slug)
+                continue
+            else:
+                rep["missing"].append(slug)
+                continue
+        src = Image.open(raw_dir / chosen).convert("RGBA")
+        cut = remover(src)
+        out = trim_square_resize(cut, p["size"])
+        target.parent.mkdir(parents=True, exist_ok=True)
+        out.save(target, optimize=True)
+        ratio = halo_ratio(out)
+        if ratio > HALO_THRESHOLD:
+            rep["halo"].append((slug, ratio))
+        p["done"] = True
+        p["source_file"] = chosen
+        rep["done"].append(slug)
+        save_catalog(cat, catalog_path)
+    return rep
+
+
+def render_report(rep: dict) -> str:
+    def section(title, items):
+        return [f"## {title} ({len(items)})", *[f"- {i}" for i in items], ""]
+    lines = [f"# {rep['fase']} — REPORT", ""]
+    lines += section("Hechas", rep["done"])
+    lines += section("Ya existían (saltadas)", rep["skipped"])
+    lines += section("Ambiguas: usa --pick slug=archivo", rep["ambiguous"])
+    lines += section("Faltan", rep["missing"])
+    lines += section("Alerta de halo rosa: regenerar o retocar", [f"{s} ({r:.1%})" for s, r in rep["halo"]])
+    return "\n".join(lines)

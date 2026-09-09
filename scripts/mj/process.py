@@ -44,6 +44,26 @@ def cmd_dry_run(fase: str, raw: Path) -> int:
     return 0
 
 
+def cmd_apply(fase: str, raw: Path, picks: list[str], force: bool) -> int:
+    from rembg import new_session, remove  # perezoso: pesa y solo hace falta aquí
+    session = new_session("isnet-general-use")
+
+    def remover(im):
+        return remove(im, session=session, alpha_matting=True,
+                      alpha_matting_foreground_threshold=240, alpha_matting_background_threshold=10,
+                      alpha_matting_erode_size=10)
+
+    cpath = batch_path(fase)
+    cat = mjlib.load_catalog(cpath)
+    pick_map = dict(p.split("=", 1) for p in picks)
+    rep = mjlib.apply_batch(cat, cpath, raw, REPO, remover, picks=pick_map, force=force)
+    report = raw / fase / "REPORT.md"
+    report.write_text(mjlib.render_report(rep), encoding="utf-8")
+    print(mjlib.render_report(rep))
+    print(f"→ {report}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
@@ -70,7 +90,10 @@ def main(argv: list[str] | None = None) -> int:
         if not a.raw:
             ap.error("--dry-run requiere --raw")
         return cmd_dry_run(a.dry_run, a.raw)
-    ap.error("subcomando aún no implementado")
+    if a.apply:
+        if not a.raw:
+            ap.error("--apply requiere --raw")
+        return cmd_apply(a.apply, a.raw, a.pick, a.force)
 
 
 if __name__ == "__main__":
