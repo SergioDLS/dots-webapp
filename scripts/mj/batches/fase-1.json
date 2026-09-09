@@ -482,7 +482,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_hugging_a_cyan_book_holding_a_closed_cyan_book_1496e35c-3346-4404-a952-72880af66c68_2.png"
     },
     {
       "slug": "lapiz",
@@ -514,7 +515,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_showing_a_light_grey_tablet_holding_a_light_gr_c9115d47-a4f8-49d2-ba32-5a4ef0c25f21_2.png"
     },
     {
       "slug": "celular",
@@ -546,7 +548,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_sipping_from_a_cyan_mug_holding_a_cyan_mug_wit_09c7f486-3fac-4dcb-b8bb-ec82a400e680_0.png"
     },
     {
       "slug": "diploma",
@@ -556,7 +559,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_holding_a_cream_diploma_holding_a_rolled_cream_3ed36c2b-6ed5-4215-977d-7428e4915334_1.png"
     },
     {
       "slug": "trofeo",
@@ -644,7 +648,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_floating_with_a_pink_balloon_holding_a_short_t_14944a76-7482-453b-8df3-2dde9f93b713_3.png"
     },
     {
       "slug": "navidad",
