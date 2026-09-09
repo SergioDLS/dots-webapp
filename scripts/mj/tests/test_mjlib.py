@@ -102,7 +102,9 @@ def test_build_prompt_correcto_icon_matches_expected_shape():
     style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
     correcto = next(p for p in cat["pieces"] if p["slug"] == "correcto")
     out = mjlib.build_prompt(correcto, style)
-    assert out.startswith("Green check mark badge, a bold green check mark inside a white circle, flat icon,")
+    # se fija el ORDEN de ensamblado, no el texto del prompt: ese es dato del
+    # catalogo y se afina lote a lote (este test se rompio al recolorear los iconos).
+    assert out.startswith(f"{correcto['prefix']}, {correcto['prompt']}, {style['icon_block']}")
     assert "--ar 1:1" in out and "--stylize 50" in out
     assert out.endswith("--no text, watermark, glasses, shadow, background objects")
     assert style["brand_lock"] not in out and style["framing"] not in out
