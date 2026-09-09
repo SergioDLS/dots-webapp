@@ -726,7 +726,8 @@
       "mascot": false,
       "anchor": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Green_check_mark_badge_a_white_check_mark_inside_a__9488c83c-8e3b-4883-980f-d24df1d4f30c_1.png"
     },
     {
       "slug": "incorrecto",
@@ -736,7 +737,8 @@
       "size": 512,
       "mascot": false,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Red_cross_mark_badge_a_white_X_mark_inside_a_solid__efea8255-75ba-4a45-8325-59cab8f9ea23_0.png"
     },
     {
       "slug": "atencion",
@@ -746,7 +748,8 @@
       "size": 512,
       "mascot": false,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Yellow_warning_triangle_badge_a_white_exclamation_p_a0dd598f-a084-44b4-b005-9b03dcfa194f_0.png"
     },
     {
       "slug": "cargando",
@@ -756,7 +759,8 @@
       "size": 512,
       "mascot": false,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Spinning_blue_loading_ring_a_circular_blue_progress_0f4490fd-5498-4b24-90c6-8b1e154927a0_1.png"
     },
     {
       "slug": "racha",
@@ -766,7 +770,8 @@
       "size": 512,
       "mascot": false,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Orange_flame_streak_badge_a_bold_orange_flame_with__071bfe45-6c82-4289-88f1-7524ab319e38_2.png"
     },
     {
       "slug": "nivel-completado",
@@ -776,7 +781,8 @@
       "size": 512,
       "mascot": false,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Gold_star_burst_badge_a_bold_gold_star_with_short_s_90807eee-6645-4bdf-a8b5-6cbb9b202ea1_3.png"
     },
     {
       "slug": "good-job",
@@ -897,7 +903,8 @@
       "mascot": false,
       "anchor": true,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Green_and_yellow_letter_tiles_five_square_letter_ti_9ff47e5e-8b40-4efc-a458-281cef67e277_1.png"
     },
     {
       "slug": "crossword",
@@ -907,7 +914,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Black_and_white_crossword_grid_a_crossword_grid_of__320dd0ea-bdc8-4f1f-bcfd-1ede39deb852_2.png"
     },
     {
       "slug": "dot-match",
@@ -917,7 +925,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Dots_connected_by_a_line_pink_blue_and_cyan_dots_co_ccbcd155-4984-4e9c-aab5-4694a2c4cf29_0.png"
     },
     {
       "slug": "true-false",
@@ -927,7 +936,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Two_cards_marked_right_wrong_two_rounded_cards_side_2b9ff7bb-8d1b-4cc8-b5a4-4a8b23625228_0.png"
     },
     {
       "slug": "memory",
@@ -937,7 +947,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Face-down_cards_with_one_flipped_a_row_of_face-down_f3c177fb-0696-4754-80d3-be681639389e_1.png"
     },
     {
       "slug": "audio-blitz",
@@ -947,7 +958,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Blue_headphones_with_a_lightning_blue_over-ear_head_8a84e703-1ae2-464e-9ffa-00d5778650f5_1.png"
     },
     {
       "slug": "word-tower",
@@ -957,7 +969,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Stacked_wooden_blocks_with_tiles_a_wobbly_tower_of__3b5ba669-10ea-42c6-a771-b0a75cee45ff_0.png"
     },
     {
       "slug": "sentence-builder",
@@ -967,7 +980,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Colorful_bricks_stacking_upward_pink_navy_and_blue__3e133448-64c8-4ae5-b1b6-751c844bc1e9_1.png"
     },
     {
       "slug": "ghost-race",
@@ -977,7 +991,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_ghost_zooming_past_a_small_translucent_pink_gh_61a021cf-a42a-48e0-9ec1-51413143824b_3.png"
     },
     {
       "slug": "dotaxi",
@@ -987,7 +1002,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_riding_in_a_taxi_a_small_round_pink_Doty_chara_62fa0160-b7e6-4137-8243-8fb3e728cbff_0.png"
     },
     {
       "slug": "dont-pop",
@@ -997,7 +1013,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_riding_a_hot_air_balloon_a_small_round_pink_Do_664bd9ce-8124-452b-9cb2-50bc786c025f_0.png"
     },
     {
       "slug": "dot-bombs",
@@ -1007,7 +1024,8 @@
       "size": 512,
       "mascot": false,
       "fallback": null,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_scared_of_a_bomb_a_small_round_pink_Doty_chara_5c0a57f3-776c-4ae7-a8de-d4685dbbe5bb_3.png"
     },
     {
       "slug": "doty-fem",
