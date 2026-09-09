@@ -213,3 +213,32 @@ def test_halo_ratio_detects_pink_fringe():
     for x in range(50, 150):
         grey.putpixel((x, 80), (120, 120, 120, 120))
     assert mjlib.halo_ratio(grey) == 0.0
+
+def test_trim_square_resize_keeps_the_long_axis():
+    # el sujeto de blob() es 100x40: el resultado debe seguir siendo más ancho que alto.
+    # Con side=min(w,h) el contenido se recortaría a un cuadrado y ancho==alto.
+    out = mjlib.trim_square_resize(blob(), 256)
+    bbox = out.getbbox()
+    ancho, alto = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    assert 0.35 * ancho <= alto <= 0.55 * ancho
+
+def test_halo_ratio_needs_both_colour_conditions():
+    # r>180 pero g>=120, y r<=180 pero g<120: ninguno es rosa. Con `or` contarían como halo.
+    im = blob()
+    for x in range(50, 100):
+        im.putpixel((x, 80), (200, 150, 160, 120))
+    for x in range(100, 150):
+        im.putpixel((x, 80), (100, 50, 60, 120))
+    assert mjlib.halo_ratio(im) == 0.0
+
+def test_trim_square_resize_rounds_the_inner_size():
+    # margen por defecto 0.04 sobre 256: round(235.52)=236, truncar daría 235.
+    out = mjlib.trim_square_resize(blob(), 256)
+    bbox = out.getbbox()
+    assert bbox[2] - bbox[0] == 236
+
+def test_trim_square_resize_clamps_a_degenerate_margin():
+    # margin 0.5 anula el interior; el clamp max(1, ...) evita un lienzo vacío.
+    out = mjlib.trim_square_resize(blob(), 64, margin=0.5)
+    assert out.size == (64, 64)
+    assert out.getbbox() is not None
