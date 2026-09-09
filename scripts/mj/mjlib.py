@@ -86,49 +86,48 @@ def output_path(piece: dict, fase: str, repo_root: Path, raw_root: Path) -> Path
 
 
 def build_prompt(piece: dict, style: dict) -> str:
-    use_oref = bool(piece.get("oref"))
-    mascot = use_oref or bool(piece.get("sref_only"))
-    body = [piece["prefix"]]
-    if mascot:
-        body += [style["character"], piece["prompt"], style["style_block"]]
-    else:
-        body += [piece["prompt"], style["icon_block"]]
-    flags = [f"--ar {style['aspect']}", f"--stylize {style['stylize']}"]
-    model = piece.get("model")
-    if model:
-        flags.append(f"--v {model}")
-    if use_oref:
-        flags.append(f"--oref {style['oref_file']} --ow {piece.get('ow', style['ow'])}")
-    if style.get("sref"):
-        flags.append(f"--sref {style['sref']} --sw {style['sw']}")
+    """Dos formas, según `piece["mascot"]` (spec §5.1-bis).
+
+    Mascota → instrucción de Edit: sin flags, el Edit Model no los toma. Pega junto
+    a `style["edit_source"]` adjunta como fuente (ver `emit_prompts`).
+
+    No-mascota (icons/games) → texto a imagen de siempre, con `--ar`/`--stylize`/`--no`
+    y el filtro de `glasses` por pieza. Sin cambios respecto al comportamiento previo
+    a la fase 0-bis.
+    """
+    if piece.get("mascot"):
+        return ", ".join([piece["prefix"], piece["prompt"], style["brand_lock"], style["framing"]])
     negativos = style["negative"]
     if piece.get("glasses"):
         negativos = [n for n in negativos if n != "glasses"]
-    flags.append("--no " + ", ".join(negativos))
-    return ", ".join(body) + " " + " ".join(flags)
+    body = ", ".join([piece["prefix"], piece["prompt"], style["icon_block"]])
+    flags = " ".join([f"--ar {style['aspect']}", f"--stylize {style['stylize']}",
+                       "--no " + ", ".join(negativos)])
+    return f"{body} {flags}"
 
 
 def emit_prompts(cat: dict, style: dict) -> str:
     lines = [f"# {cat['fase']} — prompts", "",
-             "**Antes de nada: pon el modelo en V7 en los ajustes de la web.** Con V8 no existe "
-             "el bin de Omni-reference — Midjourney lo sustituyó por el Edit Model, que es la fila "
-             "\"Attach to prompt\" y NO sirve para consistencia de personaje (verificado 2026-09-09).",
+             "**Trabaja en V8.2.** El Edit Model corre ahí directamente: no hace falta forzar V7 "
+             "ni ningún parámetro de línea de comandos para sostener el personaje.",
              "",
-             "Con V7 activo, arrastra `ref-hero.png` a la barra del prompt y suéltala en el bin "
-             "**Omni-reference** cuando el prompt lleve `--oref`; la hoja o el código van al de "
-             "**Style reference** cuando lleve `--sref`.",
+             f"Para las piezas de **mascota** (🎨 en la lista): adjunta `{style['edit_source']}` "
+             "en la fila **\"Attach to prompt\"** y pega la instrucción tal cual, sin nada más. "
+             "**Usa siempre esa misma imagen fuente — nunca encadenes** una salida como fuente de "
+             "la siguiente: el Edit Model hereda el acabado y el encuadre de la fuente, y encadenar "
+             "acumula deriva.",
              "",
-             "**No pegues `--oref <archivo>` como texto**: el parámetro lo inserta Midjourney al "
-             "soltar la imagen en el bin. Pega el resto del prompt tal cual.",
+             "Para las piezas de **icono** (🔤 en la lista, llevan `--ar`): texto a imagen normal, "
+             "sin ninguna imagen adjunta.",
              "",
-             "Nota: un trabajo con `--oref` se ejecuta en V7 aunque la cuenta esté en V8, así que "
-             "un `--v 7` explícito en el prompt no cambia nada.",
-             "",
-             "Descarga la imagen elegida a la carpeta de este lote sin renombrarla.", ""]
+             "Descarga la imagen elegida a la carpeta de este lote sin renombrarla: Midjourney nombra "
+             "el archivo por las primeras palabras del prompt, y así es como el pipeline la mapea de "
+             "vuelta a la pieza.", ""]
     for i, p in enumerate(cat["pieces"], 1):
         target = f"{p['group']}/{p['slug']}.png"
         status = " ✅" if p.get("done") else ""
-        lines += [f"{i}. `{p['slug']}` → `{target}`{status}", "", "```", build_prompt(p, style), "```", ""]
+        kind = "🎨 mascota" if p.get("mascot") else "🔤 icono"
+        lines += [f"{i}. `{p['slug']}` → `{target}`{status} · {kind}", "", "```", build_prompt(p, style), "```", ""]
     return "\n".join(lines)
 
 

@@ -45,8 +45,8 @@ def test_fase1_counts_and_rules():
     counts = Counter(p["group"] for p in cat["pieces"])
     assert dict(counts) == EXPECTED and len(cat["pieces"]) == 97
     for p in cat["pieces"]:
-        expect_oref = p["group"] not in ("icons", "games")
-        assert p["oref"] is expect_oref, p["slug"]
+        expect_mascot = p["group"] not in ("icons", "games")
+        assert p["mascot"] is expect_mascot, p["slug"]
         assert p["size"] == (512 if p["group"] in ("icons", "games") else 1024), p["slug"]
         assert "," not in p["prefix"], p["slug"]
         assert "glasses" not in p["prompt"].lower() or p["slug"] in ("lentes", "doty-scientist"), p["slug"]

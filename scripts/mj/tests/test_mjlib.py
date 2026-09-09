@@ -8,7 +8,7 @@ import mjlib  # noqa: E402
 
 def piece(**over):
     base = {"slug": "feliz", "group": "expressions", "prefix": "Doty beaming with joy",
-            "prompt": "big smile", "size": 1024, "oref": True, "fallback": "02", "done": False}
+            "prompt": "big smile", "size": 1024, "mascot": True, "fallback": "02", "done": False}
     base.update(over)
     return base
 
@@ -45,7 +45,7 @@ def test_registry_piece_needs_fallback_until_done(tmp_path):
     mjlib.load_catalog(p2)  # no raise
 
 def test_extra_group_needs_no_fallback(tmp_path):
-    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(group="games", slug="wordle", oref=False, fallback=None)]})
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(group="games", slug="wordle", mascot=False, fallback=None)]})
     mjlib.load_catalog(p)
 
 def test_registry_key_prefixes_stickers():
@@ -60,31 +60,52 @@ def test_output_path_per_group(tmp_path):
     assert mjlib.output_path(piece(group="app-icon", slug="app-icon"), "fase-1", repo, raw) == raw / "fase-1/out/app-icon.png"
 
 
-STYLE = {"model": "7", "oref_file": "ref-hero.png", "ow": 300, "sref": "", "sw": 200, "stylize": 50,
-         "aspect": "1:1", "negative": ["text", "shadow"],
-         "character": "Doty the mascot: round pink ball", "style_block": "flat vector, white background",
-         "icon_block": "flat icon, brand palette"}
+STYLE = {"edit_source": "ref-patron.png",
+         "brand_lock": "keep the dark navy outline, the navy eyes with white highlights and the hot-pink body",
+         "framing": "full body centered, plain white background, no shadow on the floor",
+         "icon_block": "flat icon, brand palette", "negative": ["text", "shadow"],
+         "aspect": "1:1", "stylize": 50}
 
-def test_build_prompt_with_oref():
+def test_build_prompt_mascot_is_edit_instruction_without_flags():
+    # spec Sec.5.1-bis: pieza de mascota -> instruccion de Edit, sin flags de ningun tipo.
     out = mjlib.build_prompt(piece(), STYLE)
-    assert out.startswith("Doty beaming with joy, Doty the mascot: round pink ball, big smile, flat vector, white background")
-    assert "--ar 1:1 --stylize 50 --oref ref-hero.png --ow 300" in out
-    assert out.endswith("--no text, shadow")
-    assert "--sref" not in out
+    assert out == ", ".join(["Doty beaming with joy", "big smile", STYLE["brand_lock"], STYLE["framing"]])
+    assert out.endswith(STYLE["framing"])
+    assert STYLE["brand_lock"] in out
+    assert "--" not in out
 
-def test_build_prompt_icon_without_oref():
-    out = mjlib.build_prompt(piece(group="icons", slug="correcto", oref=False, prompt="green check mark"), STYLE)
+def test_build_prompt_icon_is_flagged_text_to_image():
+    # las piezas que no son mascota (icons/games) conservan el texto a imagen de siempre.
+    out = mjlib.build_prompt(piece(group="icons", slug="correcto", mascot=False, prompt="green check mark"), STYLE)
     assert out.startswith("Doty beaming with joy, green check mark, flat icon, brand palette")
-    assert "--oref" not in out and "Doty the mascot" not in out
+    assert "--ar 1:1" in out
+    assert "--stylize 50" in out
+    assert out.endswith("--no text, shadow")
+    assert STYLE["brand_lock"] not in out and STYLE["framing"] not in out
 
-def test_build_prompt_sref_and_overrides():
-    style = dict(STYLE, sref="abc123")
-    out = mjlib.build_prompt(piece(ow=100, model="7"), style)
-    assert "--sref abc123 --sw 200" in out and "--ow 100" in out and "--v 7" in out
+def test_build_prompt_feliz_matches_spec_example():
+    # pin de extremo a extremo: catalogo y style.json reales -> el ejemplo literal del spec Sec.5.1-bis.
+    cat = mjlib.load_catalog(Path(__file__).resolve().parents[1] / "batches" / "fase-1.json")
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    feliz = next(p for p in cat["pieces"] if p["slug"] == "feliz")
+    out = mjlib.build_prompt(feliz, style)
+    assert out == (
+        "Doty beaming with joy, standing upright, arms slightly open, big happy smile, "
+        "keep the dark navy outline, the navy eyes with white highlights and the hot-pink body, "
+        "full body centered, plain white background, no shadow on the floor"
+    )
+    assert "--" not in out
 
-def test_build_prompt_sref_only_uses_character_block():
-    out = mjlib.build_prompt(piece(oref=False, sref_only=True), dict(STYLE, sref="abc123"))
-    assert "Doty the mascot" in out and "--oref" not in out and "--sref abc123" in out
+def test_build_prompt_correcto_icon_matches_expected_shape():
+    # mismo catalogo/style reales, pieza no-mascota: forma con flags de siempre, sin brand_lock/framing.
+    cat = mjlib.load_catalog(Path(__file__).resolve().parents[1] / "batches" / "fase-1.json")
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    correcto = next(p for p in cat["pieces"] if p["slug"] == "correcto")
+    out = mjlib.build_prompt(correcto, style)
+    assert out.startswith("Green check mark badge, a bold green check mark inside a white circle, flat icon,")
+    assert "--ar 1:1" in out and "--stylize 50" in out
+    assert out.endswith("--no text, watermark, glasses, shadow, background objects")
+    assert style["brand_lock"] not in out and style["framing"] not in out
 
 def test_emit_prompts_is_numbered_markdown():
     cat = {"fase": "fase-1", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad", fallback="05")]}
@@ -92,6 +113,19 @@ def test_emit_prompts_is_numbered_markdown():
     assert md.splitlines()[0] == "# fase-1 — prompts"
     assert "1. `feliz` → `expressions/feliz.png`" in md and "2. `triste`" in md
     assert md.count("```") == 4  # un bloque de código por prompt
+
+def test_emit_prompts_header_reflects_edit_model_no_stale_v7_terms():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(),
+        piece(group="icons", slug="correcto", mascot=False, prompt="green check mark"),
+    ]}
+    md = mjlib.emit_prompts(cat, STYLE)
+    assert "V8.2" in md
+    assert STYLE["edit_source"] in md
+    assert "nunca encadenes" in md
+    assert "🎨 mascota" in md and "🔤 icono" in md
+    for stale in ("--oref", "--ow ", "--sref", "Omni"):
+        assert stale not in md, stale
 
 def test_registry_src_uses_fallback_until_done():
     assert mjlib.registry_src(piece()) == "/images/Doty/DOTTY-POSES-02.png"
@@ -101,7 +135,7 @@ def test_emit_registry_shape():
     cat = {"fase": "fase-1", "pieces": [
         piece(done=True),
         piece(group="stickers", slug="good-job", prefix="Doty thumbs up wink", fallback="02"),
-        piece(group="games", slug="wordle", prefix="Green letter tiles", oref=False, fallback=None),
+        piece(group="games", slug="wordle", prefix="Green letter tiles", mascot=False, fallback=None),
     ]}
     ts = mjlib.emit_registry(cat)
     assert ts.startswith("// GENERADO por scripts/mj/process.py --emit-registry")
@@ -458,13 +492,15 @@ def test_apply_marca_halo_cuando_el_remover_deja_banda(tmp_path):
     assert rep["halo"][0][1] > mjlib.HALO_THRESHOLD
 
 def test_build_prompt_quita_glasses_del_negativo_si_la_pieza_los_lleva():
+    # el opt-out de glasses solo tiene efecto en el camino de icono: una pieza de
+    # mascota no lleva "--no" en absoluto (ver test_build_prompt_mascot_is_edit_instruction_without_flags).
     style = dict(STYLE, negative=["text", "glasses", "shadow"])
-    out = mjlib.build_prompt(piece(glasses=True), style)
+    out = mjlib.build_prompt(piece(group="icons", mascot=False, glasses=True), style)
     assert out.endswith("--no text, shadow")
 
 def test_build_prompt_mantiene_glasses_en_el_negativo_por_defecto():
     style = dict(STYLE, negative=["text", "glasses", "shadow"])
-    out = mjlib.build_prompt(piece(), style)
+    out = mjlib.build_prompt(piece(group="icons", mascot=False), style)
     assert out.endswith("--no text, glasses, shadow")
 
 def test_apply_mide_el_halo_antes_del_resize(tmp_path):
