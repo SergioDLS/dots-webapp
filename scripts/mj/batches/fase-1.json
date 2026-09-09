@@ -174,7 +174,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "14",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_waving_both_hands_waving_both_hands_high_above_71e643ed-f509-4974-a76b-ccd265f9d43c_1.png"
     },
     {
       "slug": "pulgar-arriba",
@@ -184,7 +185,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_giving_a_thumbs_up_one_thumb_up_at_chest_heigh_8b80a307-6a08-4511-96f8-bab20f7ac3fe_3.png"
     },
     {
       "slug": "senalando",
@@ -194,7 +196,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "13",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_pointing_at_something_one_arm_extended_index_f_30390d50-fc70-49eb-b581-4aa63907698b_3.png"
     },
     {
       "slug": "bienvenido",
@@ -204,7 +207,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "16",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_opening_arms_wide_arms_spread_open_wide_warm_w_4a86b084-7cfe-47fd-b86c-028fecb77887_3.png"
     },
     {
       "slug": "aplaudiendo",
@@ -214,7 +218,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_clapping_both_hands_hands_coming_together_in_a_4e57972e-5fe7-4e97-8cb4-433a58c243cd_2.png"
     },
     {
       "slug": "caminando",
@@ -224,7 +229,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_strolling_forward_mid-stride_walking_pose_one__1c2fe14b-0212-4133-8478-5b208005c838_2.png"
     },
     {
       "slug": "corriendo",
@@ -234,7 +240,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_sprinting_in_a_hurry_mid-run_pose_leaning_forw_c79b74d7-b768-4a29-812d-09bd521f1c63_2.png"
     },
     {
       "slug": "saltando",
@@ -244,7 +251,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_leaping_off_the_ground_both_feet_off_the_groun_e88f4bfd-db96-4471-9e8d-8099470f3fa3_3.png"
     },
     {
       "slug": "bailando",
@@ -254,7 +262,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "04",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_dancing_to_the_beat_arms_swaying_one_knee_bent_4c61aef8-2a69-40df-b77a-d188887ac021_3.png"
     },
     {
       "slug": "sentado",
@@ -264,7 +273,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_sitting_cross-legged_seated_on_the_floor_cross_6488e94b-de32-439b-b108-590f1beac21a_0.png"
     },
     {
       "slug": "leyendo",
@@ -274,7 +284,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_engrossed_in_a_book_sitting_with_an_open_navy__81d86bc8-176d-4d58-b7d0-7f3585ec332e_3.png"
     },
     {
       "slug": "escribiendo",
@@ -284,7 +295,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_jotting_in_a_notebook_holding_a_yellow_pencil__416096d2-ff60-450e-90b5-ab468e0ea1c0_2.png"
     },
     {
       "slug": "en-laptop",
@@ -294,7 +306,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_typing_on_a_laptop_seated_hands_on_a_navy_lapt_a7cb0677-01ce-4ae7-852b-44fd605ff4d2_1.png"
     },
     {
       "slug": "escuchando",
@@ -304,7 +317,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_grooving_with_headphones_wearing_blue_headphon_293995c4-6ff0-44fb-ba7a-3eb7530a46f6_1.png"
     },
     {
       "slug": "en-celular",
@@ -314,7 +328,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_scrolling_on_a_phone_holding_a_blue_smartphone_37f3c8a0-1b6f-4b9f-9d6a-7dcc2efbeed0_2.png"
     },
     {
       "slug": "hablando",
@@ -324,7 +339,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "13",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_talking_to_the_viewer_mouth_open_mid-sentence__3c08f1e8-dfc4-4299-b9f4-35607feb9f97_1.png"
     },
     {
       "slug": "wow",
