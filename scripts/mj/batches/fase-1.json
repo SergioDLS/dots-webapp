@@ -1041,7 +1041,7 @@
       "slug": "doty-sailor",
       "group": "characters",
       "prefix": "Doty Sailor talking with a cap",
-      "prompt": "same round pink body, white sailor cap with a navy visor, navy neckerchief, mouth open mid-sentence, one hand raised",
+      "prompt": "same round pink body, white sailor cap with a cyan visor, cyan neckerchief, mouth open mid-sentence, one hand raised",
       "size": 1024,
       "mascot": true,
       "fallback": null,
