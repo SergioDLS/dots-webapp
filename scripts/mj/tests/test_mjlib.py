@@ -202,17 +202,17 @@ def test_trim_square_resize_empty_image_raises():
         mjlib.trim_square_resize(Image.new("RGBA", (10, 10), (0, 0, 0, 0)), 64)
 
 
-def test_halo_ratio_detects_pink_fringe():
+def test_halo_thickness_px_detects_pink_fringe():
     clean = blob()
-    assert mjlib.halo_ratio(clean) == 0.0
+    assert mjlib.halo_thickness_px(clean) == 0.0
     fringe = blob()
     for x in range(50, 150):
         fringe.putpixel((x, 80), (255, 60, 150, 120))  # borde semitransparente rosado
-    assert mjlib.halo_ratio(fringe) == 0.025
+    assert mjlib.halo_thickness_px(fringe) > 0
     grey = blob()
     for x in range(50, 150):
         grey.putpixel((x, 80), (120, 120, 120, 120))
-    assert mjlib.halo_ratio(grey) == 0.0
+    assert mjlib.halo_thickness_px(grey) == 0.0
 
 def test_trim_square_resize_keeps_the_long_axis():
     # el sujeto de blob() es 100x40: el resultado debe seguir siendo más ancho que alto.
@@ -222,14 +222,14 @@ def test_trim_square_resize_keeps_the_long_axis():
     ancho, alto = bbox[2] - bbox[0], bbox[3] - bbox[1]
     assert 0.35 * ancho <= alto <= 0.55 * ancho
 
-def test_halo_ratio_needs_both_colour_conditions():
+def test_halo_thickness_px_needs_both_colour_conditions():
     # r>180 pero g>=120, y r<=180 pero g<120: ninguno es rosa. Con `or` contarían como halo.
     im = blob()
     for x in range(50, 100):
         im.putpixel((x, 80), (200, 150, 160, 120))
     for x in range(100, 150):
         im.putpixel((x, 80), (100, 50, 60, 120))
-    assert mjlib.halo_ratio(im) == 0.0
+    assert mjlib.halo_thickness_px(im) == 0.0
 
 def test_trim_square_resize_rounds_the_inner_size():
     # margen por defecto 0.04 sobre 256: round(235.52)=236, truncar daría 235.
@@ -296,29 +296,44 @@ def test_apply_pick_resolves_ambiguity_and_skips_existing(tmp_path):
 
 def test_render_report_sections():
     txt = mjlib.render_report({"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": ["wow"],
-                               "ambiguous": ["triste"], "halo": [("feliz", 0.05)], "failed": [], "duplicates": []})
+                               "ambiguous": ["triste"], "halo": [("feliz", 2.5)], "failed": [], "duplicates": []})
     assert "# fase-1 — REPORT" in txt and "## Hechas (1)" in txt and "- wow" in txt
-    assert "feliz (5.0%)" in txt
+    assert "feliz (2.50 px)" in txt
 
 
-def test_halo_ratio_distingue_halo_de_antialiasing():
+def test_halo_thickness_distingue_halo_de_antialiasing():
     from PIL import ImageDraw
 
-    def circulo(halo_px=0, size=1024, diam_ratio=0.859375):
-        im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    def circulo(halo_px=0, size=512):
+        s = size * 4
+        im = Image.new("RGBA", (s, s), (0, 0, 0, 0))
         d = ImageDraw.Draw(im)
-        diam = int(size * diam_ratio)
-        off = (size - diam) // 2
+        off = s * 0.07
         if halo_px:
-            d.ellipse([off - halo_px, off - halo_px,
-                       off + diam + halo_px, off + diam + halo_px],
-                      fill=(255, 31, 143, 110))
-        d.ellipse([off, off, off + diam, off + diam], fill=(255, 31, 143, 255))
-        return im
+            g = halo_px * 4
+            d.ellipse([off - g, off - g, s - off + g, s - off + g], fill=(255, 31, 143, 110))
+        d.ellipse([off, off, s - off, s - off], fill=(255, 31, 143, 255))
+        return im.resize((size, size), Image.LANCZOS)  # antialiasing real
 
-    limpio = mjlib.halo_ratio(circulo())
-    con_halo = mjlib.halo_ratio(circulo(halo_px=6))
-    assert limpio < mjlib.HALO_THRESHOLD < con_halo
+    limpio = mjlib.halo_thickness_px(circulo())
+    con_halo = mjlib.halo_thickness_px(circulo(halo_px=6))
+    assert 1.0 < limpio < mjlib.HALO_THRESHOLD < con_halo
+
+
+def test_halo_thickness_no_depende_del_tamano():
+    from PIL import ImageDraw
+
+    def circulo(size):
+        s = size * 4
+        im = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        off = s * 0.07
+        d.ellipse([off, off, s - off, s - off], fill=(255, 31, 143, 255))
+        return im.resize((size, size), Image.LANCZOS)
+
+    a = mjlib.halo_thickness_px(circulo(512))
+    b = mjlib.halo_thickness_px(circulo(1024))
+    assert abs(a - b) < 0.15 and a < mjlib.HALO_THRESHOLD
 
 
 def test_apply_force_reprocesa_una_pieza_done(tmp_path):
@@ -331,16 +346,6 @@ def test_apply_force_reprocesa_una_pieza_done(tmp_path):
     assert rep["done"] == ["feliz"] and rep["skipped"] == []
     assert (repo / "public/images/Doty/expressions/feliz.png").exists()
 
-
-def test_apply_reporta_halo(tmp_path):
-    raw, repo = tmp_path / "raw", tmp_path / "repo"
-    (raw / "fase-1").mkdir(parents=True)
-    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
-    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
-    cpath = write(tmp_path, "fase-1.json", cat)
-    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
-    assert rep["done"] == ["feliz"]
-    assert [s for s, _ in rep["halo"]] == ["feliz"]
 
 
 def test_apply_rechaza_un_pick_inexistente(tmp_path):

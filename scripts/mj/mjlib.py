@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 from typing import Callable
-from PIL import Image
+from PIL import Image, ImageChops, ImageFilter
 
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
 EXTRA_GROUPS = ("games", "characters", "app-icon")
@@ -191,23 +191,35 @@ def trim_square_resize(img: "Image.Image", size: int, margin: float = 0.04) -> "
     return out
 
 
-def halo_ratio(img: "Image.Image") -> float:
-    """Fracción de los píxeles VISIBLES que son semitransparentes y rosados
-    (r>180, g<120). El antialiasing de un sprite limpio deja una banda de ~1 px,
-    así que ronda el 1-2 %; un halo real de rembg engrosa esa banda y sube.
-    El denominador son los visibles, no los de borde: con Doty (rosa) todo píxel
-    de borde es rosa, así que dividir por los de borde daba siempre ~1.0."""
-    px = img.convert("RGBA").get_flattened_data()
-    visible = semi_pink = 0
-    for r, g, b, a in px:
-        if a > 0:
-            visible += 1
-            if a < 255 and r > 180 and g < 120:
-                semi_pink += 1
-    return semi_pink / visible if visible else 0.0
+def halo_thickness_px(img: "Image.Image") -> float:
+    """Grosor medio, en píxeles, de la banda semitransparente ROSADA (r>180, g<120)
+    alrededor del sujeto: cuenta de esos píxeles dividida por el largo del contorno.
+
+    El antialiasing de un sprite limpio deja una banda de ~1.4 px en cualquier
+    silueta y a cualquier resolución; un halo de rembg la engrosa proporcionalmente.
+    Se mide grosor y no una fracción del sprite porque la fracción depende de la
+    silueta y del tamaño: la de Doty (pelo en picos, extremidades finas) tiene mucho
+    más perímetro por área que un círculo, y a 512 px un sprite limpio ya daba más
+    del 2 % — los rangos limpio/con-halo se solapaban entre formas.
+    """
+    img = img.convert("RGBA")
+    a = img.getchannel("A")
+    visible = a.point(lambda v: 255 if v > 0 else 0, mode="L")
+    semi = a.point(lambda v: 255 if 0 < v < 255 else 0, mode="L")
+    rosa = ImageChops.multiply(
+        img.getchannel("R").point(lambda v: 255 if v > 180 else 0, mode="L"),
+        img.getchannel("G").point(lambda v: 255 if v < 120 else 0, mode="L"),
+    )
+    semi_rosa = ImageChops.multiply(semi, rosa)
+    contorno = ImageChops.subtract(visible, visible.filter(ImageFilter.MinFilter(3)))
+    n_contorno = sum(1 for v in contorno.get_flattened_data() if v)
+    n_semi = sum(1 for v in semi_rosa.get_flattened_data() if v)
+    return n_semi / n_contorno if n_contorno else 0.0
 
 
-HALO_THRESHOLD = 0.02
+# Grosor de banda semitransparente por encima del cual la pieza es candidata a
+# regenerar. Un sprite limpio mide ~1.4 px en cualquier silueta y resolución.
+HALO_THRESHOLD = 2.0
 
 
 def save_catalog(cat: dict, path: Path) -> None:
@@ -259,9 +271,9 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             rep["failed"].append((slug, f"{type(exc).__name__}: {exc}"))
             continue
         consumed[chosen] = slug
-        ratio = halo_ratio(out)
-        if ratio > HALO_THRESHOLD:
-            rep["halo"].append((slug, ratio))
+        grosor = halo_thickness_px(out)
+        if grosor > HALO_THRESHOLD:
+            rep["halo"].append((slug, grosor))
         p["done"] = True
         p["source_file"] = chosen
         rep["done"].append(slug)
@@ -279,5 +291,5 @@ def render_report(rep: dict) -> str:
     lines += section("Faltan", rep["missing"])
     lines += section("Falló el procesado", [f"{s}: {e}" for s, e in rep["failed"]])
     lines += section("Mismo archivo usado por dos piezas", [f"{s} y {otro} -> {f}" for s, f, otro in rep["duplicates"]])
-    lines += section("Alerta de halo rosa: regenerar o retocar", [f"{s} ({r:.1%})" for s, r in rep["halo"]])
+    lines += section("Alerta de halo: banda gruesa, regenerar o retocar", [f"{s} ({r:.2f} px)" for s, r in rep["halo"]])
     return "\n".join(lines)
