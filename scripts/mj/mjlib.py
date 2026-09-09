@@ -135,3 +135,31 @@ export function toDotyPose(v: string | null | undefined): DotyPose {{
   return isDotyPose(v) ? v : FALLBACK_POSE;
 }}
 '''
+
+
+def normalize(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+
+
+def match_downloads(cat: dict, filenames: list[str]) -> dict[str, list[str]]:
+    pngs = sorted(f for f in filenames if f.lower().endswith(".png"))
+    out: dict[str, list[str]] = {}
+    for p in cat["pieces"]:
+        key = normalize(p["prefix"])
+        out[p["slug"]] = [f for f in pngs if key in normalize(f)]
+    return out
+
+
+def render_dry_run(cat: dict, matches: dict[str, list[str]]) -> str:
+    lines = []
+    for p in cat["pieces"]:
+        files = matches.get(p["slug"], [])
+        if p.get("done"):
+            lines.append(f"HECHO    {p['slug']}")
+        elif len(files) == 1:
+            lines.append(f"OK       {p['slug']} ← {files[0]}")
+        elif files:
+            lines.append(f"AMBIGUO  {p['slug']} ← {' | '.join(files)}")
+        else:
+            lines.append(f"FALTA    {p['slug']}")
+    return "\n".join(lines)

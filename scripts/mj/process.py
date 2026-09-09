@@ -37,6 +37,13 @@ def cmd_emit_prompts(fase: str, raw: Path) -> None:
     print(f"{len(cat['pieces'])} prompts → {out}")
 
 
+def cmd_dry_run(fase: str, raw: Path) -> int:
+    cat = mjlib.load_catalog(batch_path(fase))
+    files = [f.name for f in (raw / fase).iterdir() if f.is_file()] if (raw / fase).exists() else []
+    print(mjlib.render_dry_run(cat, mjlib.match_downloads(cat, files)))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
@@ -59,6 +66,10 @@ def main(argv: list[str] | None = None) -> int:
         out.write_text(mjlib.emit_registry(cat), encoding="utf-8")
         print(f"registro → {out}")
         return 0
+    if a.dry_run:
+        if not a.raw:
+            ap.error("--dry-run requiere --raw")
+        return cmd_dry_run(a.dry_run, a.raw)
     ap.error("subcomando aún no implementado")
 
 

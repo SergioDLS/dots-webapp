@@ -120,3 +120,24 @@ def test_emit_registry_feliz_in_stickers_does_not_satisfy_guard():
         mjlib.emit_registry({"fase": "x", "pieces": [
             piece(group="stickers", slug="feliz", prefix="Doty happy sticker", fallback="02"),
         ]})
+
+def test_normalize_collapses_separators():
+    assert mjlib.normalize("sergio_Doty_beaming_with_joy_3f2a.png") == "sergio doty beaming with joy 3f2a png"
+    assert mjlib.normalize("Doty beaming with joy") == "doty beaming with joy"
+
+def test_match_downloads_by_prefix():
+    cat = {"fase": "x", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad", fallback="05")]}
+    files = ["sergio_Doty_beaming_with_joy_aaaa.png", "sergio_Doty_beaming_with_joy_bbbb.png",
+             "sergio_Doty_feeling_sad_cccc.png", "random.png", "PROMPTS.md"]
+    m = mjlib.match_downloads(cat, files)
+    assert m["feliz"] == ["sergio_Doty_beaming_with_joy_aaaa.png", "sergio_Doty_beaming_with_joy_bbbb.png"]
+    assert m["triste"] == ["sergio_Doty_feeling_sad_cccc.png"]
+
+def test_render_dry_run_lists_states():
+    cat = {"fase": "x", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+                                   piece(slug="wow", prefix="Doty amazed", fallback="06")]}
+    m = {"feliz": ["a.png", "b.png"], "triste": ["c.png"], "wow": []}
+    txt = mjlib.render_dry_run(cat, m)
+    assert "OK       triste ← c.png" in txt
+    assert "AMBIGUO  feliz ← a.png | b.png" in txt
+    assert "FALTA    wow" in txt
