@@ -89,7 +89,10 @@ def build_prompt(piece: dict, style: dict) -> str:
         flags.append(f"--oref {style['oref_file']} --ow {piece.get('ow', style['ow'])}")
     if style.get("sref"):
         flags.append(f"--sref {style['sref']} --sw {style['sw']}")
-    flags.append("--no " + ", ".join(style["negative"]))
+    negativos = style["negative"]
+    if piece.get("glasses"):
+        negativos = [n for n in negativos if n != "glasses"]
+    flags.append("--no " + ", ".join(negativos))
     return ", ".join(body) + " " + " ".join(flags)
 
 

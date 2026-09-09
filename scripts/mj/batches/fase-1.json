@@ -61,7 +61,7 @@
     { "slug": "bandera-uk", "group": "accessories", "prefix": "Doty waving a UK flag", "prompt": "holding a small British flag high overhead, proud cheerful smile", "size": 1024, "oref": true, "fallback": "02", "done": false },
     { "slug": "bandera-usa", "group": "accessories", "prefix": "Doty holding a USA flag", "prompt": "holding a small American flag high overhead, proud beaming smile", "size": 1024, "oref": true, "fallback": "02", "done": false },
     { "slug": "maleta", "group": "accessories", "prefix": "Doty rolling a travel suitcase", "prompt": "pulling a navy blue rolling suitcase, big excited travel-ready smile", "size": 1024, "oref": true, "fallback": "02", "done": false },
-    { "slug": "lentes", "group": "accessories", "prefix": "Doty sporting round glasses", "prompt": "wearing round navy-framed glasses, one hand adjusting the frame, confident smile", "size": 1024, "oref": true, "fallback": "02", "done": false },
+    { "slug": "lentes", "group": "accessories", "prefix": "Doty sporting round glasses", "prompt": "wearing round navy-framed glasses, one hand adjusting the frame, confident smile", "size": 1024, "oref": true, "glasses": true, "fallback": "02", "done": false },
     { "slug": "idea", "group": "accessories", "prefix": "Doty struck by a bright idea", "prompt": "one finger raised, a glowing yellow light bulb above the head, eyes lit up", "size": 1024, "oref": true, "fallback": "12", "done": false },
     { "slug": "globo", "group": "accessories", "prefix": "Doty floating with a balloon", "prompt": "holding a pink balloon string, feet lifting off the ground, delighted grin", "size": 1024, "oref": true, "fallback": "02", "done": false },
 
@@ -105,7 +105,7 @@
 
     { "slug": "doty-fem", "group": "characters", "prefix": "Doty Fem talking with a cyan bow", "prompt": "same round pink body, long eyelashes, cyan bow on top of the head, mouth open mid-sentence, one hand raised", "size": 1024, "oref": true, "fallback": null, "done": false },
     { "slug": "doty-sailor", "group": "characters", "prefix": "Doty Sailor talking with a cap", "prompt": "same round pink body, white sailor cap with a navy visor, navy neckerchief, mouth open mid-sentence, one hand raised", "size": 1024, "oref": true, "fallback": null, "done": false },
-    { "slug": "doty-scientist", "group": "characters", "prefix": "Doty Scientist talking with glasses", "prompt": "same round pink body, round glasses, white lab coat, mouth open mid-sentence, one hand raised", "size": 1024, "oref": true, "fallback": null, "done": false },
+    { "slug": "doty-scientist", "group": "characters", "prefix": "Doty Scientist talking with glasses", "prompt": "same round pink body, round glasses, white lab coat, mouth open mid-sentence, one hand raised", "size": 1024, "oref": true, "glasses": true, "fallback": null, "done": false },
 
     { "slug": "app-icon", "group": "app-icon", "prefix": "Doty face close up icon", "prompt": "head and shoulders close-up, centered, big smile, looking at the viewer", "size": 1024, "oref": true, "fallback": null, "done": false }
   ]

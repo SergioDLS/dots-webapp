@@ -7,7 +7,7 @@
   "stylize": 50,
   "aspect": "1:1",
   "negative": ["text", "watermark", "glasses", "shadow", "background objects"],
-  "character": "Doty the mascot: a round hot-pink ball character with a spiky tuft of hair on top, big oval navy eyes with white highlights, wide navy smiling mouth, short stubby arms and legs, dark magenta shoes, no glasses",
+  "character": "Doty the mascot: a round hot-pink ball character with a spiky tuft of hair on top, big oval navy eyes with white highlights, wide navy smiling mouth, short stubby arms and legs, dark magenta shoes",
   "style_block": "flat vector cartoon illustration, clean bold outlines, soft cel shading, full body centered, plain white background",
   "icon_block": "flat icon, thick rounded outline, brand palette #FF1F8F #1E1B5C #3768FF #35D8F5, centered, plain white background",
   "draft_supports_oref": null,

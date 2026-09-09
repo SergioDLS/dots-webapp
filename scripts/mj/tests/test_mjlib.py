@@ -425,3 +425,13 @@ def test_apply_marca_halo_cuando_el_remover_deja_banda(tmp_path):
     assert rep["done"] == ["feliz"]
     assert [s for s, _ in rep["halo"]] == ["feliz"]
     assert rep["halo"][0][1] > mjlib.HALO_THRESHOLD
+
+def test_build_prompt_quita_glasses_del_negativo_si_la_pieza_los_lleva():
+    style = dict(STYLE, negative=["text", "glasses", "shadow"])
+    out = mjlib.build_prompt(piece(glasses=True), style)
+    assert out.endswith("--no text, shadow")
+
+def test_build_prompt_mantiene_glasses_en_el_negativo_por_defecto():
+    style = dict(STYLE, negative=["text", "glasses", "shadow"])
+    out = mjlib.build_prompt(piece(), style)
+    assert out.endswith("--no text, glasses, shadow")

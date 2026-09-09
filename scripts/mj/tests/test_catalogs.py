@@ -24,3 +24,8 @@ def test_fase1_counts_and_rules():
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
     assert len({p["prefix"] for p in cat["pieces"]}) == 97
+
+def test_solo_lentes_y_scientist_llevan_glasses():
+    cat = mjlib.load_catalog(BATCH)
+    con_glasses = {p["slug"] for p in cat["pieces"] if p.get("glasses")}
+    assert con_glasses == {"lentes", "doty-scientist"}
