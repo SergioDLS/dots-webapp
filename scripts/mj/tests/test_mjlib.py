@@ -208,7 +208,7 @@ def test_halo_ratio_detects_pink_fringe():
     fringe = blob()
     for x in range(50, 150):
         fringe.putpixel((x, 80), (255, 60, 150, 120))  # borde semitransparente rosado
-    assert mjlib.halo_ratio(fringe) == 1.0
+    assert mjlib.halo_ratio(fringe) == 0.025
     grey = blob()
     for x in range(50, 150):
         grey.putpixel((x, 80), (120, 120, 120, 120))
@@ -296,6 +296,91 @@ def test_apply_pick_resolves_ambiguity_and_skips_existing(tmp_path):
 
 def test_render_report_sections():
     txt = mjlib.render_report({"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": ["wow"],
-                               "ambiguous": ["triste"], "halo": [("feliz", 0.05)]})
+                               "ambiguous": ["triste"], "halo": [("feliz", 0.05)], "failed": [], "duplicates": []})
     assert "# fase-1 — REPORT" in txt and "## Hechas (1)" in txt and "- wow" in txt
     assert "feliz (5.0%)" in txt
+
+
+def test_halo_ratio_distingue_halo_de_antialiasing():
+    from PIL import ImageDraw
+
+    def circulo(halo_px=0, size=1024, diam_ratio=0.859375):
+        im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        diam = int(size * diam_ratio)
+        off = (size - diam) // 2
+        if halo_px:
+            d.ellipse([off - halo_px, off - halo_px,
+                       off + diam + halo_px, off + diam + halo_px],
+                      fill=(255, 31, 143, 110))
+        d.ellipse([off, off, off + diam, off + diam], fill=(255, 31, 143, 255))
+        return im
+
+    limpio = mjlib.halo_ratio(circulo())
+    con_halo = mjlib.halo_ratio(circulo(halo_px=6))
+    assert limpio < mjlib.HALO_THRESHOLD < con_halo
+
+
+def test_apply_force_reprocesa_una_pieza_done(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover, force=True)
+    assert rep["done"] == ["feliz"] and rep["skipped"] == []
+    assert (repo / "public/images/Doty/expressions/feliz.png").exists()
+
+
+def test_apply_reporta_halo(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    assert [s for s, _ in rep["halo"]] == ["feliz"]
+
+
+def test_apply_rechaza_un_pick_inexistente(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    with pytest.raises(mjlib.CatalogError, match="no existen"):
+        mjlib.apply_batch(cat, cpath, raw, repo, fake_remover, picks={"feliz": "fantasma.png"})
+
+
+def test_apply_detecta_el_mismo_archivo_en_dos_piezas(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [
+        piece(size=64),
+        piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64),
+    ]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover,
+                            picks={"triste": "sergio_Doty_beaming_with_joy_aaaa.png"})
+    assert rep["done"] == ["feliz", "triste"]
+    assert [(s, f) for s, f, _ in rep["duplicates"]] == [("triste", "sergio_Doty_beaming_with_joy_aaaa.png")]
+
+
+def test_apply_aisla_el_fallo_de_una_pieza(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_bbbb.png")
+    cat = {"fase": "fase-1", "pieces": [
+        piece(size=64),
+        piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64),
+    ]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+
+    def remover_que_falla(im):
+        raise RuntimeError("modelo caído")
+
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_que_falla)
+    assert rep["done"] == [] and len(rep["failed"]) == 2
+    assert all("RuntimeError" in e for _, e in rep["failed"])

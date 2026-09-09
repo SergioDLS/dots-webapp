@@ -192,13 +192,19 @@ def trim_square_resize(img: "Image.Image", size: int, margin: float = 0.04) -> "
 
 
 def halo_ratio(img: "Image.Image") -> float:
-    """Entre los píxeles de borde (alfa 1..254), fracción que es rosada (r>180, g<120)."""
+    """Fracción de los píxeles VISIBLES que son semitransparentes y rosados
+    (r>180, g<120). El antialiasing de un sprite limpio deja una banda de ~1 px,
+    así que ronda el 1-2 %; un halo real de rembg engrosa esa banda y sube.
+    El denominador son los visibles, no los de borde: con Doty (rosa) todo píxel
+    de borde es rosa, así que dividir por los de borde daba siempre ~1.0."""
     px = img.convert("RGBA").get_flattened_data()
-    edge = [(r, g, b) for r, g, b, a in px if 0 < a < 255]
-    if not edge:
-        return 0.0
-    pink = sum(1 for r, g, _ in edge if r > 180 and g < 120)
-    return pink / len(edge)
+    visible = semi_pink = 0
+    for r, g, b, a in px:
+        if a > 0:
+            visible += 1
+            if a < 255 and r > 180 and g < 120:
+                semi_pink += 1
+    return semi_pink / visible if visible else 0.0
 
 
 HALO_THRESHOLD = 0.02
@@ -216,7 +222,14 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
     raw_dir = Path(raw_root) / fase
     files = [f.name for f in raw_dir.iterdir() if f.is_file()] if raw_dir.exists() else []
     matches = match_downloads(cat, files)
-    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": []}
+    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": [], "duplicates": [], "failed": []}
+
+    # Validar picks: todos los archivos deben existir
+    missing_picks = [f"{s}={f}" for s, f in picks.items() if not (raw_dir / f).is_file()]
+    if missing_picks:
+        raise CatalogError(f"--pick apunta a archivos que no existen: {', '.join(sorted(missing_picks))}")
+
+    consumed: dict[str, str] = {}
     for p in cat["pieces"]:
         slug = p["slug"]
         target = output_path(p, fase, repo_root, raw_root)
@@ -234,11 +247,18 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             else:
                 rep["missing"].append(slug)
                 continue
-        src = Image.open(raw_dir / chosen).convert("RGBA")
-        cut = remover(src)
-        out = trim_square_resize(cut, p["size"])
-        target.parent.mkdir(parents=True, exist_ok=True)
-        out.save(target, optimize=True)
+        if chosen in consumed:
+            rep["duplicates"].append((slug, chosen, consumed[chosen]))
+        try:
+            src = Image.open(raw_dir / chosen).convert("RGBA")
+            cut = remover(src)
+            out = trim_square_resize(cut, p["size"])
+            target.parent.mkdir(parents=True, exist_ok=True)
+            out.save(target, optimize=True)
+        except Exception as exc:
+            rep["failed"].append((slug, f"{type(exc).__name__}: {exc}"))
+            continue
+        consumed[chosen] = slug
         ratio = halo_ratio(out)
         if ratio > HALO_THRESHOLD:
             rep["halo"].append((slug, ratio))
@@ -257,5 +277,7 @@ def render_report(rep: dict) -> str:
     lines += section("Ya existían (saltadas)", rep["skipped"])
     lines += section("Ambiguas: usa --pick slug=archivo", rep["ambiguous"])
     lines += section("Faltan", rep["missing"])
+    lines += section("Falló el procesado", [f"{s}: {e}" for s, e in rep["failed"]])
+    lines += section("Mismo archivo usado por dos piezas", [f"{s} y {otro} -> {f}" for s, f, otro in rep["duplicates"]])
     lines += section("Alerta de halo rosa: regenerar o retocar", [f"{s} ({r:.1%})" for s, r in rep["halo"]])
     return "\n".join(lines)
