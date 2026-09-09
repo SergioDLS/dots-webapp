@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import pytest
+from PIL import Image
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import mjlib  # noqa: E402
@@ -172,3 +173,43 @@ def test_match_downloads_returns_sorted_candidates():
 def test_match_downloads_ignores_non_png():
     cat = {"fase": "x", "pieces": [piece()]}
     assert mjlib.match_downloads(cat, ["sergio_Doty_beaming_with_joy_x.txt"])["feliz"] == []
+
+
+def blob(w=200, h=200, box=(50, 80, 150, 120), color=(255, 31, 143, 255)):
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    for x in range(box[0], box[2]):
+        for y in range(box[1], box[3]):
+            im.putpixel((x, y), color)
+    return im
+
+
+def test_trim_square_resize_centers_and_sizes():
+    out = mjlib.trim_square_resize(blob(), 128, margin=0.0)
+    assert out.size == (128, 128) and out.mode == "RGBA"
+    bbox = out.getbbox()  # el contenido ocupa todo el ancho y queda centrado en vertical
+    assert bbox[0] == 0 and bbox[2] == 128
+    assert abs((bbox[1] + bbox[3]) / 2 - 64) <= 1
+
+
+def test_trim_square_resize_applies_margin():
+    out = mjlib.trim_square_resize(blob(), 100, margin=0.10)
+    bbox = out.getbbox()
+    assert 9 <= bbox[0] <= 11 and 89 <= bbox[2] <= 91
+
+
+def test_trim_square_resize_empty_image_raises():
+    with pytest.raises(ValueError, match="empty"):
+        mjlib.trim_square_resize(Image.new("RGBA", (10, 10), (0, 0, 0, 0)), 64)
+
+
+def test_halo_ratio_detects_pink_fringe():
+    clean = blob()
+    assert mjlib.halo_ratio(clean) == 0.0
+    fringe = blob()
+    for x in range(50, 150):
+        fringe.putpixel((x, 80), (255, 60, 150, 120))  # borde semitransparente rosado
+    assert mjlib.halo_ratio(fringe) == 1.0
+    grey = blob()
+    for x in range(50, 150):
+        grey.putpixel((x, 80), (120, 120, 120, 120))
+    assert mjlib.halo_ratio(grey) == 0.0

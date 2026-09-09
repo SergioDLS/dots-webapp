@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from PIL import Image
 
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
 EXTRA_GROUPS = ("games", "characters", "app-icon")
@@ -170,3 +171,30 @@ def render_dry_run(cat: dict, matches: dict[str, list[str]]) -> str:
         else:
             lines.append(f"FALTA    {p['slug']}")
     return "\n".join(lines)
+
+
+def trim_square_resize(img: "Image.Image", size: int, margin: float = 0.04) -> "Image.Image":
+    img = img.convert("RGBA")
+    bbox = img.getbbox()
+    if bbox is None:
+        raise ValueError("empty image (fully transparent)")
+    content = img.crop(bbox)
+    w, h = content.size
+    side = max(w, h)
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(content, ((side - w) // 2, (side - h) // 2))
+    inner = max(1, round(size * (1 - 2 * margin)))
+    scaled = canvas.resize((inner, inner), Image.LANCZOS)
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    out.paste(scaled, ((size - inner) // 2, (size - inner) // 2))
+    return out
+
+
+def halo_ratio(img: "Image.Image") -> float:
+    """Entre los píxeles de borde (alfa 1..254), fracción que es rosada (r>180, g<120)."""
+    px = img.convert("RGBA").getdata()
+    edge = [(r, g, b) for r, g, b, a in px if 0 < a < 255]
+    if not edge:
+        return 0.0
+    pink = sum(1 for r, g, _ in edge if r > 180 and g < 120)
+    return pink / len(edge)
