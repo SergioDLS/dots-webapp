@@ -654,7 +654,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_in_a_Santa_hat_wearing_a_red_Santa_hat_with_wh_fd6cd3f1-bc70-4052-b498-001b70da1cd8_2.png"
     },
     {
       "slug": "halloween",
@@ -664,7 +665,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "18",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_dressed_as_a_pumpkin_wearing_an_orange_pumpkin_93c3f3ac-e8b9-4896-9541-c4f6b1ebe509_1.png"
     },
     {
       "slug": "san-valentin",
@@ -674,7 +676,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_hugging_a_heart_pillow_hugging_a_big_pink_hear_96b0170e-b3db-4d6e-a677-a01b39267b85_1.png"
     },
     {
       "slug": "fiestas-patrias",
@@ -684,7 +687,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_dressed_for_a_rodeo_wearing_a_dark_grey_wide-b_f51c08bd-a8ae-42f1-85e9-44fe521f7ce6_1.png"
     },
     {
       "slug": "graduacion",
@@ -694,7 +698,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_graduating_in_a_cyan_gown_wearing_a_cyan_gradu_e0d02b82-fa69-4ae9-9a6d-b498bcd6c81d_0.png"
     },
     {
       "slug": "back-to-school",
@@ -704,7 +709,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_starting_the_school_year_wearing_a_cyan_backpa_b25d7815-1a69-4230-a46b-03e4e7ef8393_0.png"
     },
     {
       "slug": "correcto",
@@ -774,7 +780,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "11",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_thumbs_up_and_winking_thumbs_up_with_one_hand__54f61822-db58-490b-91b8-abf3c30893d0_2.png"
     },
     {
       "slug": "amazing",
@@ -784,7 +791,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_with_starry_eyes_big_sparkling_star-shaped_eye_bd75befd-a885-4ae3-8ccd-498954a9097c_3.png"
     },
     {
       "slug": "keep-going",
@@ -794,7 +802,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_raising_a_triumphant_fist_one_fist_raised_high_61a0076b-3edf-47e1-9598-cc1275fabba0_0.png"
     },
     {
       "slug": "you-can-do-it",
@@ -804,7 +813,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_flexing_a_big_bicep_one_arm_flexed_showing_a_b_dd153169-fcc6-4549-aeee-7437745c4e65_3.png"
     },
     {
       "slug": "lets-practice",
@@ -814,7 +824,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_tapping_toward_a_laptop_one_hand_tapping_the_a_2acb6554-480d-47e1-945a-72c0b52be3cd_3.png"
     },
     {
       "slug": "oops",
@@ -824,7 +835,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "05",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_covering_mouth_in_shock_both_hands_over_the_mo_65cd0e32-1795-4242-9d3f-a84d9bb13452_1.png"
     },
     {
       "slug": "almost",
@@ -834,7 +846,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "05",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_pinching_fingers_so_close_thumb_and_finger_alm_043b1a81-832f-46cd-864e-60d258c011b9_3.png"
     },
     {
       "slug": "nice",
@@ -844,7 +857,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_giving_an_ok_sign_thumb_and_index_finger_formi_530fee58-c51b-4223-9fab-071468ad6c2a_0.png"
     },
     {
       "slug": "excellent",
@@ -854,7 +868,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_double_thumbs_up_cheering_both_thumbs_up_at_ch_7c063217-29c3-44b9-b8e0-0837d552b6aa_1.png"
     },
     {
       "slug": "see-you",
@@ -864,7 +879,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_walking_away_waving_back_seen_from_behind_walk_29568e21-80d8-4b7e-b7d7-098bfefee1ef_1.png"
     },
     {
       "slug": "wordle",
