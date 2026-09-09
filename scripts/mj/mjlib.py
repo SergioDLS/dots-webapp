@@ -110,8 +110,20 @@ def build_prompt(piece: dict, style: dict) -> str:
 
 def emit_prompts(cat: dict, style: dict) -> str:
     lines = [f"# {cat['fase']} — prompts", "",
-             "Pega cada prompt tal cual. En la web, arrastra `ref-hero.png` al slot de Omni Reference "
-             "cuando el prompt lleve `--oref`, y la hoja/código al de Style Reference cuando lleve `--sref`.",
+             "**Antes de nada: pon el modelo en V7 en los ajustes de la web.** Con V8 no existe "
+             "el bin de Omni-reference — Midjourney lo sustituyó por el Edit Model, que es la fila "
+             "\"Attach to prompt\" y NO sirve para consistencia de personaje (verificado 2026-09-09).",
+             "",
+             "Con V7 activo, arrastra `ref-hero.png` a la barra del prompt y suéltala en el bin "
+             "**Omni-reference** cuando el prompt lleve `--oref`; la hoja o el código van al de "
+             "**Style reference** cuando lleve `--sref`.",
+             "",
+             "**No pegues `--oref <archivo>` como texto**: el parámetro lo inserta Midjourney al "
+             "soltar la imagen en el bin. Pega el resto del prompt tal cual.",
+             "",
+             "Nota: un trabajo con `--oref` se ejecuta en V7 aunque la cuenta esté en V8, así que "
+             "un `--v 7` explícito en el prompt no cambia nada.",
+             "",
              "Descarga la imagen elegida a la carpeta de este lote sin renombrarla.", ""]
     for i, p in enumerate(cat["pieces"], 1):
         target = f"{p['group']}/{p['slug']}.png"
