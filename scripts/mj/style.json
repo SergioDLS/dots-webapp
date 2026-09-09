@@ -6,8 +6,17 @@
   "framing": "full body centered, plain white background, no shadow on the floor",
   "stylize": 50,
   "aspect": "1:1",
-  "negative": ["text", "watermark", "glasses", "shadow", "background objects"],
+  "negative": [
+    "text",
+    "watermark",
+    "glasses",
+    "shadow",
+    "background objects"
+  ],
   "icon_block": "flat icon, thick rounded outline, brand palette #FF1F8F #1E1B5C #3768FF #35D8F5, centered, plain white background",
-  "draft_supports_oref": null,
-  "gpu_minutes": { "standard": null, "draft": null, "enhance": null }
+  "gpu_minutes_medidos": {
+    "v7_oref": 2.0,
+    "edit_v8_2": 1.0,
+    "nota": "medido en fase 0 el 2026-09-09, plan Basic, Speed=Fast, 4 candidatas por trabajo"
+  }
 }
