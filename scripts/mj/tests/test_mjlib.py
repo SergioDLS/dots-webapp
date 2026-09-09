@@ -389,3 +389,39 @@ def test_apply_aisla_el_fallo_de_una_pieza(tmp_path):
     rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_que_falla)
     assert rep["done"] == [] and len(rep["failed"]) == 2
     assert all("RuntimeError" in e for _, e in rep["failed"])
+
+def test_apply_no_marca_halo_en_un_sprite_limpio(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    assert rep["halo"] == []
+
+
+def test_apply_marca_halo_cuando_el_remover_deja_banda(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+
+    def remover_con_halo(im):
+        """Deja una banda de 8 px rosa semitransparente alrededor del sujeto,
+        imitando el fallo real de rembg que este alerta debe cazar."""
+        im = im.convert("RGBA")
+        out = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        for x in range(92, 208):
+            for y in range(112, 188):
+                out.putpixel((x, y), (250, 60, 150, 110))
+        for x in range(100, 200):
+            for y in range(120, 180):
+                out.putpixel((x, y), (255, 31, 143, 255))
+        return out
+
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_con_halo)
+    assert rep["done"] == ["feliz"]
+    assert [s for s, _ in rep["halo"]] == ["feliz"]
+    assert rep["halo"][0][1] > mjlib.HALO_THRESHOLD

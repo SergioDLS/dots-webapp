@@ -201,6 +201,12 @@ def halo_thickness_px(img: "Image.Image") -> float:
     silueta y del tamaño: la de Doty (pelo en picos, extremidades finas) tiene mucho
     más perímetro por área que un círculo, y a 512 px un sprite limpio ya daba más
     del 2 % — los rangos limpio/con-halo se solapaban entre formas.
+
+    Nota: la medida asume que la fuente es al menos tan grande como el destino.
+    Una fuente muy upscalada (ej: 512 px a 1024 px) desenfoca la arista alfa en
+    una banda genuinamente gruesa que se lee como halo sin tener uno. Los
+    descargas de Midjourney son ~1024 px nativas, así que esto no se espera
+    en condiciones normales.
     """
     img = img.convert("RGBA")
     a = img.getchannel("A")
