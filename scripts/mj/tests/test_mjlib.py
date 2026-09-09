@@ -255,7 +255,7 @@ def raw_png(dirpath, name):
 def fake_remover(im):
     # vuelve transparente todo píxel blanco puro
     im = im.convert("RGBA")
-    data = [(0, 0, 0, 0) if (r, g, b) == (255, 255, 255) else (r, g, b, a) for r, g, b, a in im.getdata()]
+    data = [(0, 0, 0, 0) if (r, g, b) == (255, 255, 255) else (r, g, b, a) for r, g, b, a in im.get_flattened_data()]
     out = Image.new("RGBA", im.size)
     out.putdata(data)
     return out
