@@ -192,7 +192,7 @@ def trim_square_resize(img: "Image.Image", size: int, margin: float = 0.04) -> "
 
 def halo_ratio(img: "Image.Image") -> float:
     """Entre los píxeles de borde (alfa 1..254), fracción que es rosada (r>180, g<120)."""
-    px = img.convert("RGBA").getdata()
+    px = img.convert("RGBA").get_flattened_data()
     edge = [(r, g, b) for r, g, b, a in px if 0 < a < 255]
     if not edge:
         return 0.0
