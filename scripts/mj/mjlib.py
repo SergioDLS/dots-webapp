@@ -94,3 +94,44 @@ def emit_prompts(cat: dict, style: dict) -> str:
         status = " ✅" if p.get("done") else ""
         lines += [f"{i}. `{p['slug']}` → `{target}`{status}", "", "```", build_prompt(p, style), "```", ""]
     return "\n".join(lines)
+
+
+def registry_src(piece: dict) -> str:
+    if piece.get("done"):
+        return f"/images/Doty/{piece['group']}/{piece['slug']}.png"
+    return f"/images/Doty/DOTTY-POSES-{piece['fallback']}.png"
+
+
+def _ts_key(key: str) -> str:
+    return key if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key) else f'"{key}"'
+
+
+def emit_registry(cat: dict) -> str:
+    pieces = [p for p in cat["pieces"] if p["group"] in REGISTRY_GROUPS]
+    if not any(p["slug"] == "feliz" for p in pieces):
+        raise CatalogError("registry needs a 'feliz' piece (FALLBACK_POSE)")
+    groups = " | ".join(f'"{g}"' for g in REGISTRY_GROUPS)
+    rows = "\n".join(
+        f'  {_ts_key(registry_key(p))}: {{ src: "{registry_src(p)}", group: "{p["group"]}" }},' for p in pieces
+    )
+    return f'''// GENERADO por scripts/mj/process.py --emit-registry — no editar a mano.
+// Fuente: scripts/mj/batches/{cat["fase"]}.json. Reglas de uso: docs/brand/doty-identity.md
+export type DotyGroup = {groups};
+export type PoseEntry = {{ src: string; group: DotyGroup }};
+
+export const POSES = {{
+{rows}
+}} as const satisfies Record<string, PoseEntry>;
+
+export type DotyPose = keyof typeof POSES;
+export const FALLBACK_POSE: DotyPose = "feliz";
+
+export function isDotyPose(v: unknown): v is DotyPose {{
+  return typeof v === "string" && Object.prototype.hasOwnProperty.call(POSES, v);
+}}
+
+/** Strings dinámicos (BD, params) → pose válida o la cara amable por defecto. */
+export function toDotyPose(v: string | null | undefined): DotyPose {{
+  return isDotyPose(v) ? v : FALLBACK_POSE;
+}}
+'''

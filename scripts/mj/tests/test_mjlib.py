@@ -91,3 +91,25 @@ def test_emit_prompts_is_numbered_markdown():
     assert md.splitlines()[0] == "# fase-1 — prompts"
     assert "1. `feliz` → `expressions/feliz.png`" in md and "2. `triste`" in md
     assert md.count("```") == 4  # un bloque de código por prompt
+
+def test_registry_src_uses_fallback_until_done():
+    assert mjlib.registry_src(piece()) == "/images/Doty/DOTTY-POSES-02.png"
+    assert mjlib.registry_src(piece(done=True)) == "/images/Doty/expressions/feliz.png"
+
+def test_emit_registry_shape():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(done=True),
+        piece(group="stickers", slug="good-job", prefix="Doty thumbs up wink", fallback="02"),
+        piece(group="games", slug="wordle", prefix="Green letter tiles", oref=False, fallback=None),
+    ]}
+    ts = mjlib.emit_registry(cat)
+    assert ts.startswith("// GENERADO por scripts/mj/process.py --emit-registry")
+    assert '  feliz: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },' in ts
+    assert '  "sticker-good-job": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },' in ts
+    assert "wordle" not in ts
+    assert 'export const FALLBACK_POSE: DotyPose = "feliz";' in ts
+    assert "export function toDotyPose(" in ts
+
+def test_emit_registry_requires_feliz():
+    with pytest.raises(mjlib.CatalogError, match="feliz"):
+        mjlib.emit_registry({"fase": "x", "pieces": [piece(slug="triste", prefix="Doty sad", fallback="05")]})

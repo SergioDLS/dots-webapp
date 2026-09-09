@@ -53,6 +53,12 @@ def main(argv: list[str] | None = None) -> int:
             ap.error("--emit-prompts requiere --raw")
         cmd_emit_prompts(a.emit_prompts, a.raw)
         return 0
+    if a.emit_registry:
+        cat = mjlib.load_catalog(batch_path(a.emit_registry))
+        out = REPO / "components/ui/doty/poses.ts"
+        out.write_text(mjlib.emit_registry(cat), encoding="utf-8")
+        print(f"registro → {out}")
+        return 0
     ap.error("subcomando aún no implementado")
 
 
