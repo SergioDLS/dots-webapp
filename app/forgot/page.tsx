@@ -148,7 +148,7 @@ export default function ForgotPassword() {
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
-          <Doty pose="13" size="smaller" animation="bob" />
+          <Doty pose="senalando" size="smaller" animation="bob" />
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             ¿Olvidaste tu contraseña?
           </h1>
@@ -218,7 +218,7 @@ export default function ForgotPassword() {
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
-          <Doty pose="07" size="smaller" animation="bob" />
+          <Doty pose="pensando" size="smaller" animation="bob" />
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             Revisa tu correo
           </h1>
@@ -293,7 +293,7 @@ export default function ForgotPassword() {
         className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
         style={{ animation: "dots-pop-in 0.5s ease-out both" }}
       >
-        <Doty pose="17" size="smaller" animation="cheer" />
+        <Doty pose="excelente" size="smaller" animation="cheer" />
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
           ¡Listo!
         </h1>

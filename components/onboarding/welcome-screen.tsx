@@ -16,7 +16,7 @@ export default function WelcomeScreen({ onSkip, onStartTest, busy }: Props) {
   return (
     <PanelWrapper>
       <SectionLabel emoji="👋">¡Bienvenido a Dots!</SectionLabel>
-      <Doty pose="17" size="small" animation="cheer" say="¡Hola! Soy Doty." />
+      <Doty pose="saludando" size="small" animation="cheer" say="¡Hola! Soy Doty." />
       <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
         Antes de empezar, cuéntanos cuánto inglés sabes para llevarte al punto
         exacto del camino.

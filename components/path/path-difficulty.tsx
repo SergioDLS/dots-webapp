@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Doty from "@/components/ui/doty/doty";
+import Doty, { isDotyPose } from "@/components/ui/doty/doty";
 import PathSection from "./path-section";
 import type { PathDifficulty as PathDifficultyType, PathPeer } from "@/types/path.types";
 import {
@@ -112,7 +112,7 @@ export default function PathDifficulty({
               animation: "dots-float 4s ease-in-out infinite",
             }}
           >
-            <Doty size="mini" pose={img || "01"} />
+            <Doty size="mini" pose={isDotyPose(img) ? img : "bienvenido"} />
           </div>
 
           {/* Right side */}

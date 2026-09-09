@@ -98,7 +98,7 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
     return (
       <PanelWrapper>
         <SectionLabel emoji="👂">{content.title}</SectionLabel>
-        <Doty pose="05" size="small" say="¡Vuelve pronto!" />
+        <Doty pose="triste" size="small" say="¡Vuelve pronto!" />
         <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
           Este ejercicio de escucha aún no tiene audio. ¡Estamos grabándolo!
         </p>
@@ -135,7 +135,7 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
             {content.descriptionEs}
           </p>
         )}
-        <Doty pose="02" size="small" say="¡Escucha con atención!" />
+        <Doty pose="escuchando" size="small" say="¡Escucha con atención!" />
         {/* The start tap is the user gesture the browser needs before autoplay */}
         <UIButton tone="accent" onClick={() => setStage("play")} fullWidth>
           Empezar

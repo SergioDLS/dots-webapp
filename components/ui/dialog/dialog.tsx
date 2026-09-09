@@ -2,6 +2,7 @@
 
 import React from "react";
 import Doty from "../doty/doty";
+import type { DotyPose } from "../doty/doty";
 import UIButton from "../button/button";
 
 type DialogTone = "success" | "warning" | "error" | "info" | "";
@@ -18,28 +19,28 @@ interface AlertDialogProps {
   content?: React.ReactNode;
 }
 
-const toneConfig: Record<DialogTone, { fallbackTitle: string; dotyPose?: string; headerBg: string; border: string }> = {
+const toneConfig: Record<DialogTone, { fallbackTitle: string; dotyPose?: DotyPose; headerBg: string; border: string }> = {
   success: {
     fallbackTitle: "Great!",
-    dotyPose: "02",
+    dotyPose: "excelente",
     headerBg: "bg-green-100 text-green-900",
     border: "border-green-200",
   },
   warning: {
     fallbackTitle: "Warning!",
-    dotyPose: "07",
+    dotyPose: "preocupado",
     headerBg: "bg-amber-100 text-amber-900",
     border: "border-amber-200",
   },
   error: {
     fallbackTitle: "Oh no!",
-    dotyPose: "05",
+    dotyPose: "oh-no",
     headerBg: "bg-red-100 text-red-900",
     border: "border-red-200",
   },
   info: {
     fallbackTitle: "Heads up",
-    dotyPose: "17",
+    dotyPose: "senalando",
     headerBg: "bg-blue-100 text-blue-900",
     border: "border-blue-200",
   },

@@ -45,7 +45,7 @@ export default function GameIntro({
       >
         {/* Doty con pose de bienvenida */}
         <div style={{ animation: "dots-float 3s ease-in-out infinite" }}>
-          <Doty pose="12" size="small" />
+          <Doty pose="bienvenido" size="small" />
         </div>
 
         {/* Título del juego */}

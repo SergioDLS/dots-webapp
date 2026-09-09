@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
-import Doty from "@/components/ui/doty/doty";
+import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import { getDotaxiService, type DotaxiQuestion } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
@@ -67,7 +67,7 @@ function Taxi({
 }: {
   tilt: number;
   crashing: boolean;
-  pose: string;
+  pose: DotyPose;
 }) {
   return (
     <div
@@ -651,7 +651,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
               <Taxi
                 tilt={0}
                 crashing={outcome === "crash"}
-                pose={outcome === "clear" ? "17" : outcome === "crash" ? "05" : "02"}
+                pose={outcome === "clear" ? "excelente" : outcome === "crash" ? "oh-no" : "feliz"}
               />
             </div>
 

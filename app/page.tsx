@@ -145,7 +145,7 @@ export default function Login() {
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
           <div style={{ animation: "dots-float 3.5s ease-in-out infinite" }}>
-            <Doty pose="17" size="smaller" />
+            <Doty pose="saludando" size="smaller" />
           </div>
           <h1 className="font-display text-5xl font-extrabold leading-none tracking-tight text-(--accent)">
             dots
@@ -201,7 +201,7 @@ export default function Login() {
             ¿Olvidaste tu contraseña?
           </button>
           <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
-            <Doty pose="13" size="micro" />
+            <Doty pose="senalando" size="micro" />
             <p className="text-xs font-bold text-(--muted)">
               ¿No tienes cuenta? La app es parte de los beneficios de{" "}
               <span className="font-extrabold text-foreground">

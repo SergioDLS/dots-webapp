@@ -119,7 +119,7 @@ export default function ProfilePage() {
               <Image src={avatar} alt="Foto de perfil" fill style={{ objectFit: "cover" }} />
             </div>
           ) : (
-            <Doty pose="06" size="tiny" animation={gestureAnim ?? "bob"} />
+            <Doty pose="feliz" size="tiny" animation={gestureAnim ?? "bob"} />
           )}
           {hatEmoji && (
             <span

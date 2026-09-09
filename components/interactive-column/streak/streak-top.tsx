@@ -70,7 +70,7 @@ export default function StreakTop() {
               </div>
             ) : (
               <div className="shrink-0">
-                <Doty size="mini" pose="03" />
+                <Doty size="mini" pose="sigue-asi" />
               </div>
             )}
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import Doty from "@/components/ui/doty/doty";
+import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
 import PracticeContainer from "@/components/practice-container/practice-container";
@@ -32,7 +32,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   const [progress, setProgress] = useState(0);
   const [streak, setStreak] = useState(0);
   const [arraySentences, setArraySentences] = useState<PracticeSentence[]>([]);
-  const [doty, setDoty] = useState("07");
+  const [doty, setDoty] = useState<DotyPose>("pensando");
   const [indexSentence, setIndexSentence] = useState(0);
   const [noSentences, setNoSentences] = useState(false);
   const [mode, setMode] = useState("complete");
@@ -97,7 +97,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
         const updated = [...arraySentences];
         updated[indexSentence] = { ...updated[indexSentence], answered: true };
         setAnswerState("correct");
-        setDoty("02");
+        setDoty("excelente");
         setStreak((s) => s + 1);
         setProgress(Math.floor((newAnswered / totalSentences) * 100));
         setAnsweredCount(newAnswered);
@@ -112,7 +112,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
         setArraySentences(updated);
         playSound("wrong");
         setAnswerState("wrong");
-        setDoty("05");
+        setDoty("oh-no");
         setStreak(0);
         setLifes((l) => l - 1);
       }
@@ -133,7 +133,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
       count++;
     }
     setIndexSentence(index);
-    setDoty("07");
+    setDoty("pensando");
     setAnswer(null);
     setAnswerState("");
     setMode(list[index].mode);
@@ -248,7 +248,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
         style={{ animation: "dots-pop-in 0.5s ease-out both" }}
       >
         <div style={{ animation: "dots-heart-pop 2s ease-in-out infinite" }}>
-          <Doty pose="05" size="small" />
+          <Doty pose="oh-no" size="small" />
         </div>
         <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
           No pudimos cargar la práctica.
@@ -276,7 +276,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
         style={{ animation: "dots-pop-in 0.5s ease-out both" }}
       >
         <div style={{ animation: "dots-heart-pop 2s ease-in-out infinite" }}>
-          <Doty pose="05" size="small" />
+          <Doty pose="oh-no" size="small" />
         </div>
         <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
           Something went wrong, please try again later.

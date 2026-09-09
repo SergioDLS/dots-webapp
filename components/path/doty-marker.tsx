@@ -35,7 +35,7 @@ export default function DotyMarker({ side = "right" }: DotyMarkerProps) {
       >
         ¡Sigue aquí!
       </div>
-      <Doty pose="17" size="mini" />
+      <Doty pose="saludando" size="mini" />
     </div>
   );
 }

@@ -2,14 +2,21 @@
 
 import React from "react";
 import Link from "next/link";
-import Doty from "@/components/ui/doty/doty";
+import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 
-const cards = [
+const cards: Array<{
+  title: string;
+  desc: string;
+  href: string;
+  pose: DotyPose;
+  accent: string;
+  edge: string;
+}> = [
   {
     title: "Levels & Content",
     desc: "Enable levels, edit their sentences and vocabulary words.",
     href: "/admin/levels",
-    pose: "07",
+    pose: "pensando",
     accent: "var(--accent)",
     edge: "var(--accent-edge)",
   },
@@ -17,7 +24,7 @@ const cards = [
     title: "Foundations",
     desc: "Pronunciation pairs, grammar pills and vocab packs.",
     href: "/admin/foundations",
-    pose: "09",
+    pose: "escribiendo",
     accent: "var(--gem)",
     edge: "var(--gem-edge)",
   },
@@ -25,7 +32,7 @@ const cards = [
     title: "Learning path",
     desc: "Order the nodes learners walk through, section by section.",
     href: "/admin/path",
-    pose: "11",
+    pose: "caminando",
     accent: "var(--flame)",
     edge: "var(--flame-edge)",
   },
@@ -33,7 +40,7 @@ const cards = [
     title: "Readings",
     desc: "Create and edit reading passages with audio and quizzes.",
     href: "/admin/readings",
-    pose: "12",
+    pose: "leyendo",
     accent: "var(--purple)",
     edge: "var(--purple-edge)",
   },
@@ -41,7 +48,7 @@ const cards = [
     title: "Users",
     desc: "Search students, edit their details, block or unblock accounts.",
     href: "/admin/users",
-    pose: "02",
+    pose: "saludando",
     accent: "var(--success)",
     edge: "var(--success-edge)",
   },
@@ -51,7 +58,7 @@ export default function AdminHome() {
   return (
     <div className="flex flex-col gap-8">
       <div className="pop-in flex items-center gap-4">
-        <Doty pose="02" size="tiny" animation="wave" />
+        <Doty pose="saludando" size="tiny" animation="wave" />
         <div>
           <h1 className="font-display text-3xl font-extrabold text-foreground">
             Content dashboard

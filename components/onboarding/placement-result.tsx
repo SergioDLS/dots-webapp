@@ -17,7 +17,7 @@ export default function PlacementResultScreen({ result, onContinue }: Props) {
       <PanelWrapper>
         <Confetti burstKey="placement-done" count={50} />
         <SectionLabel emoji="🧭">¡Prueba completada!</SectionLabel>
-        <Doty pose="17" size="small" animation="cheer" say="¡Ya te conozco mejor!" />
+        <Doty pose="lo-lograste" size="small" animation="cheer" say="¡Ya te conozco mejor!" />
         {result.startFromZero ? (
           <>
             <p className="font-display text-2xl font-extrabold text-center">

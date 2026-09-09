@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import Doty from "@/components/ui/doty/doty";
+import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
@@ -18,7 +18,7 @@ interface PracticeContainerProps {
   dataSentence: Sentence;
   answered: string;
   click: (correct: boolean) => void;
-  doty: string;
+  doty: DotyPose;
   streak: number;
   /** Enriched PUT /sentences/progress response (arrives async on end screens) */
   reward?: ProgressReward | null;
@@ -120,7 +120,7 @@ export default function PracticeContainer({
       <PanelWrapper>
         <Confetti burstKey={streak} count={34} />
         <SectionLabel emoji="🔥">Streak</SectionLabel>
-        <Doty pose="02" size="small" animation="cheer" say="You're on fire!" />
+        <Doty pose="emocionado" size="small" animation="cheer" say="You're on fire!" />
         <p
           className="font-display text-5xl font-extrabold"
           style={{
@@ -152,7 +152,7 @@ export default function PracticeContainer({
         {!isGameover && <Confetti burstKey={mode} count={40} />}
         <SectionLabel emoji={emoji}>{title}</SectionLabel>
         <Doty
-          pose={isGameover ? "05" : mode === "perfect" ? "17" : "02"}
+          pose={isGameover ? "oh-no" : mode === "perfect" ? "perfecto" : "excelente"}
           size="small"
           animation={isGameover ? "sad" : "cheer"}
           say={dotySays}

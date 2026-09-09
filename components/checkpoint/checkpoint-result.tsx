@@ -21,7 +21,7 @@ export default function CheckpointResult({ result, onRetry, onExit }: Props) {
         <PanelWrapper>
           <Confetti burstKey="checkpoint-passed" count={50} />
           <SectionLabel emoji="🏆">¡Sección superada!</SectionLabel>
-          <Doty pose="17" size="small" animation="cheer" say="¡Eres increíble!" />
+          <Doty pose="lo-lograste" size="small" animation="cheer" say="¡Eres increíble!" />
           <p className="font-display text-2xl font-extrabold text-center">
             {result.correct} de {result.total} correctas ({pct}%)
           </p>
@@ -51,7 +51,7 @@ export default function CheckpointResult({ result, onRetry, onExit }: Props) {
     <div className="flex flex-col gap-4 w-full">
       <PanelWrapper>
         <SectionLabel emoji="🏁">Esta vez no fue</SectionLabel>
-        <Doty pose="05" size="small" animation="sad" say="¡Casi! Sigamos practicando." />
+        <Doty pose="sigue-asi" size="small" animation="sad" say="¡Casi! Sigamos practicando." />
         <p className="font-display text-2xl font-extrabold text-center">
           {result.correct} de {result.total} correctas ({pct}%)
         </p>
