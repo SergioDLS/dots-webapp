@@ -106,7 +106,7 @@ export default function ShopPage() {
 
       {items.length === 0 && (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <Doty pose="05" size="small" />
+          <Doty pose="timido" size="small" />
           <p className="text-sm font-semibold text-(--muted)">
             La tienda abre muy pronto.
           </p>

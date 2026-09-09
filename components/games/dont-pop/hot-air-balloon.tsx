@@ -176,7 +176,7 @@ export default function HotAirBalloon({
           {/* Doty peeking out of the basket */}
           <div className="absolute -top-9 left-1/2 -translate-x-1/2">
             <Doty
-              pose={phase === "exploded" ? "05" : phase === "landed" ? "02" : "14"}
+              pose={phase === "exploded" ? "oh-no" : phase === "landed" ? "lo-lograste" : "saludando"}
               size="micro"
               animation={phase === "landed" ? "cheer" : "none"}
             />

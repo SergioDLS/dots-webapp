@@ -139,7 +139,7 @@ export default function PathContainer() {
   if (error) {
     return (
       <div className="dots-card mx-auto flex w-full max-w-md flex-col items-center gap-4 px-6 py-10 text-center">
-        <Doty pose="05" size="tiny" />
+        <Doty pose="oh-no" size="tiny" />
         <h2 className="font-display text-2xl font-extrabold text-foreground">
           No pudimos cargar tu camino
         </h2>

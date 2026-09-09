@@ -88,7 +88,7 @@ export default function ReadingPage() {
   if (failed || !reading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 px-4">
-        <Doty pose="05" size="small" animation="sad" />
+        <Doty pose="oh-no" size="small" animation="sad" />
         <p className="text-sm font-semibold text-(--muted)">
           We couldn&apos;t open this reading. Please try again later.
         </p>
@@ -130,7 +130,7 @@ export default function ReadingPage() {
             style={{ animation: "dots-slide-up 0.4s ease-out both" }}
           >
             <div className="flex items-end gap-3">
-              <Doty pose="11" size="tiny" animation="bob" say="Read with me!" />
+              <Doty pose="leyendo" size="tiny" animation="bob" say="Read with me!" />
             </div>
             <h1 className="font-display text-2xl font-extrabold text-foreground text-center">
               {reading.title}
@@ -165,7 +165,7 @@ export default function ReadingPage() {
         {stage === "quiz" && (
           <div className="flex w-full flex-col gap-4">
             <div className="dots-card flex items-center gap-3 px-5 py-3">
-              <Doty pose="07" size="mini" />
+              <Doty pose="pensando" size="mini" />
               <div className="flex flex-col">
                 <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
                   Quiz time!
@@ -240,7 +240,7 @@ export default function ReadingPage() {
           >
             {result.passed && <Confetti burstKey="reading-pass" count={40} />}
             <Doty
-              pose={result.passed ? "17" : "05"}
+              pose={result.passed ? "lo-lograste" : "triste"}
               size="small"
               animation={result.passed ? "cheer" : "sad"}
               say={result.passed ? "You're a super reader!" : "Let's read it once more!"}

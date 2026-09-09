@@ -13,7 +13,7 @@ export default function PlayPage() {
             Practica jugando. Las lecturas viven en tu camino.
           </p>
         </div>
-        <Doty pose="12" size="mini" customClass="hidden shrink-0 sm:block" />
+        <Doty pose="idea" size="mini" customClass="hidden shrink-0 sm:block" />
       </header>
 
       <GamesGrid />

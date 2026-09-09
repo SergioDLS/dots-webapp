@@ -53,7 +53,7 @@ export default function GameResult({
   const shownScore = useCountUp(score);
 
   const isNewRecord = result?.isNewHighScore ?? false;
-  const dotyPose = isNewRecord ? "07" : "02";
+  const dotyPose = isNewRecord ? "trofeo-celebracion" : "muy-feliz";
 
   return (
     <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">

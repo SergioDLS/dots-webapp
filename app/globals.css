@@ -460,6 +460,42 @@ h1, h2, h3, .font-display {
   100% { transform: translateY(120vh); opacity: 0; }
 }
 
+/* ─── DOTY: movimiento y sombra ───────────────────────────────
+   Solo transform (portable a RN); la sombra va por CSS porque los sprites
+   nacen sin ella (spec 2026-09-07-doty-midjourney-assets §4.3). */
+.doty-shadow { filter: drop-shadow(0 6px 4px rgba(30, 27, 92, 0.18)); }
+
+@keyframes doty-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.doty-bob { animation: doty-bob 2.2s ease-in-out infinite; }
+
+@keyframes doty-cheer {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-10px) rotate(-4deg); }
+  50%      { transform: translateY(0) rotate(0deg); }
+  75%      { transform: translateY(-10px) rotate(4deg); }
+}
+.doty-cheer { animation: doty-cheer 900ms ease-in-out infinite; }
+
+@keyframes doty-sad {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(3px) rotate(-2deg); }
+}
+.doty-sad { animation: doty-sad 3s ease-in-out infinite; }
+
+@keyframes doty-wave {
+  0%, 100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-6deg); }
+  40%      { transform: rotate(5deg); }
+  60%      { transform: rotate(-4deg); }
+  80%      { transform: rotate(2deg); }
+}
+/* 70% 80% asumía una proporción de arte que todavía no existe; centrado abajo
+   lee como un vaivén desde los pies en cualquier silueta, legacy o nueva. */
+.doty-wave { animation: doty-wave 1.6s ease-in-out infinite; transform-origin: center bottom; }
+
 /* Movimiento reducido ≠ cero feedback. Lo que marea son los desplazamientos,
    rotaciones y escalados, no los cambios de color: se anulan los keyframes
    (todos los nuestros mueven algo) y las transiciones de `transform`, pero

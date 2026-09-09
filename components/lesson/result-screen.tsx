@@ -65,7 +65,7 @@ export default function ResultScreen({
         </div>
         <div style={{ animation: "dots-pop-in 0.45s ease-out 0.15s both" }}>
           <Doty
-            pose={isGameover ? "05" : mode === "perfect" ? "17" : "02"}
+            pose={isGameover ? "oh-no" : mode === "perfect" ? "perfecto" : "excelente"}
             size="small"
             animation={isGameover ? "sad" : "cheer"}
             say={dotySays}

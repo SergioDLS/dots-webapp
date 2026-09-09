@@ -81,7 +81,7 @@ function CheckpointClient() {
   return (
     <PanelWrapper>
       <SectionLabel emoji="🏁">Checkpoint</SectionLabel>
-      <Doty pose="07" size="small" say="¿Listo para demostrar lo que sabes?" />
+      <Doty pose="pensando" size="small" say="¿Listo para demostrar lo que sabes?" />
       <div className="flex flex-col gap-2 text-sm text-center" style={{ color: "var(--muted)" }}>
         <p>Un examen corto de la sección: sin pistas y sin ayuda.</p>
         <p>

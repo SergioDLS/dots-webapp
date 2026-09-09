@@ -33,7 +33,7 @@ export default function ReviewPage() {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <Doty pose="17" size="small" animation="cheer" say="¡Todo al día!" />
+        <Doty pose="excelente" size="small" animation="cheer" say="¡Todo al día!" />
         <h1 className="font-display text-2xl font-extrabold text-foreground">
           Nada que repasar hoy
         </h1>

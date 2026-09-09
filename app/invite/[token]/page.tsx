@@ -8,7 +8,7 @@ import {
   type InvitationPreview,
 } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
-import Doty from "@/components/ui/doty/doty";
+import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import {
   inputCls,
   btnPrimary,
@@ -21,26 +21,26 @@ import {
 /** Por qué el link no sirve. El backend lo manda en `reason`. */
 type Rejection = "notfound" | "expired" | "revoked" | "used";
 
-const REJECTION_COPY: Record<Rejection, { title: string; body: string; pose: string }> = {
+const REJECTION_COPY: Record<Rejection, { title: string; body: string; pose: DotyPose }> = {
   expired: {
     title: "Este enlace ya venció",
     body: "Las invitaciones duran 48 horas. Pídele a tu academia que te mande una nueva.",
-    pose: "05",
+    pose: "triste",
   },
   revoked: {
     title: "Esta invitación fue cancelada",
     body: "Tu academia canceló este enlace. Si crees que es un error, escríbeles.",
-    pose: "05",
+    pose: "triste",
   },
   used: {
     title: "Esta invitación ya se usó",
     body: "Tu cuenta ya existe. Entra con tu usuario y contraseña.",
-    pose: "02",
+    pose: "muy-feliz",
   },
   notfound: {
     title: "No encontramos esta invitación",
     body: "Revisa que hayas copiado el enlace completo, sin cortar nada.",
-    pose: "05",
+    pose: "preocupado",
   },
 };
 
@@ -180,7 +180,7 @@ export default function AcceptInvite() {
   } else if (loadError) {
     content = (
       <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
-        <Doty pose="05" size="smaller" animation="sad" />
+        <Doty pose="oh-no" size="smaller" animation="sad" />
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
           ¡Ups!
         </h1>
@@ -203,7 +203,7 @@ export default function AcceptInvite() {
     content = (
       <div className="flex flex-col items-center gap-4 text-center">
         <div style={{ animation: "dots-float 1.5s ease-in-out infinite" }}>
-          <Doty pose="07" size="tiny" />
+          <Doty pose="pensando" size="tiny" />
         </div>
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
         <p className="text-sm font-bold text-(--muted)">Revisando tu invitación…</p>
@@ -223,7 +223,7 @@ export default function AcceptInvite() {
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
-          <Doty pose="17" size="smaller" animation="cheer" />
+          <Doty pose="lo-lograste" size="smaller" animation="cheer" />
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             ¡Te estábamos esperando!
           </h1>

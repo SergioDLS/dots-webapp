@@ -97,7 +97,7 @@ export default function TopStudents() {
     <div className="w-full h-full overflow-auto flex flex-col gap-4 p-5">
       {/* Header */}
       <div className="flex items-center gap-2 shrink-0">
-        <Doty pose="17" size="mini" />
+        <Doty pose="medalla" size="mini" />
         <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">
           Ranking
         </span>
@@ -233,7 +233,7 @@ export default function TopStudents() {
         )}
         {!loading && ranking.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-8 opacity-50">
-            <Doty pose="17" size="small" />
+            <Doty pose="timido" size="small" />
             <p className="text-sm text-(--muted) text-center">
               ¡Ranking muy pronto!
             </p>

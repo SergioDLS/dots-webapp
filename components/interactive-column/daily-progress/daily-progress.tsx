@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import LoadBar from "../../ui/load-bar/load-bar";
-import Doty from "../../ui/doty/doty";
+import Doty, { type DotyPose } from "../../ui/doty/doty";
 //import { getDailyProgressService } from "../../../../services/progress.service";
 
 export default function DailyProgress() {
@@ -25,18 +25,18 @@ export default function DailyProgress() {
     fetchProgress();
   }, []);
 
-  const initial_pose = "11";
-  let pose = initial_pose;
+  const initial_pose: DotyPose = "sigue-asi";
+  let pose: DotyPose = initial_pose;
   let message = "Let's get this done!";
 
   if (progress === 100 && pose === initial_pose) {
-    pose = "17";
+    pose = "lo-lograste";
     message = "Well done!";
   } else if (progress >= 80 && pose === initial_pose) {
-    pose = "06";
+    pose = "emocionado";
     message = "Almost!";
   } else if (progress >= 50 && pose === initial_pose) {
-    pose = "06";
+    pose = "emocionado";
     message = "Keep going!";
   }
 

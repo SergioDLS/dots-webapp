@@ -89,7 +89,7 @@ export default function PlacementTest({ test, onFinished }: Props) {
           ))}
         </div>
         <div className="flex items-center gap-2 text-xs" style={{ color: "var(--muted)" }}>
-          <Doty pose="07" size="mini" />
+          <Doty pose="pensando" size="mini" />
           <span>Responde tranquilo: la prueba se adapta a ti.</span>
         </div>
       </PanelWrapper>

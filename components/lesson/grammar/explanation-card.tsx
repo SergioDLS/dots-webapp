@@ -32,7 +32,7 @@ export default function ExplanationCard({ block }: { block: GrammarBlock }) {
           border: "2px solid color-mix(in srgb, #fbbf24 40%, transparent)",
         }}
       >
-        <Doty pose="02" size="mini" />
+        <Doty pose="idea" size="mini" />
         <p className="text-sm leading-relaxed">{block.text}</p>
       </div>
     );

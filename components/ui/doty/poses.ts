@@ -1,0 +1,100 @@
+// GENERADO por scripts/mj/process.py --emit-registry — no editar a mano.
+// Fuente: scripts/mj/batches/fase-1.json. Reglas de uso: docs/brand/doty-identity.md
+export type DotyGroup = "expressions" | "poses" | "states" | "celebrations" | "accessories" | "themed" | "stickers" | "icons";
+export type PoseEntry = { src: string; group: DotyGroup };
+
+export const POSES = {
+  feliz: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  "muy-feliz": { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  emocionado: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  orgulloso: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  sorprendido: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  pensando: { src: "/images/Doty/DOTTY-POSES-07.png", group: "expressions" },
+  preocupado: { src: "/images/Doty/DOTTY-POSES-07.png", group: "expressions" },
+  triste: { src: "/images/Doty/DOTTY-POSES-05.png", group: "expressions" },
+  enojado: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  decepcionado: { src: "/images/Doty/DOTTY-POSES-09.png", group: "expressions" },
+  riendo: { src: "/images/Doty/DOTTY-POSES-11.png", group: "expressions" },
+  timido: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  enamorado: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  cansado: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  dormido: { src: "/images/Doty/DOTTY-POSES-02.png", group: "expressions" },
+  saludando: { src: "/images/Doty/DOTTY-POSES-14.png", group: "poses" },
+  "pulgar-arriba": { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  senalando: { src: "/images/Doty/DOTTY-POSES-13.png", group: "poses" },
+  bienvenido: { src: "/images/Doty/DOTTY-POSES-16.png", group: "poses" },
+  aplaudiendo: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  caminando: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  corriendo: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  saltando: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  bailando: { src: "/images/Doty/DOTTY-POSES-04.png", group: "poses" },
+  sentado: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  leyendo: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  escribiendo: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  "en-laptop": { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  escuchando: { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  "en-celular": { src: "/images/Doty/DOTTY-POSES-02.png", group: "poses" },
+  hablando: { src: "/images/Doty/DOTTY-POSES-13.png", group: "poses" },
+  wow: { src: "/images/Doty/DOTTY-POSES-06.png", group: "states" },
+  "oh-no": { src: "/images/Doty/DOTTY-POSES-05.png", group: "states" },
+  ups: { src: "/images/Doty/DOTTY-POSES-02.png", group: "states" },
+  excelente: { src: "/images/Doty/DOTTY-POSES-02.png", group: "states" },
+  perfecto: { src: "/images/Doty/DOTTY-POSES-02.png", group: "states" },
+  "sigue-asi": { src: "/images/Doty/DOTTY-POSES-03.png", group: "states" },
+  "lo-lograste": { src: "/images/Doty/DOTTY-POSES-02.png", group: "celebrations" },
+  confeti: { src: "/images/Doty/DOTTY-POSES-02.png", group: "celebrations" },
+  "trofeo-celebracion": { src: "/images/Doty/DOTTY-POSES-02.png", group: "celebrations" },
+  medalla: { src: "/images/Doty/DOTTY-POSES-02.png", group: "celebrations" },
+  "diploma-celebracion": { src: "/images/Doty/DOTTY-POSES-02.png", group: "celebrations" },
+  "fuegos-artificiales": { src: "/images/Doty/DOTTY-POSES-02.png", group: "celebrations" },
+  libro: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  lapiz: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  laptop: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  tablet: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  celular: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  mochila: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  taza: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  diploma: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  trofeo: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  microfono: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  "bandera-uk": { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  "bandera-usa": { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  maleta: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  lentes: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  idea: { src: "/images/Doty/DOTTY-POSES-12.png", group: "accessories" },
+  globo: { src: "/images/Doty/DOTTY-POSES-02.png", group: "accessories" },
+  navidad: { src: "/images/Doty/DOTTY-POSES-02.png", group: "themed" },
+  halloween: { src: "/images/Doty/DOTTY-POSES-18.png", group: "themed" },
+  "san-valentin": { src: "/images/Doty/DOTTY-POSES-02.png", group: "themed" },
+  "fiestas-patrias": { src: "/images/Doty/DOTTY-POSES-02.png", group: "themed" },
+  graduacion: { src: "/images/Doty/DOTTY-POSES-02.png", group: "themed" },
+  "back-to-school": { src: "/images/Doty/DOTTY-POSES-02.png", group: "themed" },
+  correcto: { src: "/images/Doty/DOTTY-POSES-02.png", group: "icons" },
+  incorrecto: { src: "/images/Doty/DOTTY-POSES-02.png", group: "icons" },
+  atencion: { src: "/images/Doty/DOTTY-POSES-02.png", group: "icons" },
+  cargando: { src: "/images/Doty/DOTTY-POSES-02.png", group: "icons" },
+  racha: { src: "/images/Doty/DOTTY-POSES-02.png", group: "icons" },
+  "nivel-completado": { src: "/images/Doty/DOTTY-POSES-02.png", group: "icons" },
+  "sticker-good-job": { src: "/images/Doty/DOTTY-POSES-11.png", group: "stickers" },
+  "sticker-amazing": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+  "sticker-keep-going": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+  "sticker-you-can-do-it": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+  "sticker-lets-practice": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+  "sticker-oops": { src: "/images/Doty/DOTTY-POSES-05.png", group: "stickers" },
+  "sticker-almost": { src: "/images/Doty/DOTTY-POSES-05.png", group: "stickers" },
+  "sticker-nice": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+  "sticker-excellent": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+  "sticker-see-you": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },
+} as const satisfies Record<string, PoseEntry>;
+
+export type DotyPose = keyof typeof POSES;
+export const FALLBACK_POSE: DotyPose = "feliz";
+
+export function isDotyPose(v: unknown): v is DotyPose {
+  return typeof v === "string" && Object.prototype.hasOwnProperty.call(POSES, v);
+}
+
+/** Strings dinámicos (BD, params) → pose válida o la cara amable por defecto. */
+export function toDotyPose(v: string | null | undefined): DotyPose {
+  return isDotyPose(v) ? v : FALLBACK_POSE;
+}

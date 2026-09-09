@@ -66,7 +66,7 @@ export default function AdminLayout({
   if (access === "denied") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 px-6 text-center">
-        <Doty pose="05" size="small" animation="sad" />
+        <Doty pose="oh-no" size="small" animation="sad" />
         <h1 className="font-display text-3xl font-extrabold text-foreground">
           Admins only
         </h1>
@@ -90,7 +90,7 @@ export default function AdminLayout({
       <header className="sticky top-0 z-20 border-b border-(--border) bg-(--surface)/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <Doty pose="07" size="micro" />
+            <Doty pose="pensando" size="micro" />
             <span className="font-display text-lg font-extrabold text-foreground">
               Dots Admin
             </span>

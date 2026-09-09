@@ -60,7 +60,7 @@ export default function GamesGrid() {
   if (loadError) {
     return (
       <div className="dots-card flex flex-col items-center gap-4 px-6 py-10 text-center">
-        <Doty pose="09" size="tiny" />
+        <Doty pose="decepcionado" size="tiny" />
         <p className="font-display text-base font-extrabold text-foreground">
           No pudimos cargar los juegos
         </p>
@@ -77,7 +77,7 @@ export default function GamesGrid() {
   if (games.length === 0) {
     return (
       <div className="dots-card flex flex-col items-center gap-3 px-6 py-10 text-center">
-        <Doty pose="01" size="tiny" />
+        <Doty pose="timido" size="tiny" />
         <p className="text-sm font-semibold text-(--muted)">
           Pronto habrá juegos aquí.
         </p>

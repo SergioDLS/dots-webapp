@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Workspace de superpowers (ledger, briefs, paquetes de revisión)
+.superpowers/
+
+# python (tooling de scripts/mj)
+__pycache__/
+*.pyc
+.pytest_cache/
