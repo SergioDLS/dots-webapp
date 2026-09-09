@@ -350,7 +350,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "06",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_amazed_with_sparkling_eyes_arms_flung_open_in__b6b7db09-a558-4e70-92d2-d66f97b63838_3.png"
     },
     {
       "slug": "oh-no",
@@ -360,7 +361,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "05",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_gasping_oh_no_both_hands_on_cheeks_wide_worrie_aaa380a9-2505-4f5c-aac5-8439e71ab1fc_3.png"
     },
     {
       "slug": "ups",
@@ -370,7 +372,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_wincing_at_a_mistake_one_eye_scrunched_shut_on_d2c7a786-d31b-48e2-8a92-9dcbd47d05c7_0.png"
     },
     {
       "slug": "excelente",
@@ -380,7 +383,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_saluting_with_excellence_standing_tall_one_han_97e5bdce-71a8-425e-8693-65e017b876e3_3.png"
     },
     {
       "slug": "perfecto",
@@ -390,7 +394,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_blowing_a_chef_kiss_fingers_pinched_near_the_l_a7015a88-f8a5-4b77-aa00-5131e993fd39_1.png"
     },
     {
       "slug": "sigue-asi",
@@ -400,7 +405,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "03",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_cheering_you_onward_leaning_forward_one_arm_wa_8c02a546-69f6-4446-8aad-0487eb162611_2.png"
     },
     {
       "slug": "lo-lograste",
@@ -410,7 +416,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_jumping_in_victory_mid-air_jump_both_fists_up__07170844-fa3c-4afc-aa2d-e479791976c2_0.png"
     },
     {
       "slug": "confeti",
@@ -420,7 +427,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_showered_in_confetti_arms_raised_in_celebratio_8e76b335-7a85-461a-8abb-5e1a5c9e3307_0.png"
     },
     {
       "slug": "trofeo-celebracion",
@@ -430,7 +438,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_hoisting_a_trophy_high_holding_a_gold_trophy_o_e5a0007e-0e18-4b54-ac67-8d10addcdbe0_3.png"
     },
     {
       "slug": "medalla",
@@ -440,7 +449,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_modeling_a_gold_medal_a_round_gold_medal_on_a__17ddc015-641d-4c99-aca4-dd4858c0bb66_0.png"
     },
     {
       "slug": "diploma-celebracion",
@@ -450,7 +460,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_waving_a_rolled_diploma_holding_a_rolled_navy__3cb925c4-8d80-4a42-9426-302c7e21f6ea_1.png"
     },
     {
       "slug": "fuegos-artificiales",
@@ -460,7 +471,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": "02",
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_holding_two_lit_sparklers_one_lit_sparkler_rai_6872191d-d357-4c05-bce2-84040da2871b_2.png"
     },
     {
       "slug": "libro",
