@@ -898,13 +898,13 @@
       "slug": "wordle",
       "group": "games",
       "prefix": "Green and yellow letter tiles",
-      "prompt": "five square letter tiles in a row, two green two yellow one grey, no letters",
+      "prompt": "five square letter tiles in a row with thick navy outlines, two green two yellow one grey, slight overlap, no letters",
       "size": 512,
       "mascot": false,
       "anchor": true,
       "fallback": null,
       "done": true,
-      "source_file": "Mandrakin_Green_and_yellow_letter_tiles_five_square_letter_ti_9ff47e5e-8b40-4efc-a458-281cef67e277_1.png"
+      "source_file": "Mandrakin_Green_and_yellow_letter_tiles_five_square_letter_ti_d0600140-545a-44e2-9662-1e834e3c1446_3.png"
     },
     {
       "slug": "crossword",
@@ -997,13 +997,13 @@
     {
       "slug": "dotaxi",
       "group": "games",
-      "prefix": "Doty riding in a taxi",
-      "prompt": "a small round pink Doty character peeking out of a yellow taxi window, cheerful wave",
+      "prefix": "Doty riding in a yellow taxi",
+      "prompt": "a small round pink Doty character leaning out of the side window of a yellow taxi cab seen from the side, checkered stripe along the door, taxi roof sign, cheerful wave",
       "size": 512,
       "mascot": false,
       "fallback": null,
       "done": true,
-      "source_file": "Mandrakin_Doty_riding_in_a_taxi_a_small_round_pink_Doty_chara_62fa0160-b7e6-4137-8243-8fb3e728cbff_0.png"
+      "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png"
     },
     {
       "slug": "dont-pop",
