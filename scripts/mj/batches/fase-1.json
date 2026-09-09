@@ -1030,36 +1030,37 @@
     {
       "slug": "doty-fem",
       "group": "characters",
-      "prefix": "Doty Fem the orchid narrator",
-      "prompt": "same Doty shape but with an orchid magenta body #E712D5, the tuft on top styled as three long swept curls instead of spikes, long curled eyelashes, a cyan bow at the base of the curls, rosy cheeks, head tilted gently, one hand resting near the chest, soft warm smile with the mouth slightly open mid-sentence",
+      "prefix": "Doty Fem the slender orchid narrator",
+      "prompt": "same Doty face but a taller narrower body that tapers toward the feet, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, three swept curls hugging the head instead of spikes, a cyan bow at their base, long curled eyelashes, rosy cheeks, head tilted gently, one hand resting near the chest, both legs ending in solid rounded feet, soft warm smile with the mouth slightly open mid-sentence",
       "size": 1024,
       "mascot": true,
       "fallback": null,
       "done": false,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid magenta body #E712D5 — a warmer pink-purple, not hot pink"
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid purple body #E30BE3 — clearly purple, not hot pink"
     },
     {
       "slug": "doty-sailor",
       "group": "characters",
-      "prefix": "Doty Sailor the crimson narrator",
+      "prefix": "Doty Sailor the old crimson narrator",
       "prompt": "same Doty shape but with a crimson red body #FF0010, stockier and squarer, a white sailor cap with a cyan visor flattening the tuft, cyan neckerchief, thick furrowed brow, one eye squinting, mouth open to one side mid-grumble, one stubby arm gesturing gruffly, the endearing grumpy attitude of an old sea captain, comic and never menacing",
       "size": 1024,
       "mascot": true,
       "fallback": null,
-      "done": false,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a crimson red body #FF0010 — not pink, not orange"
+      "done": true,
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a crimson red body #FF0010 — not pink, not orange",
+      "source_file": "Mandrakin_Doty_Sailor_the_old_crimson_narrator_same_Doty_shap_706d16c3-ad17-4455-a847-3718fae5a3c7_2.png"
     },
     {
       "slug": "doty-scientist",
       "group": "characters",
-      "prefix": "Doty Scientist the violet narrator",
-      "prompt": "same Doty shape but with a soft violet body #C132FF, the tuft neatly swept back, round glasses, a crisp white lab coat with the collar up, upright composed posture, chin slightly raised, one hand raised in a precise explanatory gesture with the index finger up, calm confident smile with the mouth open mid-sentence",
+      "prefix": "Doty Scientist the poised violet narrator",
+      "prompt": "same Doty face but a body squared off by a crisp white lab coat that flares out at the hem, a soft violet body #B432FF, the tuft neatly swept back, round glasses, upright composed posture, chin slightly raised, one hand raised in a precise explanatory gesture with the index finger up, calm confident smile with the mouth open mid-sentence",
       "size": 1024,
       "mascot": true,
       "glasses": true,
       "fallback": null,
       "done": false,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft violet body #C132FF — muted and refined, not pink"
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft violet body #B432FF — muted and refined, not pink"
     },
     {
       "slug": "app-icon",

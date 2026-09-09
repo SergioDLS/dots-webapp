@@ -185,6 +185,9 @@ ACCEPTANCE_CRITERIA = (
     "**Nada flotando despegado** de la figura principal: `rembg` lo borra (así "
     "desaparecieron las Zs de un `dormido` temprano).",
     "Cuerpo entero, sin cortes en los bordes; fondo blanco liso, sin sombra en el suelo.",
+    "Brazos y patas terminan en formas **sólidas y redondeadas**, nunca en un tubo "
+    "abierto con el interior navy: se lee como un miembro cortado, y además es masa "
+    "navy grande (criterio 5).",
     "Legible sin leer el prompt.",
 )
 

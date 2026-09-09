@@ -301,10 +301,44 @@ los 2 PNG actuales del grid de Juegos (`games-grid-view.tsx`).
 
 ### 3.10 Personajes de voz (3) — Cloudinary `dots/images/characters/<key>.png`
 
-`doty-fem`, `doty-sailor`, `doty-scientist`, cada uno en la pose `hablando`
-con sus rasgos (tabla de decisiones). Se generan con `--oref` del Doty base
-para que compartan cuerpo y cara. 1024 px. El backend los sube y escribe
-`characters.img`; `voice-avatar.tsx` no cambia (ya prefiere `img`).
+`doty-fem`, `doty-sailor`, `doty-scientist`, cada uno hablando. 1024 px. El
+backend los sube y escribe `characters.img`; `voice-avatar.tsx` no cambia (ya
+prefiere `img`). Se generan como cualquier pieza de mascota: Edit Model con
+`ref-patron.png` adjunta (§2-bis), no con `--oref`, que quedó obsoleto.
+
+**Dos intentos fallidos y lo que ensenaron** (2026-09-09). Primero fueron el
+Doty base con un accesorio encima; a tamano de avatar (~80 px), que es donde se
+usan, el accesorio no se lee. Despues un barrido de color rosa → lavanda → azul
+→ cyan, que se leia pero rompia el contraste: medido contra los `--background`
+reales, el cyan daba 2,11:1 sobre el tema claro y el azul 2,35:1 sobre el
+oscuro. Cada uno desaparecia en un tema distinto.
+
+La causa es que el contraste lo fija la **luminosidad**, no el tono, y mover el
+tono lejos la arrastra. El rosa base sale bien en ambos temas (3,67 / 4,70) por
+estar a media luminosidad. Congelada esa luminosidad, un barrido muestra que
+entre 290° y 10° el contraste no se mueve; fuera de ahi se rompe. Los tres
+narradores viven dentro de esa franja:
+
+| pieza | giro | cuerpo | claro | oscuro |
+|---|---|---|---|---|
+| `doty-fem` | −27° | `#E30BE3` orquidea | 3,68:1 | 4,69:1 |
+| `doty-scientist` | −49° | `#B432FF` violeta | 4,12:1 | 4,19:1 |
+| `doty-sailor` | +23° | `#ED023B` carmin | 4,27:1 | 4,04:1 |
+
+**El prefijo dirige la generacion, no solo nombra el archivo.** Es el hallazgo
+util de esta seccion. Sergio escribio "Doty Sailor the **old** crimson
+narrator" y esa palabra sola dio el cuerpo bajo y cuadrado que separa al
+marinero — mas que el color. Midjourney construye primero una idea de *persona*
+a partir del sustantivo y deriva el cuerpo de ahi, asi que un concepto de
+persona ("old") funciona mejor que una instruccion geometrica ("stockier and
+squarer"), que no tiene a nadie detras. Cada narrador lleva por eso en el
+prefijo la palabra que le da su silueta: `old` (bajo y cuadrado), `slender`
+(alto y estrecho), `poised` (erguido, bata que ensancha abajo).
+
+Corolario operativo: si al generar cambias una palabra del prefijo, **ese
+cambio va al catalogo**. El prefijo es la llave con que `match_downloads` mapea
+la descarga de vuelta a la pieza, y ademas es parte del prompt: dejarlo
+desincronizado pierde el mapeo y, en la siguiente regeneracion, la silueta.
 
 ### 3.11 Icono PWA (1) — `dots/imagenes/mj/fase-1/out/app-icon.png`
 
