@@ -108,7 +108,7 @@ def _ts_key(key: str) -> str:
 
 def emit_registry(cat: dict) -> str:
     pieces = [p for p in cat["pieces"] if p["group"] in REGISTRY_GROUPS]
-    if not any(p["slug"] == "feliz" for p in pieces):
+    if not any(registry_key(p) == "feliz" for p in pieces):
         raise CatalogError("registry needs a 'feliz' piece (FALLBACK_POSE)")
     groups = " | ".join(f'"{g}"' for g in REGISTRY_GROUPS)
     rows = "\n".join(

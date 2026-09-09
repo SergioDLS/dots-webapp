@@ -113,3 +113,10 @@ def test_emit_registry_shape():
 def test_emit_registry_requires_feliz():
     with pytest.raises(mjlib.CatalogError, match="feliz"):
         mjlib.emit_registry({"fase": "x", "pieces": [piece(slug="triste", prefix="Doty sad", fallback="05")]})
+
+def test_emit_registry_feliz_in_stickers_does_not_satisfy_guard():
+    # registry_key() would emit "sticker-feliz", so FALLBACK_POSE "feliz" would not exist
+    with pytest.raises(mjlib.CatalogError, match="feliz"):
+        mjlib.emit_registry({"fase": "x", "pieces": [
+            piece(group="stickers", slug="feliz", prefix="Doty happy sticker", fallback="02"),
+        ]})
