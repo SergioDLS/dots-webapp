@@ -466,3 +466,16 @@ def test_build_prompt_mantiene_glasses_en_el_negativo_por_defecto():
     style = dict(STYLE, negative=["text", "glasses", "shadow"])
     out = mjlib.build_prompt(piece(), style)
     assert out.endswith("--no text, glasses, shadow")
+
+def test_apply_mide_el_halo_antes_del_resize(tmp_path):
+    """El upscaling difumina el borde: la misma fuente limpia mide 0.000 px antes del
+    resize y 6.906 px después a size 1024. Si el halo se midiera sobre la imagen ya
+    redimensionada, esta pieza limpia saldría marcada."""
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=1024)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    assert rep["halo"] == []
