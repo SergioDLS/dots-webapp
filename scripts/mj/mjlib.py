@@ -26,16 +26,23 @@ def load_catalog(path: Path) -> dict:
 def validate_catalog(cat: dict) -> None:
     if not isinstance(cat.get("fase"), str) or not isinstance(cat.get("pieces"), list):
         raise CatalogError("catalog needs 'fase' (str) and 'pieces' (list)")
-    slugs, prefixes = set(), set()
+    slugs, prefixes = set(), {}
     for p in cat["pieces"]:
         slug = p.get("slug")
         if not slug or slug in slugs:
             raise CatalogError(f"duplicate or missing slug: {slug!r}")
         slugs.add(slug)
         prefix = p.get("prefix")
-        if not prefix or prefix in prefixes:
-            raise CatalogError(f"duplicate or missing prefix for {slug!r}: {prefix!r}")
-        prefixes.add(prefix)
+        if not prefix:
+            raise CatalogError(f"missing prefix for {slug!r}")
+        norm = normalize(prefix)
+        for other_norm, other_slug in prefixes.items():
+            if norm in other_norm or other_norm in norm:
+                raise CatalogError(
+                    f"{slug!r}: prefix {prefix!r} collides with {other_slug!r} "
+                    f"({norm!r} vs {other_norm!r}) — downloads would match both"
+                )
+        prefixes[norm] = slug
         group = p.get("group")
         if group not in REGISTRY_GROUPS + EXTRA_GROUPS:
             raise CatalogError(f"{slug}: invalid group {group!r}")

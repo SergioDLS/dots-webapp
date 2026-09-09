@@ -141,3 +141,34 @@ def test_render_dry_run_lists_states():
     assert "OK       triste ← c.png" in txt
     assert "AMBIGUO  feliz ← a.png | b.png" in txt
     assert "FALTA    wow" in txt
+
+def test_prefixes_that_normalize_alike_are_rejected(tmp_path):
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [
+        piece(prefix="Doty Waving Hello!"),
+        piece(slug="otro", prefix="doty waving hello"),
+    ]})
+    with pytest.raises(mjlib.CatalogError, match="collides"):
+        mjlib.load_catalog(p)
+
+def test_prefix_contained_in_another_is_rejected(tmp_path):
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [
+        piece(prefix="Doty with a big smile"),
+        piece(slug="otro", prefix="Doty with a big smile beaming widely"),
+    ]})
+    with pytest.raises(mjlib.CatalogError, match="collides"):
+        mjlib.load_catalog(p)
+
+def test_render_dry_run_marks_done_pieces():
+    cat = {"fase": "x", "pieces": [piece(done=True)]}
+    assert mjlib.render_dry_run(cat, {"feliz": []}) == "HECHO    feliz"
+
+def test_match_downloads_returns_sorted_candidates():
+    cat = {"fase": "x", "pieces": [piece()]}
+    files = ["z_Doty_beaming_with_joy_zzz.png", "a_Doty_beaming_with_joy_aaa.png"]
+    assert mjlib.match_downloads(cat, files)["feliz"] == [
+        "a_Doty_beaming_with_joy_aaa.png", "z_Doty_beaming_with_joy_zzz.png"
+    ]
+
+def test_match_downloads_ignores_non_png():
+    cat = {"fase": "x", "pieces": [piece()]}
+    assert mjlib.match_downloads(cat, ["sergio_Doty_beaming_with_joy_x.txt"])["feliz"] == []
