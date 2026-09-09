@@ -127,7 +127,15 @@ def build_prompt(piece: dict, style: dict) -> str:
     a la fase 0-bis.
     """
     if piece.get("mascot"):
-        return ", ".join([piece["prefix"], piece["prompt"], style["brand_lock"], style["framing"]])
+        # El brand_lock por defecto fija el cuerpo rosa. Los narradores derivados
+        # (doty-fem, doty-sailor, doty-scientist) llevan otro color de cuerpo para
+        # distinguirse a tamaño de avatar, asi que traen el suyo: sin esto la
+        # instruccion se contradiria a si misma, como paso con los anteojos.
+        lock = piece.get("brand_lock") or style["brand_lock"]
+        # Igual con el encuadre: el app-icon es un primer plano de cabeza y hombros,
+        # y el framing por defecto pide cuerpo entero — se contradirian.
+        marco = piece.get("framing") or style["framing"]
+        return ", ".join([piece["prefix"], piece["prompt"], lock, marco])
     negativos = style["negative"]
     if piece.get("glasses"):
         negativos = [n for n in negativos if n != "glasses"]

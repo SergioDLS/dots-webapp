@@ -633,3 +633,25 @@ def test_apply_mide_el_halo_antes_del_resize(tmp_path):
     rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
     assert rep["done"] == ["feliz"]
     assert rep["halo"] == []
+
+
+def test_brand_lock_por_pieza_anula_el_de_style():
+    # los narradores derivados llevan otro color de cuerpo; sin este override la
+    # instruccion diria "cuerpo lavanda ... keep the hot-pink body" y se contradiria.
+    propio = "keep the dark navy outline, and a lavender body — not pink"
+    out = mjlib.build_prompt(piece(brand_lock=propio), STYLE)
+    assert propio in out
+    assert STYLE["brand_lock"] not in out
+
+
+def test_sin_brand_lock_propio_usa_el_de_style():
+    out = mjlib.build_prompt(piece(), STYLE)
+    assert STYLE["brand_lock"] in out
+
+
+def test_framing_por_pieza_anula_el_de_style():
+    # el app-icon es un primer plano; el framing por defecto pide cuerpo entero.
+    propio = "head and shoulders only, centered with margin"
+    out = mjlib.build_prompt(piece(framing=propio), STYLE)
+    assert out.endswith(propio)
+    assert STYLE["framing"] not in out

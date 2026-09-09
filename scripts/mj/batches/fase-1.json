@@ -1030,33 +1030,36 @@
     {
       "slug": "doty-fem",
       "group": "characters",
-      "prefix": "Doty Fem talking with a cyan bow",
-      "prompt": "same round pink body, long curled eyelashes, a cyan bow on top of the head, head tilted gently to one side, one hand resting delicately near the chest, rosy cheeks, soft warm smile with the mouth slightly open mid-sentence, graceful gentle posture",
+      "prefix": "Doty Fem the lavender narrator",
+      "prompt": "same Doty shape but with a soft lavender body, the tuft on top styled as three long swept curls instead of spikes, long curled eyelashes, a cyan bow at the base of the curls, rosy cheeks, head tilted gently, one hand resting near the chest, soft warm smile with the mouth slightly open mid-sentence",
       "size": 1024,
       "mascot": true,
       "fallback": null,
-      "done": false
+      "done": false,
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a lavender body — not pink"
     },
     {
       "slug": "doty-sailor",
       "group": "characters",
-      "prefix": "Doty Sailor talking with a cap",
-      "prompt": "same round pink body, white sailor cap with a cyan visor, cyan neckerchief, thick furrowed brow, one eye squinting, mouth open to one side mid-grumble, one stubby arm gesturing gruffly, the endearing grumpy attitude of an old sea captain, comic and never menacing",
+      "prefix": "Doty Sailor the blue narrator",
+      "prompt": "same Doty shape but with a deep blue body, stockier and squarer, a white sailor cap with a cyan visor flattening the tuft, cyan neckerchief, thick furrowed brow, one eye squinting, mouth open to one side mid-grumble, one stubby arm gesturing gruffly, the endearing grumpy attitude of an old sea captain, comic and never menacing",
       "size": 1024,
       "mascot": true,
       "fallback": null,
-      "done": false
+      "done": false,
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a deep blue body — not pink"
     },
     {
       "slug": "doty-scientist",
       "group": "characters",
-      "prefix": "Doty Scientist talking with glasses",
-      "prompt": "same round pink body, round glasses, crisp white lab coat with the collar up, upright composed posture, chin slightly raised, one hand raised in a precise explanatory gesture with the index finger up, calm confident smile with the mouth open mid-sentence, poised and elegant",
+      "prefix": "Doty Scientist the cyan narrator",
+      "prompt": "same Doty shape but with a cyan body, the tuft neatly swept back, round glasses, a crisp white lab coat with the collar up, upright composed posture, chin slightly raised, one hand raised in a precise explanatory gesture with the index finger up, calm confident smile with the mouth open mid-sentence",
       "size": 1024,
       "mascot": true,
       "glasses": true,
       "fallback": null,
-      "done": false
+      "done": false,
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a cyan body — not pink"
     },
     {
       "slug": "app-icon",
@@ -1066,7 +1069,8 @@
       "size": 1024,
       "mascot": true,
       "fallback": null,
-      "done": false
+      "done": false,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
     }
   ]
 }
