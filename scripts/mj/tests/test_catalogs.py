@@ -72,3 +72,10 @@ def test_fase1_fallbacks_del_spec():
     fb = {p["slug"]: p["fallback"] for p in cat["pieces"]}
     for slug, esperado in FALLBACKS_DEL_SPEC.items():
         assert fb[slug] == esperado, f"{slug}: {fb[slug]!r} != {esperado!r}"
+
+def test_fase1_anclas_son_exactamente_correcto_y_wordle():
+    # correcto abre `icons`, wordle abre `games`: son las dos familias no-mascota
+    # y cada una necesita su propia ancla de Style reference (spec Sec.2-bis).
+    cat = mjlib.load_catalog(BATCH)
+    anclas = {p["slug"] for p in cat["pieces"] if p.get("anchor")}
+    assert anclas == {"correcto", "wordle"}

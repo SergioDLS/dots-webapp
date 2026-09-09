@@ -519,16 +519,22 @@ forma.
 
 ## 6. Flujo de trabajo humano
 
-1. Claude genera `PROMPTS.md` del lote (fase 0 primero; fase 1 en tandas de
-   ~20 piezas para no agotar la GPU de golpe).
-2. Sergio pega cada prompt en Midjourney, explora en Draft si la fase 0 lo
-   validó, mejora a resolución completa el acierto y lo descarga a la carpeta
-   del lote. Borra lo que no sirve.
-3. Claude corre `--dry-run`, resuelve ambigüedades con Sergio, corre `--apply`
-   y revisa `REPORT.md`.
+1. Claude corre `--emit-lote GRUPO [GRUPO...]` (uno o varios grupos por tanda,
+   según lo que la GPU del día aguante) y genera `LOTE-<grupo>[+<grupo>...].md`:
+   el prompt de cada pieza más la instrucción de adjunto que le toca. Piezas de
+   mascota → `ref-patron.png` en **"Attach to prompt"**, siempre la misma
+   fuente, nunca encadenada. Piezas no-mascota (`icons`/`games`) → nada
+   adjunto, salvo la pieza `anchor` de cada grupo, que se genera primero y cuyo
+   mejor resultado va al **Style reference** del resto del grupo (§2-bis,
+   §5.1-bis; `validate_catalog` exige exactamente un ancla por grupo no-mascota).
+2. Sergio pega cada prompt en Midjourney (con el adjunto que toque), mejora a
+   resolución completa el acierto y lo descarga a la carpeta de la fase sin
+   renombrar. Borra lo que no sirve.
+3. Claude corre `--dry-run`, resuelve con Sergio las piezas ambiguas o
+   faltantes vía `--pick slug=archivo`, corre `--apply` y revisa `REPORT.md`.
 4. Las piezas con halo o dudosas vuelven al paso 2 en el siguiente lote.
-5. Al cerrar un grupo completo, Claude migra sus puntos de uso (§4.5), pasa
-   lint + build y verifica en preview.
+5. Al cerrar un grupo completo, Claude corre `--emit-registry`, migra sus
+   puntos de uso (§4.5), pasa lint + build y verifica en preview.
 
 Midjourney publica las generaciones en su galería pública en el plan Basic
 (el modo stealth es de Pro en adelante). Se acepta: la mascota ya es pública en

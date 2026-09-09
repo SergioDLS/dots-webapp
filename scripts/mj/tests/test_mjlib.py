@@ -45,8 +45,37 @@ def test_registry_piece_needs_fallback_until_done(tmp_path):
     mjlib.load_catalog(p2)  # no raise
 
 def test_extra_group_needs_no_fallback(tmp_path):
-    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(group="games", slug="wordle", mascot=False, fallback=None)]})
+    # anchor=True porque este es el único no-mascota del grupo "games" del fixture:
+    # sin él, el nuevo guard de anchors (más abajo) rechazaría el catálogo por una
+    # razón ajena a lo que este test verifica (que "games" no exige fallback).
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(group="games", slug="wordle", mascot=False, fallback=None, anchor=True)]})
     mjlib.load_catalog(p)
+
+def test_anchor_true_requires_mascot_false(tmp_path):
+    # anchor solo tiene sentido para piezas sin fuente fija (spec Sec.2-bis): una
+    # pieza de mascota con anchor:true confundiría al operador, que ya adjunta
+    # ref-patron.png y no necesita ningún Style reference.
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(anchor=True)]})  # mascot=True por defecto
+    with pytest.raises(mjlib.CatalogError, match="anchor"):
+        mjlib.load_catalog(p)
+
+def test_at_most_one_anchor_per_group(tmp_path):
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [
+        piece(group="icons", slug="correcto", mascot=False, anchor=True),
+        piece(group="icons", slug="incorrecto", mascot=False, prefix="Red cross mark badge", anchor=True),
+    ]})
+    with pytest.raises(mjlib.CatalogError, match="anchor"):
+        mjlib.load_catalog(p)
+
+def test_non_mascot_group_needs_exactly_one_anchor(tmp_path):
+    # dos piezas no-mascota en el mismo grupo, ninguna marcada anchor: el grupo
+    # se queda sin ancla y las piezas derivarían en estilo sin que nadie lo note.
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [
+        piece(group="icons", slug="correcto", mascot=False),
+        piece(group="icons", slug="incorrecto", mascot=False, prefix="Red cross mark badge"),
+    ]})
+    with pytest.raises(mjlib.CatalogError, match="anchor"):
+        mjlib.load_catalog(p)
 
 def test_registry_key_prefixes_stickers():
     assert mjlib.registry_key(piece(group="stickers", slug="good-job")) == "sticker-good-job"
@@ -128,6 +157,93 @@ def test_emit_prompts_header_reflects_edit_model_no_stale_v7_terms():
     assert "🎨 mascota" in md and "🔤 icono" in md
     for stale in ("--oref", "--ow ", "--sref", "Omni"):
         assert stale not in md, stale
+
+
+def test_emit_lote_mascota_sola_no_menciona_style_reference():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(),
+        piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["expressions"])
+    assert STYLE["edit_source"] in md
+    assert "encaden" in md.lower()  # "nunca encadenes" / "encadenar acumula deriva"
+    assert "Style reference" not in md
+
+def test_emit_lote_no_mascota_menciona_style_reference_y_ancla_no_edit_source():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(group="icons", slug="correcto", mascot=False, prompt="green check mark",
+              prefix="Green check mark badge", anchor=True),
+        piece(group="icons", slug="incorrecto", mascot=False, prompt="red cross mark",
+              prefix="Red cross mark badge"),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["icons"])
+    assert "Style reference" in md
+    assert "ancla" in md.lower()
+    assert STYLE["edit_source"] not in md  # no se instruye adjuntar la fuente de Edit
+
+def test_emit_lote_mixto_cubre_ambos_modos():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(),
+        piece(group="icons", slug="correcto", mascot=False, prompt="green check mark",
+              prefix="Green check mark badge", anchor=True),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["expressions", "icons"])
+    assert STYLE["edit_source"] in md
+    assert "encaden" in md.lower()
+    assert "Style reference" in md
+    assert "ancla" in md.lower()
+
+def test_emit_lote_marca_la_pieza_ancla_en_su_grupo():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(group="icons", slug="correcto", mascot=False, prompt="green check mark",
+              prefix="Green check mark badge", anchor=True),
+        piece(group="icons", slug="incorrecto", mascot=False, prompt="red cross mark",
+              prefix="Red cross mark badge"),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["icons"])
+    linea_ancla = next(l for l in md.splitlines() if "`correcto`" in l)
+    linea_normal = next(l for l in md.splitlines() if "`incorrecto`" in l)
+    assert "ANCLA" in linea_ancla
+    assert "ANCLA" not in linea_normal
+
+def test_emit_lote_titulo_lleva_grupos_y_cantidad():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(),
+        piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+        piece(group="icons", slug="correcto", mascot=False, prompt="green check mark",
+              prefix="Green check mark badge", anchor=True),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["expressions", "icons"])
+    titulo = md.splitlines()[0]
+    assert "expressions" in titulo and "icons" in titulo and "3" in titulo
+
+def test_emit_lote_lista_los_criterios_de_aceptacion_clave():
+    # no se fija la prosa completa (se afina con el uso), pero sí los hechos
+    # concretos que costaron un defecto real: si alguno desaparece, el criterio
+    # correspondiente desaparece con él.
+    cat = {"fase": "fase-1", "pieces": [piece()]}
+    md = mjlib.emit_lote(cat, STYLE, ["expressions"])
+    for clave in ("#FF1F8F", "#1E1B5C", "#3768FF", "#35D8F5", "lentes", "1.18", "rembg", "dormido"):
+        assert clave in md, clave
+
+def test_emit_lote_grupo_desconocido_falla_con_su_nombre():
+    cat = {"fase": "fase-1", "pieces": [piece()]}
+    with pytest.raises(mjlib.CatalogError, match="grupo-fantasma"):
+        mjlib.emit_lote(cat, STYLE, ["grupo-fantasma"])
+
+def test_emit_lote_un_bloque_de_prompt_por_pieza():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(),
+        piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["expressions"])
+    assert md.count("```") == 4
+    assert mjlib.build_prompt(cat["pieces"][1], STYLE) in md
+
+def test_emit_lote_marca_las_piezas_ya_hechas():
+    cat = {"fase": "fase-1", "pieces": [piece(done=True)]}
+    md = mjlib.emit_lote(cat, STYLE, ["expressions"])
+    assert "✅" in md
 
 def test_registry_src_uses_fallback_until_done():
     assert mjlib.registry_src(piece()) == "/images/Doty/DOTTY-POSES-02.png"

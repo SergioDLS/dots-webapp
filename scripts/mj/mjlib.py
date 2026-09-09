@@ -37,6 +37,8 @@ def validate_catalog(cat: dict) -> None:
     if not isinstance(cat.get("fase"), str) or not isinstance(cat.get("pieces"), list):
         raise CatalogError("catalog needs 'fase' (str) and 'pieces' (list)")
     slugs, prefixes = set(), {}
+    anchors_by_group: dict[str, str] = {}
+    non_mascot_groups: set[str] = set()
     for p in cat["pieces"]:
         slug = p.get("slug")
         if not slug or slug in slugs:
@@ -68,21 +70,50 @@ def validate_catalog(cat: dict) -> None:
         if group in REGISTRY_GROUPS and not p["done"]:
             if not (isinstance(fb, str) and LEGACY_RE.match(fb)):
                 raise CatalogError(f"{slug}: fallback ('01'..'22') required while done=false")
+        if not p.get("mascot"):
+            non_mascot_groups.add(group)
+        if p.get("anchor"):
+            if p.get("mascot"):
+                raise CatalogError(
+                    f"{slug}: anchor requires mascot: false (mascot pieces use the fixed "
+                    "edit source instead — an anchor there would mislead the operator)"
+                )
+            if group in anchors_by_group:
+                raise CatalogError(
+                    f"{slug}: group {group!r} already has an anchor ({anchors_by_group[group]!r}) "
+                    "— at most one anchor per group"
+                )
+            anchors_by_group[group] = slug
+    for group in non_mascot_groups:
+        if group not in anchors_by_group:
+            offending = next(p["slug"] for p in cat["pieces"] if p["group"] == group and not p.get("mascot"))
+            raise CatalogError(
+                f"{offending}: group {group!r} has non-mascot pieces but no piece has "
+                "anchor: true — exactly one anchor is required per non-mascot group"
+            )
 
 
 def registry_key(piece: dict) -> str:
     return f"sticker-{piece['slug']}" if piece["group"] == "stickers" else piece["slug"]
 
 
-def output_path(piece: dict, fase: str, repo_root: Path, raw_root: Path) -> Path:
+def _relative_output(piece: dict, fase: str) -> str:
+    """Parte de output_path() que no depende de dónde vivan el repo o las descargas
+    — la reutiliza emit_lote para mostrarle al operador un destino legible sin
+    tener que pasarle raíces de disco (emit_lote es una función pura)."""
     g, s = piece["group"], piece["slug"]
     if g in REGISTRY_GROUPS:
-        return Path(repo_root) / "public/images/Doty" / g / f"{s}.png"
+        return f"public/images/Doty/{g}/{s}.png"
     if g == "games":
-        return Path(repo_root) / "public/images/games" / f"{s}.png"
+        return f"public/images/games/{s}.png"
     if g == "characters":
-        return Path(raw_root) / fase / "out/characters" / f"{s}.png"
-    return Path(raw_root) / fase / "out/app-icon.png"
+        return f"{fase}/out/characters/{s}.png"
+    return f"{fase}/out/app-icon.png"
+
+
+def output_path(piece: dict, fase: str, repo_root: Path, raw_root: Path) -> Path:
+    root = raw_root if piece["group"] in ("characters", "app-icon") else repo_root
+    return Path(root) / _relative_output(piece, fase)
 
 
 def build_prompt(piece: dict, style: dict) -> str:
@@ -128,6 +159,98 @@ def emit_prompts(cat: dict, style: dict) -> str:
         status = " ✅" if p.get("done") else ""
         kind = "🎨 mascota" if p.get("mascot") else "🔤 icono"
         lines += [f"{i}. `{p['slug']}` → `{target}`{status} · {kind}", "", "```", build_prompt(p, style), "```", ""]
+    return "\n".join(lines)
+
+
+# Ocho hechos aprendidos con defectos reales (spec §6): cada uno es la regla que un
+# lote anterior violó. No son estética general, son los criterios que un operador
+# nuevo necesita para no repetir el mismo error.
+ACCEPTANCE_CRITERIA = (
+    "El estilo coincide con el grupo: plano y de contorno grueso redondeado en "
+    "`icons`/`games`; el look propio de la mascota en el resto.",
+    "Paleta de marca: rosa `#FF1F8F`, navy `#1E1B5C`, azul `#3768FF`, cyan `#35D8F5`.",
+    "**Sin anteojos** (excepto la pieza `lentes`) y **sin zapatos** — Doty no lleva "
+    "ninguno de los dos.",
+    "Contorno navy alrededor de toda la figura.",
+    "**Nada negro ni navy como masa grande**: sobre el fondo del tema oscuro de la app "
+    "el navy mide un contraste de 1.18:1 y desaparece.",
+    "**Nada flotando despegado** de la figura principal: `rembg` lo borra (así "
+    "desaparecieron las Zs de un `dormido` temprano).",
+    "Cuerpo entero, sin cortes en los bordes; fondo blanco liso, sin sombra en el suelo.",
+    "Legible sin leer el prompt.",
+)
+
+
+def emit_lote(cat: dict, style: dict, grupos: list[str]) -> str:
+    """Markdown de un lote de trabajo para uno o más grupos (spec §6): lo que Claude
+    genera cada vez que Sergio trabaja grupo a grupo, en vez del PROMPTS.md de la fase
+    entera que emite `emit_prompts`. Las instrucciones de adjunto que trae dependen de
+    lo que haya en `grupos` — mascota, no-mascota, o una mezcla de ambas.
+
+    No-mascota necesita una explicación que `emit_prompts` no tiene: sin una fuente fija
+    que las sostenga, 18 piezas independientes derivan en grosor de línea, radio de
+    esquina y sombreado. La herramienta es el ancla marcada en el catálogo (`anchor:
+    true`, exactamente una por grupo no-mascota — lo exige `validate_catalog`): se genera
+    primero sin nada adjunto y su mejor resultado va al slot Style reference del resto.
+    """
+    por_grupo: dict[str, list[dict]] = {}
+    for g in grupos:
+        piezas_g = [p for p in cat["pieces"] if p["group"] == g]
+        if not piezas_g:
+            raise CatalogError(f"grupo {g!r} no tiene piezas en el catálogo")
+        por_grupo[g] = piezas_g
+    pieces = [p for g in grupos for p in por_grupo[g]]
+
+    hay_mascota = any(p.get("mascot") for p in pieces)
+    hay_icono = any(not p.get("mascot") for p in pieces)
+
+    lines = [f"# Lote: {' + '.join(grupos)} ({len(pieces)} piezas)", ""]
+
+    if hay_mascota:
+        lines += [
+            f"**Piezas de mascota** (🎨): adjunta `{style['edit_source']}` en la fila "
+            "**\"Attach to prompt\"** — la misma imagen fuente para todas, siempre. "
+            "**Nunca encadenes** una salida como fuente de la siguiente: el Edit Model "
+            "hereda el acabado y el encuadre de la fuente, y encadenar acumula deriva.",
+            "",
+        ]
+    if hay_icono:
+        lines += [
+            "**Piezas de icono** (🔤): **no se adjunta ninguna imagen**. Cada grupo "
+            "no-mascota trae su propio ancla — no se comparte entre grupos —: antes de "
+            "la primera pieza de cada grupo, genera la marcada `⚓ ANCLA` sin nada "
+            "adjunto (o recupera la que ya elegiste en un lote anterior de ese grupo) y "
+            "arrástrala al slot **Style reference**, reemplazando lo que hubiera ahí, "
+            "antes de seguir con el resto de ese grupo. **No es \"Attach to prompt\"**: "
+            "esa fila es el Edit Model y hace otra cosa. Midjourney inserta el `--sref` "
+            "solo al soltar la imagen ahí; no lo escribas en el prompt.",
+            "",
+        ]
+
+    lines += [
+        "Descarga una imagen por pieza, sin renombrar: Midjourney nombra el archivo por "
+        "las primeras palabras del prompt, y así es como el pipeline la mapea de vuelta "
+        "a la pieza. Pega cada prompt tal cual, completo.",
+        "",
+    ]
+
+    lines += ["## Criterios de acierto", ""]
+    lines += [f"{i}. {c}" for i, c in enumerate(ACCEPTANCE_CRITERIA, 1)]
+    lines += ["", "---", ""]
+
+    n = 0
+    for g in grupos:
+        piezas_g = por_grupo[g]
+        lines += [f"## Grupo: {g} ({len(piezas_g)})", ""]
+        for p in piezas_g:
+            n += 1
+            marcador = "🎨 mascota" if p.get("mascot") else "🔤 icono"
+            destino = _relative_output(p, cat["fase"])
+            status = " ✅" if p.get("done") else ""
+            ancla = (" · ⚓ **ANCLA de este grupo — generar primero, sin nada adjunto**"
+                      if p.get("anchor") else "")
+            lines += [f"### {n}. `{p['slug']}` · {marcador} → `{destino}`{status}{ancla}",
+                      "", "```", build_prompt(p, style), "```", ""]
     return "\n".join(lines)
 
 

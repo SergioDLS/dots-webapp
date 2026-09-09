@@ -724,6 +724,7 @@
       "prompt": "a white check mark inside a solid green circle badge",
       "size": 512,
       "mascot": false,
+      "anchor": true,
       "fallback": "02",
       "done": false
     },
@@ -894,6 +895,7 @@
       "prompt": "five square letter tiles in a row, two green two yellow one grey, no letters",
       "size": 512,
       "mascot": false,
+      "anchor": true,
       "fallback": null,
       "done": false
     },

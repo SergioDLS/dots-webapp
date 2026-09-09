@@ -5,6 +5,7 @@
 """Pipeline de arte de Doty. Ver docs/superpowers/specs/2026-09-07-doty-midjourney-assets-design.md §5.
 
   uv run scripts/mj/process.py --emit-prompts fase-1 --raw $RAW
+  uv run scripts/mj/process.py --emit-lote GRUPO [GRUPO ...] --raw $RAW [--fase fase-1]
   uv run scripts/mj/process.py --emit-registry fase-1
   uv run scripts/mj/process.py --dry-run fase-1 --raw $RAW
   uv run scripts/mj/process.py --apply fase-1 --raw $RAW [--pick slug=archivo.png ...] [--force]
@@ -35,6 +36,19 @@ def cmd_emit_prompts(fase: str, raw: Path) -> None:
     out = out_dir / "PROMPTS.md"
     out.write_text(mjlib.emit_prompts(cat, style), encoding="utf-8")
     print(f"{len(cat['pieces'])} prompts → {out}")
+
+
+def cmd_emit_lote(fase: str, raw: Path, grupos: list[str]) -> None:
+    cat = mjlib.load_catalog(batch_path(fase))
+    style = mjlib.load_style(HERE / "style.json")
+    out_dir = raw / fase
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f"LOTE-{'+'.join(grupos)}.md"
+    out.write_text(mjlib.emit_lote(cat, style, grupos), encoding="utf-8")
+    pieces = [p for g in grupos for p in cat["pieces"] if p["group"] == g]
+    n_mascota = sum(1 for p in pieces if p.get("mascot"))
+    n_icono = len(pieces) - n_mascota
+    print(f"{len(pieces)} piezas ({n_mascota} mascota, {n_icono} icono) → {out}")
 
 
 def cmd_dry_run(fase: str, raw: Path) -> int:
@@ -87,6 +101,14 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--emit-registry", metavar="FASE")
     g.add_argument("--dry-run", metavar="FASE")
     g.add_argument("--apply", metavar="FASE")
+    # A diferencia de las anteriores, esta no puede cargar la fase en su propio valor:
+    # nargs="+" ya consume esa posición para la lista de grupos, y mezclar un escalar
+    # con una lista variable en el mismo flag es ambiguo. Por eso --fase vive aparte,
+    # con el default que cubre el caso común y sin pertenecer al grupo mutuamente
+    # exclusivo (es un modificador, no un modo — debe poder acompañar a --emit-lote).
+    g.add_argument("--emit-lote", nargs="+", metavar="GRUPO")
+    ap.add_argument("--fase", default="fase-1", metavar="FASE",
+                     help="fase objetivo; solo la usa --emit-lote (las demás la reciben como su propio valor)")
     ap.add_argument("--raw", type=Path, help="carpeta raíz de descargas (dots/imagenes/mj)")
     ap.add_argument("--pick", action="append", default=[], metavar="SLUG=ARCHIVO")
     ap.add_argument("--force", action="store_true")
@@ -95,6 +117,11 @@ def main(argv: list[str] | None = None) -> int:
         if not a.raw:
             ap.error("--emit-prompts requiere --raw")
         cmd_emit_prompts(a.emit_prompts, a.raw)
+        return 0
+    if a.emit_lote:
+        if not a.raw:
+            ap.error("--emit-lote requiere --raw")
+        cmd_emit_lote(a.fase, a.raw, a.emit_lote)
         return 0
     if a.emit_registry:
         cat = mjlib.load_catalog(batch_path(a.emit_registry))
