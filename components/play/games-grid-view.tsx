@@ -10,29 +10,37 @@ import type { Game } from "@/services/games.service";
  * renderizar con datos de prueba.
  */
 
-const Bomb = "/images/DotBombs/bomb.png";
-const Balloon = "/images/PopIt/balloon.png";
+const tile = (key: string) => `/images/games/${key}.png`;
 
 /**
  * Identidad visual por juego: glifo + tono. El tono siempre sale de un token
  * del sistema, así que sigue al tema claro/oscuro solo, y hace que la
  * cuadrícula se pueda barrer de un vistazo en vez de ser 14 cuadros iguales.
+ *
+ * Los glifos son las ilustraciones de marca de `public/images/games/`, salvo
+ * cuatro que siguen en emoji a propósito. Medidos a 36 px sobre el fondo real
+ * de su tarjeta (`--surface` con un 14 % del tono), a esos cuatro les queda
+ * menos del 40 % de masa visible en el tema oscuro: están dibujados en navy
+ * — rejilla, dorsos de carta, cajas — y el navy sobre tarjeta oscura
+ * desaparece. Agrandar el glifo no lo arregla (probado a 56 px: el porcentaje
+ * no se mueve), hace falta redibujarlos con relleno claro. Hasta entonces el
+ * emoji se lee mejor, que es lo único que importa aquí.
  */
 type Skin = { img?: string; emoji?: string; hue: string };
 
 const SKIN: Record<string, Skin> = {
-  "/wordle": { emoji: "🟩", hue: "--success" },
+  "/wordle": { img: tile("wordle"), hue: "--success" },
   "/crossword": { emoji: "✏️", hue: "--primary" },
-  "/dot-match": { emoji: "🔗", hue: "--gem" },
+  "/dot-match": { img: tile("dot-match"), hue: "--gem" },
   "/true-false": { emoji: "🃏", hue: "--accent" },
   "/memory": { emoji: "🧠", hue: "--primary" },
   "/audio-blitz": { emoji: "🎧", hue: "--gem" },
-  "/word-tower": { emoji: "🗼", hue: "--gold" },
-  "/sentence-builder": { emoji: "🧱", hue: "--flame" },
-  "/ghost-race": { emoji: "👻", hue: "--primary" },
-  "/dotaxi": { emoji: "🚕", hue: "--gold" },
-  "/dont-pop": { img: Balloon, hue: "--accent" },
-  "/dot-bombs": { img: Bomb, hue: "--flame" },
+  "/word-tower": { img: tile("word-tower"), hue: "--gold" },
+  "/sentence-builder": { img: tile("sentence-builder"), hue: "--flame" },
+  "/ghost-race": { img: tile("ghost-race"), hue: "--primary" },
+  "/dotaxi": { img: tile("dotaxi"), hue: "--gold" },
+  "/dont-pop": { img: tile("dont-pop"), hue: "--accent" },
+  "/dot-bombs": { img: tile("dot-bombs"), hue: "--flame" },
 };
 
 const FALLBACK: Skin = { emoji: "🎮", hue: "--accent" };
