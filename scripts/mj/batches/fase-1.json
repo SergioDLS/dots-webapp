@@ -944,7 +944,7 @@
       "slug": "memory",
       "group": "games",
       "prefix": "Face-down cards with one flipped",
-      "prompt": "a row of face-down cards, one card flipped showing a pink star",
+      "prompt": "a row of face-down cards with bright cyan backs, one card flipped showing a pink star",
       "size": 512,
       "mascot": false,
       "fallback": null,

@@ -17,24 +17,23 @@ const tile = (key: string) => `/images/games/${key}.png`;
  * del sistema, así que sigue al tema claro/oscuro solo, y hace que la
  * cuadrícula se pueda barrer de un vistazo en vez de ser 14 cuadros iguales.
  *
- * Los glifos son las ilustraciones de marca de `public/images/games/`, salvo
- * cuatro que siguen en emoji a propósito. Medidos a 36 px sobre el fondo real
- * de su tarjeta (`--surface` con un 14 % del tono), a esos cuatro les queda
- * menos del 40 % de masa visible en el tema oscuro: están dibujados en navy
- * — rejilla, dorsos de carta, cajas — y el navy sobre tarjeta oscura
- * desaparece. Agrandar el glifo no lo arregla (probado a 56 px: el porcentaje
- * no se mueve), hace falta redibujarlos con relleno claro. Hasta entonces el
- * emoji se lee mejor, que es lo único que importa aquí.
+ * Los glifos son las ilustraciones de marca de `public/images/games/`. Se
+ * revisaron a 36 px — el tamaño al que esta cuadrícula los dibuja — y sobre el
+ * fondo real de su tarjeta (`--surface` con un 14 % del tono), porque medir
+ * contra `--background` da un veredicto que no corresponde a lo que se ve.
+ *
+ * `emoji` sigue en el tipo como red: `FALLBACK` lo usa para un juego que llegue
+ * del backend sin ilustración propia.
  */
 type Skin = { img?: string; emoji?: string; hue: string };
 
 const SKIN: Record<string, Skin> = {
   "/wordle": { img: tile("wordle"), hue: "--success" },
-  "/crossword": { emoji: "✏️", hue: "--primary" },
+  "/crossword": { img: tile("crossword"), hue: "--primary" },
   "/dot-match": { img: tile("dot-match"), hue: "--gem" },
-  "/true-false": { emoji: "🃏", hue: "--accent" },
-  "/memory": { emoji: "🧠", hue: "--primary" },
-  "/audio-blitz": { emoji: "🎧", hue: "--gem" },
+  "/true-false": { img: tile("true-false"), hue: "--accent" },
+  "/memory": { img: tile("memory"), hue: "--primary" },
+  "/audio-blitz": { img: tile("audio-blitz"), hue: "--gem" },
   "/word-tower": { img: tile("word-tower"), hue: "--gold" },
   "/sentence-builder": { img: tile("sentence-builder"), hue: "--flame" },
   "/ghost-race": { img: tile("ghost-race"), hue: "--primary" },
