@@ -1033,12 +1033,13 @@
       "slug": "doty-fem",
       "group": "characters",
       "prefix": "Doty Fem the orchid narrator",
-      "prompt": "same Doty body at exactly the same height as Doty, not taller and not slimmer, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, the tuft cut asymmetrically — cropped short and close on one side, a longer sleek sweep falling over the other side down to the jaw — forehead clear with no fringe, nothing worn in the hair, cyan over-ear headphones resting around her neck, long curled eyelashes, lively stance with the weight on one foot and one hand raised in an easy wave, a bright open smile with the mouth slightly open mid-sentence, youthful and upbeat, both legs ending in solid rounded feet, no earrings, no bow, no blushing cheeks",
+      "prompt": "same Doty face but a rounded body, a soft oval very slightly narrower at the top, the body exactly as tall as Doty's body and never taller, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, a cyan sports visor with no crown sitting low on the forehead, the tuft gathered into a thick braided ponytail that rises behind the visor and falls to one side, tied at the end with a small cyan band, a cyan sweatband on the raised wrist, long curled eyelashes, one hand raised in an open wave and the other in a light fist at her side, a bright open smile showing the teeth, mouth open mid-sentence, legs planted apart in a lively stance, both legs ending in solid rounded feet, athletic, youthful and upbeat, no headphones, no earrings, no bow, no blushing cheeks",
       "size": 1024,
       "mascot": true,
       "fallback": null,
-      "done": false,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid purple body #E30BE3 — clearly purple, not hot pink"
+      "done": true,
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid purple body #E30BE3 — clearly purple, not hot pink",
+      "source_file": "Mandrakin_the_tuft_gathered_high_at_the_back_into_a_long_brai_72858ef5-7826-4179-888b-ac0434bfebbe_1.png"
     },
     {
       "slug": "doty-sailor",
