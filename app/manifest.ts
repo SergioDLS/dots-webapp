@@ -43,6 +43,40 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
       { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
+    // Lo que Chromium muestra en el prompt de instalación. Se rehacen con
+    // scripts/mj/capture-screenshots.sh cuando la UI cambia — y son PÚBLICAS,
+    // así que ninguna sale de /profile ni de /quests: llevan la foto y el
+    // nombre del usuario.
+    screenshots: [
+      {
+        src: "/screenshots/camino-narrow.png",
+        sizes: "390x844",
+        type: "image/png",
+        form_factor: "narrow",
+        label: "El Camino: niveles y lecciones",
+      },
+      {
+        src: "/screenshots/juegos-narrow.png",
+        sizes: "390x844",
+        type: "image/png",
+        form_factor: "narrow",
+        label: "12 juegos para practicar",
+      },
+      {
+        src: "/screenshots/leccion-narrow.png",
+        sizes: "390x844",
+        type: "image/png",
+        form_factor: "narrow",
+        label: "Lecciones cortas con Doty",
+      },
+      {
+        src: "/screenshots/camino-wide.png",
+        sizes: "1280x800",
+        type: "image/png",
+        form_factor: "wide",
+        label: "El Camino en escritorio",
+      },
+    ],
     // Accesos del long-press (Android) / click derecho (desktop). Solo
     // Chromium; iOS los ignora. Las etiquetas replican las tabs del hub.
     shortcuts: [
