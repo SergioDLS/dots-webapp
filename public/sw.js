@@ -11,7 +11,7 @@
  * los caches dots-* de versiones anteriores.
  * Emergencia en producción: instrucciones en public/sw.kill.js.
  */
-const SW_VERSION = "v1";
+const SW_VERSION = "v2";
 
 const PRECACHE = `dots-precache-${SW_VERSION}`; // fijo, sin trim
 const STATIC = `dots-static-${SW_VERSION}`; //   runtime, con trim
