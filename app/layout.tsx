@@ -38,6 +38,22 @@ export const metadata: Metadata = {
     capable: true,
     title: "dots",
     statusBarStyle: "default",
+    // iOS tampoco lee el splash del manifest: exige un PNG por tamaño físico
+    // de pantalla y lo elige con estas media queries. La lista debe quedar
+    // idéntica a DEVICES en scripts/mj/compose-splash.mjs — añadir un
+    // dispositivo son los dos sitios, o el `<link>` apunta a un 404.
+    startupImage: (
+      [
+        [375, 667, 2], [414, 896, 2], [414, 896, 3], [375, 812, 3],
+        [390, 844, 3], [393, 852, 3], [402, 874, 3], [430, 932, 3],
+        [440, 956, 3], [768, 1024, 2], [820, 1180, 2], [1024, 1366, 2],
+      ] as const
+    ).map(([w, h, dpr]) => ({
+      url: `/splash/splash-${w}x${h}@${dpr}x.png`,
+      media:
+        `(device-width: ${w}px) and (device-height: ${h}px) and ` +
+        `(-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)`,
+    })),
   },
 };
 
