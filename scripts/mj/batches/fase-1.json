@@ -285,7 +285,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_engrossed_in_a_book_sitting_with_an_open_brigh_721d71c1-a016-4b2d-a0ac-9e40b95dc33a_1.png"
     },
     {
       "slug": "escribiendo",
@@ -307,7 +307,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_typing_on_a_laptop_seated_hands_on_a_bright_bl_6372f825-ec1a-41be-850a-1dc1ede1eb78_3.png"
     },
     {
       "slug": "escuchando",
@@ -450,13 +450,13 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_modeling_a_gold_medal_a_round_gold_medal_on_a__59d276e7-c0a8-4c73-bdab-d250570a2d5a_3.png"
     },
     {
       "slug": "diploma-celebracion",
       "group": "celebrations",
       "prefix": "Doty waving a rolled diploma",
-      "prompt": "holding a rolled cream diploma tied with a cyan ribbon, waving it joyfully",
+      "prompt": "holding up a rolled diploma of pale cream paper, clearly lighter than Doty's body, tied with a cyan ribbon, waving it joyfully",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
@@ -505,7 +505,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_carrying_an_open_laptop_holding_an_open_bright_426338f1-e288-4670-9aa0-057dd2b643f7_0.png"
     },
     {
       "slug": "tablet",
@@ -538,7 +538,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_wearing_a_blue_backpack_a_bright_blue_backpack_be97eae1-aaec-4595-840f-75e5719d9c73_1.png"
     },
     {
       "slug": "taza",
@@ -615,7 +615,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_rolling_a_travel_suitcase_pulling_a_bright_blu_c8e7ce7f-8c3b-40be-bf72-c943fa19ef87_3.png"
     },
     {
       "slug": "lentes",
@@ -693,7 +693,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_dressed_for_a_rodeo_wearing_a_wide-brimmed_hua_19fcd971-7a0b-4b01-8686-3c040eed0685_2.png"
     },
     {
       "slug": "graduacion",
@@ -977,7 +977,7 @@
       "slug": "sentence-builder",
       "group": "games",
       "prefix": "Colorful bricks stacking upward",
-      "prompt": "pink, cyan and blue bricks stacking into a small wall, playful arrangement",
+      "prompt": "bricks stacking into a small wall, playful arrangement, every single brick either hot pink, bright cyan or bright blue — no dim or muted brick anywhere in the wall",
       "size": 512,
       "mascot": false,
       "fallback": null,
@@ -1032,8 +1032,8 @@
     {
       "slug": "doty-fem",
       "group": "characters",
-      "prefix": "Doty Fem the slender orchid narrator",
-      "prompt": "same Doty face but a taller narrower body that tapers toward the feet, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, three swept curls hugging the head instead of spikes, a cyan bow at their base, long curled eyelashes, rosy cheeks, head tilted gently, one hand resting near the chest, both legs ending in solid rounded feet, soft warm smile with the mouth slightly open mid-sentence",
+      "prefix": "Doty Fem the orchid narrator",
+      "prompt": "same Doty body at exactly the same height as Doty, not taller and not slimmer, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, three thick swept curls framing the head instead of spikes, wider than the head so the silhouette reads at a glance, a cyan bow at their base, long curled eyelashes, rosy cheeks, head tilted gently, one hand resting near the chest, both legs ending in solid rounded feet, soft warm smile with the mouth slightly open mid-sentence",
       "size": 1024,
       "mascot": true,
       "fallback": null,
@@ -1056,13 +1056,14 @@
       "slug": "doty-scientist",
       "group": "characters",
       "prefix": "Doty Scientist the poised violet narrator",
-      "prompt": "same Doty face but a body squared off by a crisp white lab coat that flares out at the hem, a soft violet body #B432FF, the tuft neatly swept back, round glasses, upright composed posture, chin slightly raised, one hand raised in a precise explanatory gesture with the index finger up, calm confident smile with the mouth open mid-sentence",
+      "prompt": "same Doty face but a body squared off by a crisp white lab coat that flares out at the hem, a soft violet body #B432FF, the tuft neatly swept back, round glasses, long curled eyelashes, upright composed posture, chin slightly raised, one hand raised in a precise explanatory gesture with the index finger up, calm confident smile with the mouth open mid-sentence",
       "size": 1024,
       "mascot": true,
       "glasses": true,
       "fallback": null,
-      "done": false,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft violet body #B432FF — muted and refined, not pink"
+      "done": true,
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft violet body #B432FF — muted and refined, not pink",
+      "source_file": "Mandrakin_give_her_eyelashes_--ar_11_--edit_httpss.mj.rundSBO_f228abe8-0ff7-4909-af4c-047ceca8ff4a_0.png"
     },
     {
       "slug": "app-icon",
@@ -1072,8 +1073,9 @@
       "size": 1024,
       "mascot": true,
       "fallback": null,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Doty_face_close_up_icon_head_and_shoulders_close-up_6ff961d7-72e7-4479-a520-945e35ef563b_2.png"
     }
   ]
 }
