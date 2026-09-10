@@ -792,3 +792,101 @@ def test_translucent_silencia_la_alerta_de_halo(tmp_path):
     cat2 = {"fase": "fase-1", "pieces": [piece(size=64, translucent=True)]}
     callada = mjlib.apply_batch(cat2, write(tmp_path, "b.json", cat2), raw, repo, remover_con_halo)
     assert callada["halo"] == [] and callada["done"] == ["feliz"]
+
+
+@pytest.mark.parametrize("prompt", [
+    "thick navy outlines around each tile",
+    "a crossword grid of white squares with a navy border",
+    "wearing round navy-framed glasses",
+    "a bold navy-outline star",
+    "the navy eyes with white highlights",
+])
+def test_navy_como_linea_o_rasgo_se_acepta(prompt):
+    assert mjlib.dark_fill_mentions(prompt) == []
+
+
+@pytest.mark.parametrize("prompt,esperado", [
+    ("hands on a navy laptop keyboard", ["navy"]),
+    ("an open navy blue book", ["navy"]),
+    ("pink, navy and blue bricks", ["navy"]),
+    ("a dark grey wide-brimmed huaso hat", ["dark grey"]),
+    ("a black rubber tire", ["black"]),
+])
+def test_navy_de_relleno_se_rechaza(prompt, esperado):
+    assert mjlib.dark_fill_mentions(prompt) == esperado
+
+
+def test_catalogo_rechaza_el_navy_de_relleno_nombrando_la_pieza(tmp_path):
+    cat = {"fase": "fase-1", "pieces": [piece(slug="leyendo", prefix="Doty engrossed in a book",
+                                              prompt="an open navy blue book", fallback="07")]}
+    with pytest.raises(mjlib.CatalogError) as e:
+        mjlib.load_catalog(write(tmp_path, "fase-1.json", cat))
+    assert "leyendo" in str(e.value) and "navy" in str(e.value)
+
+
+def test_el_brand_lock_de_estilo_no_lo_bloquea_el_guard():
+    # "keep the dark navy outline" es de style.json y llega por build_prompt, no por
+    # el prompt de la pieza: el guard no debe impedir la linea de la marca.
+    assert mjlib.dark_fill_mentions(STYLE["brand_lock"]) == []
+
+
+def test_regen_reprocesa_sin_force_y_se_limpia(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"] and rep["skipped"] == []
+    guardado = json.loads(cpath.read_text())["pieces"][0]
+    assert guardado["done"] is True and "regen" not in guardado
+
+
+def test_regen_no_devuelve_el_registro_a_legacy():
+    # El motivo de existir de `regen`: con done=false el registro caeria al sprite
+    # legacy en la proxima regeneracion, en silencio y con el arte bueno en disco.
+    p = piece(slug="leyendo", group="poses", done=True, regen=True, fallback="02")
+    assert mjlib.registry_src(p) == "/images/Doty/poses/leyendo.png"
+
+
+def test_dry_run_muestra_pendiente_la_pieza_en_cola():
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True)]}
+    salida = mjlib.render_dry_run(cat, {"feliz": ["sergio_Doty_beaming_with_joy_c1.png"]})
+    assert "HECHO" not in salida and "OK       feliz" in salida
+
+
+def test_emit_lote_pendientes_deja_fuera_lo_ya_bueno():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(slug="feliz", prefix="Doty beaming with joy", done=True),
+        piece(slug="triste", prefix="Doty feeling sad", done=True, regen=True),
+        piece(slug="wow", group="states", prefix="Doty amazed", done=False, fallback="03"),
+    ]}
+    todo = mjlib.emit_lote(cat, STYLE, ["expressions", "states"])
+    solo = mjlib.emit_lote(cat, STYLE, ["expressions", "states"], pendientes_solo=True)
+    assert "`feliz`" in todo
+    assert "`feliz`" not in solo                 # ya buena: fuera
+    assert "`triste`" in solo and "`wow`" in solo  # en cola y sin generar: dentro
+    assert "(2 piezas)" in solo
+
+
+def test_emit_lote_pendientes_omite_el_grupo_que_queda_vacio():
+    cat = {"fase": "fase-1", "pieces": [
+        piece(slug="feliz", prefix="Doty beaming with joy", done=True),
+        piece(slug="wow", group="states", prefix="Doty amazed", done=False, fallback="03"),
+    ]}
+    solo = mjlib.emit_lote(cat, STYLE, ["expressions", "states"], pendientes_solo=True)
+    assert "## Grupo: states" in solo and "## Grupo: expressions" not in solo
+
+
+def test_emit_lote_marca_la_cola_distinto_que_lo_hecho():
+    # ✅ significa "no la toques". Una pieza en cola hay que tocarla, asi que no
+    # puede llevar el mismo marcador.
+    cat = {"fase": "fase-1", "pieces": [
+        piece(slug="feliz", prefix="Doty beaming with joy", done=True),
+        piece(slug="triste", prefix="Doty feeling sad", done=True, regen=True),
+    ]}
+    txt = mjlib.emit_lote(cat, STYLE, ["expressions"])
+    linea_feliz = next(l for l in txt.splitlines() if "`feliz`" in l)
+    linea_triste = next(l for l in txt.splitlines() if "`triste`" in l)
+    assert "✅" in linea_feliz and "REGENERAR" not in linea_feliz
+    assert "REGENERAR" in linea_triste and "✅" not in linea_triste

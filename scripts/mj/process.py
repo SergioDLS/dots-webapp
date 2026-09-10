@@ -38,14 +38,18 @@ def cmd_emit_prompts(fase: str, raw: Path) -> None:
     print(f"{len(cat['pieces'])} prompts → {out}")
 
 
-def cmd_emit_lote(fase: str, raw: Path, grupos: list[str]) -> None:
+def cmd_emit_lote(fase: str, raw: Path, grupos: list[str],
+                  pendientes: bool = False) -> None:
     cat = mjlib.load_catalog(batch_path(fase))
     style = mjlib.load_style(HERE / "style.json")
     out_dir = raw / fase
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"LOTE-{'+'.join(grupos)}.md"
-    out.write_text(mjlib.emit_lote(cat, style, grupos), encoding="utf-8")
+    out.write_text(mjlib.emit_lote(cat, style, grupos, pendientes), encoding="utf-8")
     pieces = [p for g in grupos for p in cat["pieces"] if p["group"] == g]
+    if pendientes:
+        # el mismo filtro que emit_lote, o la cuenta que se imprime miente
+        pieces = [p for p in pieces if not p.get("done") or p.get("regen")]
     n_mascota = sum(1 for p in pieces if p.get("mascot"))
     n_icono = len(pieces) - n_mascota
     print(f"{len(pieces)} piezas ({n_mascota} mascota, {n_icono} icono) → {out}")
@@ -112,6 +116,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--raw", type=Path, help="carpeta raíz de descargas (dots/imagenes/mj)")
     ap.add_argument("--pick", action="append", default=[], metavar="SLUG=ARCHIVO")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--pendientes", action="store_true",
+                     help="con --emit-lote: solo las piezas sin generar o en cola de regeneración")
     a = ap.parse_args(argv)
     if a.emit_prompts:
         if not a.raw:
@@ -121,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.emit_lote:
         if not a.raw:
             ap.error("--emit-lote requiere --raw")
-        cmd_emit_lote(a.fase, a.raw, a.emit_lote)
+        cmd_emit_lote(a.fase, a.raw, a.emit_lote, a.pendientes)
         return 0
     if a.emit_registry:
         cat = mjlib.load_catalog(batch_path(a.emit_registry))

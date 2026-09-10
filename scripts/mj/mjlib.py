@@ -33,6 +33,36 @@ def load_catalog(path: Path) -> dict:
     return cat
 
 
+_OSCURO = re.compile(r"\b(navy|black|charcoal|dark gr[ae]y|dark blue)\b", re.I)
+# Lo que puede ser oscuro sin hundirse: una línea (outline, border, frame, edge,
+# stroke, contour) y los rasgos pequeños de la cara. La pupila navy es de marca —
+# el propio `brand_lock` dice "the navy eyes with white highlights" — y se lee
+# porque va rodeada de blanco, no de fondo.
+_COMO_DETALLE = re.compile(
+    r"^[\s-]*(outline|border|frame|framed|edge|stroke|contour|line"
+    r"|eye|pupil|iris|eyebrow|lash|lashes)s?\b", re.I)
+
+
+def dark_fill_mentions(prompt: str) -> list[str]:
+    """Menciones de color oscuro que piden RELLENO en vez de línea o rasgo.
+
+    El navy es la línea de la marca — "thick navy outlines", "a navy border",
+    "navy-framed glasses" — y ahí es correcto. Como masa es el criterio 5 al
+    revés: sobre el fondo del tema oscuro el navy mide 1.18:1 y la forma se
+    funde con el fondo.
+
+    Ocho prompts pedían navy de relleno ("pink, navy and blue bricks", "navy
+    laptop", "navy blue book") y ese era el origen real de las piezas que no se
+    leían: no era deriva del modelo, era lo que le pedíamos. Se comprueba aquí y
+    no de memoria porque la instrucción vive en el catálogo, no en la cabeza.
+    """
+    fallos = []
+    for m in _OSCURO.finditer(prompt or ""):
+        if not _COMO_DETALLE.match(prompt[m.end():]):
+            fallos.append(m.group(0).lower())
+    return fallos
+
+
 def validate_catalog(cat: dict) -> None:
     if not isinstance(cat.get("fase"), str) or not isinstance(cat.get("pieces"), list):
         raise CatalogError("catalog needs 'fase' (str) and 'pieces' (list)")
@@ -46,6 +76,13 @@ def validate_catalog(cat: dict) -> None:
         slugs.add(slug)
         if not (isinstance(slug, str) and SLUG_RE.fullmatch(slug)):
             raise CatalogError(f"{slug!r}: slug must be lowercase kebab-case (a-z0-9, hyphen-separated)")
+        oscuros = dark_fill_mentions(p.get("prompt"))
+        if oscuros:
+            raise CatalogError(
+                f"{slug!r}: el prompt pide {', '.join(sorted(set(oscuros)))} de relleno. "
+                "El navy es la línea de la marca, no la masa: sobre el tema oscuro mide "
+                "1.18:1 y la forma se funde con el fondo (criterio 5). Dilo como línea "
+                "('navy outline', 'navy border', 'navy-framed') o usa un color claro.")
         prefix = p.get("prefix")
         if not prefix:
             raise CatalogError(f"missing prefix for {slug!r}")
@@ -192,7 +229,8 @@ ACCEPTANCE_CRITERIA = (
 )
 
 
-def emit_lote(cat: dict, style: dict, grupos: list[str]) -> str:
+def emit_lote(cat: dict, style: dict, grupos: list[str],
+              pendientes_solo: bool = False) -> str:
     """Markdown de un lote de trabajo para uno o más grupos (spec §6): lo que Claude
     genera cada vez que Sergio trabaja grupo a grupo, en vez del PROMPTS.md de la fase
     entera que emite `emit_prompts`. Las instrucciones de adjunto que trae dependen de
@@ -204,13 +242,20 @@ def emit_lote(cat: dict, style: dict, grupos: list[str]) -> str:
     true`, exactamente una por grupo no-mascota — lo exige `validate_catalog`): se genera
     primero sin nada adjunto y su mejor resultado va al slot Style reference del resto.
     """
+    # `pendientes_solo` deja fuera lo ya bueno. Sin esto un lote de regeneración
+    # sale con 60 piezas de las que 48 llevan ✅, y hay que ir a buscar las 12
+    # que importan entre ellas.
+    pendiente = lambda p: (not p.get("done")) or bool(p.get("regen"))
     por_grupo: dict[str, list[dict]] = {}
     for g in grupos:
         piezas_g = [p for p in cat["pieces"] if p["group"] == g]
         if not piezas_g:
             raise CatalogError(f"grupo {g!r} no tiene piezas en el catálogo")
-        por_grupo[g] = piezas_g
-    pieces = [p for g in grupos for p in por_grupo[g]]
+        if pendientes_solo:
+            piezas_g = [p for p in piezas_g if pendiente(p)]
+        if piezas_g:
+            por_grupo[g] = piezas_g
+    pieces = [p for g in grupos if g in por_grupo for p in por_grupo[g]]
 
     hay_mascota = any(p.get("mascot") for p in pieces)
     hay_icono = any(not p.get("mascot") for p in pieces)
@@ -251,13 +296,17 @@ def emit_lote(cat: dict, style: dict, grupos: list[str]) -> str:
 
     n = 0
     for g in grupos:
+        if g not in por_grupo:
+            continue
         piezas_g = por_grupo[g]
         lines += [f"## Grupo: {g} ({len(piezas_g)})", ""]
         for p in piezas_g:
             n += 1
             marcador = "🎨 mascota" if p.get("mascot") else "🔤 icono"
             destino = _relative_output(p, cat["fase"])
-            status = " ✅" if p.get("done") else ""
+            status = (" ♻️ **REGENERAR** — el arte actual se publica, pero esta pieza "
+                      "espera una mejor" if p.get("regen")
+                      else " ✅" if p.get("done") else "")
             ancla = (" · ⚓ **ANCLA de este grupo — generar primero, sin nada adjunto**"
                       if p.get("anchor") else "")
             lines += [f"### {n}. `{p['slug']}` · {marcador} → `{destino}`{status}{ancla}",
@@ -323,7 +372,7 @@ def render_dry_run(cat: dict, matches: dict[str, list[str]]) -> str:
     lines = []
     for p in cat["pieces"]:
         files = matches.get(p["slug"], [])
-        if p.get("done"):
+        if p.get("done") and not p.get("regen"):
             lines.append(f"HECHO    {p['slug']}")
         elif len(files) == 1:
             lines.append(f"OK       {p['slug']} ← {files[0]}")
@@ -464,7 +513,11 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
     for p in cat["pieces"]:
         slug = p["slug"]
         target = output_path(p, fase, repo_root, raw_root)
-        if p.get("done") and not force:
+        # `done` significa "hay arte publicado", no "es el arte definitivo". Una pieza
+        # marcada `regen` ya produjo su PNG pero espera una mejor: se reprocesa sin
+        # tener que pasar --force global, y sobre todo sin poner done=false, que
+        # devolveria el registro a los sprites legacy en la proxima regeneracion.
+        if p.get("done") and not force and not p.get("regen"):
             rep["skipped"].append(slug)
             continue
         chosen = picks.get(slug)
@@ -506,6 +559,7 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
         if grosor > HALO_THRESHOLD and not p.get("translucent"):
             rep["halo"].append((slug, grosor))
         p["done"] = True
+        p.pop("regen", None)
         p["source_file"] = chosen
         rep["done"].append(slug)
         save_catalog(cat, catalog_path)

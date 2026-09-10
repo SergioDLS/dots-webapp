@@ -280,12 +280,12 @@
       "slug": "leyendo",
       "group": "poses",
       "prefix": "Doty engrossed in a book",
-      "prompt": "sitting with an open navy blue book, eyes on the pages, content smile",
+      "prompt": "sitting with an open bright blue book, eyes on the pages, content smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_engrossed_in_a_book_sitting_with_an_open_navy__81d86bc8-176d-4d58-b7d0-7f3585ec332e_3.png"
+      "regen": true
     },
     {
       "slug": "escribiendo",
@@ -302,12 +302,12 @@
       "slug": "en-laptop",
       "group": "poses",
       "prefix": "Doty typing on a laptop",
-      "prompt": "seated, hands on a navy laptop keyboard, focused on the screen",
+      "prompt": "seated, hands on a bright blue laptop keyboard with a cyan screen, focused on the screen",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_typing_on_a_laptop_seated_hands_on_a_navy_lapt_a7cb0677-01ce-4ae7-852b-44fd605ff4d2_1.png"
+      "regen": true
     },
     {
       "slug": "escuchando",
@@ -445,23 +445,23 @@
       "slug": "medalla",
       "group": "celebrations",
       "prefix": "Doty modeling a gold medal",
-      "prompt": "a round gold medal on a navy ribbon around the neck, chest out proudly",
+      "prompt": "a round gold medal on a cyan ribbon around the neck, chest out proudly",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_modeling_a_gold_medal_a_round_gold_medal_on_a__17ddc015-641d-4c99-aca4-dd4858c0bb66_0.png"
+      "regen": true
     },
     {
       "slug": "diploma-celebracion",
       "group": "celebrations",
       "prefix": "Doty waving a rolled diploma",
-      "prompt": "holding a rolled navy diploma tied with a cyan ribbon, waving it joyfully",
+      "prompt": "holding a rolled cream diploma tied with a cyan ribbon, waving it joyfully",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_waving_a_rolled_diploma_holding_a_rolled_navy__3cb925c4-8d80-4a42-9426-302c7e21f6ea_1.png"
+      "regen": true
     },
     {
       "slug": "fuegos-artificiales",
@@ -500,12 +500,12 @@
       "slug": "laptop",
       "group": "accessories",
       "prefix": "Doty carrying an open laptop",
-      "prompt": "holding an open navy laptop flat with both hands, screen facing the viewer",
+      "prompt": "holding an open bright blue laptop flat with both hands, cyan screen facing the viewer",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_carrying_an_open_laptop_holding_an_open_grey_l_480acbe1-36cc-40c7-ab8f-291d9cd0cb0d_3.png"
+      "regen": true
     },
     {
       "slug": "tablet",
@@ -532,13 +532,13 @@
     {
       "slug": "mochila",
       "group": "accessories",
-      "prefix": "Doty wearing a pink backpack",
-      "prompt": "backpack straps over both shoulders, one thumb hooked on a strap, excited smile",
+      "prefix": "Doty wearing a blue backpack",
+      "prompt": "a bright blue backpack with straps over both shoulders, one thumb hooked on a strap, excited smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_wearing_a_backpack_backpack_straps_over_both_s_323e9098-3372-40a4-b7d0-e322a927a167_1.png"
+      "regen": true
     },
     {
       "slug": "taza",
@@ -610,12 +610,12 @@
       "slug": "maleta",
       "group": "accessories",
       "prefix": "Doty rolling a travel suitcase",
-      "prompt": "pulling a navy blue rolling suitcase, big excited travel-ready smile",
+      "prompt": "pulling a bright blue rolling suitcase, big excited travel-ready smile",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_rolling_a_travel_suitcase_pulling_a_grey_rolli_2b8c6af2-fd9a-4ae0-baee-1e8914679c11_0.png"
+      "regen": true
     },
     {
       "slug": "lentes",
@@ -688,12 +688,12 @@
       "slug": "fiestas-patrias",
       "group": "themed",
       "prefix": "Doty dressed for a rodeo",
-      "prompt": "wearing a dark grey wide-brimmed huaso hat with a pink band, a red neckerchief, holding a small Chilean flag on a short thick stick, festive grin",
+      "prompt": "wearing a wide-brimmed huaso hat in warm grey with a hot-pink band and a thin pink edge along the brim, a red neckerchief, holding a small Chilean flag on a short thick stick — a blue square with a white star in the upper hoist, a white band beside it and a red lower half, festive grin",
       "size": 1024,
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_dressed_for_a_rodeo_wearing_a_dark_grey_wide-b_f51c08bd-a8ae-42f1-85e9-44fe521f7ce6_1.png"
+      "regen": true
     },
     {
       "slug": "graduacion",
@@ -977,12 +977,12 @@
       "slug": "sentence-builder",
       "group": "games",
       "prefix": "Colorful bricks stacking upward",
-      "prompt": "pink, navy and blue bricks stacking into a small wall, playful arrangement",
+      "prompt": "pink, cyan and blue bricks stacking into a small wall, playful arrangement",
       "size": 512,
       "mascot": false,
       "fallback": null,
       "done": true,
-      "source_file": "Mandrakin_Colorful_bricks_stacking_upward_pink_navy_and_blue__3e133448-64c8-4ae5-b1b6-751c844bc1e9_1.png"
+      "regen": true
     },
     {
       "slug": "ghost-race",
