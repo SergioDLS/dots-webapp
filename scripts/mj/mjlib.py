@@ -334,6 +334,57 @@ def render_dry_run(cat: dict, matches: dict[str, list[str]]) -> str:
     return "\n".join(lines)
 
 
+def internal_hole_mask(img: "Image.Image") -> "Image.Image":
+    """Máscara ("L", 255 = agujero) de todo lo NO opaco rodeado de figura.
+
+    `rembg` decide qué es fondo por color, no por topología, así que se come
+    cualquier mancha clara encerrada en el dibujo: el blanco de un ojo, el check
+    de `correcto`, la "!" de `atencion`, el pergamino de `diploma`, el ribete del
+    gorro de `navidad`. Sobre fondo blanco el agujero no se ve — deja pasar
+    blanco — y sobre el tema oscuro aparece un ojo del color del fondo.
+
+    Un agujero se distingue del fondo por conectividad: el fondo llega al borde
+    de la imagen, un agujero no. Se enmarca en un borde de 1 px para que un solo
+    relleno desde (0,0) alcance TODO el fondo, toque o no las esquinas.
+
+    El criterio es "no del todo opaco", no "casi transparente": el interior de
+    una figura sólida es opaco por definición, así que la orla semitransparente
+    del borde del agujero es parte del agujero. Recortarla en el alfa casi-cero
+    dejaba ese anillo dentro de la figura, y `halo_thickness_px` — que cuenta
+    píxeles semitransparentes rosados sobre el largo del contorno — lo leía como
+    halo: al arreglar los agujeros saltaron dos alertas falsas.
+    """
+    from PIL import ImageDraw
+
+    alfa = img.convert("RGBA").getchannel("A")
+    w, h = alfa.size
+    marco = Image.new("L", (w + 2, h + 2), 255)
+    marco.paste(alfa.point(lambda v: 255 if v < 255 else 0), (1, 1))
+    ImageDraw.floodfill(marco, (0, 0), 128)
+    return marco.crop((1, 1, w + 1, h + 1)).point(lambda v: 255 if v == 255 else 0)
+
+
+def fill_internal_holes(cut: "Image.Image", src: "Image.Image") -> "Image.Image":
+    """Devuelve el color original a los agujeros que `rembg` abrió dentro de la
+    figura. El color sale de `src` — la descarga sin recortar, del mismo tamaño —
+    y no de un blanco inventado: el ojo lleva su sombreado y la estrella de
+    `nivel-completado` su dorado.
+
+    No todo agujero es un defecto: `cargando` es un anillo y su centro es fondo
+    de verdad. Esas piezas se marcan `keep_holes` en el catálogo y no pasan por
+    aquí; la topología no puede distinguirlas, es un juicio por pieza.
+    """
+    mask = internal_hole_mask(cut)
+    if mask.getbbox() is None:
+        return cut
+    r, g, b, a = cut.convert("RGBA").split()
+    sr, sg, sb = src.convert("RGB").split()
+    for canal, fuente in ((r, sr), (g, sg), (b, sb)):
+        canal.paste(fuente, (0, 0), mask)
+    a.paste(255, (0, 0), mask)
+    return Image.merge("RGBA", (r, g, b, a))
+
+
 def trim_square_resize(img: "Image.Image", size: int, margin: float = 0.04) -> "Image.Image":
     img = img.convert("RGBA")
     bbox = img.getbbox(alpha_only=True)
@@ -417,6 +468,12 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             rep["skipped"].append(slug)
             continue
         chosen = picks.get(slug)
+        # Una elección ya tomada vale como pick. Sin esto un --force pierde las
+        # ambigüedades que se resolvieron a mano (y los --pick de prefijos que
+        # no emparejan) y deja el PNG viejo en disco sin avisar: la pieza parece
+        # hecha y está sin reprocesar, que es lo peor de los dos mundos.
+        if not chosen and p.get("source_file") and (raw_dir / p["source_file"]).is_file():
+            chosen = p["source_file"]
         cands = matches.get(slug, [])
         if not chosen:
             if len(cands) == 1:
@@ -432,6 +489,8 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
         try:
             src = Image.open(raw_dir / chosen).convert("RGBA")
             cut = remover(src)
+            if not p.get("keep_holes"):
+                cut = fill_internal_holes(cut, src)
             out = trim_square_resize(cut, p["size"])
             target.parent.mkdir(parents=True, exist_ok=True)
             out.save(target, optimize=True)
@@ -440,7 +499,11 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             continue
         consumed[chosen] = slug
         grosor = halo_thickness_px(cut)
-        if grosor > HALO_THRESHOLD:
+        # `ghost-race` es un fantasma translucido a proposito: sus pixeles
+        # semitransparentes rosados son el dibujo, no un fleco, y la metrica no
+        # puede distinguirlo — es un canario, no un veredicto. Sin esta salida
+        # deja una alerta permanente, y una alerta que siempre suena se ignora.
+        if grosor > HALO_THRESHOLD and not p.get("translucent"):
             rep["halo"].append((slug, grosor))
         p["done"] = True
         p["source_file"] = chosen

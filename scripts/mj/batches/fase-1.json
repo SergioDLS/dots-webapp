@@ -164,7 +164,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Doty_fast_asleep_standing_up_eyes_closed_as_gentle__d6434c01-da56-4a57-9b2f-086ca6615f7a_1.png"
+      "source_file": "Mandrakin_Doty_snoozing_standing_up_eyes_fully_closed_small_p_2b96ec9e-4b96-4271-8d7f-bd53dfa51c24_0.png"
     },
     {
       "slug": "saludando",
@@ -760,7 +760,8 @@
       "mascot": false,
       "fallback": "02",
       "done": true,
-      "source_file": "Mandrakin_Spinning_blue_loading_ring_a_circular_blue_progress_0f4490fd-5498-4b24-90c6-8b1e154927a0_1.png"
+      "source_file": "Mandrakin_Spinning_blue_loading_ring_a_circular_blue_progress_0f4490fd-5498-4b24-90c6-8b1e154927a0_1.png",
+      "keep_holes": true
     },
     {
       "slug": "racha",
@@ -992,7 +993,8 @@
       "mascot": false,
       "fallback": null,
       "done": true,
-      "source_file": "Mandrakin_Doty_ghost_zooming_past_a_small_translucent_pink_gh_61a021cf-a42a-48e0-9ec1-51413143824b_3.png"
+      "source_file": "Mandrakin_Doty_ghost_zooming_past_a_small_translucent_pink_gh_61a021cf-a42a-48e0-9ec1-51413143824b_3.png",
+      "translucent": true
     },
     {
       "slug": "dotaxi",

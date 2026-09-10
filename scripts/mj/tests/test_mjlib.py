@@ -655,3 +655,140 @@ def test_framing_por_pieza_anula_el_de_style():
     out = mjlib.build_prompt(piece(framing=propio), STYLE)
     assert out.endswith(propio)
     assert STYLE["framing"] not in out
+
+
+def raw_png_con_ojo(dirpath, name):
+    """Como raw_png, pero con un cuadro BLANCO dentro del cuerpo rosa: es la
+    trampa exacta en la que cae rembg, que decide por color y no por topología."""
+    im = Image.new("RGBA", (300, 300), (255, 255, 255, 255))
+    for x in range(100, 200):
+        for y in range(120, 180):
+            im.putpixel((x, y), (255, 31, 143, 255))
+    for x in range(140, 160):
+        for y in range(140, 160):
+            im.putpixel((x, y), (255, 255, 255, 255))
+    im.save(dirpath / name)
+
+
+def test_internal_hole_mask_no_marca_el_fondo_que_toca_el_borde():
+    im = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
+    for x in range(10, 30):
+        for y in range(10, 30):
+            im.putpixel((x, y), (255, 31, 143, 255))
+    assert mjlib.internal_hole_mask(im).getbbox() is None
+
+
+def test_internal_hole_mask_marca_el_agujero_rodeado_de_figura():
+    im = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
+    for x in range(10, 30):
+        for y in range(10, 30):
+            im.putpixel((x, y), (255, 31, 143, 255))
+    for x in range(18, 22):
+        for y in range(18, 22):
+            im.putpixel((x, y), (0, 0, 0, 0))
+    assert mjlib.internal_hole_mask(im).getbbox() == (18, 18, 22, 22)
+
+
+def test_fill_internal_holes_recupera_el_color_del_original_no_un_blanco_inventado():
+    src = Image.new("RGBA", (40, 40), (255, 255, 255, 255))
+    for x in range(10, 30):
+        for y in range(10, 30):
+            src.putpixel((x, y), (255, 31, 143, 255))
+    for x in range(18, 22):          # el "ojo": un gris, no blanco puro
+        for y in range(18, 22):
+            src.putpixel((x, y), (230, 230, 240, 255))
+    cut = src.copy()
+    for x in range(18, 22):
+        for y in range(18, 22):
+            cut.putpixel((x, y), (0, 0, 0, 0))
+    out = mjlib.fill_internal_holes(cut, src)
+    assert out.getpixel((20, 20)) == (230, 230, 240, 255)
+
+
+def test_apply_batch_rellena_el_ojo_que_rembg_se_comio(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png_con_ojo(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    rep = mjlib.apply_batch(cat, write(tmp_path, "fase-1.json", cat), raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    salida = Image.open(repo / "public/images/Doty/expressions/feliz.png")
+    assert mjlib.internal_hole_mask(salida).getbbox() is None
+
+
+def test_keep_holes_deja_el_anillo_hueco(tmp_path):
+    # `cargando` es un anillo: su centro es fondo de verdad y rellenarlo lo
+    # convertiria en un disco. La topologia no puede distinguirlo, lo dice el catalogo.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png_con_ojo(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, keep_holes=True)]}
+    mjlib.apply_batch(cat, write(tmp_path, "fase-1.json", cat), raw, repo, fake_remover)
+    salida = Image.open(repo / "public/images/Doty/expressions/feliz.png")
+    assert mjlib.internal_hole_mask(salida).getbbox() is not None
+
+
+def test_force_reusa_el_source_file_ya_elegido(tmp_path):
+    # Sin esto, un --force devuelve a "ambigua" toda pieza que se habia resuelto
+    # con --pick y deja el PNG viejo en disco: parece hecha y esta sin reprocesar.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c2.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover,
+                            picks={"feliz": "sergio_Doty_beaming_with_joy_c2.png"})
+    assert rep["done"] == ["feliz"]
+    de_nuevo = mjlib.apply_batch(mjlib.load_catalog(cpath), cpath, raw, repo,
+                                 fake_remover, force=True)
+    assert de_nuevo["done"] == ["feliz"] and de_nuevo["ambiguous"] == []
+
+
+def test_force_ignora_un_source_file_que_ya_no_existe(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, source_file="borrado.png")]}
+    rep = mjlib.apply_batch(cat, write(tmp_path, "fase-1.json", cat), raw, repo,
+                            fake_remover, force=True)
+    assert rep["done"] == ["feliz"]        # cae al único candidato, no explota
+
+
+def test_internal_hole_mask_incluye_la_orla_semitransparente_del_agujero():
+    # El interior de una figura solida es opaco por definicion, asi que la orla
+    # del agujero es agujero. Dejarla fuera la deja dentro de la figura y
+    # halo_thickness_px la lee como halo: alerta falsa al arreglar los ojos.
+    im = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
+    for x in range(10, 30):
+        for y in range(10, 30):
+            im.putpixel((x, y), (255, 31, 143, 255))
+    for x in range(18, 22):
+        for y in range(18, 22):
+            im.putpixel((x, y), (0, 0, 0, 0))
+    for x in range(17, 23):          # orla a medio alfa alrededor del agujero
+        for y in (17, 22):
+            im.putpixel((x, y), (255, 31, 143, 128))
+    for y in range(17, 23):
+        for x in (17, 22):
+            im.putpixel((x, y), (255, 31, 143, 128))
+    assert mjlib.internal_hole_mask(im).getbbox() == (17, 17, 23, 23)
+
+
+def test_translucent_silencia_la_alerta_de_halo(tmp_path):
+    # ghost-race es un fantasma translucido: sus pixeles semitransparentes son el
+    # dibujo. La metrica no puede distinguirlo, asi que la pieza lo declara.
+    def remover_con_halo(im):
+        im = im.convert("RGBA")
+        datos = [(r, g, b, 128) if (r, g, b) != (255, 255, 255) else (0, 0, 0, 0)
+                 for r, g, b, a in im.get_flattened_data()]
+        out = Image.new("RGBA", im.size); out.putdata(datos); return out
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    ruidosa = mjlib.apply_batch(cat, write(tmp_path, "a.json", cat), raw, repo, remover_con_halo)
+    assert [s for s, _ in ruidosa["halo"]] == ["feliz"]
+    cat2 = {"fase": "fase-1", "pieces": [piece(size=64, translucent=True)]}
+    callada = mjlib.apply_batch(cat2, write(tmp_path, "b.json", cat2), raw, repo, remover_con_halo)
+    assert callada["halo"] == [] and callada["done"] == ["feliz"]
