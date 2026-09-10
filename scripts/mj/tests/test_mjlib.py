@@ -8,7 +8,7 @@ import mjlib  # noqa: E402
 
 def piece(**over):
     base = {"slug": "feliz", "group": "expressions", "prefix": "Doty beaming with joy",
-            "prompt": "big smile", "size": 1024, "mascot": True, "fallback": "02", "done": False}
+            "prompt": "big smile", "size": 1024, "mascot": True, "done": False}
     base.update(over)
     return base
 
@@ -37,18 +37,22 @@ def test_bad_group_rejected(tmp_path):
     with pytest.raises(mjlib.CatalogError, match="group"):
         mjlib.load_catalog(p)
 
-def test_registry_piece_needs_fallback_until_done(tmp_path):
-    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(fallback=None)]})
-    with pytest.raises(mjlib.CatalogError, match="fallback"):
-        mjlib.load_catalog(p)
-    p2 = write(tmp_path, "d.json", {"fase": "x", "pieces": [piece(fallback=None, done=True)]})
+def test_registry_piece_sin_hacer_cae_al_placeholder_que_existe(tmp_path):
+    # El placeholder era uno de los 22 legacy, que ya no viven en
+    # public/images/Doty/: apuntar ahi generaba un registro que check-doty-assets
+    # rechaza por "falta en disco".
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece()]})
+    cat = mjlib.load_catalog(p)
+    assert mjlib.registry_src(cat["pieces"][0]) == "/images/Doty/expressions/feliz.png"
+    assert "DOTTY-POSES" not in mjlib.emit_registry(cat)
+    p2 = write(tmp_path, "d.json", {"fase": "x", "pieces": [piece(done=True)]})
     mjlib.load_catalog(p2)  # no raise
 
-def test_extra_group_needs_no_fallback(tmp_path):
+def test_extra_group_no_exige_placeholder(tmp_path):
     # anchor=True porque este es el único no-mascota del grupo "games" del fixture:
     # sin él, el nuevo guard de anchors (más abajo) rechazaría el catálogo por una
-    # razón ajena a lo que este test verifica (que "games" no exige fallback).
-    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(group="games", slug="wordle", mascot=False, fallback=None, anchor=True)]})
+    # razón ajena a lo que este test verifica (que "games" es un grupo válido).
+    p = write(tmp_path, "c.json", {"fase": "x", "pieces": [piece(group="games", slug="wordle", mascot=False, anchor=True)]})
     mjlib.load_catalog(p)
 
 def test_anchor_true_requires_mascot_false(tmp_path):
@@ -139,7 +143,7 @@ def test_build_prompt_correcto_icon_matches_expected_shape():
     assert style["brand_lock"] not in out and style["framing"] not in out
 
 def test_emit_prompts_is_numbered_markdown():
-    cat = {"fase": "fase-1", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad", fallback="05")]}
+    cat = {"fase": "fase-1", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad")]}
     md = mjlib.emit_prompts(cat, STYLE)
     assert md.splitlines()[0] == "# fase-1 — prompts"
     assert "1. `feliz` → `expressions/feliz.png`" in md and "2. `triste`" in md
@@ -162,7 +166,7 @@ def test_emit_prompts_header_reflects_edit_model_no_stale_v7_terms():
 def test_emit_lote_mascota_sola_no_menciona_style_reference():
     cat = {"fase": "fase-1", "pieces": [
         piece(),
-        piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+        piece(slug="triste", prefix="Doty feeling sad"),
     ]}
     md = mjlib.emit_lote(cat, STYLE, ["expressions"])
     assert STYLE["edit_source"] in md
@@ -209,7 +213,7 @@ def test_emit_lote_marca_la_pieza_ancla_en_su_grupo():
 def test_emit_lote_titulo_lleva_grupos_y_cantidad():
     cat = {"fase": "fase-1", "pieces": [
         piece(),
-        piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+        piece(slug="triste", prefix="Doty feeling sad"),
         piece(group="icons", slug="correcto", mascot=False, prompt="green check mark",
               prefix="Green check mark badge", anchor=True),
     ]}
@@ -234,7 +238,7 @@ def test_emit_lote_grupo_desconocido_falla_con_su_nombre():
 def test_emit_lote_un_bloque_de_prompt_por_pieza():
     cat = {"fase": "fase-1", "pieces": [
         piece(),
-        piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
+        piece(slug="triste", prefix="Doty feeling sad"),
     ]}
     md = mjlib.emit_lote(cat, STYLE, ["expressions"])
     assert md.count("```") == 4
@@ -245,33 +249,33 @@ def test_emit_lote_marca_las_piezas_ya_hechas():
     md = mjlib.emit_lote(cat, STYLE, ["expressions"])
     assert "✅" in md
 
-def test_registry_src_uses_fallback_until_done():
-    assert mjlib.registry_src(piece()) == "/images/Doty/DOTTY-POSES-02.png"
+def test_registry_src_usa_el_placeholder_hasta_que_esta_hecha():
+    assert mjlib.registry_src(piece()) == "/images/Doty/expressions/feliz.png"
     assert mjlib.registry_src(piece(done=True)) == "/images/Doty/expressions/feliz.png"
 
 def test_emit_registry_shape():
     cat = {"fase": "fase-1", "pieces": [
         piece(done=True),
-        piece(group="stickers", slug="good-job", prefix="Doty thumbs up wink", fallback="02"),
-        piece(group="games", slug="wordle", prefix="Green letter tiles", mascot=False, fallback=None),
+        piece(group="stickers", slug="good-job", prefix="Doty thumbs up wink"),
+        piece(group="games", slug="wordle", prefix="Green letter tiles", mascot=False),
     ]}
     ts = mjlib.emit_registry(cat)
     assert ts.startswith("// GENERADO por scripts/mj/process.py --emit-registry")
     assert '  feliz: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },' in ts
-    assert '  "sticker-good-job": { src: "/images/Doty/DOTTY-POSES-02.png", group: "stickers" },' in ts
+    assert '  "sticker-good-job": { src: "/images/Doty/expressions/feliz.png", group: "stickers" },' in ts
     assert "wordle" not in ts
     assert 'export const FALLBACK_POSE: DotyPose = "feliz";' in ts
     assert "export function toDotyPose(" in ts
 
 def test_emit_registry_requires_feliz():
     with pytest.raises(mjlib.CatalogError, match="feliz"):
-        mjlib.emit_registry({"fase": "x", "pieces": [piece(slug="triste", prefix="Doty sad", fallback="05")]})
+        mjlib.emit_registry({"fase": "x", "pieces": [piece(slug="triste", prefix="Doty sad")]})
 
 def test_emit_registry_feliz_in_stickers_does_not_satisfy_guard():
     # registry_key() would emit "sticker-feliz", so FALLBACK_POSE "feliz" would not exist
     with pytest.raises(mjlib.CatalogError, match="feliz"):
         mjlib.emit_registry({"fase": "x", "pieces": [
-            piece(group="stickers", slug="feliz", prefix="Doty happy sticker", fallback="02"),
+            piece(group="stickers", slug="feliz", prefix="Doty happy sticker"),
         ]})
 
 def test_normalize_collapses_separators():
@@ -279,7 +283,7 @@ def test_normalize_collapses_separators():
     assert mjlib.normalize("Doty beaming with joy") == "doty beaming with joy"
 
 def test_match_downloads_by_prefix():
-    cat = {"fase": "x", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad", fallback="05")]}
+    cat = {"fase": "x", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad")]}
     files = ["sergio_Doty_beaming_with_joy_aaaa.png", "sergio_Doty_beaming_with_joy_bbbb.png",
              "sergio_Doty_feeling_sad_cccc.png", "random.png", "PROMPTS.md"]
     m = mjlib.match_downloads(cat, files)
@@ -287,8 +291,8 @@ def test_match_downloads_by_prefix():
     assert m["triste"] == ["sergio_Doty_feeling_sad_cccc.png"]
 
 def test_render_dry_run_lists_states():
-    cat = {"fase": "x", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad", fallback="05"),
-                                   piece(slug="wow", prefix="Doty amazed", fallback="06")]}
+    cat = {"fase": "x", "pieces": [piece(), piece(slug="triste", prefix="Doty feeling sad"),
+                                   piece(slug="wow", prefix="Doty amazed")]}
     m = {"feliz": ["a.png", "b.png"], "triste": ["c.png"], "wow": []}
     txt = mjlib.render_dry_run(cat, m)
     assert "OK       triste ← c.png" in txt
@@ -446,8 +450,8 @@ def test_apply_writes_marks_done_and_reports(tmp_path):
     raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c2.png")
     cat = {"fase": "fase-1", "pieces": [
         piece(size=64),
-        piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64),
-        piece(slug="wow", prefix="Doty amazed", fallback="06", size=64),
+        piece(slug="triste", prefix="Doty feeling sad", size=64),
+        piece(slug="wow", prefix="Doty amazed", size=64),
     ]}
     cpath = write(tmp_path, "fase-1.json", cat)
     rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
@@ -463,7 +467,7 @@ def test_apply_pick_resolves_ambiguity_and_skips_existing(tmp_path):
     (raw / "fase-1").mkdir(parents=True)
     raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c1.png")
     raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_c2.png")
-    cat = {"fase": "fase-1", "pieces": [piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64), piece(done=True)]}
+    cat = {"fase": "fase-1", "pieces": [piece(slug="triste", prefix="Doty feeling sad", size=64), piece(done=True)]}
     cpath = write(tmp_path, "fase-1.json", cat)
     rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover, picks={"triste": "sergio_Doty_feeling_sad_c2.png"})
     assert rep["done"] == ["triste"] and rep["skipped"] == ["feliz"]
@@ -546,7 +550,7 @@ def test_apply_detecta_el_mismo_archivo_en_dos_piezas(tmp_path):
     raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
     cat = {"fase": "fase-1", "pieces": [
         piece(size=64),
-        piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64),
+        piece(slug="triste", prefix="Doty feeling sad", size=64),
     ]}
     cpath = write(tmp_path, "fase-1.json", cat)
     rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover,
@@ -562,7 +566,7 @@ def test_apply_aisla_el_fallo_de_una_pieza(tmp_path):
     raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_bbbb.png")
     cat = {"fase": "fase-1", "pieces": [
         piece(size=64),
-        piece(slug="triste", prefix="Doty feeling sad", fallback="05", size=64),
+        piece(slug="triste", prefix="Doty feeling sad", size=64),
     ]}
     cpath = write(tmp_path, "fase-1.json", cat)
 
@@ -818,7 +822,7 @@ def test_navy_de_relleno_se_rechaza(prompt, esperado):
 
 def test_catalogo_rechaza_el_navy_de_relleno_nombrando_la_pieza(tmp_path):
     cat = {"fase": "fase-1", "pieces": [piece(slug="leyendo", prefix="Doty engrossed in a book",
-                                              prompt="an open navy blue book", fallback="07")]}
+                                              prompt="an open navy blue book")]}
     with pytest.raises(mjlib.CatalogError) as e:
         mjlib.load_catalog(write(tmp_path, "fase-1.json", cat))
     assert "leyendo" in str(e.value) and "navy" in str(e.value)
@@ -845,7 +849,7 @@ def test_regen_reprocesa_sin_force_y_se_limpia(tmp_path):
 def test_regen_no_devuelve_el_registro_a_legacy():
     # El motivo de existir de `regen`: con done=false el registro caeria al sprite
     # legacy en la proxima regeneracion, en silencio y con el arte bueno en disco.
-    p = piece(slug="leyendo", group="poses", done=True, regen=True, fallback="02")
+    p = piece(slug="leyendo", group="poses", done=True, regen=True)
     assert mjlib.registry_src(p) == "/images/Doty/poses/leyendo.png"
 
 
@@ -859,7 +863,7 @@ def test_emit_lote_pendientes_deja_fuera_lo_ya_bueno():
     cat = {"fase": "fase-1", "pieces": [
         piece(slug="feliz", prefix="Doty beaming with joy", done=True),
         piece(slug="triste", prefix="Doty feeling sad", done=True, regen=True),
-        piece(slug="wow", group="states", prefix="Doty amazed", done=False, fallback="03"),
+        piece(slug="wow", group="states", prefix="Doty amazed", done=False),
     ]}
     todo = mjlib.emit_lote(cat, STYLE, ["expressions", "states"])
     solo = mjlib.emit_lote(cat, STYLE, ["expressions", "states"], pendientes_solo=True)
@@ -872,7 +876,7 @@ def test_emit_lote_pendientes_deja_fuera_lo_ya_bueno():
 def test_emit_lote_pendientes_omite_el_grupo_que_queda_vacio():
     cat = {"fase": "fase-1", "pieces": [
         piece(slug="feliz", prefix="Doty beaming with joy", done=True),
-        piece(slug="wow", group="states", prefix="Doty amazed", done=False, fallback="03"),
+        piece(slug="wow", group="states", prefix="Doty amazed", done=False),
     ]}
     solo = mjlib.emit_lote(cat, STYLE, ["expressions", "states"], pendientes_solo=True)
     assert "## Grupo: states" in solo and "## Grupo: expressions" not in solo

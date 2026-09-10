@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint && node scripts/check-doty-assets.mjs",
-    "check:doty": "node scripts/check-doty-assets.mjs",
+    "lint": "eslint && node scripts/check-doty-assets.mjs --strict",
+    "check:doty": "node scripts/check-doty-assets.mjs --strict",
     "icons:compose": "node scripts/mj/compose-icons.mjs",
     "splash:compose": "node scripts/mj/compose-splash.mjs"
   },

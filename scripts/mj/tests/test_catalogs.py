@@ -31,12 +31,6 @@ SLUGS = {
 }
 
 # Fallbacks que la tabla §4.5 del spec de diseño nombra explícitamente.
-FALLBACKS_DEL_SPEC = {
-    "feliz": "02", "sigue-asi": "03", "bailando": "04", "triste": "05", "wow": "06",
-    "pensando": "07", "preocupado": "07", "decepcionado": "09", "riendo": "11",
-    "idea": "12", "senalando": "13", "saludando": "14", "bienvenido": "16", "halloween": "18",
-}
-
 EXPECTED = {g: len(s) for g, s in SLUGS.items()}
 GAMES = SLUGS["games"]
 
@@ -67,11 +61,19 @@ def test_fase1_slugs_exactos_por_grupo():
         por_grupo.setdefault(p["group"], set()).add(p["slug"])
     assert por_grupo == SLUGS
 
-def test_fase1_fallbacks_del_spec():
+def test_ninguna_pieza_arrastra_el_campo_fallback():
+    # `fallback` elegia uno de los 22 sprites legacy, que se archivaron en
+    # public/images/doty-classic/ al cerrarse la fase 1. Dejarlo en el catalogo
+    # invita a interpretarlo, y apuntar ahi genera un registro que
+    # check-doty-assets rechaza por "falta en disco".
     cat = mjlib.load_catalog(BATCH)
-    fb = {p["slug"]: p["fallback"] for p in cat["pieces"]}
-    for slug, esperado in FALLBACKS_DEL_SPEC.items():
-        assert fb[slug] == esperado, f"{slug}: {fb[slug]!r} != {esperado!r}"
+    assert [p["slug"] for p in cat["pieces"] if "fallback" in p] == []
+
+
+def test_el_placeholder_es_una_pieza_real_y_hecha():
+    cat = mjlib.load_catalog(BATCH)
+    hechas = {mjlib.registry_src(p) for p in cat["pieces"] if p.get("done")}
+    assert mjlib.PLACEHOLDER in hechas
 
 def test_fase1_anclas_son_exactamente_correcto_y_wordle():
     # correcto abre `icons`, wordle abre `games`: son las dos familias no-mascota

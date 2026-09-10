@@ -12,7 +12,6 @@ from PIL import Image, ImageChops, ImageFilter
 
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
 EXTRA_GROUPS = ("games", "characters", "app-icon")
-LEGACY_RE = re.compile(r"^(0[1-9]|1[0-9]|2[0-2])$")
 # El slug se interpola tal cual en una ruta de disco (output_path) y en una clave
 # de TypeScript generada (_ts_key cita pero no escapa) — kebab-case en minúsculas
 # es lo único seguro para ambos destinos.
@@ -103,10 +102,6 @@ def validate_catalog(cat: dict) -> None:
             raise CatalogError(f"{slug}: size must be a positive int")
         if not isinstance(p.get("done"), bool):
             raise CatalogError(f"{slug}: done must be bool")
-        fb = p.get("fallback")
-        if group in REGISTRY_GROUPS and not p["done"]:
-            if not (isinstance(fb, str) and LEGACY_RE.match(fb)):
-                raise CatalogError(f"{slug}: fallback ('01'..'22') required while done=false")
         if not p.get("mascot"):
             non_mascot_groups.add(group)
         if p.get("anchor"):
@@ -314,10 +309,19 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
     return "\n".join(lines)
 
 
+# Qué ve una pieza de registro cuya arte aún no llegó. Antes era uno de los 22
+# sprites legacy elegido pieza a pieza (campo `fallback`), pero esos ya no viven
+# en public/images/Doty/ — se archivaron en public/images/doty-classic/ al
+# cerrarse la fase 1 — así que apuntar ahí generaba un registro roto que
+# check-doty-assets rechaza. El placeholder es ahora `feliz`, el mismo que usa
+# FALLBACK_POSE en el lado TypeScript: una sola idea en los dos sitios.
+PLACEHOLDER = "/images/Doty/expressions/feliz.png"
+
+
 def registry_src(piece: dict) -> str:
     if piece.get("done"):
         return f"/images/Doty/{piece['group']}/{piece['slug']}.png"
-    return f"/images/Doty/DOTTY-POSES-{piece['fallback']}.png"
+    return PLACEHOLDER
 
 
 def _ts_key(key: str) -> str:

@@ -66,11 +66,13 @@ export default function Doty({
 }: DotyProps) {
   // Guardia de runtime: un `as DotyPose` mal puesto cae a la cara amable, no a un 404.
   const entry = POSES[isDotyPose(pose) ? pose : FALLBACK_POSE];
-  // Los 22 sprites legacy traen la elipse de sombra dibujada; el arte nuevo nace sin
-  // ella y la recibe por CSS (spec §4.3). Mientras una pose siga apuntando a un legacy,
-  // sumar el drop-shadow duplicaría la sombra — así que se activa por sprite, no en
-  // bloque, y cada pieza empieza a proyectarla sola en cuanto llega su arte real.
-  const conSombra = shadow ?? !entry.src.includes("DOTTY-POSES");
+  // Todo el arte del registro nace sin sombra y la recibe por CSS (spec §4.3).
+  // Esto fue condicional mientras algunas poses caían a un sprite legacy, que
+  // traía la elipse pintada dentro y habría salido duplicada; cerrada la fase 1
+  // ya no queda ninguna, y los 22 clásicos están archivados fuera del registro
+  // (public/images/doty-classic/). Si se vuelven a usar — la animación de
+  // transformación los necesita — hay que pasarles `shadow={false}`.
+  const conSombra = shadow ?? true;
   const img = (
     <Image
       src={entry.src}

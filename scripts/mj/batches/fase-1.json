@@ -8,7 +8,6 @@
       "prompt": "standing upright, arms slightly open, big happy smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_beaming_with_joy_standing_upright_arms_slightl_44805a03-7435-47c0-9abe-e744bab02efe_1.png"
     },
@@ -19,7 +18,6 @@
       "prompt": "huge open-mouth grin, eyes squeezed shut with joy, both fists near the chest",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_grinning_ear_to_ear_huge_open-mouth_grin_eyes__fe445440-cfd0-4d4e-b9ea-6562703f1b28_0.png"
     },
@@ -30,7 +28,6 @@
       "prompt": "on tiptoes, both arms raised, sparkling wide eyes, big open smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_bouncing_with_excitement_on_tiptoes_both_arms__f6c8a6c4-78d9-475f-9e4d-f4b5f2a680e1_1.png"
     },
@@ -41,7 +38,6 @@
       "prompt": "chest out, hands on hips, chin lifted, confident closed-mouth smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_puffing_up_with_pride_chest_out_hands_on_hips__c0d65f4f-0108-42e9-8eb2-a5eb9b2e47c1_2.png"
     },
@@ -52,7 +48,6 @@
       "prompt": "eyes wide open, mouth in a small o shape, both hands near the cheeks",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_startled_by_surprise_eyes_wide_open_mouth_in_a_436a4eb0-ed81-41e4-9738-86eeacc55b06_1.png"
     },
@@ -63,7 +58,6 @@
       "prompt": "one hand on chin, eyes looking upward, head tilted slightly",
       "size": 1024,
       "mascot": true,
-      "fallback": "07",
       "done": true,
       "source_file": "Mandrakin_Doty_pondering_a_question_one_hand_on_chin_eyes_loo_8793e793-0252-410e-9e96-44093aba3cca_3.png"
     },
@@ -74,7 +68,6 @@
       "prompt": "one hand near the mouth, furrowed brow, shifting worried eyes",
       "size": 1024,
       "mascot": true,
-      "fallback": "07",
       "done": true,
       "source_file": "Mandrakin_Doty_biting_nails_nervously_one_hand_near_the_mouth_1a95b49b-b139-4688-8b58-dee2889a8119_3.png"
     },
@@ -85,7 +78,6 @@
       "prompt": "slouched shoulders, downturned mouth, a single tear, arms hanging low",
       "size": 1024,
       "mascot": true,
-      "fallback": "05",
       "done": true,
       "source_file": "Mandrakin_Doty_feeling_blue_slouched_shoulders_downturned_mou_609578c1-c88f-4a70-9906-b615e81aafcd_0.png"
     },
@@ -96,7 +88,6 @@
       "prompt": "clenched fists, furrowed angry brows, wide open shouting mouth",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_stomping_with_anger_clenched_fists_furrowed_an_b77ae959-1def-4d62-b582-d88eda005b9e_3.png"
     },
@@ -107,7 +98,6 @@
       "prompt": "shoulders dropped, half-closed eyes, corners of the mouth turned down",
       "size": 1024,
       "mascot": true,
-      "fallback": "09",
       "done": true,
       "source_file": "Mandrakin_Doty_sighing_in_disappointment_shoulders_dropped_ha_19170acf-50ce-4888-b9cd-14186c043491_1.png"
     },
@@ -118,7 +108,6 @@
       "prompt": "head tilted back, wide open laughing mouth, eyes scrunched shut",
       "size": 1024,
       "mascot": true,
-      "fallback": "11",
       "done": true,
       "source_file": "Mandrakin_Doty_laughing_out_loud_head_tilted_back_wide_open_l_5ae2b3ff-5f48-466a-b1fe-6a0a779637d6_1.png"
     },
@@ -129,7 +118,6 @@
       "prompt": "hands clasped in front, peeking sideways, small closed smile, rosy cheeks",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_blushing_shyly_hands_clasped_in_front_peeking__cc5ce89a-80db-4962-a808-bec2a9bddce8_3.png"
     },
@@ -140,7 +128,6 @@
       "prompt": "heart-shaped sparkles in the eyes, both hands over the chest, dreamy smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_swooning_with_heart_eyes_heart-shaped_sparkles_44fa8a8f-0e86-488d-8fab-740d0642676b_0.png"
     },
@@ -151,7 +138,6 @@
       "prompt": "droopy half-closed eyes, one hand covering a wide yawn, slouched posture",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_yawning_with_fatigue_droopy_half-closed_eyes_o_6118d9b4-943f-4b69-a4fa-b310637f3b4e_3.png"
     },
@@ -162,7 +148,6 @@
       "prompt": "eyes fully closed, small peaceful smile, head tilted to one side, arms relaxed",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_snoozing_standing_up_eyes_fully_closed_small_p_2b96ec9e-4b96-4271-8d7f-bd53dfa51c24_0.png"
     },
@@ -173,7 +158,6 @@
       "prompt": "waving both hands high above the head, cheerful open smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "14",
       "done": true,
       "source_file": "Mandrakin_Doty_waving_both_hands_waving_both_hands_high_above_71e643ed-f509-4974-a76b-ccd265f9d43c_1.png"
     },
@@ -184,7 +168,6 @@
       "prompt": "one thumb up at chest height, confident smile, feet planted apart",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_giving_a_thumbs_up_one_thumb_up_at_chest_heigh_8b80a307-6a08-4511-96f8-bab20f7ac3fe_3.png"
     },
@@ -195,7 +178,6 @@
       "prompt": "one arm extended, index finger pointing forward, alert expression",
       "size": 1024,
       "mascot": true,
-      "fallback": "13",
       "done": true,
       "source_file": "Mandrakin_Doty_pointing_at_something_one_arm_extended_index_f_30390d50-fc70-49eb-b581-4aa63907698b_3.png"
     },
@@ -206,7 +188,6 @@
       "prompt": "arms spread open wide, warm welcoming smile, leaning slightly forward",
       "size": 1024,
       "mascot": true,
-      "fallback": "16",
       "done": true,
       "source_file": "Mandrakin_Doty_opening_arms_wide_arms_spread_open_wide_warm_w_4a86b084-7cfe-47fd-b86c-028fecb77887_3.png"
     },
@@ -217,7 +198,6 @@
       "prompt": "hands coming together in a clap, delighted grin, slight bounce",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_clapping_both_hands_hands_coming_together_in_a_4e57972e-5fe7-4e97-8cb4-433a58c243cd_2.png"
     },
@@ -228,7 +208,6 @@
       "prompt": "mid-stride walking pose, one arm swinging, relaxed content smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_strolling_forward_mid-stride_walking_pose_one__1c2fe14b-0212-4133-8478-5b208005c838_2.png"
     },
@@ -239,7 +218,6 @@
       "prompt": "mid-run pose leaning forward, arms pumping, determined expression, motion lines",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_sprinting_in_a_hurry_mid-run_pose_leaning_forw_c79b74d7-b768-4a29-812d-09bd521f1c63_2.png"
     },
@@ -250,7 +228,6 @@
       "prompt": "both feet off the ground, arms up, excited open-mouth smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_leaping_off_the_ground_both_feet_off_the_groun_e88f4bfd-db96-4471-9e8d-8099470f3fa3_3.png"
     },
@@ -261,7 +238,6 @@
       "prompt": "arms swaying, one knee bent, playful joyful expression, mid-groove",
       "size": 1024,
       "mascot": true,
-      "fallback": "04",
       "done": true,
       "source_file": "Mandrakin_Doty_dancing_to_the_beat_arms_swaying_one_knee_bent_4c61aef8-2a69-40df-b77a-d188887ac021_3.png"
     },
@@ -272,7 +248,6 @@
       "prompt": "seated on the floor cross-legged, hands resting on the knees, calm smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_sitting_cross-legged_seated_on_the_floor_cross_6488e94b-de32-439b-b108-590f1beac21a_0.png"
     },
@@ -283,7 +258,6 @@
       "prompt": "sitting with an open bright blue book, eyes on the pages, content smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_engrossed_in_a_book_sitting_with_an_open_brigh_721d71c1-a016-4b2d-a0ac-9e40b95dc33a_1.png"
     },
@@ -294,7 +268,6 @@
       "prompt": "holding a yellow pencil, writing in a small notebook, focused expression",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_jotting_in_a_notebook_holding_a_yellow_pencil__416096d2-ff60-450e-90b5-ab468e0ea1c0_2.png"
     },
@@ -305,7 +278,6 @@
       "prompt": "seated, hands on a bright blue laptop keyboard with a cyan screen, focused on the screen",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_typing_on_a_laptop_seated_hands_on_a_bright_bl_6372f825-ec1a-41be-850a-1dc1ede1eb78_3.png"
     },
@@ -316,7 +288,6 @@
       "prompt": "wearing blue headphones, eyes closed, swaying gently to the music",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_grooving_with_headphones_wearing_blue_headphon_293995c4-6ff0-44fb-ba7a-3eb7530a46f6_1.png"
     },
@@ -327,7 +298,6 @@
       "prompt": "holding a blue smartphone, eyes on the screen, subtle smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_scrolling_on_a_phone_holding_a_blue_smartphone_37f3c8a0-1b6f-4b9f-9d6a-7dcc2efbeed0_2.png"
     },
@@ -338,7 +308,6 @@
       "prompt": "mouth open mid-sentence, one hand raised palm up, friendly eye contact",
       "size": 1024,
       "mascot": true,
-      "fallback": "13",
       "done": true,
       "source_file": "Mandrakin_Doty_talking_to_the_viewer_mouth_open_mid-sentence__3c08f1e8-dfc4-4299-b9f4-35607feb9f97_1.png"
     },
@@ -349,7 +318,6 @@
       "prompt": "arms flung open in disbelief, eyes wide with bright star sparkles drawn inside the pupils, small astonished open mouth",
       "size": 1024,
       "mascot": true,
-      "fallback": "06",
       "done": true,
       "source_file": "Mandrakin_Doty_amazed_with_sparkling_eyes_arms_flung_open_in__b6b7db09-a558-4e70-92d2-d66f97b63838_3.png"
     },
@@ -360,7 +328,6 @@
       "prompt": "both hands on cheeks, wide worried eyes, small open mouth",
       "size": 1024,
       "mascot": true,
-      "fallback": "05",
       "done": true,
       "source_file": "Mandrakin_Doty_gasping_oh_no_both_hands_on_cheeks_wide_worrie_aaa380a9-2505-4f5c-aac5-8439e71ab1fc_3.png"
     },
@@ -371,7 +338,6 @@
       "prompt": "one eye scrunched shut, one shoulder shrugged up, sheepish small smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_wincing_at_a_mistake_one_eye_scrunched_shut_on_d2c7a786-d31b-48e2-8a92-9dcbd47d05c7_0.png"
     },
@@ -382,7 +348,6 @@
       "prompt": "standing tall, one hand in a crisp salute, proud beaming smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_saluting_with_excellence_standing_tall_one_han_97e5bdce-71a8-425e-8693-65e017b876e3_3.png"
     },
@@ -393,7 +358,6 @@
       "prompt": "fingers pinched near the lips then thrown open, delighted smirk",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_blowing_a_chef_kiss_fingers_pinched_near_the_l_a7015a88-f8a5-4b77-aa00-5131e993fd39_1.png"
     },
@@ -404,7 +368,6 @@
       "prompt": "leaning forward, one arm waving you onward, encouraging bright smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "03",
       "done": true,
       "source_file": "Mandrakin_Doty_cheering_you_onward_leaning_forward_one_arm_wa_8c02a546-69f6-4446-8aad-0487eb162611_2.png"
     },
@@ -415,7 +378,6 @@
       "prompt": "mid-air jump, both fists up, eyes closed with a huge grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_jumping_in_victory_mid-air_jump_both_fists_up__07170844-fa3c-4afc-aa2d-e479791976c2_0.png"
     },
@@ -426,7 +388,6 @@
       "prompt": "arms raised in celebration, pink and cyan confetti pieces resting on the head and shoulders and clutched in both hands, wide joyful open-mouth smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_showered_in_confetti_arms_raised_in_celebratio_8e76b335-7a85-461a-8abb-5e1a5c9e3307_0.png"
     },
@@ -437,7 +398,6 @@
       "prompt": "holding a pink and gold trophy overhead with both hands, triumphant grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_hoisting_a_trophy_high_holding_a_gold_trophy_o_e5a0007e-0e18-4b54-ac67-8d10addcdbe0_3.png"
     },
@@ -448,7 +408,6 @@
       "prompt": "a round gold medal on a cyan ribbon around the neck, chest out proudly",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_modeling_a_gold_medal_a_round_gold_medal_on_a__59d276e7-c0a8-4c73-bdab-d250570a2d5a_3.png"
     },
@@ -459,7 +418,6 @@
       "prompt": "holding up a rolled diploma of pale cream paper, clearly lighter than Doty's body, tied with a cyan ribbon, waving it joyfully",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_waving_a_rolled_diploma_holding_up_a_rolled_di_da87fe19-34b8-421d-b9f0-1fa73123ca52_0.png"
     },
@@ -470,7 +428,6 @@
       "prompt": "one lit sparkler raised in each hand, bursts of pink and cyan sparks coming out of the sparkler tips, joyful open-mouth smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_holding_two_lit_sparklers_one_lit_sparkler_rai_6872191d-d357-4c05-bce2-84040da2871b_2.png"
     },
@@ -481,7 +438,6 @@
       "prompt": "holding a closed cyan book with a pink spine with both hands against the chest, content smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_hugging_a_cyan_book_holding_a_closed_cyan_book_1496e35c-3346-4404-a952-72880af66c68_2.png"
     },
@@ -492,7 +448,6 @@
       "prompt": "holding an oversized yellow pencil upright with both hands, focused look",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_gripping_a_giant_pencil_holding_an_oversized_y_daad5d07-4695-4c27-b3e2-4bdf2c06e12c_3.png"
     },
@@ -503,7 +458,6 @@
       "prompt": "holding an open bright blue laptop flat with both hands, cyan screen facing the viewer",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_carrying_an_open_laptop_holding_an_open_bright_426338f1-e288-4670-9aa0-057dd2b643f7_0.png"
     },
@@ -514,7 +468,6 @@
       "prompt": "holding a light grey tablet flat with a glowing cyan screen facing outward, proud smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_showing_a_light_grey_tablet_holding_a_light_gr_c9115d47-a4f8-49d2-ba32-5a4ef0c25f21_2.png"
     },
@@ -525,7 +478,6 @@
       "prompt": "holding a blue smartphone screen-out at chest height, cheerful expression",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_displaying_a_blue_phone_holding_a_blue_smartph_294cde94-c660-494d-bd59-9a0cdb7857c8_0.png"
     },
@@ -536,7 +488,6 @@
       "prompt": "a bright blue backpack with straps over both shoulders, one thumb hooked on a strap, excited smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_wearing_a_blue_backpack_a_bright_blue_backpack_be97eae1-aaec-4595-840f-75e5719d9c73_1.png"
     },
@@ -547,7 +498,6 @@
       "prompt": "holding a cyan mug with both hands close to the chest, eyes closed, cozy content smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_sipping_from_a_cyan_mug_holding_a_cyan_mug_wit_09c7f486-3fac-4dcb-b8bb-ec82a400e680_0.png"
     },
@@ -558,7 +508,6 @@
       "prompt": "holding a rolled cream-coloured diploma tied with a cyan ribbon, calm proud smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_holding_a_cream_diploma_holding_a_rolled_cream_3ed36c2b-6ed5-4215-977d-7428e4915334_1.png"
     },
@@ -569,7 +518,6 @@
       "prompt": "holding a gold and pink trophy at chest height, showing it off proudly",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_presenting_a_shiny_trophy_holding_a_gold_and_p_96a3b396-39bf-4e99-8460-7cb2c113784c_2.png"
     },
@@ -580,7 +528,6 @@
       "prompt": "holding a cyan microphone close to the mouth, mid-song joyful expression",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_singing_into_a_microphone_holding_a_cyan_micro_52e33e3b-a34f-46ce-9820-fd274ad75f94_1.png"
     },
@@ -591,7 +538,6 @@
       "prompt": "holding a small British flag on a short thick stick beside the head, proud cheerful smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_waving_a_UK_flag_holding_a_small_British_flag__188ed031-0e30-4596-b9a9-704144448c8b_1.png"
     },
@@ -602,7 +548,6 @@
       "prompt": "holding a small American flag on a short thick stick beside the head, proud beaming smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_holding_a_USA_flag_holding_a_small_American_fl_1d180ba4-864f-479f-8962-43efce93e115_2.png"
     },
@@ -613,7 +558,6 @@
       "prompt": "pulling a bright blue rolling suitcase, big excited travel-ready smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_rolling_a_travel_suitcase_pulling_a_bright_blu_c8e7ce7f-8c3b-40be-bf72-c943fa19ef87_3.png"
     },
@@ -625,7 +569,6 @@
       "size": 1024,
       "mascot": true,
       "glasses": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_sporting_round_glasses_wearing_round_navy-fram_446125a0-57e0-4590-9e87-db58d560b215_0.png"
     },
@@ -636,7 +579,6 @@
       "prompt": "a glowing yellow light bulb resting on top of the head between the spikes, one finger raised, eyes lit up with a bright smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "12",
       "done": true,
       "source_file": "Mandrakin_Doty_struck_by_a_bright_idea_a_glowing_yellow_outli_2aa33f38-5860-4dac-b2df-2c2092f16900_2.png"
     },
@@ -647,7 +589,6 @@
       "prompt": "holding a short thick string tied to a bright pink balloon just above the head, feet lifting off the ground, delighted grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_floating_with_a_pink_balloon_holding_a_short_t_14944a76-7482-453b-8df3-2dde9f93b713_3.png"
     },
@@ -658,7 +599,6 @@
       "prompt": "wearing a red Santa hat with white trim, waving",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_in_a_Santa_hat_wearing_a_red_Santa_hat_with_wh_fd6cd3f1-bc70-4052-b498-001b70da1cd8_2.png"
     },
@@ -669,7 +609,6 @@
       "prompt": "wearing an orange pumpkin costume with a green stem hat, playful grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "18",
       "done": true,
       "source_file": "Mandrakin_Doty_dressed_as_a_pumpkin_wearing_an_orange_pumpkin_93c3f3ac-e8b9-4896-9541-c4f6b1ebe509_1.png"
     },
@@ -680,7 +619,6 @@
       "prompt": "hugging a big pink heart-shaped pillow, cheeks flushed pink, sweet smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_hugging_a_heart_pillow_hugging_a_big_pink_hear_96b0170e-b3db-4d6e-a677-a01b39267b85_1.png"
     },
@@ -691,7 +629,6 @@
       "prompt": "wearing a wide-brimmed huaso hat in warm grey with a hot-pink band and a thin pink edge along the brim, a red neckerchief, holding a small Chilean flag on a short thick stick — a blue square with a white star in the upper hoist, a white band beside it and a red lower half, festive grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_dressed_for_a_rodeo_wearing_a_wide-brimmed_hua_19fcd971-7a0b-4b01-8686-3c040eed0685_2.png"
     },
@@ -702,7 +639,6 @@
       "prompt": "wearing a cyan graduation gown and a cyan mortarboard cap with a pink tassel resting on the head, one fist raised, joyful proud grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_graduating_in_a_cyan_gown_wearing_a_cyan_gradu_e0d02b82-fa69-4ae9-9a6d-b498bcd6c81d_0.png"
     },
@@ -713,7 +649,6 @@
       "prompt": "wearing a cyan backpack, holding a yellow notebook against the chest, big excited first-day smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_starting_the_school_year_wearing_a_cyan_backpa_b25d7815-1a69-4230-a46b-03e4e7ef8393_0.png"
     },
@@ -725,7 +660,6 @@
       "size": 512,
       "mascot": false,
       "anchor": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Green_check_mark_badge_a_white_check_mark_inside_a__9488c83c-8e3b-4883-980f-d24df1d4f30c_1.png"
     },
@@ -736,7 +670,6 @@
       "prompt": "a white X mark inside a solid red circle badge",
       "size": 512,
       "mascot": false,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Red_cross_mark_badge_a_white_X_mark_inside_a_solid__efea8255-75ba-4a45-8325-59cab8f9ea23_0.png"
     },
@@ -747,7 +680,6 @@
       "prompt": "a white exclamation point inside a solid amber triangle badge with rounded corners",
       "size": 512,
       "mascot": false,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Yellow_warning_triangle_badge_a_white_exclamation_p_a0dd598f-a084-44b4-b005-9b03dcfa194f_0.png"
     },
@@ -758,7 +690,6 @@
       "prompt": "a circular blue progress ring with a lighter gap, motion blur",
       "size": 512,
       "mascot": false,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Spinning_blue_loading_ring_a_circular_blue_progress_0f4490fd-5498-4b24-90c6-8b1e154927a0_1.png",
       "keep_holes": true
@@ -770,7 +701,6 @@
       "prompt": "a bold orange flame with a bright yellow core, no background",
       "size": 512,
       "mascot": false,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Orange_flame_streak_badge_a_bold_orange_flame_with__071bfe45-6c82-4289-88f1-7524ab319e38_2.png"
     },
@@ -781,7 +711,6 @@
       "prompt": "a bold gold star with short sparkle rays growing out of its points, no background",
       "size": 512,
       "mascot": false,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Gold_star_burst_badge_a_bold_gold_star_with_short_s_90807eee-6645-4bdf-a8b5-6cbb9b202ea1_3.png"
     },
@@ -792,7 +721,6 @@
       "prompt": "thumbs up with one hand, winking, cheeky grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "11",
       "done": true,
       "source_file": "Mandrakin_Doty_thumbs_up_and_winking_thumbs_up_with_one_hand__54f61822-db58-490b-91b8-abf3c30893d0_2.png"
     },
@@ -803,7 +731,6 @@
       "prompt": "big sparkling star-shaped eyes, mouth open in awe, both hands raised",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_with_starry_eyes_big_sparkling_star-shaped_eye_bd75befd-a885-4ae3-8ccd-498954a9097c_3.png"
     },
@@ -814,7 +741,6 @@
       "prompt": "one fist raised high overhead, determined confident grin, feet planted",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_raising_a_triumphant_fist_one_fist_raised_high_61a0076b-3edf-47e1-9598-cc1275fabba0_0.png"
     },
@@ -825,7 +751,6 @@
       "prompt": "one arm flexed showing a bicep, confident wink, encouraging grin",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_flexing_a_big_bicep_one_arm_flexed_showing_a_b_dd153169-fcc6-4549-aeee-7437745c4e65_3.png"
     },
@@ -836,7 +761,6 @@
       "prompt": "one hand tapping the air toward a light grey laptop with a glowing cyan screen, inviting smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_tapping_toward_a_laptop_one_hand_tapping_the_a_2acb6554-480d-47e1-945a-72c0b52be3cd_3.png"
     },
@@ -847,7 +771,6 @@
       "prompt": "both hands over the mouth, wide surprised eyes, embarrassed blush",
       "size": 1024,
       "mascot": true,
-      "fallback": "05",
       "done": true,
       "source_file": "Mandrakin_Doty_covering_mouth_in_shock_both_hands_over_the_mo_65cd0e32-1795-4242-9d3f-a84d9bb13452_1.png"
     },
@@ -858,7 +781,6 @@
       "prompt": "thumb and finger almost touching, one eye squinting, hopeful half-smile",
       "size": 1024,
       "mascot": true,
-      "fallback": "05",
       "done": true,
       "source_file": "Mandrakin_Doty_pinching_fingers_so_close_thumb_and_finger_alm_043b1a81-832f-46cd-864e-60d258c011b9_3.png"
     },
@@ -869,7 +791,6 @@
       "prompt": "thumb and index finger forming a circle, other fingers spread, cheerful wink",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_giving_an_ok_sign_thumb_and_index_finger_formi_530fee58-c51b-4223-9fab-071468ad6c2a_0.png"
     },
@@ -880,7 +801,6 @@
       "prompt": "both thumbs up at chest height, big beaming grin, confident stance",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_double_thumbs_up_cheering_both_thumbs_up_at_ch_7c063217-29c3-44b9-b8e0-0837d552b6aa_1.png"
     },
@@ -891,7 +811,6 @@
       "prompt": "seen from behind walking away, head turned back, one hand waving",
       "size": 1024,
       "mascot": true,
-      "fallback": "02",
       "done": true,
       "source_file": "Mandrakin_Doty_walking_away_waving_back_seen_from_behind_walk_29568e21-80d8-4b7e-b7d7-098bfefee1ef_1.png"
     },
@@ -903,7 +822,6 @@
       "size": 512,
       "mascot": false,
       "anchor": true,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Green_and_yellow_letter_tiles_five_square_letter_ti_d0600140-545a-44e2-9662-1e834e3c1446_3.png"
     },
@@ -914,7 +832,6 @@
       "prompt": "a crossword grid of white and mid-grey squares with a navy border, a yellow pencil resting across it, no letters",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Black_and_white_crossword_grid_a_crossword_grid_of__320dd0ea-bdc8-4f1f-bcfd-1ede39deb852_2.png"
     },
@@ -925,7 +842,6 @@
       "prompt": "pink, blue and cyan dots connected by one curvy line, playful puzzle feel",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Dots_connected_by_a_line_pink_blue_and_cyan_dots_co_ccbcd155-4984-4e9c-aab5-4694a2c4cf29_0.png"
     },
@@ -936,7 +852,6 @@
       "prompt": "two rounded cards side by side, green check on one, red X on the other",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Two_cards_marked_right_wrong_two_rounded_cards_side_2b9ff7bb-8d1b-4cc8-b5a4-4a8b23625228_0.png"
     },
@@ -947,7 +862,6 @@
       "prompt": "a row of face-down cards with bright cyan backs, one card flipped showing a pink star",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Face-down_cards_with_one_flipped_a_row_of_face-down_f3c177fb-0696-4754-80d3-be681639389e_1.png"
     },
@@ -958,7 +872,6 @@
       "prompt": "blue over-ear headphones with a bright yellow lightning bolt overlapping and touching the ear cup",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Blue_headphones_with_a_lightning_blue_over-ear_head_8a84e703-1ae2-464e-9ffa-00d5778650f5_1.png"
     },
@@ -969,7 +882,6 @@
       "prompt": "a wobbly tower of stacked wooden blocks with blank letter tiles, no visible text",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Stacked_wooden_blocks_with_tiles_a_wobbly_tower_of__3b5ba669-10ea-42c6-a771-b0a75cee45ff_0.png"
     },
@@ -980,7 +892,6 @@
       "prompt": "bricks stacking into a small wall, playful arrangement, every single brick either hot pink, bright cyan or bright blue — no dim or muted brick anywhere in the wall",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Colorful_bricks_stacking_upward_bricks_stacking_int_8a88b24b-c727-4ae9-a9fb-902e2d05932e_0.png"
     },
@@ -991,7 +902,6 @@
       "prompt": "a small translucent pink ghost-shaped Doty character mid-run, motion streaks attached to its back",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Doty_ghost_zooming_past_a_small_translucent_pink_gh_61a021cf-a42a-48e0-9ec1-51413143824b_3.png",
       "translucent": true
@@ -1003,7 +913,6 @@
       "prompt": "a small round pink Doty character leaning out of the side window of a yellow taxi cab seen from the side, checkered stripe along the door, taxi roof sign, cheerful wave",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png"
     },
@@ -1014,7 +923,6 @@
       "prompt": "a small round pink Doty character in a hot air balloon basket, delighted wave",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Doty_riding_a_hot_air_balloon_a_small_round_pink_Do_664bd9ce-8124-452b-9cb2-50bc786c025f_0.png"
     },
@@ -1025,7 +933,6 @@
       "prompt": "a small round pink Doty character flinching beside a mid-grey bomb with a lit orange fuse",
       "size": 512,
       "mascot": false,
-      "fallback": null,
       "done": true,
       "source_file": "Mandrakin_Doty_scared_of_a_bomb_a_small_round_pink_Doty_chara_5c0a57f3-776c-4ae7-a8de-d4685dbbe5bb_3.png"
     },
@@ -1036,7 +943,6 @@
       "prompt": "same Doty face but a rounded body, a soft oval very slightly narrower at the top, the body exactly as tall as Doty's body and never taller, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, a cyan sports visor with no crown sitting low on the forehead, the tuft gathered into a thick braided ponytail that rises behind the visor and falls to one side, tied at the end with a small cyan band, a cyan sweatband on the raised wrist, long curled eyelashes, one hand raised in an open wave and the other in a light fist at her side, a bright open smile showing the teeth, mouth open mid-sentence, legs planted apart in a lively stance, both legs ending in solid rounded feet, athletic, youthful and upbeat, no headphones, no earrings, no bow, no blushing cheeks",
       "size": 1024,
       "mascot": true,
-      "fallback": null,
       "done": true,
       "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid purple body #E30BE3 — clearly purple, not hot pink",
       "source_file": "Mandrakin_the_tuft_gathered_high_at_the_back_into_a_long_brai_72858ef5-7826-4179-888b-ac0434bfebbe_1.png"
@@ -1048,7 +954,6 @@
       "prompt": "same Doty shape but with a crimson red body #FF0010, stockier and squarer, a white sailor cap with a cyan visor flattening the tuft, cyan neckerchief, thick furrowed brow, one eye squinting, mouth open to one side mid-grumble, one stubby arm gesturing gruffly, the endearing grumpy attitude of an old sea captain, comic and never menacing",
       "size": 1024,
       "mascot": true,
-      "fallback": null,
       "done": true,
       "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a crimson red body #FF0010 — not pink, not orange",
       "source_file": "Mandrakin_Doty_Sailor_the_old_crimson_narrator_same_Doty_shap_706d16c3-ad17-4455-a847-3718fae5a3c7_2.png"
@@ -1061,7 +966,6 @@
       "size": 1024,
       "mascot": true,
       "glasses": true,
-      "fallback": null,
       "done": true,
       "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft violet body #B432FF — muted and refined, not pink",
       "source_file": "Mandrakin_give_her_eyelashes_--ar_11_--edit_httpss.mj.rundSBO_f228abe8-0ff7-4909-af4c-047ceca8ff4a_0.png"
@@ -1073,7 +977,6 @@
       "prompt": "head and shoulders close-up, centered, big smile, looking at the viewer",
       "size": 1024,
       "mascot": true,
-      "fallback": null,
       "done": true,
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
       "source_file": "Mandrakin_Doty_face_close_up_icon_head_and_shoulders_close-up_6ff961d7-72e7-4479-a520-945e35ef563b_2.png"

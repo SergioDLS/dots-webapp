@@ -4,7 +4,7 @@ Actualizado: 2026-07-22 (post rediseño total + tanda juegos/social). Complement
 
 ## La app en una línea
 
-Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lecciones intercaladas, repaso SRS, economía de gemas, 12 minijuegos y capa social (torneo, retos 1v1, rivalidades, trono, carrera fantasma). Mascota: Doty (`components/ui/doty/doty.tsx`, poses en `public/images/Doty/DOTTY-POSES-XX.png`).
+Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lecciones intercaladas, repaso SRS, economía de gemas, 12 minijuegos y capa social (torneo, retos 1v1, rivalidades, trono, carrera fantasma). Mascota: Doty (`components/ui/doty/doty.tsx`, registro generado `components/ui/doty/poses.ts`, sprites en `public/images/Doty/<grupo>/`, pipeline en `scripts/mj/`). Los 22 sprites de la identidad anterior están archivados en `public/images/doty-classic/`.
 
 ## Navegación (tabs del hub)
 
