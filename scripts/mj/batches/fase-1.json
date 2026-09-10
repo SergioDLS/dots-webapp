@@ -461,7 +461,7 @@
       "mascot": true,
       "fallback": "02",
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Doty_waving_a_rolled_diploma_holding_up_a_rolled_di_da87fe19-34b8-421d-b9f0-1fa73123ca52_0.png"
     },
     {
       "slug": "fuegos-artificiales",
@@ -982,7 +982,7 @@
       "mascot": false,
       "fallback": null,
       "done": true,
-      "regen": true
+      "source_file": "Mandrakin_Colorful_bricks_stacking_upward_bricks_stacking_int_8a88b24b-c727-4ae9-a9fb-902e2d05932e_0.png"
     },
     {
       "slug": "ghost-race",
@@ -1033,7 +1033,7 @@
       "slug": "doty-fem",
       "group": "characters",
       "prefix": "Doty Fem the orchid narrator",
-      "prompt": "same Doty body at exactly the same height as Doty, not taller and not slimmer, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, three thick swept curls framing the head instead of spikes, wider than the head so the silhouette reads at a glance, a cyan bow at their base, long curled eyelashes, rosy cheeks, head tilted gently, one hand resting near the chest, both legs ending in solid rounded feet, soft warm smile with the mouth slightly open mid-sentence",
+      "prompt": "same Doty body at exactly the same height as Doty, not taller and not slimmer, an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, the tuft gathered into a messy side ponytail held by a cyan claw clip and falling to one side so the silhouette widens, long curled eyelashes, small cyan hoop earrings, a cyan scrunchie around one wrist, relaxed confident posture with one hand raised in a casual wave, a knowing half-smile with the mouth slightly open mid-sentence, both legs ending in solid rounded feet, reads as a self-assured young teen, not a toddler — no bow, no blushing cheeks, no head tilt",
       "size": 1024,
       "mascot": true,
       "fallback": null,
