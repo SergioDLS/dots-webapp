@@ -38,6 +38,8 @@ No hay test runner de componentes: la verificación es lint + build + preview ma
 
 9. **PWA / service worker.** El SW (`public/sw.js`) solo intercepta GETs same-origin: nunca la API, Cloudinary, HTML ni RSC. Si tocas `public/offline.html` (o cualquier ruta de `PRECACHE_URLS`), **bumpea `SW_VERSION`** en el mismo commit: sin eso los clientes instalados siguen sirviendo la copia vieja para siempre, porque el único disparador de update es el byte-diff de `sw.js`. Emergencia: `public/sw.kill.js` lleva el procedimiento en su cabecera. Para probarlo hace falta build de producción (`npm run start`, config `dots-webapp-prod` del launch.json) — en dev el registro se desactiva a propósito.
 
+10. **Doty.** Solo se renderiza con `<Doty pose=…>` y poses del registro **generado** `components/ui/doty/poses.ts` (los strings dinámicos pasan por `toDotyPose`, que cae a `feliz` en vez de a un 404). Las piezas nuevas entran por `scripts/mj/` (catálogo → `--emit-lote` → generar → `--apply` → `--emit-registry`), **nunca copiando un PNG a mano** a `public/images/Doty/`: `npm run lint` lo rechaza (`check-doty-assets --strict` prohíbe huérfanos ahí y legacy en el registro). Para rehacer una pieza que ya existe usa `regen: true`, no `done: false` — con `done: false` el registro cae al placeholder mientras dure. El navy es la línea de la marca, no la masa: sobre el tema oscuro mide 1.18:1 y la forma se funde con el fondo. Guía de canon y de tono→pose: `docs/brand/doty-identity.md`.
+
 ## Contexto ampliado
 
 - `docs/ARQUITECTURA.md` — mapa completo (rutas, juegos, hooks, flujos).

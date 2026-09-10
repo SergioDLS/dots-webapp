@@ -1,10 +1,17 @@
 # Arte de Doty con Midjourney — fases 0 y 1
 
 - **Fecha**: 2026-09-07
-- **Estado**: diseño aprobado por Sergio (tres bloques: alcance, arquitectura
-  de assets, pipeline). Pendiente: plan de implementación.
+- **Estado**: **implementado (fases 0 y 1) el 2026-09-10.** Las 97 piezas del
+  catálogo generadas y en su sitio; iconos de la PWA, splash de iOS y
+  screenshots del manifest derivados; los 22 legacy archivados en
+  `public/images/doty-classic/` y `check-doty-assets` en modo `--strict`.
+  Pendientes: la tarea 20 (los 3 narradores a Cloudinary + `characters.img`,
+  que toca la BD de producción), las fases 2–4 y la spec aparte de ejercicios
+  sin imagen (días, meses, hora y artículos, decidido con Sergio el 2026-09-07).
 - **Alcance**: `components/ui/doty/` (registro y componente), `public/images/Doty/`
-  (sprites nuevos, borrado de los 22 legacy), `public/images/games/` (nuevo),
+  (sprites nuevos; los 22 legacy no se borraron, se archivaron en
+  `public/images/doty-classic/` — Sergio los quiere para una animación de
+  transformación), `public/images/games/` (nuevo),
   `public/icons/` + `app/apple-icon.png` + `app/layout.tsx` (icono, splash,
   screenshots), `public/sw.js` (bump de versión), `scripts/mj/` (nuevo,
   pipeline local), `docs/brand/doty-identity.md` (portado y reescrito).
@@ -12,7 +19,7 @@
   Cloudinary y actualiza `characters.img` (3 filas) y `difficulty.img`
   (3 filas). Nada más de BD.
 - **Plan de implementación**: `docs/superpowers/plans/2026-09-07-doty-midjourney-assets.md`
-  (por escribir).
+  (tareas 1–19, 21 y 22 hechas; 20 pendiente).
 
 ## Contexto
 
@@ -609,9 +616,21 @@ Es el único contacto con la BD de producción de todo el proyecto.
 | Fase 1 con Draft (2 draft + 1 mejora por pieza) | 97 × 3 | ~2,6 h | 1 |
 | Fase 1 sin Draft (4 estándar por pieza) | ~390 | ~5,2 h | 1,6, o +8 USD en horas extra |
 
-Si `draft_supports_oref` resulta `false`, la fase 1 se planifica en dos meses
-o se compran 2 horas extra; no se sube a Standard por esta fase. Standard se
-reserva para el mes de la fase 3.
+### Lo que costó de verdad (cerrado el 2026-09-10)
+
+La estimación de arriba partía de V7 + Omni Reference, a 2 min por trabajo. La
+fase 0 encontró que V8.2 + Edit Model cuesta **1 min** y acierta las cuatro
+candidatas en vez de una de ocho (§2-bis), así que el presupuesto se partió por
+la mitad antes de empezar y la pregunta de `draft_supports_oref` quedó sin
+sentido: no hizo falta el modo Draft.
+
+Con eso, las 97 piezas de la fase 1 entraron en el plan Basic de 10 USD sin
+comprar horas extra. Sergio subió a Standard **al final**, no por presupuesto:
+lo hizo para poder regenerar sin contar minutos las piezas que el barrido de
+contraste marcó como flojas (nueve, todas por pedir navy de relleno) y para las
+nueve tandas que costó cerrar `doty-fem`. Con relax ilimitado, regenerar dejó de
+ser una decisión económica — que es la diferencia real entre los dos planes para
+un proyecto como este.
 
 ## 10. Fuera de alcance (y dónde queda anotado)
 
