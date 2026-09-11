@@ -211,6 +211,26 @@ def test_emit_lote_marca_la_pieza_ancla_en_su_grupo():
     assert "ANCLA" in linea_ancla
     assert "ANCLA" not in linea_normal
 
+def test_emit_lote_pone_el_ancla_primera_en_su_grupo_aunque_el_catalogo_no():
+    # El catálogo trae el ancla en tercer lugar (orden de catálogo, no de
+    # generación). La cabecera manda generarla primero, sin nada adjunto, para
+    # tener su resultado listo como Style reference antes que el resto: si el
+    # lote la imprime a mitad de grupo, quien lo sigue de arriba abajo genera
+    # piezas de icono sin esa referencia puesta, justo lo que el ancla existe
+    # para evitar. Se compara por posición en el string, no por número de
+    # pieza, para no acoplarse al formato del encabezado.
+    cat = {"fase": "fase-1", "pieces": [
+        piece(group="icons", slug="primero", mascot=False, prompt="green check mark",
+              prefix="Green check mark badge"),
+        piece(group="icons", slug="segundo", mascot=False, prompt="red cross mark",
+              prefix="Red cross mark badge"),
+        piece(group="icons", slug="ancla", mascot=False, prompt="blue star icon",
+              prefix="Blue star icon badge", anchor=True),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["icons"])
+    assert md.index("`ancla`") < md.index("`primero`")
+    assert md.index("`ancla`") < md.index("`segundo`")
+
 def test_emit_lote_titulo_lleva_grupos_y_cantidad():
     cat = {"fase": "fase-1", "pieces": [
         piece(),

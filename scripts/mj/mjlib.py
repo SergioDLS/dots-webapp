@@ -295,7 +295,11 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
     for g in grupos:
         if g not in por_grupo:
             continue
-        piezas_g = por_grupo[g]
+        # El catálogo trae orden de catálogo, no orden de generación: la cabecera
+        # manda generar el ancla primero, sin nada adjunto, y si el ancla cae a
+        # mitad de grupo esa instrucción es letra muerta — orden estable, así el
+        # resto conserva su posición relativa.
+        piezas_g = sorted(por_grupo[g], key=lambda p: not p.get("anchor"))
         lines += [f"## Grupo: {g} ({len(piezas_g)})", ""]
         for p in piezas_g:
             n += 1
