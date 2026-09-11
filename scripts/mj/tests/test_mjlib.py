@@ -894,3 +894,19 @@ def test_emit_lote_marca_la_cola_distinto_que_lo_hecho():
     linea_triste = next(l for l in txt.splitlines() if "`triste`" in l)
     assert "✅" in linea_feliz and "REGENERAR" not in linea_feliz
     assert "REGENERAR" in linea_triste and "✅" not in linea_triste
+
+
+def test_levels_escribe_en_su_carpeta_y_no_sobre_el_app_icon():
+    # `_relative_output` cae por defecto a la ruta del app-icon: sin una rama
+    # propia, las 38 piezas de niveles se escribirían todas encima de
+    # fase-2/out/app-icon.png, en silencio y pisándose entre sí.
+    p = piece(slug="preposiciones", group="levels", mascot=False, size=512)
+    assert mjlib._relative_output(p, "fase-2") == "public/images/levels/preposiciones.png"
+
+
+def test_levels_es_un_grupo_valido(tmp_path):
+    cat = {"fase": "fase-2", "pieces": [
+        piece(slug="preposiciones", group="levels", prefix="Level tile prepositions",
+              mascot=False, size=512, anchor=True),
+    ]}
+    assert mjlib.load_catalog(write(tmp_path, "fase-2.json", cat))["fase"] == "fase-2"

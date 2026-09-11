@@ -11,7 +11,7 @@ from typing import Callable
 from PIL import Image, ImageChops, ImageFilter
 
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
-EXTRA_GROUPS = ("games", "characters", "app-icon")
+EXTRA_GROUPS = ("games", "characters", "app-icon", "levels")
 # El slug se interpola tal cual en una ruta de disco (output_path) y en una clave
 # de TypeScript generada (_ts_key cita pero no escapa) — kebab-case en minúsculas
 # es lo único seguro para ambos destinos.
@@ -140,6 +140,8 @@ def _relative_output(piece: dict, fase: str) -> str:
         return f"public/images/games/{s}.png"
     if g == "characters":
         return f"{fase}/out/characters/{s}.png"
+    if g == "levels":
+        return f"public/images/levels/{s}.png"
     return f"{fase}/out/app-icon.png"
 
 
