@@ -4,20 +4,19 @@
     {
       "slug": "preposiciones",
       "group": "levels",
-      "prefix": "Level tile prepositions",
-      "prompt": "an open box with a small ball inside it, another ball resting on top and a third underneath, arrows showing the three positions",
+      "prefix": "Doty in on and under a box",
+      "prompt": "shown three times with one open box: once sitting inside it, once standing on top of it and once peeking out from underneath",
       "size": 512,
-      "mascot": false,
-      "done": false,
-      "anchor": true
+      "mascot": true,
+      "done": false
     },
     {
       "slug": "esto-eso",
       "group": "levels",
-      "prefix": "Level tile this and that",
-      "prompt": "a hand pointing at a near object and a second hand pointing at a far object, the near one bigger",
+      "prefix": "Doty pointing near and far",
+      "prompt": "pointing at a small cyan ball right beside him with one hand and at a second ball far away in the distance with the other, the near one much bigger",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -32,10 +31,10 @@
     {
       "slug": "singular-plural",
       "group": "levels",
-      "prefix": "Level tile one and many",
-      "prompt": "one apple on the left and a group of five apples on the right, separated by a vertical line",
+      "prefix": "One Doty and a crowd",
+      "prompt": "one Doty alone on the left and a tight group of four Dotys on the right, separated by a vertical line",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -59,28 +58,28 @@
     {
       "slug": "parecido",
       "group": "levels",
-      "prefix": "Level tile two alike",
-      "prompt": "two identical cyan stars side by side with an equals sign between them",
+      "prefix": "Two identical Dotys",
+      "prompt": "two Dotys side by side in exactly the same pose, with an equals sign between them",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
       "slug": "preguntas",
       "group": "levels",
-      "prefix": "Level tile question marks",
-      "prompt": "three question marks of different sizes overlapping, one pink one blue one cyan",
+      "prefix": "Doty surrounded by questions",
+      "prompt": "looking up with a curious expression, three floating question marks of different sizes around his head, one pink one blue one cyan",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
       "slug": "cantidad",
       "group": "levels",
-      "prefix": "Level tile how many",
-      "prompt": "a tall pile of coins on one side and two coins on the other",
+      "prefix": "Doty between a big pile and a small one",
+      "prompt": "standing between a tall stack of coins on one side and just two coins on the other, looking at the tall one",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -95,10 +94,10 @@
     {
       "slug": "opuestos",
       "group": "levels",
-      "prefix": "Level tile opposites",
-      "prompt": "a sun and a snowflake side by side, split by a diagonal line",
+      "prefix": "Doty hot and Doty cold",
+      "prompt": "shown twice, one wrapped in a thick scarf shivering and the other fanning himself, split by a diagonal line",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -140,10 +139,10 @@
     {
       "slug": "condicionales",
       "group": "levels",
-      "prefix": "Level tile forked road",
-      "prompt": "a path splitting into two branches, each ending in a different coloured dot",
+      "prefix": "Doty at a forked path",
+      "prompt": "standing at the start of a path that splits into two branches, looking from one to the other, undecided",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -158,10 +157,10 @@
     {
       "slug": "estilo-indirecto",
       "group": "levels",
-      "prefix": "Level tile speech inside speech",
-      "prompt": "a large speech bubble containing a smaller speech bubble",
+      "prefix": "Doty repeating what was said",
+      "prompt": "with a large speech bubble above him that contains a smaller speech bubble inside it",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -266,10 +265,10 @@
     {
       "slug": "pronombres",
       "group": "levels",
-      "prefix": "Level tile pronouns",
-      "prompt": "three simple round character silhouettes in a row with arrows pointing between them",
+      "prefix": "Three Dotys and possession arrows",
+      "prompt": "three Dotys standing in a row, curved arrows pointing from one to another to show belonging",
       "size": 512,
-      "mascot": false,
+      "mascot": true,
       "done": false
     },
     {
@@ -324,7 +323,8 @@
       "prompt": "four puzzle pieces locking together into a square, each a different brand colour",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "anchor": true
     },
     {
       "slug": "articulos",

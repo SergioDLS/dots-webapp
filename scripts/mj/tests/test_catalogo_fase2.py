@@ -47,9 +47,11 @@ def test_todas_son_del_grupo_levels_a_512():
         assert p["size"] == 512, p["slug"]
 
 
-def test_exactamente_un_ancla_y_es_preposiciones():
+def test_exactamente_un_ancla_y_es_estructuras():
     # validate_catalog ya exige una por grupo no-mascota; esto fija CUÁL, porque
-    # el ancla define el lenguaje visual de los otros ocho símbolos.
+    # el ancla define el lenguaje visual de los símbolos puros restantes. Vive
+    # en estructuras y no en preposiciones: la revisión movió el ancla porque
+    # preposiciones pasó a llevar a Doty dibujado, y anchor exige mascot: false.
     cat = mjlib.load_catalog(BATCH)
     anclas = [p["slug"] for p in cat["pieces"] if p.get("anchor")]
-    assert anclas == ["preposiciones"]
+    assert anclas == ["estructuras"]
