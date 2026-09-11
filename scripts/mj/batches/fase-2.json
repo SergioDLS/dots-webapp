@@ -8,7 +8,8 @@
       "prompt": "shown three times with one open cyan box: once sitting inside it, once standing on top of it and once peeking out from underneath",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_in_on_and_under_a_box_shown_three_times_with_o_27b41823-299b-4632-aa3e-8f14e58fa670_2.png"
     },
     {
       "slug": "esto-eso",
@@ -17,7 +18,8 @@
       "prompt": "pointing at a small cyan ball right beside him with one hand and at a second ball far away in the distance with the other, the near one much bigger",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_pointing_near_and_far_pointing_at_a_small_cyan_181d16aa-ae86-4225-aee6-51e68f8cceec_3.png"
     },
     {
       "slug": "reflexivos",
@@ -26,7 +28,8 @@
       "prompt": "standing in front of an oval mirror with a cyan frame and pointing at his own reflection, playful smile",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_looking_at_himself_in_a_mirror_standing_in_fro_c7963529-5a81-41b1-85e8-4200c363ba0c_2.png"
     },
     {
       "slug": "singular-plural",
@@ -35,7 +38,8 @@
       "prompt": "one Doty alone on the left and a tight group of four Dotys on the right, separated by a vertical blue line",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_One_Doty_and_a_crowd_one_Doty_alone_on_the_left_and_d3e1c5d8-52aa-40b8-883b-1ef9a7d94ea5_0.png"
     },
     {
       "slug": "frecuencia",
@@ -44,7 +48,8 @@
       "prompt": "a small calendar grid with several days marked by pink ticks",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_frequency_a_small_calendar_grid_with_sev_7b11add0-ad50-4b07-a9c9-867dad3f59dd_2.png"
     },
     {
       "slug": "comparativo",
@@ -53,7 +58,8 @@
       "prompt": "three copies of the same Doty in a row, small then medium then large, showing a size comparison",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_in_three_sizes_three_copies_of_the_same_Doty_i_f3a8ef8f-61dc-4b44-9886-bbe555b35877_1.png"
     },
     {
       "slug": "parecido",
@@ -62,7 +68,8 @@
       "prompt": "two Dotys side by side in exactly the same pose, with a blue equals sign between them",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Two_identical_Dotys_two_Dotys_side_by_side_in_exact_3e090fdc-b19f-47fb-bc18-0924687af1a9_3.png"
     },
     {
       "slug": "preguntas",
@@ -71,7 +78,8 @@
       "prompt": "looking up with a curious expression, three floating question marks of different sizes around his head, one pink one blue one cyan",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_surrounded_by_questions_looking_up_with_a_curi_ee692df1-10d5-49b0-9a46-16d7965af495_0.png"
     },
     {
       "slug": "cantidad",
@@ -80,7 +88,8 @@
       "prompt": "standing between a tall stack of cyan coins on one side and just two cyan coins on the other, looking at the tall one",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_between_a_big_pile_and_a_small_one_standing_be_6582f74d-86e5-46bf-b6c1-998308fc976f_0.png"
     },
     {
       "slug": "desde-durante",
@@ -89,7 +98,8 @@
       "prompt": "a horizontal timeline with one marked point on the left and a highlighted stretch on the right",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_timeline_a_horizontal_timeline_with_one__b488ec65-91b3-4346-8410-e8083a831374_2.png"
     },
     {
       "slug": "opuestos",
@@ -98,7 +108,8 @@
       "prompt": "shown twice, one wrapped in a thick cyan scarf shivering and the other fanning himself with a blue fan, split by a diagonal blue line",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_hot_and_Doty_cold_shown_twice_one_wrapped_in_a_36d8b9fd-90db-4c69-90c0-9d08c80e4f25_2.png"
     },
     {
       "slug": "exclamaciones",
@@ -107,7 +118,8 @@
       "prompt": "three exclamation marks of different sizes overlapping, one pink one blue one cyan",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_exclamation_marks_three_exclamation_mark_6f1abacf-8e3f-4ab1-bbfb-965be2cd5db2_2.png"
     },
     {
       "slug": "palabras-compuestas",
@@ -116,7 +128,8 @@
       "prompt": "two puzzle pieces joining into one, each a different brand colour",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_compound_words_two_puzzle_pieces_joining_4876eddd-2f42-420c-a003-b288bc9314cd_2.png"
     },
     {
       "slug": "acciones",
@@ -125,7 +138,8 @@
       "prompt": "shown three times in one image running, jumping and waving, with cyan motion lines",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_in_motion_shown_three_times_in_one_image_runni_47a5f509-5c9a-44c5-8f4d-135c8ed6f5c2_2.png"
     },
     {
       "slug": "conectores",
@@ -134,7 +148,8 @@
       "prompt": "three interlocking chain links in a row, the first pink, the second cyan and the third blue",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_chain_links_three_interlocking_chain_lin_af4dc3ff-4f3b-4ec8-a93a-98c6465409fe_2.png"
     },
     {
       "slug": "condicionales",
@@ -143,7 +158,8 @@
       "prompt": "standing at the start of a cyan path that splits into two branches, looking from one to the other, undecided",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_at_a_forked_path_standing_at_the_start_of_a_cy_7c4b6512-5617-4133-a7ac-d93bf94e62a5_1.png"
     },
     {
       "slug": "imperativo",
@@ -152,7 +168,8 @@
       "prompt": "standing upright pointing firmly forward with one arm, confident expression",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_giving_an_instruction_standing_upright_pointin_e881094b-94b9-49e0-b6b3-8fa77b7231ac_1.png"
     },
     {
       "slug": "estilo-indirecto",
@@ -161,7 +178,8 @@
       "prompt": "with a large white speech bubble with a blue outline above him that contains a smaller white speech bubble with a blue outline inside it",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_repeating_what_was_said_with_a_large_white_spe_ee93a507-7c75-42e5-8ae7-76c0f69d4319_1.png"
     },
     {
       "slug": "deseo",
@@ -170,7 +188,8 @@
       "prompt": "a bright cyan shooting star with a trailing tail across the frame",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_shooting_star_a_bright_cyan_shooting_sta_fff3cb52-34f1-4fc3-b98e-eae94a1065fc_0.png"
     },
     {
       "slug": "modismos",
@@ -179,7 +198,8 @@
       "prompt": "a small cloud raining cartoon cats and dogs, playful",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_raining_cats_and_dogs_a_small_cloud_rain_c389c736-3b55-4b8d-90d8-c30689a886fc_0.png"
     },
     {
       "slug": "jerga",
@@ -188,7 +208,8 @@
       "prompt": "a white speech bubble with a blue outline, filled with playful abstract symbols and squiggles in pink and cyan",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_slang_bubble_a_white_speech_bubble_with__e78dee3c-5a6d-44db-a8ae-6e535841db02_1.png"
     },
     {
       "slug": "formal-informal",
@@ -197,7 +218,8 @@
       "prompt": "a blue necktie on one side and a casual cyan cap on the other, split by a vertical blue line, with a white background on both halves",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_formal_and_informal_a_blue_necktie_on_on_bb633a3a-dfbd-455c-b89b-42b19211c416_2.png"
     },
     {
       "slug": "no-me-gusta",
@@ -206,7 +228,8 @@
       "prompt": "making a gentle no-thanks face with one hand raised palm out, still friendly",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_politely_declining_making_a_gentle_no-thanks_f_b0c1e10e-3cba-45bc-b9aa-5569c2ca1139_0.png"
     },
     {
       "slug": "me-gusta",
@@ -215,7 +238,8 @@
       "prompt": "beaming with both thumbs up, eyes bright with enjoyment",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_delighted_beaming_with_both_thumbs_up_eyes_bri_3c8b0098-87a6-42c0-a2bd-39443aa3ac9a_1.png"
     },
     {
       "slug": "presentarse",
@@ -224,7 +248,8 @@
       "prompt": "extending one hand forward for a handshake, warm welcoming smile",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_offering_a_handshake_extending_one_hand_forwar_f35d9ca2-28bf-45c4-a807-20f3ef51e644_1.png"
     },
     {
       "slug": "calma",
@@ -233,7 +258,8 @@
       "prompt": "eyes closed breathing slowly with both palms pressed downward in a calming gesture",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_calming_down_eyes_closed_breathing_slowly_with_f149c597-5f22-40c8-828d-499f55256cf9_2.png"
     },
     {
       "slug": "te-extrano",
@@ -242,7 +268,8 @@
       "prompt": "holding a small framed photo and looking at it fondly, wistful smile",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_missing_someone_holding_a_small_framed_photo_a_dc4a9a9b-984a-4f2b-96a7-83c3ceb2fc61_1.png"
     },
     {
       "slug": "decir-no",
@@ -251,7 +278,8 @@
       "prompt": "shaking one hand side to side in a friendly refusal, apologetic smile",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_saying_no_kindly_shaking_one_hand_side_to_side_e821aa77-24e7-4717-b4d8-8cd4d2e14362_3.png"
     },
     {
       "slug": "felicitar",
@@ -260,7 +288,8 @@
       "prompt": "clapping with confetti falling around him, celebrating",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_congratulating_clapping_with_confetti_falling__372a1a79-e4cb-4946-9c9c-55a9ed83e9f1_1.png"
     },
     {
       "slug": "pronombres",
@@ -269,7 +298,8 @@
       "prompt": "three Dotys standing in a row, cyan curved arrows pointing from one to another to show belonging",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Three_Dotys_and_possession_arrows_three_Dotys_stand_0fb22176-8bb8-448d-8cfb-b2205002a22f_3.png"
     },
     {
       "slug": "presente",
@@ -278,7 +308,8 @@
       "prompt": "a clock face with both hands pointing up and a highlighted ring around the rim",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_clock_now_a_clock_face_with_both_hands_p_0331493f-1e4f-4ffc-a2f6-e9a3432d0e24_1.png"
     },
     {
       "slug": "pasado",
@@ -287,7 +318,8 @@
       "prompt": "a clock face with a bold curved arrow sweeping counter-clockwise around it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_clock_backward_a_clock_face_with_a_bold__d922b49b-21e9-46e6-9d0e-4ad77fcb7d5a_3.png"
     },
     {
       "slug": "futuro",
@@ -305,7 +337,8 @@
       "prompt": "a horizontal timeline with a large check mark sitting on top of it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_completed_timeline_a_horizontal_timeline_36599e3e-9c5d-4d74-9d6a-9aed25a68013_3.png"
     },
     {
       "slug": "modales",
@@ -314,7 +347,8 @@
       "prompt": "looking at two floating white option bubbles with a blue outline, one on each side, with a thoughtful expression",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_weighing_two_options_looking_at_two_floating_w_bf2b4966-f796-417e-97ea-fca5a6923c97_0.png"
     },
     {
       "slug": "estructuras",
@@ -323,8 +357,9 @@
       "prompt": "four puzzle pieces locking together into a square, each a different brand colour",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "anchor": true
+      "done": true,
+      "anchor": true,
+      "source_file": "Mandrakin_Level_tile_puzzle_pieces_four_puzzle_pieces_locking_b73e8061-2ac5-4db4-b237-26eb6cbdceb3_0.png"
     },
     {
       "slug": "articulos",
@@ -333,7 +368,8 @@
       "prompt": "three small rounded cards in a row, each a different brand colour, no text",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_three_small_cards_three_small_rounded_ca_9b2af262-04ad-4ecc-bd72-202216bfb7d8_1.png"
     },
     {
       "slug": "complementos",
@@ -342,7 +378,8 @@
       "prompt": "a simple train of four linked cars in a row, each a different brand colour",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Level_tile_train_of_cars_a_simple_train_of_four_lin_b6076ee9-cbcf-4e19-b342-b31fa0e3f224_3.png"
     }
   ]
 }
