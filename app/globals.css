@@ -495,6 +495,19 @@ h1, h2, h3, .font-display {
 /* 70% 80% asumía una proporción de arte que todavía no existe; centrado abajo
    lee como un vaivén desde los pies en cualquier silueta, legacy o nueva. */
 .doty-wave { animation: doty-wave 1.6s ease-in-out infinite; transform-origin: center bottom; }
+/* Las dos mitades del paso del login a la animación de entrada. Se encadenan
+   sobre el MISMO fondo (--background en los dos lados), así que leen como una
+   sola disolvencia en vez de dos cortes seguidos. La escala va en sentidos
+   opuestos — el login se aleja, la animación se acerca — para dar dirección al
+   movimiento en vez de un fundido plano. */
+@keyframes dots-salida-login {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.04); }
+}
+@keyframes dots-entrada-transformacion {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
 /* Movimiento reducido ≠ cero feedback. Lo que marea son los desplazamientos,
    rotaciones y escalados, no los cambios de color: se anulan los keyframes
