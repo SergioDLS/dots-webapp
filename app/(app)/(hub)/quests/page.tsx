@@ -22,28 +22,26 @@ function QuestsPageInner() {
         </p>
       </header>
 
-      {/* Rival banner — small motivational hook, shown first */}
-      <div className="mx-auto w-full max-w-md">
-        <RivalBanner />
-      </div>
+      {/* Desktop: misiones a la izquierda, ranking a la derecha. Móvil: una
+          sola columna con el mismo orden de lectura. */}
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="mx-auto flex w-full max-w-md flex-col gap-6">
+          {/* Rival banner — small motivational hook, shown first */}
+          <RivalBanner />
 
-      <div className="mx-auto w-full max-w-md">
-        <Suspense fallback={null}>
-          <TournamentCard />
-        </Suspense>
-      </div>
+          <Suspense fallback={null}>
+            <TournamentCard />
+          </Suspense>
 
-      <div className="mx-auto w-full max-w-md">
-        <ChallengesPanel />
-      </div>
+          <ChallengesPanel />
 
-      <div className="mx-auto w-full max-w-md">
-        <DailyQuestCard />
-      </div>
+          <DailyQuestCard />
+        </div>
 
-      <section className="overflow-hidden rounded-2xl border border-(--border) bg-(--surface)">
-        <TopStudents />
-      </section>
+        <section className="overflow-hidden rounded-2xl border border-(--border) bg-(--surface)">
+          <TopStudents />
+        </section>
+      </div>
     </div>
   );
 }
