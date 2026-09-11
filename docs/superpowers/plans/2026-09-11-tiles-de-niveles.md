@@ -113,6 +113,13 @@ fase-2/out/app-icon.png, pisándose entre sí y sin un solo error."
 
 `validate_catalog` exige **exactamente un `anchor: true` por grupo que tenga piezas no-mascota**, y `anchor` requiere `mascot: false`. El ancla del grupo `levels` es `preposiciones`: es el símbolo más concreto y sirve de patrón de estilo para los otros ocho marcadores.
 
+> **Corregido en ejecución (`e5a5f8b`).** Diez piezas pasaron de símbolo puro a
+> mascota — `pronombres`, `esto-eso`, `singular-plural`, `preposiciones`,
+> `parecido`, `opuestos`, `condicionales`, `preguntas`, `estilo-indirecto`,
+> `cantidad` — así que el reparto real es **22 mascota / 16 icono** y el ancla
+> se mudó a `estructuras`. Los bloques de código de abajo son el diseño
+> original; el catálogo en `scripts/mj/batches/fase-2.json` manda.
+
 Las piezas con Doty llevan `mascot: true` (se generan con `ref-patron.png` adjunta); los símbolos puros llevan `mascot: false` (texto a imagen con el ancla en *Style reference*).
 
 - [ ] **Step 1: Escribir el script que genera el catálogo**
@@ -305,18 +312,18 @@ o contado dos veces es el fallo fácil de una tabla a mano y no se ve leyéndola
 mkdir -p "$RAW/fase-2"
 uv run --python 3.12 --with pillow scripts/mj/process.py --emit-lote levels --pendientes --raw "$RAW" --fase fase-2
 ```
-Esperado: `38 piezas (10 mascota, 28 icono) → $RAW/fase-2/LOTE-levels.md`
+Esperado: `38 piezas (22 mascota, 16 icono) → $RAW/fase-2/LOTE-levels.md`
 
 - [ ] **Step 2: Generar el ancla primero**
 
-`preposiciones` va marcada `⚓ ANCLA` en el lote. Se genera **sin nada adjunto**. Su mejor resultado se arrastra al slot **Style reference** y se deja ahí para los otros 27 símbolos.
+`estructuras` va marcada `⚓ ANCLA` en el lote. Se genera **sin nada adjunto**. Su mejor resultado se arrastra al slot **Style reference** y se deja ahí para los otros 15 símbolos.
 
-Sin el ancla, 28 símbolos generados por separado divergen en grosor de línea y nivel de abstracción, y el Camino parece tener iconos de ocho sitios distintos.
+Sin el ancla, 15 símbolos generados por separado divergen en grosor de línea y nivel de abstracción, y el Camino parece tener iconos de ocho sitios distintos.
 
 - [ ] **Step 3: Generar el resto**
 
-- **Las 28 de icono** (🔤): sin adjunto, con el ancla en *Style reference*.
-- **Las 10 de mascota** (🎨): con `$RAW/fase-0/ref-patron.png` en *Attach to prompt*, nunca encadenando una salida como fuente.
+- **Las 15 de icono** (🔤): sin adjunto, con el ancla en *Style reference*.
+- **Las 22 de mascota** (🎨): con `$RAW/fase-0/ref-patron.png` en *Attach to prompt*, nunca encadenando una salida como fuente.
 
 Descargar **sin renombrar**: el pipeline mapea cada archivo a su pieza por las primeras palabras del prompt.
 
