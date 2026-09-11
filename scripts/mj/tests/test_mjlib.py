@@ -91,6 +91,7 @@ def test_output_path_per_group(tmp_path):
     assert mjlib.output_path(piece(group="games", slug="wordle"), "fase-1", repo, raw) == repo / "public/images/games/wordle.png"
     assert mjlib.output_path(piece(group="characters", slug="doty-fem"), "fase-1", repo, raw) == raw / "fase-1/out/characters/doty-fem.png"
     assert mjlib.output_path(piece(group="app-icon", slug="app-icon"), "fase-1", repo, raw) == raw / "fase-1/out/app-icon.png"
+    assert mjlib.output_path(piece(group="levels", slug="preposiciones"), "fase-2", repo, raw) == repo / "public/images/levels/preposiciones.png"
 
 
 STYLE = {"edit_source": "ref-patron.png",
