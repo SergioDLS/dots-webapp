@@ -226,6 +226,18 @@ ACCEPTANCE_CRITERIA = (
 )
 
 
+# Aviso de transición dentro de un grupo mixto (spec: primer caso `levels`, 22
+# mascota + 16 icono): el bloque de icono deja el ancla puesta en Style
+# reference, y si nadie la saca al llegar a la primera mascota, el `--sref`
+# aplana a Doty igual que le pasó a doce piezas reales.
+SEPARADOR_SREF_VACIO = (
+    "> ⬇️ **A partir de aquí, vacía el slot _Style reference_.** Estas piezas "
+    "llevan `ref-patron.png` en *Attach to prompt* y nada más: el `--sref` del "
+    "ancla las aplana y Doty pierde el brillo, el párpado lila y el destello del "
+    "ojo."
+)
+
+
 def emit_lote(cat: dict, style: dict, grupos: list[str],
               pendientes_solo: bool = False) -> str:
     """Markdown de un lote de trabajo para uno o más grupos (spec §6): lo que Claude
@@ -263,8 +275,12 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
         lines += [
             f"**Piezas de mascota** (🎨): adjunta `{style['edit_source']}` en la fila "
             "**\"Attach to prompt\"** — la misma imagen fuente para todas, siempre. "
-            "**Nunca encadenes** una salida como fuente de la siguiente: el Edit Model "
-            "hereda el acabado y el encuadre de la fuente, y encadenar acumula deriva.",
+            "**El slot _Style reference_ va vacío**: si quedó puesto el ancla de un "
+            "grupo anterior, sácalo antes de generar — el `--sref` aplana a Doty y le "
+            "borra el brillo especular, el párpado lila, el destello del ojo, la "
+            "lengua y el grosor variable del contorno. **Nunca encadenes** una salida "
+            "como fuente de la siguiente: el Edit Model hereda el acabado y el "
+            "encuadre de la fuente, y encadenar acumula deriva.",
             "",
         ]
     if hay_icono:
@@ -295,13 +311,23 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
     for g in grupos:
         if g not in por_grupo:
             continue
-        # El catálogo trae orden de catálogo, no orden de generación: la cabecera
-        # manda generar el ancla primero, sin nada adjunto, y si el ancla cae a
-        # mitad de grupo esa instrucción es letra muerta — orden estable, así el
-        # resto conserva su posición relativa.
-        piezas_g = sorted(por_grupo[g], key=lambda p: not p.get("anchor"))
+        # El ancla encabeza: la cabecera manda generarla primero, sin nada
+        # adjunto, y si cae a mitad de grupo esa instrucción es letra muerta.
+        # Los iconos (con ella al frente) van antes que las mascotas por el
+        # mismo motivo práctico, no por estética: el slot Style reference se
+        # pone una vez, con el ancla, y se saca una vez, al llegar a la primera
+        # mascota — en vez de alternarlo pieza a pieza si los tipos vinieran
+        # intercalados como trae el catálogo de `levels`, el primer grupo con
+        # los dos juntos. Orden estable: dentro de cada bloque se conserva el
+        # orden de catálogo.
+        piezas_g = sorted(por_grupo[g], key=lambda p: (not p.get("anchor"), bool(p.get("mascot"))))
         lines += [f"## Grupo: {g} ({len(piezas_g)})", ""]
+        mixto = any(p.get("mascot") for p in piezas_g) and any(not p.get("mascot") for p in piezas_g)
+        cruzo_a_mascota = False
         for p in piezas_g:
+            if mixto and p.get("mascot") and not cruzo_a_mascota:
+                lines += [SEPARADOR_SREF_VACIO, ""]
+                cruzo_a_mascota = True
             n += 1
             marcador = "🎨 mascota" if p.get("mascot") else "🔤 icono"
             destino = _relative_output(p, cat["fase"])

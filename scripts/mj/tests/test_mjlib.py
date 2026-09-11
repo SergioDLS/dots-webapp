@@ -164,7 +164,15 @@ def test_emit_prompts_header_reflects_edit_model_no_stale_v7_terms():
         assert stale not in md, stale
 
 
-def test_emit_lote_mascota_sola_no_menciona_style_reference():
+def test_emit_lote_mascota_sola_tambien_advierte_vaciar_style_reference():
+    # Antes esto no se mencionaba nunca sin iconos EN ESTE lote: no había ningún
+    # Style reference que vaciar dentro del propio documento. Pero el defecto real
+    # (doce Doty aplanados en el grupo mixto `levels`) fue el sref quedando puesto
+    # de un grupo anterior en la MISMA sesión de Midjourney, no en el mismo
+    # documento — así que la cabecera general de mascota debe advertirlo siempre,
+    # tenga o no iconos este lote. El texto del separador de grupo mixto (ver
+    # test_emit_lote_separador_de_sref_solo_en_grupos_mixtos) es aparte y no debe
+    # aparecer aquí, donde no hay ningún grupo mixto.
     cat = {"fase": "fase-1", "pieces": [
         piece(),
         piece(slug="triste", prefix="Doty feeling sad"),
@@ -172,7 +180,9 @@ def test_emit_lote_mascota_sola_no_menciona_style_reference():
     md = mjlib.emit_lote(cat, STYLE, ["expressions"])
     assert STYLE["edit_source"] in md
     assert "encaden" in md.lower()  # "nunca encadenes" / "encadenar acumula deriva"
-    assert "Style reference" not in md
+    assert "Style reference" in md
+    assert "vac" in md.lower()  # "vacío"/"vacía"
+    assert "A partir de aquí" not in md
 
 def test_emit_lote_no_mascota_menciona_style_reference_y_ancla_no_edit_source():
     cat = {"fase": "fase-1", "pieces": [
@@ -230,6 +240,63 @@ def test_emit_lote_pone_el_ancla_primera_en_su_grupo_aunque_el_catalogo_no():
     md = mjlib.emit_lote(cat, STYLE, ["icons"])
     assert md.index("`ancla`") < md.index("`primero`")
     assert md.index("`ancla`") < md.index("`segundo`")
+
+def test_emit_lote_en_grupo_mixto_los_iconos_van_antes_que_las_mascotas():
+    # `levels` (fase-2) es el primer grupo con los dos tipos juntos: 22 mascota y
+    # 16 icono intercalados en el catálogo. El Style reference se pone una vez,
+    # con el ancla, y se saca una vez, al llegar a la primera mascota — así que
+    # TODO el bloque de icono (ancla a la cabeza) debe salir antes que TODA
+    # mascota, sin importar cómo los intercale el catálogo. Dentro de cada
+    # bloque, el orden de catálogo se conserva (sort estable).
+    cat = {"fase": "fase-1", "pieces": [
+        piece(group="levels", slug="mascota-1", prefix="Doty mascota uno"),
+        piece(group="levels", slug="icono-1", mascot=False, prompt="a",
+              prefix="Icon uno badge"),
+        piece(group="levels", slug="mascota-2", prefix="Doty mascota dos"),
+        piece(group="levels", slug="ancla", mascot=False, prompt="b",
+              prefix="Icon ancla badge", anchor=True),
+        piece(group="levels", slug="mascota-3", prefix="Doty mascota tres"),
+        piece(group="levels", slug="icono-2", mascot=False, prompt="c",
+              prefix="Icon dos badge"),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["levels"])
+    pos = {slug: md.index(f"`{slug}`") for slug in
+           ("mascota-1", "icono-1", "mascota-2", "ancla", "mascota-3", "icono-2")}
+    iconos = [pos["ancla"], pos["icono-1"], pos["icono-2"]]
+    mascotas = [pos["mascota-1"], pos["mascota-2"], pos["mascota-3"]]
+    assert max(iconos) < min(mascotas)
+    assert pos["ancla"] == min(iconos)  # el ancla encabeza su propio bloque
+    assert pos["icono-1"] < pos["icono-2"]  # orden de catálogo dentro del bloque
+    assert pos["mascota-1"] < pos["mascota-2"] < pos["mascota-3"]
+
+def test_emit_lote_separador_de_sref_solo_en_grupos_mixtos():
+    # El aviso de "vacía el slot Style reference" en la transición icono->mascota
+    # solo tiene sentido si el grupo trae los dos tipos: un grupo todo-mascota
+    # nunca puso un sref que haya que sacar, y uno todo-icono nunca llega a la
+    # mascota que lo necesitaría.
+    mixto = {"fase": "fase-1", "pieces": [
+        piece(group="levels", slug="mascota-1", prefix="Doty mascota uno"),
+        piece(group="levels", slug="icono-1", mascot=False, prompt="a",
+              prefix="Icon uno badge", anchor=True),
+    ]}
+    md_mixto = mjlib.emit_lote(mixto, STYLE, ["levels"])
+    assert md_mixto.count("A partir de aquí") == 1
+
+    solo_mascota = {"fase": "fase-1", "pieces": [
+        piece(group="expressions", slug="mascota-1", prefix="Doty mascota uno"),
+        piece(group="expressions", slug="mascota-2", prefix="Doty mascota dos"),
+    ]}
+    md_mascota = mjlib.emit_lote(solo_mascota, STYLE, ["expressions"])
+    assert "A partir de aquí" not in md_mascota
+
+    solo_icono = {"fase": "fase-1", "pieces": [
+        piece(group="icons", slug="icono-1", mascot=False, prompt="a",
+              prefix="Icon uno badge", anchor=True),
+        piece(group="icons", slug="icono-2", mascot=False, prompt="b",
+              prefix="Icon dos badge"),
+    ]}
+    md_icono = mjlib.emit_lote(solo_icono, STYLE, ["icons"])
+    assert "A partir de aquí" not in md_icono
 
 def test_emit_lote_titulo_lleva_grupos_y_cantidad():
     cat = {"fase": "fase-1", "pieces": [

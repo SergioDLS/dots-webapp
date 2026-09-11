@@ -5,7 +5,7 @@
       "slug": "preposiciones",
       "group": "levels",
       "prefix": "Doty in on and under a box",
-      "prompt": "shown three times with one open box: once sitting inside it, once standing on top of it and once peeking out from underneath",
+      "prompt": "shown three times with one open cyan box: once sitting inside it, once standing on top of it and once peeking out from underneath",
       "size": 512,
       "mascot": true,
       "done": false
@@ -23,7 +23,7 @@
       "slug": "reflexivos",
       "group": "levels",
       "prefix": "Doty looking at himself in a mirror",
-      "prompt": "standing in front of an oval mirror and pointing at his own reflection, playful smile",
+      "prompt": "standing in front of an oval mirror with a cyan frame and pointing at his own reflection, playful smile",
       "size": 512,
       "mascot": true,
       "done": false
@@ -32,7 +32,7 @@
       "slug": "singular-plural",
       "group": "levels",
       "prefix": "One Doty and a crowd",
-      "prompt": "one Doty alone on the left and a tight group of four Dotys on the right, separated by a vertical line",
+      "prompt": "one Doty alone on the left and a tight group of four Dotys on the right, separated by a vertical blue line",
       "size": 512,
       "mascot": true,
       "done": false
@@ -59,7 +59,7 @@
       "slug": "parecido",
       "group": "levels",
       "prefix": "Two identical Dotys",
-      "prompt": "two Dotys side by side in exactly the same pose, with an equals sign between them",
+      "prompt": "two Dotys side by side in exactly the same pose, with a blue equals sign between them",
       "size": 512,
       "mascot": true,
       "done": false
@@ -77,7 +77,7 @@
       "slug": "cantidad",
       "group": "levels",
       "prefix": "Doty between a big pile and a small one",
-      "prompt": "standing between a tall stack of coins on one side and just two coins on the other, looking at the tall one",
+      "prompt": "standing between a tall stack of cyan coins on one side and just two cyan coins on the other, looking at the tall one",
       "size": 512,
       "mascot": true,
       "done": false
@@ -95,7 +95,7 @@
       "slug": "opuestos",
       "group": "levels",
       "prefix": "Doty hot and Doty cold",
-      "prompt": "shown twice, one wrapped in a thick scarf shivering and the other fanning himself, split by a diagonal line",
+      "prompt": "shown twice, one wrapped in a thick cyan scarf shivering and the other fanning himself with a blue fan, split by a diagonal blue line",
       "size": 512,
       "mascot": true,
       "done": false
@@ -122,7 +122,7 @@
       "slug": "acciones",
       "group": "levels",
       "prefix": "Doty in motion",
-      "prompt": "shown three times in one image running, jumping and waving, with motion lines",
+      "prompt": "shown three times in one image running, jumping and waving, with cyan motion lines",
       "size": 512,
       "mascot": true,
       "done": false
@@ -131,7 +131,7 @@
       "slug": "conectores",
       "group": "levels",
       "prefix": "Level tile chain links",
-      "prompt": "three interlocking chain links in a row, alternating pink and blue",
+      "prompt": "three interlocking chain links in a row, the first pink, the second cyan and the third blue",
       "size": 512,
       "mascot": false,
       "done": false
@@ -140,7 +140,7 @@
       "slug": "condicionales",
       "group": "levels",
       "prefix": "Doty at a forked path",
-      "prompt": "standing at the start of a path that splits into two branches, looking from one to the other, undecided",
+      "prompt": "standing at the start of a cyan path that splits into two branches, looking from one to the other, undecided",
       "size": 512,
       "mascot": true,
       "done": false
@@ -158,7 +158,7 @@
       "slug": "estilo-indirecto",
       "group": "levels",
       "prefix": "Doty repeating what was said",
-      "prompt": "with a large speech bubble above him that contains a smaller speech bubble inside it",
+      "prompt": "with a large white speech bubble with a blue outline above him that contains a smaller white speech bubble with a blue outline inside it",
       "size": 512,
       "mascot": true,
       "done": false
@@ -185,7 +185,7 @@
       "slug": "jerga",
       "group": "levels",
       "prefix": "Level tile slang bubble",
-      "prompt": "a speech bubble filled with playful abstract symbols and squiggles",
+      "prompt": "a white speech bubble with a blue outline, filled with playful abstract symbols and squiggles in pink and cyan",
       "size": 512,
       "mascot": false,
       "done": false
@@ -194,7 +194,7 @@
       "slug": "formal-informal",
       "group": "levels",
       "prefix": "Level tile formal and informal",
-      "prompt": "a necktie on one side and a casual cap on the other, split by a vertical line",
+      "prompt": "a blue necktie on one side and a casual cyan cap on the other, split by a vertical blue line, with a white background on both halves",
       "size": 512,
       "mascot": false,
       "done": false
@@ -266,7 +266,7 @@
       "slug": "pronombres",
       "group": "levels",
       "prefix": "Three Dotys and possession arrows",
-      "prompt": "three Dotys standing in a row, curved arrows pointing from one to another to show belonging",
+      "prompt": "three Dotys standing in a row, cyan curved arrows pointing from one to another to show belonging",
       "size": 512,
       "mascot": true,
       "done": false
@@ -311,7 +311,7 @@
       "slug": "modales",
       "group": "levels",
       "prefix": "Doty weighing two options",
-      "prompt": "looking at two floating option bubbles, one on each side, with a thoughtful expression",
+      "prompt": "looking at two floating white option bubbles with a blue outline, one on each side, with a thoughtful expression",
       "size": 512,
       "mascot": true,
       "done": false
