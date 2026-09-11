@@ -1,0 +1,348 @@
+{
+  "fase": "fase-2",
+  "pieces": [
+    {
+      "slug": "preposiciones",
+      "group": "levels",
+      "prefix": "Level tile prepositions",
+      "prompt": "an open box with a small ball inside it, another ball resting on top and a third underneath, arrows showing the three positions",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "anchor": true
+    },
+    {
+      "slug": "esto-eso",
+      "group": "levels",
+      "prefix": "Level tile this and that",
+      "prompt": "a hand pointing at a near object and a second hand pointing at a far object, the near one bigger",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "reflexivos",
+      "group": "levels",
+      "prefix": "Doty looking at himself in a mirror",
+      "prompt": "standing in front of an oval mirror and pointing at his own reflection, playful smile",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "singular-plural",
+      "group": "levels",
+      "prefix": "Level tile one and many",
+      "prompt": "one apple on the left and a group of five apples on the right, separated by a vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "frecuencia",
+      "group": "levels",
+      "prefix": "Level tile frequency",
+      "prompt": "a small calendar grid with several days marked by pink ticks",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "comparativo",
+      "group": "levels",
+      "prefix": "Doty in three sizes",
+      "prompt": "three copies of the same Doty in a row, small then medium then large, showing a size comparison",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "parecido",
+      "group": "levels",
+      "prefix": "Level tile two alike",
+      "prompt": "two identical cyan stars side by side with an equals sign between them",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "preguntas",
+      "group": "levels",
+      "prefix": "Level tile question marks",
+      "prompt": "three question marks of different sizes overlapping, one pink one blue one cyan",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "cantidad",
+      "group": "levels",
+      "prefix": "Level tile how many",
+      "prompt": "a tall pile of coins on one side and two coins on the other",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "desde-durante",
+      "group": "levels",
+      "prefix": "Level tile timeline",
+      "prompt": "a horizontal timeline with one marked point on the left and a highlighted stretch on the right",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "opuestos",
+      "group": "levels",
+      "prefix": "Level tile opposites",
+      "prompt": "a sun and a snowflake side by side, split by a diagonal line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "exclamaciones",
+      "group": "levels",
+      "prefix": "Level tile exclamation marks",
+      "prompt": "three exclamation marks of different sizes overlapping, one pink one blue one cyan",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "palabras-compuestas",
+      "group": "levels",
+      "prefix": "Level tile compound words",
+      "prompt": "two puzzle pieces joining into one, each a different brand colour",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "acciones",
+      "group": "levels",
+      "prefix": "Doty in motion",
+      "prompt": "shown three times in one image running, jumping and waving, with motion lines",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "conectores",
+      "group": "levels",
+      "prefix": "Level tile chain links",
+      "prompt": "three interlocking chain links in a row, alternating pink and blue",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "condicionales",
+      "group": "levels",
+      "prefix": "Level tile forked road",
+      "prompt": "a path splitting into two branches, each ending in a different coloured dot",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "imperativo",
+      "group": "levels",
+      "prefix": "Doty giving an instruction",
+      "prompt": "standing upright pointing firmly forward with one arm, confident expression",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "estilo-indirecto",
+      "group": "levels",
+      "prefix": "Level tile speech inside speech",
+      "prompt": "a large speech bubble containing a smaller speech bubble",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "deseo",
+      "group": "levels",
+      "prefix": "Level tile shooting star",
+      "prompt": "a bright cyan shooting star with a trailing tail across the frame",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "modismos",
+      "group": "levels",
+      "prefix": "Level tile raining cats and dogs",
+      "prompt": "a small cloud raining cartoon cats and dogs, playful",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "jerga",
+      "group": "levels",
+      "prefix": "Level tile slang bubble",
+      "prompt": "a speech bubble filled with playful abstract symbols and squiggles",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "formal-informal",
+      "group": "levels",
+      "prefix": "Level tile formal and informal",
+      "prompt": "a necktie on one side and a casual cap on the other, split by a vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "no-me-gusta",
+      "group": "levels",
+      "prefix": "Doty politely declining",
+      "prompt": "making a gentle no-thanks face with one hand raised palm out, still friendly",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "me-gusta",
+      "group": "levels",
+      "prefix": "Doty delighted",
+      "prompt": "beaming with both thumbs up, eyes bright with enjoyment",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "presentarse",
+      "group": "levels",
+      "prefix": "Doty offering a handshake",
+      "prompt": "extending one hand forward for a handshake, warm welcoming smile",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "calma",
+      "group": "levels",
+      "prefix": "Doty calming down",
+      "prompt": "eyes closed breathing slowly with both palms pressed downward in a calming gesture",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "te-extrano",
+      "group": "levels",
+      "prefix": "Doty missing someone",
+      "prompt": "holding a small framed photo and looking at it fondly, wistful smile",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "decir-no",
+      "group": "levels",
+      "prefix": "Doty saying no kindly",
+      "prompt": "shaking one hand side to side in a friendly refusal, apologetic smile",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "felicitar",
+      "group": "levels",
+      "prefix": "Doty congratulating",
+      "prompt": "clapping with confetti falling around him, celebrating",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "pronombres",
+      "group": "levels",
+      "prefix": "Level tile pronouns",
+      "prompt": "three simple round character silhouettes in a row with arrows pointing between them",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "presente",
+      "group": "levels",
+      "prefix": "Level tile clock now",
+      "prompt": "a clock face with both hands pointing up and a highlighted ring around the rim",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "pasado",
+      "group": "levels",
+      "prefix": "Level tile clock backward",
+      "prompt": "a clock face with a bold curved arrow sweeping counter-clockwise around it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "futuro",
+      "group": "levels",
+      "prefix": "Level tile clock forward",
+      "prompt": "a clock face with a bold curved arrow sweeping clockwise around it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "perfectos",
+      "group": "levels",
+      "prefix": "Level tile completed timeline",
+      "prompt": "a horizontal timeline with a large check mark sitting on top of it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "modales",
+      "group": "levels",
+      "prefix": "Doty weighing two options",
+      "prompt": "looking at two floating option bubbles, one on each side, with a thoughtful expression",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "estructuras",
+      "group": "levels",
+      "prefix": "Level tile puzzle pieces",
+      "prompt": "four puzzle pieces locking together into a square, each a different brand colour",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "articulos",
+      "group": "levels",
+      "prefix": "Level tile three small cards",
+      "prompt": "three small rounded cards in a row, each a different brand colour, no text",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "complementos",
+      "group": "levels",
+      "prefix": "Level tile train of cars",
+      "prompt": "a simple train of four linked cars in a row, each a different brand colour",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    }
+  ]
+}
