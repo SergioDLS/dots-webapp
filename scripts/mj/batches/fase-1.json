@@ -182,6 +182,16 @@
       "source_file": "Mandrakin_Doty_pointing_at_something_one_arm_extended_index_f_30390d50-fc70-49eb-b581-4aa63907698b_3.png"
     },
     {
+      "slug": "ven-aqui",
+      "group": "poses",
+      "prefix": "Doty beckoning you over",
+      "prompt": "same round pink body, leaning slightly forward with one arm extended and the hand curled inward mid-beckon in a clear \"come here\" gesture, the other arm relaxed at his side, looking straight at the viewer with an encouraging smile",
+      "size": 1024,
+      "mascot": true,
+      "done": true,
+      "source_file": "Mandrakin_Doty_beckoning_you_over_same_round_pink_body_leanin_748bf601-3af3-4b81-9867-d6cae0b2ceb9_3.png"
+    },
+    {
       "slug": "bienvenido",
       "group": "poses",
       "prefix": "Doty opening arms wide",

@@ -21,12 +21,13 @@ interface DotyMarkerProps {
  * la silueta — un brazo que sale del cuerpo, una zancada, líneas de movimiento.
  * Meter diez sería variedad que nadie llega a percibir.
  *
- * Falta la pose ideal para este sitio y no existe en el catálogo: un Doty
- * llamando con la mano ("ven acá"), que es exactamente lo que dice el globo.
- * `senalando` es lo más cerca que hay.
+ * `ven-aqui` se generó para este sitio: es el gesto de llamar con la mano, que
+ * es exactamente lo que dice el globo. Va primera y por eso es también la que
+ * pinta el servidor.
  */
 const POSES_MARCADOR = [
-  "senalando", // señala hacia el nodo: la más literal
+  "ven-aqui", // llama con la mano: hecha a medida para este globo
+  "senalando", // señala hacia el nodo
   "corriendo", // líneas de movimiento, "vamos"
   "caminando", // zancada, avance tranquilo
   "sigue-asi", // el gemelo semántico del globo

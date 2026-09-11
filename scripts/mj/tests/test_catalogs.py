@@ -10,7 +10,7 @@ SLUGS = {
     "expressions": {"feliz", "muy-feliz", "emocionado", "orgulloso", "sorprendido", "pensando",
                     "preocupado", "triste", "enojado", "decepcionado", "riendo", "timido",
                     "enamorado", "cansado", "dormido"},
-    "poses": {"saludando", "pulgar-arriba", "senalando", "bienvenido", "aplaudiendo", "caminando",
+    "poses": {"saludando", "pulgar-arriba", "senalando", "ven-aqui", "bienvenido", "aplaudiendo", "caminando",
               "corriendo", "saltando", "bailando", "sentado", "leyendo", "escribiendo",
               "en-laptop", "escuchando", "en-celular", "hablando"},
     "states": {"wow", "oh-no", "ups", "excelente", "perfecto", "sigue-asi"},
@@ -37,7 +37,7 @@ GAMES = SLUGS["games"]
 def test_fase1_counts_and_rules():
     cat = mjlib.load_catalog(BATCH)
     counts = Counter(p["group"] for p in cat["pieces"])
-    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 97
+    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 98
     for p in cat["pieces"]:
         expect_mascot = p["group"] not in ("icons", "games")
         assert p["mascot"] is expect_mascot, p["slug"]
@@ -47,7 +47,7 @@ def test_fase1_counts_and_rules():
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "games"} == GAMES
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
-    assert len({p["prefix"] for p in cat["pieces"]}) == 97
+    assert len({p["prefix"] for p in cat["pieces"]}) == 98
 
 def test_solo_lentes_y_scientist_llevan_glasses():
     cat = mjlib.load_catalog(BATCH)

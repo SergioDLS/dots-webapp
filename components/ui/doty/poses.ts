@@ -22,6 +22,7 @@ export const POSES = {
   saludando: { src: "/images/Doty/poses/saludando.png", group: "poses" },
   "pulgar-arriba": { src: "/images/Doty/poses/pulgar-arriba.png", group: "poses" },
   senalando: { src: "/images/Doty/poses/senalando.png", group: "poses" },
+  "ven-aqui": { src: "/images/Doty/poses/ven-aqui.png", group: "poses" },
   bienvenido: { src: "/images/Doty/poses/bienvenido.png", group: "poses" },
   aplaudiendo: { src: "/images/Doty/poses/aplaudiendo.png", group: "poses" },
   caminando: { src: "/images/Doty/poses/caminando.png", group: "poses" },
