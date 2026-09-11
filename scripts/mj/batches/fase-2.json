@@ -49,6 +49,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_frequency_a_small_calendar_grid_with_sev_7b11add0-ad50-4b07-a9c9-867dad3f59dd_2.png"
     },
     {
@@ -94,11 +95,12 @@
     {
       "slug": "desde-durante",
       "group": "levels",
-      "prefix": "Level tile timeline",
-      "prompt": "a horizontal timeline with one marked point on the left and a highlighted stretch on the right",
+      "prefix": "Level tile start dot and duration bar",
+      "prompt": "a solid pink dot marking a start point on the left, and a separate thick cyan bar extending across the rest of the frame to its right, the dot and the bar reading as two distinct shapes",
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_timeline_a_horizontal_timeline_with_one__b488ec65-91b3-4346-8410-e8083a831374_2.png"
     },
     {
@@ -119,6 +121,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_exclamation_marks_three_exclamation_mark_6f1abacf-8e3f-4ab1-bbfb-965be2cd5db2_2.png"
     },
     {
@@ -129,6 +132,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_compound_words_two_puzzle_pieces_joining_4876eddd-2f42-420c-a003-b288bc9314cd_2.png"
     },
     {
@@ -149,16 +153,18 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_chain_links_three_interlocking_chain_lin_af4dc3ff-4f3b-4ec8-a93a-98c6465409fe_2.png"
     },
     {
       "slug": "condicionales",
       "group": "levels",
       "prefix": "Doty at a forked path",
-      "prompt": "standing at the start of a cyan path that splits into two branches, looking from one to the other, undecided",
+      "prompt": "standing with a puzzled look, two floating cyan arrows beside his head pointing in opposite directions, looking from one arrow to the other, undecided",
       "size": 512,
       "mascot": true,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Doty_at_a_forked_path_standing_at_the_start_of_a_cy_7c4b6512-5617-4133-a7ac-d93bf94e62a5_1.png"
     },
     {
@@ -184,11 +190,12 @@
     {
       "slug": "deseo",
       "group": "levels",
-      "prefix": "Level tile shooting star",
-      "prompt": "a bright cyan shooting star with a trailing tail across the frame",
+      "prefix": "Level tile bold star short tail",
+      "prompt": "a single large five-pointed star, thick and bold, with only a short stubby tail at its base, the star noticeably bigger than the tail",
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_shooting_star_a_bright_cyan_shooting_sta_fff3cb52-34f1-4fc3-b98e-eae94a1065fc_0.png"
     },
     {
@@ -199,6 +206,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_raining_cats_and_dogs_a_small_cloud_rain_c389c736-3b55-4b8d-90d8-c30689a886fc_0.png"
     },
     {
@@ -209,6 +217,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_slang_bubble_a_white_speech_bubble_with__e78dee3c-5a6d-44db-a8ae-6e535841db02_1.png"
     },
     {
@@ -219,6 +228,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_formal_and_informal_a_blue_necktie_on_on_bb633a3a-dfbd-455c-b89b-42b19211c416_2.png"
     },
     {
@@ -304,28 +314,30 @@
     {
       "slug": "presente",
       "group": "levels",
-      "prefix": "Level tile clock now",
-      "prompt": "a clock face with both hands pointing up and a highlighted ring around the rim",
+      "prefix": "Level tile timeline middle block",
+      "prompt": "a horizontal bar divided into three equal blocks by thin lines, only the middle block filled solid, the other two blocks left as plain outline",
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_clock_now_a_clock_face_with_both_hands_p_0331493f-1e4f-4ffc-a2f6-e9a3432d0e24_1.png"
     },
     {
       "slug": "pasado",
       "group": "levels",
-      "prefix": "Level tile clock backward",
-      "prompt": "a clock face with a bold curved arrow sweeping counter-clockwise around it",
+      "prefix": "Level tile timeline left block",
+      "prompt": "a horizontal bar divided into three equal blocks by thin lines, only the leftmost block filled solid, the other two blocks left as plain outline",
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_clock_backward_a_clock_face_with_a_bold__d922b49b-21e9-46e6-9d0e-4ad77fcb7d5a_3.png"
     },
     {
       "slug": "futuro",
       "group": "levels",
-      "prefix": "Level tile clock forward",
-      "prompt": "a clock face with a bold curved arrow sweeping clockwise around it",
+      "prefix": "Level tile timeline right block",
+      "prompt": "a horizontal bar divided into three equal blocks by thin lines, only the rightmost block filled solid, the other two blocks left as plain outline",
       "size": 512,
       "mascot": false,
       "done": false
@@ -338,6 +350,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_completed_timeline_a_horizontal_timeline_36599e3e-9c5d-4d74-9d6a-9aed25a68013_3.png"
     },
     {
@@ -358,6 +371,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "anchor": true,
       "source_file": "Mandrakin_Level_tile_puzzle_pieces_four_puzzle_pieces_locking_b73e8061-2ac5-4db4-b237-26eb6cbdceb3_0.png"
     },
@@ -369,6 +383,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_three_small_cards_three_small_rounded_ca_9b2af262-04ad-4ecc-bd72-202216bfb7d8_1.png"
     },
     {
@@ -379,6 +394,7 @@
       "size": 512,
       "mascot": false,
       "done": true,
+      "regen": true,
       "source_file": "Mandrakin_Level_tile_train_of_cars_a_simple_train_of_four_lin_b6076ee9-cbcf-4e19-b342-b31fa0e3f224_3.png"
     }
   ]

@@ -13,7 +13,7 @@
     "shadow",
     "background objects"
   ],
-  "icon_block": "flat icon, thick rounded outline, brand palette #FF1F8F #1E1B5C #3768FF #35D8F5, centered, plain white background",
+  "icon_block": "flat icon, thick rounded #1E1B5C navy outline, fills only in #FF1F8F pink, #3768FF blue and #35D8F5 cyan, centered, plain white background",
   "gpu_minutes_medidos": {
     "v7_oref": 2.0,
     "edit_v8_2": 1.0,
