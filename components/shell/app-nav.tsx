@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { NAV_ITEMS } from "./nav-items";
 import { getChallengesService } from "@/services/challenges.service";
+import { Icon } from "@/components/ui/icon";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
@@ -80,7 +81,7 @@ export default function AppNav() {
               }`}
             >
               <span className="relative text-2xl leading-none">
-                {item.icon}
+                <Icon name={item.icon} size={24} />
                 {badgeFor(item.href)}
               </span>
               <span className="text-[10px] font-extrabold tracking-wide">
@@ -108,7 +109,7 @@ export default function AppNav() {
               }`}
             >
               <span className="relative text-xl leading-none">
-                {item.icon}
+                <Icon name={item.icon} size={24} />
                 {badgeFor(item.href)}
               </span>
               <span className="text-[10px] font-extrabold tracking-tight">
