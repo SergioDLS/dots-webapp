@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/ui/icon";
 import { NODE_META } from "@/lib/path-node-meta";
 import type { PathNode } from "@/types/path.types";
 
@@ -75,7 +76,7 @@ export default function NodePopover({
             color: `color-mix(in srgb, ${accentHex} 55%, var(--foreground))`,
           }}
         >
-          {meta.icon} {meta.label}
+          <Icon name={meta.icon} size={12} /> {meta.label}
         </span>
         <span
           className="text-[10px] font-black tabular-nums"

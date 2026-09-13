@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import WordImg from "@/components/ui/word-img/word-img";
 import NodePopover from "./node-popover";
+import { Icon } from "@/components/ui/icon";
 import { NODE_META } from "@/lib/path-node-meta";
 import type { PathNode as PathNodeType } from "@/types/path.types";
 
@@ -219,17 +220,7 @@ export default function PathNode({
                 customClass="w-[68px] h-[68px] object-contain drop-shadow-md"
               />
             ) : (
-              <span
-                aria-hidden
-                style={{
-                  fontSize: isCheckpoint ? 52 : 40,
-                  lineHeight: 1,
-                  display: "inline-block",
-                  filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.15))",
-                }}
-              >
-                {meta.icon}
-              </span>
+              <Icon name={meta.icon} size={isCheckpoint ? 52 : 40} />
             )}
           </div>
 
@@ -267,7 +258,7 @@ export default function PathNode({
           }}
           title={meta.label}
         >
-          <span style={{ fontSize: 13, lineHeight: 1 }}>{meta.icon}</span>
+          <Icon name={meta.icon} size={13} />
         </div>
 
         {/* ── Badge: current star ───────────────────────────── */}
