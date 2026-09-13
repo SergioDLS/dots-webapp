@@ -10,9 +10,13 @@ interface Props {
 }
 
 export default function WordImg({ size, opacity = 1, src, customClass }: Props) {
-  // Absolute URLs (e.g. Cloudinary uploads from the admin) are used as-is;
-  // legacy relative paths are resolved against BASE_URL_IMAGES.
-  const url = /^https?:\/\//.test(src)
+  // Absolute URLs (e.g. Cloudinary uploads from the admin) are used as-is, y
+  // también las rutas que arrancan en `/`: son archivos servidos por el propio
+  // frontend, como los tiles de `public/images/levels/`. Lo que queda —un
+  // nombre de archivo suelto, `abc.png`— es el formato legacy de la tabla
+  // `words` y se resuelve contra Cloudinary. Sin el caso del `/`, un tile de
+  // nivel acababa pidiendo `…/words//images/levels/x.png` y daba 404.
+  const url = /^https?:\/\//.test(src) || src.startsWith("/")
     ? src
     : `${BASE_URL_IMAGES}/words/${src}`;
 
