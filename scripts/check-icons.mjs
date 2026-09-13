@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Valida la regla de dibujo de components/ui/icon/paths.tsx.
-// Falla si un icono usa un color fuera de paleta, navy como relleno, o un
-// stroke-width distinto al de su familia.
+// Falla si un icono usa un color fuera de paleta, navy como relleno, un
+// stroke-width distinto al de su familia, o cualquier className (puerta
+// trasera para colar color fuera de fill/stroke).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -51,6 +52,13 @@ for (let i = 0; i < marcas.length; i++) {
 
 // 5. Un solo viewBox, y vive en icon.tsx, no aquí.
 if (source.includes("viewBox")) errors.push("paths.tsx no declara viewBox: lo pone icon.tsx");
+
+// 6. Ningún className en paths.tsx. La geometría no necesita clases: el color
+//    vive en atributos fill/stroke (reglas 1 y 2) y el tamaño lo pone
+//    icon.tsx. Un className cuela colores (Tailwind arbitrario tipo
+//    `fill-[#1E1B5C]`, o clases con nombre) que las reglas de arriba, al
+//    mirar solo fill=/stroke=, no ven pasar.
+if (source.includes("className")) errors.push("paths.tsx no admite className: la geometría no lleva clases, el color va en atributos");
 
 if (errors.length) {
   console.error(`check-icons: ${errors.length} problema(s)\n  ${errors.join("\n  ")}`);

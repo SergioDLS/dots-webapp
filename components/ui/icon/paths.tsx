@@ -23,8 +23,8 @@ export const ICON_PATHS = {
   ),
   repaso: (
     <g fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M40 24A16 16 0 1 1 24 8" stroke="#3768FF" />
-      <polygon points="24,2 40,10 27,17" fill="#FF1F8F" />
+      <path d="M40 24A16 16 0 1 1 24 8" stroke="#35D8F5" />
+      <polygon points="24,2 37,8 24,14" fill="#FF1F8F" />
     </g>
   ),
   retos: (

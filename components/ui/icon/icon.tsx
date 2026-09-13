@@ -8,10 +8,15 @@ interface Props {
 }
 
 /**
- * Pinta un icono del set. Es la ÚNICA costura entre las pantallas y el SVG:
- * el día que haya app React Native, este archivo se reescribe con
- * `react-native-svg` y ninguna pantalla cambia. Por eso las pantallas nunca
- * llevan un `<svg>` suelto.
+ * Pinta un icono del set. Es la ÚNICA costura entre las pantallas y el SVG
+ * DE ICONOGRAFÍA: el día que haya app React Native, este archivo se
+ * reescribe con `react-native-svg` y ninguna pantalla que use `<Icon>`
+ * cambia. Por eso esas pantallas nunca llevan un `<svg>` de icono suelto.
+ *
+ * No es la única costura SVG del repo: quedan gráficos preexistentes que no
+ * son iconografía sino decoración estructural (hot-air-balloon.tsx,
+ * path-node.tsx, path-section.tsx, sound.tsx). Quien porte a RN tiene que
+ * localizarlos aparte; este componente no los cubre.
  */
 export default function Icon({ name, size = 24, className }: Props) {
   return (
