@@ -97,9 +97,9 @@ export const ICON_PATHS = {
   ),
   lectura: (
     <g fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="7" y="20" width="10" height="20" rx="2" fill="#FF1F8F" />
-      <rect x="19" y="10" width="10" height="30" rx="2" fill="#35D8F5" />
-      <rect x="31" y="24" width="10" height="16" rx="2" fill="#3768FF" />
+      <rect x="16" y="8" width="11" height="32" rx="1.5" fill="#35D8F5" />
+      <rect x="29" y="17" width="11" height="23" rx="1.5" fill="#FF1F8F" />
+      <rect x="6" y="12" width="10" height="28" rx="1.5" fill="#3768FF" transform="rotate(25 11 40)" />
     </g>
   ),
   checkpoint: (
