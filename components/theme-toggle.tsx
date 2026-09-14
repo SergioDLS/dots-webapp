@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { THEME_COLORS } from "@/lib/theme-colors";
+import { Icon, type IconName } from "@/components/ui/icon";
 
 type Mode = "light" | "dark";
 
@@ -37,9 +38,9 @@ const modeLabel: Record<Mode, string> = {
   dark: "Dark",
 };
 
-const modeIcon: Record<Mode, string> = {
-  light: "☀️",
-  dark: "🌙",
+const modeIcon: Record<Mode, IconName> = {
+  light: "sol",
+  dark: "luna",
 };
 
 export default function ThemeToggle() {
@@ -66,7 +67,9 @@ export default function ThemeToggle() {
       title={`Current theme: ${modeLabel[mode]} — click to change`}
       className="w-full rounded-xl border border-(--border) px-4 py-2 text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/8 focus:outline-none flex items-center justify-between gap-2"
     >
-      <span>{modeIcon[mode]} {modeLabel[mode]} theme</span>
+      <span className="inline-flex items-center gap-1.5">
+        <Icon name={modeIcon[mode]} size={16} /> {modeLabel[mode]} theme
+      </span>
     </button>
   );
 }

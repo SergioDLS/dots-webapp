@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Sound from "@/components/ui/sound/sound";
+import { Icon } from "@/components/ui/icon";
 import {
   getAudioBlitzService,
   type AudioBlitzItem,
@@ -605,7 +606,7 @@ function GhostRaceInner() {
                     : undefined
                 }
               >
-                🟦
+                <Icon name="cuadro" size={16} />
               </span>
               <div
                 className="flex-1 overflow-hidden rounded-full"

@@ -8,14 +8,17 @@ import {
   DIFFICULTY_COLOR_NAMES,
   DIFFICULTY_COLOR_HEX,
 } from "@/lib/difficulty-palette";
+import { Icon, type IconName } from "@/components/ui/icon";
 
 interface PathDifficultyProps {
   difficulty: PathDifficultyType;
   peersByNodeId: Record<number, PathPeer[]>;
 }
 
-const motivational = (pct: number): { msg: string; emoji: string } => {
-  if (pct === 0)  return { msg: "¡Vamos! Empieza aquí 👇",           emoji: "🚀" };
+const motivational = (
+  pct: number,
+): { msg: string; emoji: string; trailingIcon?: IconName } => {
+  if (pct === 0)  return { msg: "¡Vamos! Empieza aquí",              emoji: "🚀", trailingIcon: "abajo" };
   if (pct < 20)   return { msg: "¡Buen comienzo, sigue así!",        emoji: "✨" };
   if (pct < 40)   return { msg: "¡Vas con todo!",                    emoji: "🔥" };
   if (pct < 60)   return { msg: "¡Mitad del camino, no pares!",      emoji: "💪" };
@@ -48,7 +51,7 @@ export default function PathDifficulty({
   const doneCount = allNodes.filter((n) => n.completed).length;
 
   const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
-  const { msg, emoji } = motivational(pct);
+  const { msg, emoji, trailingIcon } = motivational(pct);
 
   // Una dificultad está desbloqueada si alguna sección lo está (o fue superada
   // por test). Un usuario nuevo solo tiene Beginner abierta; el resto se
@@ -67,7 +70,7 @@ export default function PathDifficulty({
           className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
           style={{ background: "var(--surface-2)", border: "2px solid var(--border)" }}
         >
-          <span className="text-2xl">🔒</span>
+          <Icon name="candado" size={16} />
         </div>
         <div className="flex min-w-0 flex-col gap-0.5">
           <h3
@@ -139,8 +142,9 @@ export default function PathDifficulty({
               )}
             </div>
 
-            <p className="text-xs font-bold text-(--muted) leading-none">
+            <p className="flex items-center gap-1 text-xs font-bold text-(--muted) leading-none">
               {emoji} {msg}
+              {trailingIcon && <Icon name={trailingIcon} size={16} />}
             </p>
 
             {/* Progress bar */}

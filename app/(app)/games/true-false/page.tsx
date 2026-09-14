@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { Icon } from "@/components/ui/icon";
 import {
   getTrueFalseService,
   type TrueFalseCard,
@@ -545,7 +546,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
                     }}
                     aria-label="Trampa"
                   >
-                    ✗
+                    <Icon name="cruz" size={16} />
                   </button>
                   <button
                     onPointerUp={() => answer(true)}
@@ -559,7 +560,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
                     }}
                     aria-label="Verdad"
                   >
-                    ✓
+                    <Icon name="check" size={16} />
                   </button>
                 </div>
               </>

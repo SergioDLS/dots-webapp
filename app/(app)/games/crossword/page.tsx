@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation";
 import DailyKeyboard from "@/components/games/shared/daily-keyboard";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { Icon } from "@/components/ui/icon";
 import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
 import {
   getCrosswordService,
@@ -573,9 +574,13 @@ export default function CrosswordPage() {
                 fontWeight: 900,
                 fontSize: "1rem",
                 margin: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.25rem",
               }}
             >
-              Mini Crucigrama ✏️
+              Mini Crucigrama <Icon name="lapiz" size={16} />
             </p>
             <p style={{ color: "var(--muted)", fontSize: "0.7rem", margin: 0 }}>
               {checksLeft} comprobaciones restantes

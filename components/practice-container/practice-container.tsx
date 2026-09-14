@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
+import { Icon } from "@/components/ui/icon";
 import Confetti from "@/components/ui/confetti/confetti";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
@@ -199,7 +200,7 @@ export default function PracticeContainer({
               animation: "pc-fade-in 0.3s ease-out both",
             }}
           >
-            ✅ Correct: {dataSentence.text}
+            <Icon name="check" size={16} className="inline-block align-text-bottom" /> Correct: {dataSentence.text}
           </p>
         )}
 
@@ -270,12 +271,12 @@ export default function PracticeContainer({
 
   // ── Standard modes ────────────────────────────────────────────────────────
   let titleText = "Complete the sentence!";
-  let titleEmoji = "✏️";
+  let titleEmoji: React.ReactNode = <Icon name="lapiz" size={16} />;
   let soundContent: React.ReactNode;
 
   if (mode === "whatDoYouHear" || mode === "whatDoYouHearSentence" || mode === "guessImg") {
     titleText = mode === "guessImg" ? "What is this?" : "What do you hear?";
-    titleEmoji = mode === "guessImg" ? "🖼️" : "👂";
+    titleEmoji = mode === "guessImg" ? <Icon name="imagen" size={16} /> : "👂";
     const src = mode === "whatDoYouHearSentence" ? audioSrc : (dataSentence.img_sound ?? audioSrc);
     soundContent = mode !== "guessImg"
       ? (
@@ -302,7 +303,7 @@ export default function PracticeContainer({
     );
   }
 
-  if (mode === "witchIs") { titleText = `Which is: ${correctWord}?`; titleEmoji = "🔍"; }
+  if (mode === "witchIs") { titleText = `Which is: ${correctWord}?`; titleEmoji = <Icon name="lupa" size={16} />; }
 
   // For whatDoYouHearSentence: keep only the correct option + one wrong option
   const filteredOptions = mode === "whatDoYouHearSentence"

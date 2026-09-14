@@ -12,6 +12,7 @@ import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import WordImg from "@/components/ui/word-img/word-img";
+import { Icon } from "@/components/ui/icon";
 import { getMemoryPairsService, type MemoryPair } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
@@ -276,7 +277,7 @@ function MemoryInner({ seed }: { seed?: number }) {
           <div
             className="dots-card flex flex-col items-center justify-center gap-6 p-6"
           >
-            <div className="text-4xl">⚠️</div>
+            <div className="text-4xl"><Icon name="aviso" size={16} /></div>
             <div className="flex flex-col items-center gap-2">
               <p
                 className="text-sm font-bold text-center"
@@ -500,7 +501,7 @@ function MemoryInner({ seed }: { seed?: number }) {
                         fontSize: "1.25rem",
                       }}
                     >
-                      🔵
+                      <Icon name="punto" size={16} />
                     </div>
 
                     {/* ── Front face ── */}

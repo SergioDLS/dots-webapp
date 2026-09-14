@@ -31,7 +31,7 @@ export function PanelWrapper({ children, className = "" }: { children: React.Rea
 }
 
 // ── Section label (e.g. "What do you hear?") ─────────────────────────────────
-export function SectionLabel({ children, emoji }: { children: React.ReactNode; emoji?: string }) {
+export function SectionLabel({ children, emoji }: { children: React.ReactNode; emoji?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5 self-start">
       {emoji && (

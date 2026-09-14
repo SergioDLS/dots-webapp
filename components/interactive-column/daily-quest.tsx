@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Confetti from "../ui/confetti/confetti";
+import { Icon } from "@/components/ui/icon";
 import {
   getMyQuestService,
   claimQuestService,
@@ -62,8 +63,9 @@ export default function DailyQuestCard({
 
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
-          🗓️ Misión del día
+        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-(--muted)">
+          <Icon name="calendario" size={16} />
+          Misión del día
         </span>
         <span className="text-[10px] font-extrabold text-(--muted) tabular-nums">
           {Math.min(quest.progress, quest.goal)}/{quest.goal}
@@ -97,8 +99,8 @@ export default function DailyQuestCard({
 
       {/* State line */}
       {quest.claimed ? (
-        <p className="text-xs font-extrabold text-(--success)">
-          ¡Listo por hoy! ✅
+        <p className="flex items-center gap-1 text-xs font-extrabold text-(--success)">
+          ¡Listo por hoy! <Icon name="check" size={16} />
           {justClaimed !== null && justClaimed > 0 && (
             <span
               className="ml-2 text-(--gold-edge)"

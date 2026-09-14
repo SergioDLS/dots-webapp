@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { Icon } from "@/components/ui/icon";
 import { getMatchPairsService, type MatchPair } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
@@ -507,7 +508,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             </button>
           </div>
           <GameIntro
-            emoji="🔗"
+            emoji={<Icon name="enlace" size={16} />}
             title="Dot Match"
             howTo={[
               "Toca una palabra en inglés (izquierda) y su traducción en español (derecha).",

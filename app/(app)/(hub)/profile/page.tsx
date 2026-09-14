@@ -9,6 +9,7 @@ import Streak from "@/components/interactive-column/streak/streak";
 import XpLevel from "@/components/interactive-column/xp-level";
 import BadgesCard from "@/components/interactive-column/badges";
 import ThemeToggle from "@/components/theme-toggle";
+import { Icon } from "@/components/ui/icon";
 import { getMyStatsService, type MyStats } from "@/services/engagement.service";
 import {
   getInventoryService,
@@ -216,7 +217,7 @@ export default function ProfilePage() {
                           {(item.meta?.emoji as string) ?? "🎭"}
                         </span>
                         {item.name}
-                        {on && <span>✓</span>}
+                        {on && <Icon name="check" size={16} />}
                       </button>
                     );
                   })}
@@ -232,16 +233,17 @@ export default function ProfilePage() {
 
       {/* Ajustes */}
       <div className="dots-card flex flex-col gap-3 p-4">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
-          ⚙️ Ajustes
+        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-(--muted)">
+          <Icon name="ajustes" size={16} />
+          Ajustes
         </span>
         <ThemeToggle />
         {isAdmin && (
           <Link
             href="/admin"
-            className="w-full rounded-xl border border-(--border) px-4 py-2 text-center text-sm font-semibold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
+            className="flex w-full items-center justify-center gap-1 rounded-xl border border-(--border) px-4 py-2 text-center text-sm font-semibold text-(--muted) transition-colors hover:border-(--accent) hover:text-(--accent)"
           >
-            Panel de admin ⚙️
+            Panel de admin <Icon name="ajustes" size={16} />
           </Link>
         )}
         <button

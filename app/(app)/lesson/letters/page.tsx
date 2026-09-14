@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
+import { Icon } from "@/components/ui/icon";
 import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
@@ -297,7 +298,7 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
               >
                 <span className="text-3xl font-extrabold">{it.letter}</span>
                 <span className="text-[11px] font-bold text-(--muted)">
-                  {isSeen ? "✓" : "🔊"}
+                  {isSeen ? <Icon name="check" size={16} /> : "🔊"}
                 </span>
               </button>
             );

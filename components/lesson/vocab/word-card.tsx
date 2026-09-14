@@ -2,6 +2,7 @@
 
 import Sound from "@/components/ui/sound/sound";
 import WordImg from "@/components/ui/word-img/word-img";
+import { Icon } from "@/components/ui/icon";
 import type { VocabContent } from "@/services/lessons.service";
 
 type VocabItem = VocabContent["items"][number];
@@ -26,7 +27,9 @@ export default function WordCard({ item, seen, onSeen }: Props) {
       onClick={onSeen}
     >
       {seen && (
-        <span className="absolute top-2 right-2 text-sm leading-none">✅</span>
+        <span className="absolute top-2 right-2 leading-none text-(--success)">
+          <Icon name="check" size={16} />
+        </span>
       )}
       {item.img && <WordImg src={item.img} size="small" />}
       <span className="font-display font-extrabold text-base leading-tight">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import Doty from "@/components/ui/doty/doty";
+import { Icon } from "@/components/ui/icon";
 import {
   getShopService,
   buyItemService,
@@ -149,7 +150,7 @@ export default function ShopPage() {
                       }}
                     >
                       {owned
-                        ? "✓ Tienes"
+                        ? <span className="inline-flex items-center gap-1"><Icon name="check" size={16} /> Tienes</span>
                         : busy === item.key
                           ? "…"
                           : `💎 ${item.price}`}

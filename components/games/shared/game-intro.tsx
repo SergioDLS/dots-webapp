@@ -10,7 +10,7 @@ interface ThroneInfo {
 }
 
 interface GameIntroProps {
-  emoji: string;
+  emoji: React.ReactNode;
   title: string;
   howTo: string[];
   record: number | null;

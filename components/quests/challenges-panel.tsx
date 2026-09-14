@@ -7,6 +7,7 @@ import {
   type Challenge,
   type ChallengesData,
 } from "@/services/challenges.service";
+import { Icon, type IconName } from "@/components/ui/icon";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -22,11 +23,11 @@ function myOutcome(c: Challenge): "won" | "lost" | "tie" {
   return (myScore ?? 0) > (theirScore ?? 0) ? "won" : "lost";
 }
 
-const OUTCOME_UI = {
-  won: { icon: "✅", label: "¡Ganaste!" },
-  lost: { icon: "❌", label: "Perdiste" },
-  tie: { icon: "🤝", label: "Empate" },
-} as const;
+const OUTCOME_UI: Record<"won" | "lost" | "tie", { icon: IconName; label: string }> = {
+  won: { icon: "check", label: "¡Ganaste!" },
+  lost: { icon: "cruz", label: "Perdiste" },
+  tie: { icon: "empate", label: "Empate" },
+};
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -186,7 +187,7 @@ export default function ChallengesPanel() {
                     className="font-semibold min-w-0 truncate"
                     style={{ color: "var(--foreground)" }}
                   >
-                    <span className="mr-1">{outcome.icon}</span>
+                    <Icon name={outcome.icon} size={16} className="mr-1 inline-block align-text-bottom" />
                     {outcome.label} vs {rivalName(c)} · {c.gameName}
                   </span>
                   <span
