@@ -29,6 +29,19 @@ const OUTCOME_UI: Record<"won" | "lost" | "tie", { icon: IconName; label: string
   tie: { icon: "empate", label: "Empate" },
 };
 
+/**
+ * check/cruz llevan el contorno en currentColor a propósito (mismo icono
+ * para acierto y fallo en cualquier parte de la app) — el color pasa a ser
+ * responsabilidad de quien los pinta. Antes ✅/❌ traían su propio verde/rojo
+ * adentro del emoji; sin esto, "¡Ganaste!" y "Perdiste" se distinguían solo
+ * por la forma del icono, no por el color.
+ */
+const OUTCOME_ICON_COLOR: Record<"won" | "lost" | "tie", string> = {
+  won: "var(--success)",
+  lost: "var(--danger)",
+  tie: "var(--foreground)",
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ChallengesPanel() {
@@ -173,7 +186,8 @@ export default function ChallengesPanel() {
           </p>
           <ul className="flex flex-col gap-1">
             {history.map((c) => {
-              const outcome = OUTCOME_UI[myOutcome(c)];
+              const outcomeKey = myOutcome(c);
+              const outcome = OUTCOME_UI[outcomeKey];
               const myScore = c.mine ? c.challengerScore : c.challengedScore;
               const theirScore = c.mine
                 ? c.challengedScore
@@ -187,7 +201,12 @@ export default function ChallengesPanel() {
                     className="font-semibold min-w-0 truncate"
                     style={{ color: "var(--foreground)" }}
                   >
-                    <Icon name={outcome.icon} size={16} className="mr-1 inline-block align-text-bottom" />
+                    <span
+                      className="mr-1 inline-flex align-text-bottom"
+                      style={{ color: OUTCOME_ICON_COLOR[outcomeKey] }}
+                    >
+                      <Icon name={outcome.icon} size={16} />
+                    </span>
                     {outcome.label} vs {rivalName(c)} · {c.gameName}
                   </span>
                   <span

@@ -537,30 +537,34 @@ function TrueFalseInner({ seed }: { seed?: number }) {
                   <button
                     onPointerUp={() => answer(false)}
                     disabled={correction !== null}
-                    className="dots-pressable flex-1 rounded-2xl border-2 py-4 text-2xl font-black disabled:opacity-40"
+                    className="dots-pressable flex-1 rounded-2xl border-2 py-4 disabled:opacity-40"
                     style={{
                       borderColor: "color-mix(in srgb, var(--danger) 50%, transparent)",
                       background: "color-mix(in srgb, var(--danger) 8%, transparent)",
                       color: "var(--danger)",
                       ["--press-color" as string]: "var(--danger-soft)",
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                     aria-label="Trampa"
                   >
-                    <Icon name="cruz" size={16} />
+                    <Icon name="cruz" size={24} />
                   </button>
                   <button
                     onPointerUp={() => answer(true)}
                     disabled={correction !== null}
-                    className="dots-pressable flex-1 rounded-2xl border-2 py-4 text-2xl font-black disabled:opacity-40"
+                    className="dots-pressable flex-1 rounded-2xl border-2 py-4 disabled:opacity-40"
                     style={{
                       borderColor: "color-mix(in srgb, var(--success) 50%, transparent)",
                       background: "color-mix(in srgb, var(--success) 8%, transparent)",
                       color: "var(--success)",
                       ["--press-color" as string]: "var(--success-soft)",
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                     aria-label="Verdad"
                   >
-                    <Icon name="check" size={16} />
+                    <Icon name="check" size={24} />
                   </button>
                 </div>
               </>

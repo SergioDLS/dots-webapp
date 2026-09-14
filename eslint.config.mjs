@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Worktrees de otras sesiones (git worktree add .claude/worktrees/<id>):
+    // cada uno trae su propio .next y su propio código, y no son de esta
+    // rama. ".next/**" no los cubre porque el glob no matchea anidado.
+    ".claude/worktrees/**",
   ]),
 ]);
 

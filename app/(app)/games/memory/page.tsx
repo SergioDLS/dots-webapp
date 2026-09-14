@@ -277,7 +277,7 @@ function MemoryInner({ seed }: { seed?: number }) {
           <div
             className="dots-card flex flex-col items-center justify-center gap-6 p-6"
           >
-            <div className="text-4xl"><Icon name="aviso" size={16} /></div>
+            <div><Icon name="aviso" size={36} /></div>
             <div className="flex flex-col items-center gap-2">
               <p
                 className="text-sm font-bold text-center"
@@ -498,10 +498,9 @@ function MemoryInner({ seed }: { seed?: number }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "1.25rem",
                       }}
                     >
-                      <Icon name="punto" size={16} />
+                      <Icon name="punto" size={20} />
                     </div>
 
                     {/* ── Front face ── */}

@@ -70,7 +70,7 @@ export default function PathDifficulty({
           className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
           style={{ background: "var(--surface-2)", border: "2px solid var(--border)" }}
         >
-          <Icon name="candado" size={16} />
+          <Icon name="candado" size={24} />
         </div>
         <div className="flex min-w-0 flex-col gap-0.5">
           <h3

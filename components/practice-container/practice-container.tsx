@@ -271,12 +271,12 @@ export default function PracticeContainer({
 
   // ── Standard modes ────────────────────────────────────────────────────────
   let titleText = "Complete the sentence!";
-  let titleEmoji: React.ReactNode = <Icon name="lapiz" size={16} />;
+  let titleEmoji: React.ReactNode = <Icon name="lapiz" size={20} />;
   let soundContent: React.ReactNode;
 
   if (mode === "whatDoYouHear" || mode === "whatDoYouHearSentence" || mode === "guessImg") {
     titleText = mode === "guessImg" ? "What is this?" : "What do you hear?";
-    titleEmoji = mode === "guessImg" ? <Icon name="imagen" size={16} /> : "👂";
+    titleEmoji = mode === "guessImg" ? <Icon name="imagen" size={20} /> : "👂";
     const src = mode === "whatDoYouHearSentence" ? audioSrc : (dataSentence.img_sound ?? audioSrc);
     soundContent = mode !== "guessImg"
       ? (
@@ -303,7 +303,7 @@ export default function PracticeContainer({
     );
   }
 
-  if (mode === "witchIs") { titleText = `Which is: ${correctWord}?`; titleEmoji = <Icon name="lupa" size={16} />; }
+  if (mode === "witchIs") { titleText = `Which is: ${correctWord}?`; titleEmoji = <Icon name="lupa" size={20} />; }
 
   // For whatDoYouHearSentence: keep only the correct option + one wrong option
   const filteredOptions = mode === "whatDoYouHearSentence"

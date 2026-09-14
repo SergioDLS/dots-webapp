@@ -94,7 +94,7 @@ export default function GrammarPill({ nodeId, content }: Props) {
     return (
       <div className="flex flex-col gap-4 w-full">
         <PanelWrapper>
-          <SectionLabel emoji={<Icon name="lapiz" size={16} />}>{content.title}</SectionLabel>
+          <SectionLabel emoji={<Icon name="lapiz" size={20} />}>{content.title}</SectionLabel>
           <div className="flex flex-col gap-3 w-full">
             {content.explanation.map((block, i) => (
               <ExplanationCard key={i} block={block} />
@@ -149,7 +149,7 @@ export default function GrammarPill({ nodeId, content }: Props) {
     <div className="flex flex-col gap-4 w-full">
       <LessonTopBar progress={series.progress} streak={series.streak} />
       <PanelWrapper>
-        <SectionLabel emoji={<Icon name="lapiz" size={16} />}>{content.title}</SectionLabel>
+        <SectionLabel emoji={<Icon name="lapiz" size={20} />}>{content.title}</SectionLabel>
         <p className="font-display text-xl font-extrabold text-center leading-relaxed">
           {item.text.split("__").map((part, i, arr) => (
             <span key={i}>

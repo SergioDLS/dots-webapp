@@ -508,7 +508,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             </button>
           </div>
           <GameIntro
-            emoji={<Icon name="enlace" size={16} />}
+            emoji={<Icon name="enlace" size={36} />}
             title="Dot Match"
             howTo={[
               "Toca una palabra en inglés (izquierda) y su traducción en español (derecha).",

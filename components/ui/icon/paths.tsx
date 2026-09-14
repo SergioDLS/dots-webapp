@@ -144,29 +144,28 @@ export const ICON_PATHS = {
     </g>
   ),
   ajustes: (
-    <path
-      d="M16,3 L32,3 L32,16 L45,16 L45,32 L32,32 L32,45 L16,45 L16,32 L3,32 L3,16 L16,16 Z M18,24 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"
-      fill="#3768FF"
-      fillRule="evenodd"
-      stroke="currentColor"
-      strokeWidth={3.5}
-    />
+    <g fill="none" stroke="currentColor" strokeWidth={3.5}>
+      <path d="M6,14 H42 M6,24 H42 M6,34 H42" />
+      <circle cx="18" cy="14" r="5" fill="#FF1F8F" stroke="none" />
+      <circle cx="32" cy="24" r="5" fill="#35D8F5" stroke="none" />
+      <circle cx="22" cy="34" r="5" fill="#3768FF" stroke="none" />
+    </g>
   ),
   enlace: (
     <g fill="none" stroke="currentColor" strokeWidth={3.5}>
       <path
-        d="M8,24 a11,6 0 1,0 22,0 a11,6 0 1,0 -22,0 M12,24 a7,2.2 0 1,0 14,0 a7,2.2 0 1,0 -14,0"
+        d="M-8,-6 L8,-6 A6,6 0 0 1 8,6 L-8,6 A6,6 0 0 1 -8,-6 M-8,-3 L8,-3 A3,3 0 0 1 8,3 L-8,3 A3,3 0 0 1 -8,-3 Z"
         fill="#FF1F8F"
         fillRule="evenodd"
         stroke="none"
-        transform="rotate(-30 19 24)"
+        transform="translate(16, 24) rotate(-25)"
       />
       <path
-        d="M18,24 a11,6 0 1,0 22,0 a11,6 0 1,0 -22,0 M22,24 a7,2.2 0 1,0 14,0 a7,2.2 0 1,0 -14,0"
+        d="M-8,-6 L8,-6 A6,6 0 0 1 8,6 L-8,6 A6,6 0 0 1 -8,-6 M-8,-3 L8,-3 A3,3 0 0 1 8,3 L-8,3 A3,3 0 0 1 -8,-3 Z"
         fill="#35D8F5"
         fillRule="evenodd"
         stroke="none"
-        transform="rotate(30 29 24)"
+        transform="translate(32, 24) rotate(25)"
       />
     </g>
   ),
@@ -205,15 +204,6 @@ export const ICON_PATHS = {
   ),
   cuadro: (
     <rect x="10" y="10" width="28" height="28" rx="7" fill="#3768FF" stroke="currentColor" strokeWidth={3.5} />
-  ),
-  obras: (
-    <g fill="none" stroke="currentColor" strokeWidth={3.5}>
-      <path d="M13,28 L8,41 M35,28 L40,41" />
-      <rect x="6" y="16" width="12" height="12" fill="#FF1F8F" stroke="none" />
-      <rect x="18" y="16" width="12" height="12" fill="#ffffff" stroke="none" />
-      <rect x="30" y="16" width="12" height="12" fill="#FF1F8F" stroke="none" />
-      <rect x="6" y="16" width="36" height="12" rx="2" />
-    </g>
   ),
   empate: (
     <g fill="none" stroke="currentColor" strokeWidth={3.5}>
