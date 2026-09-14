@@ -227,6 +227,36 @@ def test_emit_lote_marca_la_pieza_ancla_en_su_grupo():
     assert "ANCLA" in linea_ancla
     assert "ANCLA" not in linea_normal
 
+
+def test_emit_lote_ancla_sin_anchor_sref_sigue_diciendo_sin_nada_adjunto():
+    # Regresion: games/wordle, levels/estructuras y cualquier otro grupo que ya
+    # genera su ancla desde cero no debe verse afectado por el campo nuevo
+    # `anchor_sref` -- si la pieza no lo trae, el texto no cambia.
+    cat = {"fase": "fase-1", "pieces": [
+        piece(group="icons", slug="correcto", mascot=False, prompt="green check mark",
+              prefix="Green check mark badge", anchor=True),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["icons"])
+    linea = next(l for l in md.splitlines() if "`correcto`" in l)
+    assert "sin nada adjunto" in linea
+
+
+def test_emit_lote_ancla_con_anchor_sref_dice_la_verdad():
+    # gemas (fase 3) es la excepcion: no se genera "sin nada adjunto" como el
+    # resto de anclas -- lleva el ancla de la fase 2 (estructuras.png) puesta
+    # en Style reference desde el primer intento. Si el catalogo declara
+    # `anchor_sref`, la linea de esa pieza tiene que decirlo, no mentir.
+    cat = {"fase": "fase-3", "pieces": [
+        piece(group="ui", slug="gemas", mascot=False, size=512, anchor=True,
+              anchor_sref="public/images/levels/estructuras.png"),
+    ]}
+    md = mjlib.emit_lote(cat, STYLE, ["ui"])
+    linea = next(l for l in md.splitlines() if "`gemas`" in l)
+    assert "sin nada adjunto" not in linea
+    assert "public/images/levels/estructuras.png" in linea
+    assert "Style reference" in linea
+    assert "ANCLA" in linea
+
 def test_emit_lote_pone_el_ancla_primera_en_su_grupo_aunque_el_catalogo_no():
     # El catálogo trae el ancla en tercer lugar (orden de catálogo, no de
     # generación). La cabecera manda generarla primero, sin nada adjunto, para

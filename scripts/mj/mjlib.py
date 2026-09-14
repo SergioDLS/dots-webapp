@@ -287,11 +287,13 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
         ]
     if hay_icono:
         lines += [
-            "**Piezas de icono** (🔤): **no se adjunta ninguna imagen**. Cada grupo "
-            "no-mascota trae su propio ancla — no se comparte entre grupos —: antes de "
-            "la primera pieza de cada grupo, genera la marcada `⚓ ANCLA` sin nada "
-            "adjunto (o recupera la que ya elegiste en un lote anterior de ese grupo) y "
-            "arrástrala al slot **Style reference**, reemplazando lo que hubiera ahí, "
+            "**Piezas de icono** (🔤): **no se adjunta ninguna imagen en \"Attach to "
+            "prompt\"**. Cada grupo no-mascota trae su propio ancla — no se comparte "
+            "entre grupos —: antes de la primera pieza de cada grupo, genera la "
+            "marcada `⚓ ANCLA` como diga su propia línea — normalmente sin nada "
+            "adjunto, salvo que indique lo contrario — (o recupera la que ya "
+            "elegiste en un lote anterior de ese grupo) y arrástrala al slot "
+            "**Style reference**, reemplazando lo que hubiera ahí, "
             "antes de seguir con el resto de ese grupo. **No es \"Attach to prompt\"**: "
             "esa fila es el Edit Model y hace otra cosa. Midjourney inserta el `--sref` "
             "solo al soltar la imagen ahí; no lo escribas en el prompt.",
@@ -336,8 +338,20 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
             status = (" ♻️ **REGENERAR** — el arte actual se publica, pero esta pieza "
                       "espera una mejor" if p.get("regen")
                       else " ✅" if p.get("done") else "")
-            ancla = (" · ⚓ **ANCLA de este grupo — generar primero, sin nada adjunto**"
-                      if p.get("anchor") else "")
+            # `anchor_sref` es la excepcion: un ancla que en vez de generarse
+            # desde cero toma prestado el acabado de OTRA fase ya cerrada,
+            # pegando esa imagen en Style reference desde el primer intento
+            # -- describirle la paleta con palabras no bastó (gemas, fase 3).
+            # Sin el campo, el texto no cambia: no puede afectar a los grupos
+            # que sí generan su ancla sin nada adjunto.
+            if not p.get("anchor"):
+                ancla = ""
+            elif p.get("anchor_sref"):
+                ancla = (" · ⚓ **ANCLA de este grupo — generar con "
+                          f"`{p['anchor_sref']}` en Style reference** (esta ancla "
+                          "sí lleva algo adjunto, a diferencia de las demás)")
+            else:
+                ancla = " · ⚓ **ANCLA de este grupo — generar primero, sin nada adjunto**"
             lines += [f"### {n}. `{p['slug']}` · {marcador} → `{destino}`{status}{ancla}",
                       "", "```", build_prompt(p, style), "```", ""]
     return "\n".join(lines)

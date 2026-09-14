@@ -5,11 +5,12 @@
       "slug": "gemas",
       "group": "ui",
       "prefix": "Ui icon gem",
-      "prompt": "a single faceted gem seen from the front, wide flat top facet and three facets below, cyan body with a lighter cyan highlight facet",
+      "prompt": "a single faceted gem seen from the front, wide flat top facet and three facets below, every facet a single flat matte color with no gradient and no shine, the three lower facets solid #35D8F5 cyan, the top facet solid #FF1F8F pink, a thick solid #1E1B5C navy outline around every facet",
       "size": 512,
       "mascot": false,
       "done": false,
-      "anchor": true
+      "anchor": true,
+      "anchor_sref": "public/images/levels/estructuras.png"
     },
     {
       "slug": "racha",
@@ -24,7 +25,7 @@
       "slug": "vidas",
       "group": "ui",
       "prefix": "Ui icon heart",
-      "prompt": "a plump rounded heart, pink body with a small white highlight in the upper left",
+      "prompt": "a plump rounded heart, pink body with a small solid cyan dot in the upper left",
       "size": 512,
       "mascot": false,
       "done": false
@@ -33,7 +34,7 @@
       "slug": "xp",
       "group": "ui",
       "prefix": "Ui icon star",
-      "prompt": "a single five-pointed star with thick rounded points, blue body with a lighter blue inner star",
+      "prompt": "a single five-pointed star with thick rounded points, blue body with a solid cyan inner star",
       "size": 512,
       "mascot": false,
       "done": false
@@ -77,8 +78,8 @@
     {
       "slug": "podio-oro",
       "group": "ui",
-      "prefix": "Ui icon first place medal",
-      "prompt": "a round medal with one short horizontal bar in white, cyan disc and pink ribbon",
+      "prefix": "Ui icon pink medal",
+      "prompt": "a round medal hanging from a short ribbon, disc and ribbon both solid pink, nothing inside the disc",
       "size": 512,
       "mascot": false,
       "done": false
@@ -86,8 +87,8 @@
     {
       "slug": "podio-plata",
       "group": "ui",
-      "prefix": "Ui icon second place medal",
-      "prompt": "a round medal with two short horizontal bars in white, blue disc and pink ribbon",
+      "prefix": "Ui icon cyan medal",
+      "prompt": "a round medal hanging from a short ribbon, disc and ribbon both solid cyan, nothing inside the disc",
       "size": 512,
       "mascot": false,
       "done": false
@@ -95,8 +96,8 @@
     {
       "slug": "podio-bronce",
       "group": "ui",
-      "prefix": "Ui icon third place medal",
-      "prompt": "a round medal with three short horizontal bars in white, pink disc and cyan ribbon",
+      "prefix": "Ui icon blue medal",
+      "prompt": "a round medal hanging from a short ribbon, disc and ribbon both solid blue, nothing inside the disc",
       "size": 512,
       "mascot": false,
       "done": false
