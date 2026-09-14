@@ -298,17 +298,26 @@ catálogo con `regen: true`, nunca `done: false`.
 
 ### Aviso: las métricas por píxel priorizan, no deciden
 
-En las dos fases de arte generado de este proyecto (tiles del Camino e
-iconos de economía), una medición por píxel estuvo a punto de tirar arte
-bueno o de aceptar arte malo, cuatro veces:
+A lo largo del arte generado con Midjourney para este proyecto —las poses de
+Doty y los doce tiles de juego (fase 1), los doce iconos de economía de esta
+tarea (fase 3)— una medición por píxel estuvo a punto de tirar arte bueno o
+de aceptar arte malo, cuatro veces:
 
+- Midiendo el contraste por píxel de cuatro tiles de juego contra el fondo de
+  su tarjeta (fase 1): marcó **tres de cuatro como rotos** cuando no lo
+  estaban. La legibilidad de un dibujo no es el contraste medio de sus
+  píxeles, es su estructura local — un icono se lee si sus formas se separan
+  entre sí y del fondo por bordes, no si cada píxel supera un umbral contra
+  el fondo. El cuarto, `memory`, sí estaba roto de verdad: medía **1.21:1**,
+  y ahí no era un problema de promedio, era que la forma entera se fundía
+  con el fondo. Se corrigió retocando la descarga cruda a cyan, que subió a
+  **8.05:1**. Es el caso más instructivo de los cuatro porque es el único
+  donde la métrica acertó en una pieza y falló en las otras tres — eso es lo
+  que hace peligrosa una métrica a medio validar: acierta lo suficiente para
+  que te fíes de ella.
 - Midiendo la saturación "apagada" del criterio 4 sobre el PNG ya procesado
   en vez de sobre la descarga cruda — la diferencia es de cinco a diez veces
   (ver arriba).
-- Midiendo el contraste de un tile de nivel promediando todos sus píxeles
-  contra el fondo, en vez de mirar su estructura local (la línea contra lo
-  que tiene inmediatamente al lado) — el promedio global no dice si el trazo
-  se lee.
 - Midiendo conformidad de paleta con un score que dio 37% para arte fuera de
   marca y 34% para arte ya publicado y correcto — la métrica no separaba los
   dos mundos; puesta al lado del arte de referencia, la diferencia se veía a
