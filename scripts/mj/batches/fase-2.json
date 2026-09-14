@@ -304,7 +304,7 @@
     {
       "slug": "presente",
       "group": "levels",
-      "prefix": "Level tile timeline middle block",
+      "prefix": "Level tile middle timeline block",
       "prompt": "a horizontal bar divided into three equal blocks by thin lines, only the middle block filled solid, the other two blocks filled white with the same navy outline",
       "size": 512,
       "mascot": false,
@@ -314,7 +314,7 @@
     {
       "slug": "pasado",
       "group": "levels",
-      "prefix": "Level tile timeline left block",
+      "prefix": "Level tile left timeline block",
       "prompt": "a horizontal bar divided into three equal blocks by thin lines, only the leftmost block filled solid, the other two blocks filled white with the same navy outline",
       "size": 512,
       "mascot": false,
@@ -324,7 +324,7 @@
     {
       "slug": "futuro",
       "group": "levels",
-      "prefix": "Level tile timeline right block",
+      "prefix": "Level tile right timeline block",
       "prompt": "a horizontal bar divided into three equal blocks by thin lines, only the rightmost block filled solid, the other two blocks filled white with the same navy outline",
       "size": 512,
       "mascot": false,

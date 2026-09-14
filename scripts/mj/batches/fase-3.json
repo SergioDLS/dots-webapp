@@ -15,7 +15,7 @@
       "slug": "racha",
       "group": "ui",
       "prefix": "Ui icon flame",
-      "prompt": "a single bold flame with two inner tongues, pink outer flame and cyan inner tongue",
+      "prompt": "a single bold flame with two inner tongues, pink outer flame and cyan inner tongues",
       "size": 512,
       "mascot": false,
       "done": false
@@ -69,7 +69,7 @@
       "slug": "regalo",
       "group": "ui",
       "prefix": "Ui icon gift box",
-      "prompt": "a square gift box with a ribbon cross and a bow on top, pink box and cyan ribbon",
+      "prompt": "a square gift box with a ribbon cross and a cyan bow on top, pink box and cyan ribbon",
       "size": 512,
       "mascot": false,
       "done": false

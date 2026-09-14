@@ -1,10 +1,15 @@
+import re
 import sys
 from collections import Counter
 from pathlib import Path
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import mjlib  # noqa: E402
 
 BATCH = Path(__file__).resolve().parents[1] / "batches" / "fase-1.json"
+BATCHES_DIR = Path(__file__).resolve().parents[1] / "batches"
 
 SLUGS = {
     "expressions": {"feliz", "muy-feliz", "emocionado", "orgulloso", "sorprendido", "pensando",
@@ -85,3 +90,51 @@ def test_fase1_ancla_es_exactamente_wordle():
     cat = mjlib.load_catalog(BATCH)
     anclas = {p["slug"] for p in cat["pieces"] if p.get("anchor")}
     assert anclas == {"wordle"}
+
+
+def _normaliza_como_mj(prefix: str) -> str:
+    """Imita el nombre de archivo que Midjourney genera al descargar: todo en
+    minúsculas y cada tramo no alfanumérico colapsado a un solo guion bajo
+    (así lucen los `source_file` que ya hay en disco, p. ej.
+    "Mandrakin_Doty_in_on_and_under_a_box_..."). No es `mjlib.normalize()`
+    -esa usa espacios y sirve a la comprobación de substring de
+    `validate_catalog`-, sino la forma real del archivo que hay que
+    reasociar a su pieza.
+    """
+    return re.sub(r"[^a-z0-9]+", "_", prefix.lower())
+
+
+@pytest.mark.parametrize("n", [20, 30])
+def test_prefijos_no_colisionan_truncados_al_nombre_de_archivo_mj(n):
+    # Midjourney nombra el archivo descargado con las primeras palabras del
+    # prompt, y `match_downloads` reasocia cada descarga a su pieza por ese
+    # nombre. `validate_catalog` ya rechaza que un prefix completo sea
+    # substring de otro, pero eso no alcanza: dos prefijos distintos en su
+    # totalidad pueden colapsar al mismo texto una vez truncados a como queda
+    # el nombre de archivo real. Cuando eso pasa el pipeline asigna el arte a
+    # la pieza equivocada SIN dar ningún error -- nadie se entera hasta ver
+    # el Camino con los dibujos cambiados. Se revisa por catálogo (no
+    # fusionado entre fases) porque cada fase descarga a su propia carpeta:
+    # solo una colisión dentro del mismo archivo es un riesgo real.
+    # fase-0.json es la matriz de calibracion de GPU-minutes del diseno
+    # original (2026-09-09, ver style.json:gpu_minutes_medidos): es anterior a
+    # la regla de anchor y hoy ya no pasa mjlib.load_catalog() por eso (grupo
+    # "poses" tiene una pieza no-mascota, t15-sref-only-saludando, sin ancla).
+    # Ningun test la cargo nunca -- nadie lo noto porque nada lo ejercitaba.
+    # Tampoco paso nunca por --emit-lote/--apply, los comandos que de verdad
+    # emparejan descargas por prefix (solo por --emit-prompts/--dry-run, ver
+    # docs/superpowers/plans/2026-09-07-doty-midjourney-assets.md); no es un
+    # catalogo de generacion real, asi que queda fuera de esta comprobacion.
+    for path in sorted(BATCHES_DIR.glob("fase-*.json")):
+        if path.name == "fase-0.json":
+            continue
+        cat = mjlib.load_catalog(path)
+        vistos: dict[str, str] = {}
+        for p in cat["pieces"]:
+            clave = _normaliza_como_mj(p["prefix"])[:n]
+            if clave in vistos:
+                pytest.fail(
+                    f"{path.name}: {p['slug']!r} y {vistos[clave]!r} colisionan "
+                    f"truncados a {n} caracteres ({clave!r})"
+                )
+            vistos[clave] = p["slug"]
