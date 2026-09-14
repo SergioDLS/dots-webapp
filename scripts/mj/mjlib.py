@@ -11,7 +11,7 @@ from typing import Callable
 from PIL import Image, ImageChops, ImageFilter
 
 REGISTRY_GROUPS = ("expressions", "poses", "states", "celebrations", "accessories", "themed", "stickers", "icons")
-EXTRA_GROUPS = ("games", "characters", "app-icon", "levels", "ui")
+EXTRA_GROUPS = ("games", "characters", "app-icon", "levels", "ui", "avatars")
 # El slug se interpola tal cual en una ruta de disco (output_path) y en una clave
 # de TypeScript generada (_ts_key cita pero no escapa) — kebab-case en minúsculas
 # es lo único seguro para ambos destinos.
@@ -144,6 +144,8 @@ def _relative_output(piece: dict, fase: str) -> str:
         return f"public/images/levels/{s}.png"
     if g == "ui":
         return f"public/images/ui/{s}.png"
+    if g == "avatars":
+        return f"public/images/avatars/{s}.png"
     return f"{fase}/out/app-icon.png"
 
 
@@ -376,16 +378,30 @@ def _ts_key(key: str) -> str:
     return key if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key) else f'"{key}"'
 
 
-def emit_registry(cat: dict) -> str:
-    pieces = [p for p in cat["pieces"] if p["group"] in REGISTRY_GROUPS]
+def emit_registry(cats: "dict | list[dict]") -> str:
+    """Registro TS a partir de una o varias fases. Solo entran los REGISTRY_GROUPS;
+    una clave repetida entre fases es un error, no una sobreescritura silenciosa."""
+    cat_list = [cats] if isinstance(cats, dict) else list(cats)
+    pieces: list[dict] = []
+    seen: dict[str, str] = {}
+    for cat in cat_list:
+        for p in cat["pieces"]:
+            if p["group"] not in REGISTRY_GROUPS:
+                continue
+            key = registry_key(p)
+            if key in seen:
+                raise CatalogError(f"registry key {key!r} repetida: {seen[key]} y {cat['fase']}")
+            seen[key] = cat["fase"]
+            pieces.append(p)
     if not any(registry_key(p) == "feliz" for p in pieces):
         raise CatalogError("registry needs a 'feliz' piece (FALLBACK_POSE)")
     groups = " | ".join(f'"{g}"' for g in REGISTRY_GROUPS)
+    fuente = " + ".join(f"{c['fase']}.json" for c in cat_list)
     rows = "\n".join(
         f'  {_ts_key(registry_key(p))}: {{ src: "{registry_src(p)}", group: "{p["group"]}" }},' for p in pieces
     )
     return f'''// GENERADO por scripts/mj/process.py --emit-registry — no editar a mano.
-// Fuente: scripts/mj/batches/{cat["fase"]}.json. Reglas de uso: docs/brand/doty-identity.md
+// Fuente: scripts/mj/batches/{fuente}. Reglas de uso: docs/brand/doty-identity.md
 export type DotyGroup = {groups};
 export type PoseEntry = {{ src: string; group: DotyGroup }};
 

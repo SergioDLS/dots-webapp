@@ -1048,3 +1048,33 @@ def test_output_path_cubre_el_grupo_ui(tmp_path):
     p = piece(slug="gemas", group="ui", mascot=False, size=512)
     destino = mjlib.output_path(p, "fase-3", tmp_path, tmp_path / "raw")
     assert destino == tmp_path / "public/images/ui/gemas.png"
+
+
+def test_avatars_es_grupo_extra_con_salida_propia():
+    p = piece(group="avatars", slug="nerd", prefix="Avatar Doty nerd")
+    assert "avatars" in mjlib.EXTRA_GROUPS
+    assert mjlib._relative_output(p, "fase-4") == "public/images/avatars/nerd.png"
+    # va al repo, no a $RAW como characters/app-icon
+    assert str(mjlib.output_path(p, "fase-4", Path("/repo"), Path("/raw"))) == "/repo/public/images/avatars/nerd.png"
+
+def test_emit_registry_une_varias_fases():
+    f1 = {"fase": "fase-1", "pieces": [piece(done=True)]}
+    f4 = {"fase": "fase-4", "pieces": [
+        piece(slug="en-llamas", prefix="Doty on fire power up", done=True),
+        piece(group="avatars", slug="nerd", prefix="Avatar Doty nerd", done=True),
+    ]}
+    ts = mjlib.emit_registry([f1, f4])
+    assert "// Fuente: scripts/mj/batches/fase-1.json + fase-4.json" in ts
+    assert '  feliz: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },' in ts
+    assert '  "en-llamas": { src: "/images/Doty/expressions/en-llamas.png", group: "expressions" },' in ts
+    assert "nerd" not in ts  # avatars no entra en el registro
+
+def test_emit_registry_rechaza_claves_repetidas_entre_fases():
+    f1 = {"fase": "fase-1", "pieces": [piece(done=True)]}
+    f4 = {"fase": "fase-4", "pieces": [piece(prefix="Doty happy again", done=True)]}
+    with pytest.raises(mjlib.CatalogError, match="feliz"):
+        mjlib.emit_registry([f1, f4])
+
+def test_emit_registry_sigue_aceptando_un_solo_catalogo():
+    ts = mjlib.emit_registry({"fase": "fase-1", "pieces": [piece(done=True)]})
+    assert "// Fuente: scripts/mj/batches/fase-1.json" in ts

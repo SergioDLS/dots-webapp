@@ -6,7 +6,7 @@
 
   uv run scripts/mj/process.py --emit-prompts fase-1 --raw $RAW
   uv run scripts/mj/process.py --emit-lote GRUPO [GRUPO ...] --raw $RAW [--fase fase-1]
-  uv run scripts/mj/process.py --emit-registry fase-1
+  uv run scripts/mj/process.py --emit-registry fase-1 fase-4
   uv run scripts/mj/process.py --dry-run fase-1 --raw $RAW
   uv run scripts/mj/process.py --apply fase-1 --raw $RAW [--pick slug=archivo.png ...] [--force]
 
@@ -102,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--emit-prompts", metavar="FASE")
-    g.add_argument("--emit-registry", metavar="FASE")
+    g.add_argument("--emit-registry", nargs="+", metavar="FASE")
     g.add_argument("--dry-run", metavar="FASE")
     g.add_argument("--apply", metavar="FASE")
     # A diferencia de las anteriores, esta no puede cargar la fase en su propio valor:
@@ -130,10 +130,10 @@ def main(argv: list[str] | None = None) -> int:
         cmd_emit_lote(a.fase, a.raw, a.emit_lote, a.pendientes)
         return 0
     if a.emit_registry:
-        cat = mjlib.load_catalog(batch_path(a.emit_registry))
+        cats = [mjlib.load_catalog(batch_path(f)) for f in a.emit_registry]
         out = REPO / "components/ui/doty/poses.ts"
-        out.write_text(mjlib.emit_registry(cat), encoding="utf-8")
-        print(f"registro → {out}")
+        out.write_text(mjlib.emit_registry(cats), encoding="utf-8")
+        print(f"registro ({' + '.join(a.emit_registry)}) → {out}")
         return 0
     if a.dry_run:
         if not a.raw:
