@@ -126,6 +126,10 @@ Las claves de `stickers` llevan prefijo en el registro: `sticker-good-job`.
 Las celebraciones de trofeo y diploma se llaman `trofeo-celebracion` y
 `diploma-celebracion` para no chocar con los accesorios homónimos.
 
+La fase 4 (`fase-4.json`) suma 14 expresiones, 3 narradores de dificultad y
+el grupo `avatars` (25 retratos, fuera del registro, en
+`public/images/avatars/`).
+
 ## Qué expresión va con qué mensaje
 
 | Contexto | Pose |
@@ -148,15 +152,64 @@ Las celebraciones de trofeo y diploma se llaman `trofeo-celebracion` y
 | Avatar de narrador de voz | `hablando` |
 | Despedida | `DotySticker kind="see-you"` |
 
+## Humor e irreverencia
+
+Doty es juvenil e irreverente, para **todo público**. La regla que decide cualquier
+duda sigue siendo la de arriba: **motiva y celebra, nunca regaña**. Sobre ella,
+cinco reglas de voz (aprobadas el 2026-09-14):
+
+| Regla | Sí | No |
+|---|---|---|
+| Hype exagerado al celebrar | "Modo bestia activado. +1000 de aura." | "Bien hecho." (plano) |
+| Drama sobre sí mismo, nunca sobre el usuario | "Se me apagó la llama. Estoy destruido. Vuelve." | "Perdiste la racha por flojo." |
+| Picardía suave **solo** por inactividad | "Te extrañé… 👀 ¿Volvemos?" | Picardía tras un error: "¿Otra vez mal?" |
+| Jerga de internet latina neutra | aura, cocinado, GOAT, modo bestia, épico, literal | Chilenismos, regionalismos, vulgaridad |
+| Español; inglés solo como modismo enseñable, con traducción | "You're on fire! (= estás en racha)" | Celebraciones enteras en inglés |
+
+**El arte dibuja arquetipos, el copy pone la moda.** Los PNG duran años; una frase
+se cambia en un commit. Los memes van en esta tabla, no en el catálogo de arte, y
+las franquicias se describen sin nombrarlas ("aura dorada flameante y pelo de
+energía en punta", nunca el nombre de la serie).
+
+### Frases aprobadas por momento
+
+| Momento | Pose | Frase |
+|---|---|---|
+| Racha en práctica (5, 10, 15…) | `en-llamas` | "You're on fire! (= estás en racha) · {n} seguidas" |
+| Nuevo récord o trono | `aura` | "Farmeaste aura. Récord nuevo." |
+| Tiempo agotado en un juego | `cocinado` | "Me cociné yo, no tú. Otra ronda." |
+| Primera carga tras perder la racha | `llanto-dramatico` | "Se apagó la llama. Estoy destruido. Una lección y me recupero." |
+| Maestría al 100 % | `cerebro-galaxia` | "Cerebro galaxia. Este nivel ya es tuyo." |
+| Entrada tras 3 a 6 días sin practicar | `reojo` | "Te extrañé… 👀 ¿Volvemos?" |
+| Entrada tras 7 o más días | `bostezo` | "Me quedé dormido esperándote. Cero drama. Vamos." |
+| Nivel desbloqueado | `mente-volada` | "Nivel nuevo desbloqueado. Sin palabras." |
+| Checkpoint aprobado | `lentes-deal` | "Checkpoint aprobado. Deal with it (= acéptalo)." |
+| Cabecera de /play | `gamer` | "Arcade · XP sin sufrir." |
+| Aviso de rival | `chismoso` | "{nombre} te pasó en el ranking. Está {n} XP arriba. Una lección y lo recuperas." |
+| Error de carga | `facepalm` | "Se me cayó algo. Culpa mía. ¿Reintentamos?" |
+| Boost de XP activo | `flexeando` | "XP x2 activo. Modo bestia." |
+| Repaso al día | `meditando` | "Repaso al día. Paz mental." |
+| Dificultad: 0 % | narrador | "Todo el mundo empezó aquí. Hasta yo." |
+| Dificultad: < 40 % | narrador | "Vas con todo. Ni una lección te frena." |
+| Dificultad: < 80 % | narrador | "Más de la mitad. Ya no hay vuelta atrás." |
+| Dificultad: 100 % | narrador | "Nivel dominado. +1000 de aura." |
+| Bienvenida (primer inicio) | `saludando` | "¡Hola! Soy Doty. Tu coach de inglés. Prometo no regañarte." |
+| Pista: primer nivel | `senalando` | "Este es tu primer nivel. Toca la imagen y arrancamos. Cada lección son unos tres minutos." |
+| Pista: la llama | `emocionado` | "La llama es tu racha. Practica hoy y se enciende. Un día sin practicar y se apaga. Drama garantizado." |
+
+Prohibido en copy y en prompts de arte: burlarse de un error del usuario,
+vulgaridad, regionalismos, franquicias por nombre, texto dentro del PNG.
+
 ## Cómo pedir una pose nueva
 
 Nunca copiando un PNG a mano a `public/images/Doty/`: `npm run lint` lo rechaza
 (`check-doty-assets --strict` prohíbe huérfanos en esa carpeta).
 
-1. **Añade la pieza** a `scripts/mj/batches/fase-1.json`: `slug` en kebab-case,
-   `group`, `prefix`, `prompt`, `size`, `mascot`, `done: false`. El `prefix` es
-   la llave con la que el pipeline mapea la descarga de vuelta, **y además va
-   dentro del prompt**, así que sus palabras dirigen la generación — ver abajo.
+1. **Añade la pieza** a `scripts/mj/batches/fase-4.json` (fase-1 está cerrada;
+   las piezas nuevas de Doty van a la fase 4): `slug` en kebab-case, `group`,
+   `prefix`, `prompt`, `size`, `mascot`, `done: false`. El `prefix` es la llave
+   con la que el pipeline mapea la descarga de vuelta, **y además va dentro del
+   prompt**, así que sus palabras dirigen la generación — ver abajo.
 2. **Saca el lote**:
    `uv run --python 3.12 scripts/mj/process.py --emit-lote <grupo> --pendientes --raw $RAW`
 3. **Genera en Midjourney** siguiendo el lote: las piezas de mascota van con
@@ -168,9 +221,10 @@ Nunca copiando un PNG a mano a `public/images/Doty/`: `npm run lint` lo rechaza
    primeras palabras del prompt.
 
    `$RAW` es `dots/imagenes/mj/`, fuera de los dos repos de git.
-4. **Procesa**: `--apply fase-1 --raw $RAW` (quita fondo, cierra agujeros,
+4. **Procesa**: `--apply fase-4 --raw $RAW` (quita fondo, cierra agujeros,
    recorta y mide el halo).
-5. **Regenera el registro**: `--emit-registry fase-1`.
+5. **Regenera el registro**: `--emit-registry fase-1 fase-4` (ambas fases: el
+   registro es la unión).
 6. `npm run lint` y commit — el PNG y el catálogo van en el mismo commit.
 
 Para rehacer una pieza que ya existe no pongas `done: false`: márcala
