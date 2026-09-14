@@ -998,3 +998,17 @@ def test_levels_es_un_grupo_valido(tmp_path):
               mascot=False, size=512, anchor=True),
     ]}
     assert mjlib.load_catalog(write(tmp_path, "fase-2.json", cat))["fase"] == "fase-2"
+
+
+def test_grupo_ui_aterriza_en_public_images_ui():
+    # El grupo ui son los iconos de economía (racha, gemas, vidas...). No van a
+    # public/images/Doty/ porque no los consume <Doty>: un icono no es una pose,
+    # y check-doty-assets --strict rechaza huérfanos en esa carpeta.
+    p = piece(slug="racha", group="ui", mascot=False, size=512)
+    assert mjlib._relative_output(p, "fase-3") == "public/images/ui/racha.png"
+
+
+def test_output_path_cubre_el_grupo_ui(tmp_path):
+    p = piece(slug="gemas", group="ui", mascot=False, size=512)
+    destino = mjlib.output_path(p, "fase-3", tmp_path, tmp_path / "raw")
+    assert destino == tmp_path / "public/images/ui/gemas.png"
