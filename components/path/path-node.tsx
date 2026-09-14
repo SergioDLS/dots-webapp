@@ -47,7 +47,7 @@ export default function PathNode({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const isCheckpoint = node.type === "checkpoint";
-  const isLocked = false;
+  const isLocked = !node.unlocked;
   const progress = Math.max(0, Math.min(100, Math.round(node.progress)));
   const isDone = node.completed;
   // Dos niveles (F3e): completado = respondiste todo 1× (check verde);
