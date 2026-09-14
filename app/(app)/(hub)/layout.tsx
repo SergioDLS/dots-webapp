@@ -3,6 +3,7 @@ import React from "react";
 import AppNav from "@/components/shell/app-nav";
 import AppHeader from "@/components/shell/app-header";
 import DotyEntrada from "@/components/ui/doty/doty-entrada";
+import ThemeSync from "@/components/theme/theme-sync";
 
 /**
  * Chrome persistente de las pantallas "hub" (camino, repaso, retos, zona de
@@ -15,6 +16,8 @@ export default function HubLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="min-h-screen md:pl-[84px]">
+      {/* Reconcilia paleta/modo con /me/settings tras el primer paint. */}
+      <ThemeSync />
       {/* Overlay de entrada a la app. Va en el layout y no en /levels porque
           este se monta una vez por carga de página y sobrevive al cambio de
           pestañas: dentro de /levels reaparecería al volver al Camino desde
