@@ -130,15 +130,21 @@ def test_build_prompt_feliz_matches_spec_example():
     )
     assert "--" not in out
 
-def test_build_prompt_correcto_icon_matches_expected_shape():
-    # mismo catalogo/style reales, pieza no-mascota: forma con flags de siempre, sin brand_lock/framing.
-    cat = mjlib.load_catalog(Path(__file__).resolve().parents[1] / "batches" / "fase-1.json")
+def test_build_prompt_icon_shape_matches_real_style_json():
+    # Antes usaba la pieza real `correcto`. Se retiro entera junto con el grupo
+    # `icons` (ver test_fase1_slugs_exactos_por_grupo en test_catalogs.py) y este
+    # test se quedo sin fixture. build_prompt no lee `group` en absoluto, solo
+    # `mascot`/`glasses`/`prefix`/`prompt`, asi que una pieza sintetica del
+    # helper `piece(...)` cubre la misma forma sin depender de que un slug
+    # concreto siga vivo en fase-1.json — lo que este test protege es el
+    # style.json real (se rompio la vez que se recolorearon los iconos).
     style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
-    correcto = next(p for p in cat["pieces"] if p["slug"] == "correcto")
-    out = mjlib.build_prompt(correcto, style)
+    icono = piece(group="games", slug="icono-de-prueba", mascot=False,
+                  prefix="Green check mark badge", prompt="rounded square, bold checkmark")
+    out = mjlib.build_prompt(icono, style)
     # se fija el ORDEN de ensamblado, no el texto del prompt: ese es dato del
-    # catalogo y se afina lote a lote (este test se rompio al recolorear los iconos).
-    assert out.startswith(f"{correcto['prefix']}, {correcto['prompt']}, {style['icon_block']}")
+    # catalogo y se afina lote a lote.
+    assert out.startswith(f"{icono['prefix']}, {icono['prompt']}, {style['icon_block']}")
     assert "--ar 1:1" in out and "--stylize 50" in out
     assert out.endswith("--no text, watermark, glasses, shadow, background objects")
     assert style["brand_lock"] not in out and style["framing"] not in out

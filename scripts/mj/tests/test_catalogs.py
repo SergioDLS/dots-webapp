@@ -21,7 +21,6 @@ SLUGS = {
                     "idea", "globo"},
     "themed": {"navidad", "halloween", "san-valentin", "fiestas-patrias", "graduacion",
                "back-to-school"},
-    "icons": {"correcto", "incorrecto", "atencion", "cargando", "racha", "nivel-completado"},
     "stickers": {"good-job", "amazing", "keep-going", "you-can-do-it", "lets-practice", "oops",
                  "almost", "nice", "excellent", "see-you"},
     "games": {"wordle", "crossword", "dot-match", "true-false", "memory", "audio-blitz",
@@ -37,17 +36,20 @@ GAMES = SLUGS["games"]
 def test_fase1_counts_and_rules():
     cat = mjlib.load_catalog(BATCH)
     counts = Counter(p["group"] for p in cat["pieces"])
-    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 98
+    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 92
     for p in cat["pieces"]:
-        expect_mascot = p["group"] not in ("icons", "games")
+        # "games" es ahora el unico grupo no-mascota: "icons" (correcto,
+        # incorrecto, atencion, cargando, racha, nivel-completado) se retiro
+        # entero, ver test_fase1_slugs_exactos_por_grupo.
+        expect_mascot = p["group"] != "games"
         assert p["mascot"] is expect_mascot, p["slug"]
-        assert p["size"] == (512 if p["group"] in ("icons", "games") else 1024), p["slug"]
+        assert p["size"] == (512 if p["group"] == "games" else 1024), p["slug"]
         assert "," not in p["prefix"], p["slug"]
         assert "glasses" not in p["prompt"].lower() or p["slug"] in ("lentes", "doty-scientist"), p["slug"]
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "games"} == GAMES
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
-    assert len({p["prefix"] for p in cat["pieces"]}) == 98
+    assert len({p["prefix"] for p in cat["pieces"]}) == 92
 
 def test_solo_lentes_y_scientist_llevan_glasses():
     cat = mjlib.load_catalog(BATCH)
@@ -75,9 +77,11 @@ def test_el_placeholder_es_una_pieza_real_y_hecha():
     hechas = {mjlib.registry_src(p) for p in cat["pieces"] if p.get("done")}
     assert mjlib.PLACEHOLDER in hechas
 
-def test_fase1_anclas_son_exactamente_correcto_y_wordle():
-    # correcto abre `icons`, wordle abre `games`: son las dos familias no-mascota
-    # y cada una necesita su propia ancla de Style reference (spec Sec.2-bis).
+def test_fase1_ancla_es_exactamente_wordle():
+    # wordle abre `games`, la unica familia no-mascota que queda en fase 1: el
+    # grupo `icons` (y su ancla `correcto`) se retiro entero, ver
+    # test_fase1_slugs_exactos_por_grupo. De un ancla cuelga el estilo de todo
+    # su grupo (spec Sec.2-bis): si cambia, hay que regenerar el grupo entero.
     cat = mjlib.load_catalog(BATCH)
     anclas = {p["slug"] for p in cat["pieces"] if p.get("anchor")}
-    assert anclas == {"correcto", "wordle"}
+    assert anclas == {"wordle"}
