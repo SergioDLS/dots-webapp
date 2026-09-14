@@ -1,5 +1,5 @@
 // GENERADO por scripts/mj/process.py --emit-registry — no editar a mano.
-// Fuente: scripts/mj/batches/fase-1.json. Reglas de uso: docs/brand/doty-identity.md
+// Fuente: scripts/mj/batches/fase-1.json + fase-4.json. Reglas de uso: docs/brand/doty-identity.md
 export type DotyGroup = "expressions" | "poses" | "states" | "celebrations" | "accessories" | "themed" | "stickers" | "icons";
 export type PoseEntry = { src: string; group: DotyGroup };
 
@@ -80,6 +80,23 @@ export const POSES = {
   "sticker-nice": { src: "/images/Doty/stickers/nice.png", group: "stickers" },
   "sticker-excellent": { src: "/images/Doty/stickers/excellent.png", group: "stickers" },
   "sticker-see-you": { src: "/images/Doty/stickers/see-you.png", group: "stickers" },
+  "en-llamas": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  aura: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  cocinado: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  "llanto-dramatico": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  "cerebro-galaxia": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  reojo: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  "mente-volada": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  "lentes-deal": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  gamer: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  chismoso: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  facepalm: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  flexeando: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  meditando: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  bostezo: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  "narrador-beginner": { src: "/images/Doty/expressions/feliz.png", group: "poses" },
+  "narrador-intermediate": { src: "/images/Doty/expressions/feliz.png", group: "poses" },
+  "narrador-advanced": { src: "/images/Doty/expressions/feliz.png", group: "poses" },
 } as const satisfies Record<string, PoseEntry>;
 
 export type DotyPose = keyof typeof POSES;
