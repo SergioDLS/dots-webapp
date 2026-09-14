@@ -211,6 +211,41 @@ export const ICON_PATHS = {
       <rect x="10" y="27" width="28" height="7" rx="2" fill="#35D8F5" />
     </g>
   ),
+  duelo: (
+    <g fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <g transform="rotate(45 24 24)">
+        <path d="M24,4 L28,44 L20,44 Z" fill="#FF1F8F" />
+        <path d="M14,38 H34" />
+      </g>
+      <g transform="rotate(-45 24 24)">
+        <path d="M24,4 L28,44 L20,44 Z" fill="#35D8F5" />
+        <path d="M14,38 H34" />
+      </g>
+    </g>
+  ),
+  brujula: (
+    <g fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="24" cy="24" r="18" />
+      <g transform="rotate(35 24 24)">
+        <path d="M24,7 L30,24 L18,24 Z" fill="#FF1F8F" />
+        <path d="M18,24 L30,24 L24,41 Z" fill="#ffffff" />
+      </g>
+    </g>
+  ),
+  escudo: (
+    <g fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10,8 L38,8 L40,22 L24,42 L8,22 Z" fill="#35D8F5" />
+      <path d="M16,19 L24,27 L32,19" stroke="#FF1F8F" />
+    </g>
+  ),
+  armar: (
+    <g fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="30" width="12" height="10" rx="3" fill="#35D8F5" />
+      <rect x="19" y="30" width="8" height="10" rx="3" fill="#3768FF" />
+      <rect x="30" y="30" width="14" height="10" rx="3" fill="#35D8F5" />
+      <rect x="14" y="8" width="12" height="10" rx="3" fill="#FF1F8F" transform="rotate(-10 20 13)" />
+    </g>
+  ),
 } as const satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof ICON_PATHS;

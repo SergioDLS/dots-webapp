@@ -7,6 +7,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import Doty from "../ui/doty/doty";
+import { Icon } from "@/components/ui/icon";
 import { UiIcon, type UiIconName } from "@/components/ui/ui-icon";
 import {
   getLeaderboardService,
@@ -172,7 +173,7 @@ export default function TopStudents() {
                     className="dots-pressable shrink-0 grid h-8 w-8 place-items-center rounded-xl text-base"
                     style={{ border: "1.5px solid var(--border)" }}
                   >
-                    ⚔️
+                    <Icon name="duelo" size={16} />
                   </button>
                 )}
 

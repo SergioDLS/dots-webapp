@@ -3,6 +3,7 @@
 import Confetti from "@/components/ui/confetti/confetti";
 import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import type { PlacementResult } from "@/services/placement.service";
 
@@ -16,7 +17,7 @@ export default function PlacementResultScreen({ result, onContinue }: Props) {
     <div className="flex flex-col gap-4 w-full">
       <PanelWrapper>
         <Confetti burstKey="placement-done" count={50} />
-        <SectionLabel emoji="🧭">¡Prueba completada!</SectionLabel>
+        <SectionLabel emoji={<Icon name="brujula" size={20} />}>¡Prueba completada!</SectionLabel>
         <Doty pose="lo-lograste" size="small" animation="cheer" say="¡Ya te conozco mejor!" />
         {result.startFromZero ? (
           <>

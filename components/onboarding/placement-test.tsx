@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import Doty from "@/components/ui/doty/doty";
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import {
   baseOptionCls,
@@ -54,7 +55,7 @@ export default function PlacementTest({ test, onFinished }: Props) {
         progress={Math.floor(((questionNumber - 1) / test.maxQuestions) * 100)}
       />
       <PanelWrapper>
-        <SectionLabel emoji="🧭">
+        <SectionLabel emoji={<Icon name="brujula" size={20} />}>
           {`Pregunta ${questionNumber} · máximo ${test.maxQuestions}`}
         </SectionLabel>
         <p className="font-display text-xl font-extrabold text-center leading-relaxed">

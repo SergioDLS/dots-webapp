@@ -96,7 +96,7 @@ export default function ChallengesPanel() {
             Duelo directo
           </h2>
         </div>
-        <div className="text-2xl select-none">⚔️</div>
+        <Icon name="duelo" size={24} />
       </div>
 
       {/* Empty state */}
@@ -153,7 +153,10 @@ export default function ChallengesPanel() {
                 className="font-semibold min-w-0 truncate"
                 style={{ color: "var(--muted)" }}
               >
-                ⚔️ {c.gameName} — esperando a{" "}
+                <span className="mr-1 inline-flex align-text-bottom">
+                  <Icon name="duelo" size={16} />
+                </span>
+                {c.gameName} — esperando a{" "}
                 <span style={{ color: "var(--foreground)" }}>
                   {c.challengedName}
                 </span>

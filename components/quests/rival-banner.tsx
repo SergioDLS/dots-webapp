@@ -79,9 +79,7 @@ export default function RivalBanner() {
       {/* Below rival — threat message */}
       {below && (
         <div className="flex items-center gap-2">
-          <span className="text-lg select-none" aria-hidden>
-            🛡️
-          </span>
+          <Icon name="escudo" size={18} />
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             <span className="font-bold" style={{ color: "var(--foreground)" }}>
               {below.name}

@@ -182,7 +182,7 @@ export default function PracticeContainer({
   if (mode === "buildUp") {
     return (
       <PanelWrapper>
-        <SectionLabel emoji="🧩">Build up the sentence!</SectionLabel>
+        <SectionLabel emoji={<Icon name="armar" size={20} />}>Build up the sentence!</SectionLabel>
         <div className="flex items-end gap-4">
           <Doty pose={doty} size="small" animation="bob" />
           <div className="flex flex-col items-center gap-2">

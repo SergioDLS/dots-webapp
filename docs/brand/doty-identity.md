@@ -206,7 +206,7 @@ emoji lo dibuja el sistema operativo, sale distinto en Safari de iPhone que en
 escritorio, y no se puede teñir con CSS. Dos sistemas lo reemplazan, ninguno
 pasa por `<Doty>` ni por `poses.ts`:
 
-- **29 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
+- **33 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
   tres familias: nav, nodo y glifo.
 - **12 PNG de economía** — `<UiIcon name=…>`, `public/images/ui/` —
   generados con Midjourney igual que el resto del arte de Doty, porque su
@@ -215,13 +215,13 @@ pasa por `<Doty>` ni por `poses.ts`:
 
 `npm run lint` verifica los dos (`scripts/check-icons.mjs`).
 
-### Los 29 SVG
+### Los 33 SVG
 
 | Familia | N | `strokeWidth` | Slugs |
 |---|---|---|---|
 | `nav` | 5 | 3 | camino, repaso, retos, juegos, perfil |
 | `nodo` | 8 | 2.5 | leccion, escucha, gramatica, vocabulario, letras, numeros, lectura, checkpoint |
-| `glifo` | 16 | 3.5 | check, cruz, aviso, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate |
+| `glifo` | 20 | 3.5 | check, cruz, aviso, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate, duelo, brujula, escudo, armar |
 
 - **Paleta cerrada de rellenos**: rosa `#FF1F8F`, azul `#3768FF`, cyan
   `#35D8F5` y blanco. Nada más entra en un `fill`.
@@ -255,58 +255,58 @@ pasa por `<Doty>` ni por `poses.ts`:
 > hoja de contacto de Python miente en cualquier pieza con `evenodd` — hay
 > que mirarla en un navegador de verdad antes de descartarla.
 
-### Emoji que quedan fuera de los 29 (por ahora)
+### Los cuatro últimos: duelo, brujula, escudo y armar
 
-La revisión final de esta rama (2026-09-14) encontró emoji que el criterio de
-arriba clasifica como iconografía —nombran una cosa del sistema y se
-repiten— pero que ningún icono de los 29 cubría todavía. Cuatro coincidían con
-un icono ya dibujado para otra cosa y se cablearon en esta misma pasada:
-`repaso`←🔁, `retos`←🎯, `checkpoint`←🏁, `escucha`←🔊 y 👂. Los cuatro que
-quedan no tienen icono, y esta pasada no dibuja ninguno nuevo — el porqué,
-sitio por sitio:
+La revisión final de la rama `feat/iconografia-propia` (2026-09-14) encontró
+emoji que el criterio de arriba clasifica como iconografía —nombran una cosa
+del sistema y se repiten— pero que ningún icono cubría todavía. Cuatro
+coincidían con un icono ya dibujado para otra cosa y se cablearon en esa
+misma pasada: `repaso`←🔁, `retos`←🎯, `checkpoint`←🏁, `escucha`←🔊 y 👂. Los
+cuatro que quedaban sin icono propio —⚔️, 🧭, 🛡️, 🧩— se dibujaron y cablearon
+en `feat/iconos-pendientes`: el criterio de aceptación 1 de
+`docs/superpowers/specs/2026-09-13-iconografia-propia-design.md` queda
+cumplido y no queda iconografía-emoji en código de producto (los emoji de
+copy dentro de una frase, como el toast "¡Reto enviado! ⚔️" de
+`top-students.tsx:88`, siguen fuera de esta cuenta: esos son puntuación, no
+iconos).
 
-- **⚔️ — "duelo 1v1".** Tres sitios son icono, no copy: el botón que abre
-  el picker de rival (`components/interactive-column/top-students.tsx:175`),
-  la cabecera del panel "Duelo directo"
-  (`components/quests/challenges-panel.tsx:99`) y el prefijo de cada reto
-  saliente en su lista (`challenges-panel.tsx:156`). Es el gap más real de
-  los cuatro: nombra una cosa del sistema —el reto 1v1— y se repite en dos
-  componentes, no en uno. No hay ningún glifo de espada/duelo en el set de
-  29; es candidato a una familia futura, no una decisión de quedarse así
-  para siempre. (Un cuarto sitio, `top-students.tsx:88` — el toast
-  "¡Reto enviado! ⚔️" — sí es copy dentro de una frase por el criterio de la
-  spec original, y queda fuera de esta cuenta por la misma razón que exime
-  a los 13 emoji de copy.)
-- **🧭 — prueba de ubicación.** `components/onboarding/placement-test.tsx:57`
-  y `components/onboarding/placement-result.tsx:19`, las dos pantallas del
-  mismo flujo de onboarding y nada más. A diferencia del nav o `escucha`,
-  que el usuario ve todo el tiempo, esto se ve como mucho una vez por
-  cuenta: no es iconografía de sistema en el sentido que pesa aquí ("el
-  usuario lo ve cien veces y espera que signifique siempre lo mismo"), es la
-  decoración de un flujo puntual y autocontenido. Se queda como emoji;
-  reconsiderar si el onboarding deja de ser una pantalla de una sola vez.
-- **🧩 — "arma la oración" (modo `buildUp` de `PracticeContainer`).**
-  `components/practice-container/practice-container.tsx:185`. El candidato
-  obvio sería reutilizar `gramatica` (dos piezas encajando, rosa y cyan) —
-  pero `gramatica` ya está cableado al tipo de nodo Gramática
-  (`NODE_META.grammar`, `lib/path-node-meta.ts`). Prestarlo aquí mezclaría
-  las dos señales: un ejercicio "arma la oración" puede vivir en cualquier
-  tipo de lección, no solo en Gramática, y el préstamo le diría al usuario
-  que está en un nodo que no es. Necesita geometría propia, no un préstamo,
-  y dibujarla no entra en esta pasada.
-- **🛡️ — "no aflojes" (rival por detrás).**
-  `components/quests/rival-banner.tsx:83`. Es la contraparte del 🎯 de la
-  línea 53 de ese mismo archivo (el rival por delante, ya cableado a
-  `retos`) — pero no hay ningún icono de escudo/defensa en el set. Mismo
-  caso que ⚔️: gap real del set, no decoración de una pantalla.
+- **⚔️ → `duelo`.** Dos espadas cruzadas en aspa, rosa y cyan, cada una con
+  su guarda. Cablea en tres sitios — el botón que abre el picker de rival
+  (`components/interactive-column/top-students.tsx`), la cabecera del panel
+  "Duelo directo" y el prefijo de cada reto saliente en su lista (los dos en
+  `components/quests/challenges-panel.tsx`).
+- **🧭 → `brujula`.** Círculo con una aguja de rombo inclinada, mitad rosa y
+  mitad blanca. Cablea en las dos pantallas de la prueba de ubicación
+  (`components/onboarding/placement-test.tsx` y `placement-result.tsx`) vía
+  la prop `emoji` de `SectionLabel`, que acepta `ReactNode`.
+- **🛡️ → `escudo`.** Silueta de escudo —hombros rectos arriba, punta
+  abajo— rellena de cyan, con un galón rosa dentro. Cablea en
+  `components/quests/rival-banner.tsx`, como contraparte del `retos` de la
+  línea de arriba (el rival por delante ya cableado, éste es el rival por
+  detrás).
+- **🧩 → `armar`.** Tres bloques de palabra en fila, de anchos distintos, y
+  un cuarto flotando encima desplazado, a punto de encajar. Cablea en
+  `components/practice-container/practice-container.tsx` (modo `buildUp`).
+  **A propósito no es un puzzle.** El candidato obvio era reutilizar
+  `gramatica` (dos piezas encajando, rosa y cyan) — pero `gramatica` ya está
+  cableado al tipo de nodo Gramática (`NODE_META.grammar`,
+  `lib/path-node-meta.ts`), y prestarlo aquí mezclaría dos señales: un
+  ejercicio "arma la oración" puede vivir en cualquier tipo de lección, no
+  solo en Gramática, y el préstamo le diría al usuario que está en un nodo
+  que no es. Por eso `armar` tiene geometría propia — bloques rectangulares,
+  no piezas — y sigue siendo la razón por la que un `gramatica` #2 no debe
+  aparecer aquí en el futuro.
 
-El criterio de aceptación 1 de
-`docs/superpowers/specs/2026-09-13-iconografia-propia-design.md` se da por
-**conscientemente incumplido** en estos cuatro sitios, no por cumplido:
-queda iconografía-emoji en código de producto. ⚔️ y 🛡️ son candidatos claros
-a una familia futura; 🧩 necesita geometría propia que no colisione con
-`gramatica`; 🧭 puede quedarse como está mientras el onboarding siga siendo
-un flujo de una sola vez.
+**Lección de esta pasada: un trazo que solo llega hasta el centro no cruza
+nada.** El primer intento de `duelo` dibujaba cada espada como un triángulo
+con la punta lejos del centro y la base cerca de él — geometría que no
+llenaba el lienzo, solo lo alcanzaba a medias. A 16-24 px eso no se leía como
+espadas cruzadas, se leía como una flecha o un pájaro. Dos formas que solo
+alcanzan la mitad del lienzo y se tocan cerca del medio no forman una X: cada
+espada necesita abarcar la diagonal completa, de esquina a esquina, para que
+al rotarlas ±45° la punta y la guarda queden en extremos opuestos. Se
+detectó mirando la hoja de contacto, no con una métrica — otro caso a favor
+de mirar antes de descartar.
 
 ### Los 12 PNG de economía
 
