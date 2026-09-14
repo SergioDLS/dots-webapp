@@ -8,9 +8,10 @@
       "prompt": "a single faceted gem seen from the front, wide flat top facet and three facets below, drawn as a flat graphic shape, not real gemstone material, every facet a single flat matte color with no gradient, the three lower facets solid #35D8F5 cyan, the top facet solid #FF1F8F pink, a thick solid #1E1B5C navy outline around every facet, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false,
+      "done": true,
       "anchor": true,
-      "anchor_sref": "public/images/levels/estructuras.png"
+      "anchor_sref": "public/images/levels/estructuras.png",
+      "source_file": "Mandrakin_Ui_icon_gem_a_single_faceted_gem_seen_from_the_fron_7338bd0c-b26f-4e8b-a2d0-c87f55c2f0b5_2.png"
     },
     {
       "slug": "racha",
@@ -19,7 +20,8 @@
       "prompt": "a single bold flame with two inner tongues, pink outer flame and cyan inner tongues, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_flame_a_single_bold_flame_with_two_inner_to_f691e328-856e-4a77-ae91-ee491cda50b4_0.png"
     },
     {
       "slug": "vidas",
@@ -28,7 +30,8 @@
       "prompt": "a plump rounded heart, pink body with a small solid cyan dot in the upper left, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_heart_a_plump_rounded_heart_pink_body_flat__bf5708c6-8e80-48d8-b97b-c906e9175140_2.png"
     },
     {
       "slug": "xp",
@@ -37,7 +40,8 @@
       "prompt": "a single five-pointed star with thick rounded points, blue body with a solid cyan inner star, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_star_a_single_five-pointed_star_with_thick__aa673131-ec7a-435c-bda2-f42330ef9dd2_0.png"
     },
     {
       "slug": "corona",
@@ -46,7 +50,8 @@
       "prompt": "a three-peaked crown with a wide band, pink body with three cyan round jewels on the band, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_crown_a_three-peaked_crown_with_a_wide_band_84ccfae6-528e-4109-a0b6-3e8e4301b242_1.png"
     },
     {
       "slug": "trofeo",
@@ -55,7 +60,8 @@
       "prompt": "a two-handled cup on a square base, drawn as a flat graphic shape, not real metal, cyan cup and pink base, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_trophy_a_two-handled_cup_on_a_square_base_d_26286cd4-2de6-43a2-bd2a-0643e2b6a77b_3.png"
     },
     {
       "slug": "medalla",
@@ -64,7 +70,8 @@
       "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, blue disc and pink ribbon, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_medal_a_round_medal_hanging_from_a_short_ri_5c617b5e-7605-4740-a118-527623cd6194_2.png"
     },
     {
       "slug": "regalo",
@@ -73,7 +80,8 @@
       "prompt": "a square gift box with a ribbon cross and a cyan bow on top, pink box and cyan ribbon, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_gift_box_a_square_gift_box_with_a_ribbon_cr_6bfeaa8c-8707-404d-8584-9e171002f9a3_0.png"
     },
     {
       "slug": "podio-oro",
@@ -82,7 +90,8 @@
       "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, disc and ribbon both solid pink, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_pink_medal_a_round_medal_hanging_from_a_sho_408793fb-4274-40d3-8993-3ecf26140511_0.png"
     },
     {
       "slug": "podio-plata",
@@ -91,16 +100,18 @@
       "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, disc and ribbon both solid cyan, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_cyan_medal_a_round_medal_hanging_from_a_sho_f849e366-7eb7-401e-ad4d-8c810f8db1cc_2.png"
     },
     {
       "slug": "podio-bronce",
       "group": "ui",
       "prefix": "Ui icon blue medal",
-      "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, disc and ribbon both solid blue, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
+      "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, the disc solid #3768FF electric blue and the ribbon solid #FF1F8F pink, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_blue_medal_a_round_medal_hanging_from_a_sho_6df34ee5-3386-403c-8b4a-8e60411b10db_2.png"
     },
     {
       "slug": "rayo",
@@ -109,7 +120,8 @@
       "prompt": "a single thick zigzag lightning bolt, cyan body with a pink edge, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Ui_icon_lightning_bolt_a_single_thick_zigzag_lightn_0b532901-b596-456a-8e86-ba9e15e79271_0.png"
     }
   ]
 }
