@@ -1,74 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { THEME_COLORS } from "@/lib/theme-colors";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { applyThemePrefs, readMirror, resolveMode, writeMirror } from "@/lib/theme-prefs";
 
-type Mode = "light" | "dark";
+type Resolved = "light" | "dark";
 
-const STORAGE_KEY = "dots-theme";
-
-// THEME_COLORS es la misma constante (lib/theme-colors.ts) que usan el
-// script anti-flash de app/layout.tsx y app/manifest.ts. Debe existir
-// siempre exactamente una meta[name="theme-color"] sin atributo `media`: esa
-// es la etiqueta autoritativa que gobierna la barra de estado, así que el
-// toggle no puede divergir de la semántica del script inline (limpiar
-// todas, insertar una).
-
-const applyTheme = (resolved: "light" | "dark") => {
-  const root = document.documentElement;
-  root.setAttribute("data-theme", resolved);
-  if (resolved === "dark") root.classList.add("dark");
-  else root.classList.remove("dark");
-  root.style.colorScheme = resolved;
-
-  document
-    .querySelectorAll('meta[name="theme-color"]')
-    .forEach((el) => el.remove());
-  const meta = document.createElement("meta");
-  meta.setAttribute("name", "theme-color");
-  meta.setAttribute("content", THEME_COLORS[resolved]);
-  document.head.appendChild(meta);
-};
-
-const cycle: Record<Mode, Mode> = { light: "dark", dark: "light" };
-
-const modeLabel: Record<Mode, string> = {
-  light: "Light",
-  dark: "Dark",
-};
-
-const modeIcon: Record<Mode, IconName> = {
-  light: "sol",
-  dark: "luna",
-};
+const label: Record<Resolved, string> = { light: "Tema claro", dark: "Tema oscuro" };
+const icon: Record<Resolved, IconName> = { light: "sol", dark: "luna" };
 
 export default function ThemeToggle() {
-  const [mode, setMode] = useState<Mode>(() => {
-    if (typeof window === "undefined") return "light";
-    return (window.localStorage.getItem(STORAGE_KEY) as Mode | null) ?? "light";
-  });
+  const [mode, setMode] = useState<Resolved>(() =>
+    typeof window === "undefined" ? "light" : resolveMode(readMirror().mode),
+  );
 
-  // Resolve and apply whenever mode changes
   useEffect(() => {
-    applyTheme(mode);
+    const prefs = { palette: readMirror().palette, mode };
+    applyThemePrefs(prefs);
   }, [mode]);
 
   const toggle = () => {
-    const next = cycle[mode];
+    const next: Resolved = mode === "light" ? "dark" : "light";
     setMode(next);
-    window.localStorage.setItem(STORAGE_KEY, next);
+    writeMirror({ palette: readMirror().palette, mode: next });
   };
 
   return (
     <button
       type="button"
       onClick={toggle}
-      title={`Current theme: ${modeLabel[mode]} — click to change`}
+      title={`${label[mode]} — toca para cambiar`}
       className="w-full rounded-xl border border-(--border) px-4 py-2 text-sm font-semibold text-(--muted) transition-all duration-200 hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent)/8 focus:outline-none flex items-center justify-between gap-2"
     >
       <span className="inline-flex items-center gap-1.5">
-        <Icon name={modeIcon[mode]} size={16} /> {modeLabel[mode]} theme
+        <Icon name={icon[mode]} size={16} /> {label[mode]}
       </span>
     </button>
   );
