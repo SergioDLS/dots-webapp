@@ -663,68 +663,6 @@
       "source_file": "Mandrakin_Doty_starting_the_school_year_wearing_a_cyan_backpa_b25d7815-1a69-4230-a46b-03e4e7ef8393_0.png"
     },
     {
-      "slug": "correcto",
-      "group": "icons",
-      "prefix": "Green check mark badge",
-      "prompt": "a white check mark inside a solid green circle badge",
-      "size": 512,
-      "mascot": false,
-      "anchor": true,
-      "done": true,
-      "source_file": "Mandrakin_Green_check_mark_badge_a_white_check_mark_inside_a__9488c83c-8e3b-4883-980f-d24df1d4f30c_1.png"
-    },
-    {
-      "slug": "incorrecto",
-      "group": "icons",
-      "prefix": "Red cross mark badge",
-      "prompt": "a white X mark inside a solid red circle badge",
-      "size": 512,
-      "mascot": false,
-      "done": true,
-      "source_file": "Mandrakin_Red_cross_mark_badge_a_white_X_mark_inside_a_solid__efea8255-75ba-4a45-8325-59cab8f9ea23_0.png"
-    },
-    {
-      "slug": "atencion",
-      "group": "icons",
-      "prefix": "Yellow warning triangle badge",
-      "prompt": "a white exclamation point inside a solid amber triangle badge with rounded corners",
-      "size": 512,
-      "mascot": false,
-      "done": true,
-      "source_file": "Mandrakin_Yellow_warning_triangle_badge_a_white_exclamation_p_a0dd598f-a084-44b4-b005-9b03dcfa194f_0.png"
-    },
-    {
-      "slug": "cargando",
-      "group": "icons",
-      "prefix": "Spinning blue loading ring",
-      "prompt": "a circular blue progress ring with a lighter gap, motion blur",
-      "size": 512,
-      "mascot": false,
-      "done": true,
-      "source_file": "Mandrakin_Spinning_blue_loading_ring_a_circular_blue_progress_0f4490fd-5498-4b24-90c6-8b1e154927a0_1.png",
-      "keep_holes": true
-    },
-    {
-      "slug": "racha",
-      "group": "icons",
-      "prefix": "Orange flame streak badge",
-      "prompt": "a bold orange flame with a bright yellow core, no background",
-      "size": 512,
-      "mascot": false,
-      "done": true,
-      "source_file": "Mandrakin_Orange_flame_streak_badge_a_bold_orange_flame_with__071bfe45-6c82-4289-88f1-7524ab319e38_2.png"
-    },
-    {
-      "slug": "nivel-completado",
-      "group": "icons",
-      "prefix": "Gold star burst badge",
-      "prompt": "a bold gold star with short sparkle rays growing out of its points, no background",
-      "size": 512,
-      "mascot": false,
-      "done": true,
-      "source_file": "Mandrakin_Gold_star_burst_badge_a_bold_gold_star_with_short_s_90807eee-6645-4bdf-a8b5-6cbb9b202ea1_3.png"
-    },
-    {
       "slug": "good-job",
       "group": "stickers",
       "prefix": "Doty thumbs up and winking",
