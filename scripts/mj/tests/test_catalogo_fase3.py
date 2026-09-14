@@ -36,11 +36,15 @@ def test_los_tres_del_podio_se_distinguen_por_barras_no_por_metal():
     # Oro, plata y bronce no están en la paleta y el navy está prohibido como
     # masa, así que el rango se codifica en el número de barras del disco.
     piezas = {p["slug"]: p["prompt"] for p in _cat()["pieces"]}
-    assert "single vertical bar" in piezas["podio-oro"]
+    assert "one short horizontal bar" in piezas["podio-oro"]
     assert "two short horizontal bars" in piezas["podio-plata"]
     assert "three short horizontal bars" in piezas["podio-bronce"]
     for s in ("podio-oro", "podio-plata", "podio-bronce"):
         assert "gold" not in piezas[s] and "silver" not in piezas[s] and "bronze" not in piezas[s]
+        # Las tres deben ser la misma forma repetida N veces -- si una cambia
+        # de orientación (vertical vs. horizontal) la serie deja de leerse
+        # por conteo y vuelve a ser tres dibujos distintos.
+        assert "short horizontal bar" in piezas[s]
 
 
 def test_ningun_prompt_pide_navy_de_relleno():
