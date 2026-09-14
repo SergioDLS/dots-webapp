@@ -80,7 +80,7 @@ export default function AppNav() {
                   : "text-(--muted) hover:bg-(--accent)/8 hover:text-(--accent)"
               }`}
             >
-              <span className="relative text-2xl leading-none">
+              <span className="relative leading-none">
                 <Icon name={item.icon} size={24} />
                 {badgeFor(item.href)}
               </span>
@@ -108,7 +108,7 @@ export default function AppNav() {
                 active ? "text-(--accent)" : "text-(--muted)"
               }`}
             >
-              <span className="relative text-xl leading-none">
+              <span className="relative leading-none">
                 <Icon name={item.icon} size={24} />
                 {badgeFor(item.href)}
               </span>

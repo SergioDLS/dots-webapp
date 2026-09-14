@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import {
   baseOptionCls,
@@ -54,7 +55,7 @@ export default function CheckpointExam({ exam, onSubmit, onExit }: Props) {
     <div className="flex flex-col gap-4 w-full">
       <LessonTopBar progress={Math.floor((index / total) * 100)} />
       <PanelWrapper>
-        <SectionLabel emoji="🏁">
+        <SectionLabel emoji={<Icon name="checkpoint" size={20} />}>
           {`Pregunta ${index + 1} de ${total}`}
         </SectionLabel>
         <p className="font-display text-xl font-extrabold text-center leading-relaxed">

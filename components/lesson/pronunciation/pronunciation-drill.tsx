@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Doty from "@/components/ui/doty/doty";
 import Sound from "@/components/ui/sound/sound";
 import UIButton from "@/components/ui/button/button";
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import {
   baseOptionCls,
@@ -97,7 +98,7 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
   if (content.items.length === 0) {
     return (
       <PanelWrapper>
-        <SectionLabel emoji="👂">{content.title}</SectionLabel>
+        <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
         <Doty pose="triste" size="small" say="¡Vuelve pronto!" />
         <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
           Este ejercicio de escucha aún no tiene audio. ¡Estamos grabándolo!
@@ -112,7 +113,7 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
   if (stage === "start") {
     return (
       <PanelWrapper>
-        <SectionLabel emoji="👂">{content.title}</SectionLabel>
+        <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
         {(content.soundA || content.soundB) && (
           <div className="flex items-center gap-3 font-display font-extrabold text-lg">
             <span
@@ -164,7 +165,7 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
     <div className="flex flex-col gap-4 w-full">
       <LessonTopBar progress={series.progress} streak={series.streak} />
       <PanelWrapper>
-        <SectionLabel emoji="👂">¿Qué palabra oíste?</SectionLabel>
+        <SectionLabel emoji={<Icon name="escucha" size={20} />}>¿Qué palabra oíste?</SectionLabel>
         {/* key remounts Sound per item so autoplay fires on each new audio */}
         <div className="flex flex-col items-center gap-2 py-2" key={item.id}>
           <Sound autoplay icon src={item.audio} className="scale-150" />

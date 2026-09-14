@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Icon } from "@/components/ui/icon";
 import { baseOptionCls, optionStyles } from "@/components/lesson/option-styles";
 import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { playSound } from "@/lib/feedback-sounds";
@@ -137,7 +138,9 @@ export default function ListenQuiz({
           }}
           onClick={() => play(target.audio)}
         >
-          🔊 Escuchar de nuevo
+          <span className="inline-flex items-center justify-center gap-2">
+            <Icon name="escucha" size={20} /> Escuchar de nuevo
+          </span>
         </button>
       </div>
       <div className="flex flex-col gap-2 w-full">

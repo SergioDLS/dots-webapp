@@ -113,16 +113,18 @@ export default function TournamentCard() {
                   className="font-semibold truncate"
                   style={{ color: "var(--foreground)" }}
                 >
-                  {medalIcon ? (
-                    <UiIcon name={medalIcon} size={16} className="mr-1 inline-block align-middle" />
-                  ) : (
+                  {/* El icono decora; el número informa — el podio no lleva
+                      el puesto en el color y podio-plata/podio-bronce solo
+                      se distinguen por un aro a este tamaño. */}
+                  <span className="mr-1 inline-flex items-center gap-1 align-middle">
+                    {medalIcon && <UiIcon name={medalIcon} size={16} />}
                     <span
-                      className="mr-1 inline-block w-4 text-center text-xs font-bold"
+                      className="inline-block w-4 text-center text-xs font-bold"
                       style={{ color: "var(--muted)" }}
                     >
                       {i + 1}
                     </span>
-                  )}
+                  </span>
                   {entry.name}
                 </span>
                 <span

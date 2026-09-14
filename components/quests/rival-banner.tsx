@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { getRivalService, type RivalData } from "@/services/engagement.service";
 
@@ -49,9 +50,7 @@ export default function RivalBanner() {
       {/* Above rival — the main motivator */}
       {above && (
         <div className="flex items-center gap-2">
-          <span className="text-lg select-none" aria-hidden>
-            🎯
-          </span>
+          <Icon name="retos" size={18} />
           <p className="text-sm flex-1" style={{ color: "var(--foreground)" }}>
             Estás a{" "}
             <span

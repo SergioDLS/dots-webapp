@@ -296,6 +296,19 @@ h1, h2, h3, .font-display {
   box-shadow: 0 0 0 var(--press-color);
 }
 
+/* `<Icon mono>` (components/ui/icon/icon.tsx): silueta monocroma para cuando
+   el icono va sobre un fondo que esta familia no controla (el disco de
+   dificultad del Camino, que cambia de color con el nivel). paths.tsx fija
+   fill/stroke por atributo de presentación en cada trazo — la prioridad más
+   baja de la cascada — así que un selector de clase sobre los descendientes
+   los pisa sin tocar los 29 caminos. Fuerza fill Y stroke: algunos trazos
+   (las ondas de `escucha`, el arco de `repaso`/`camino`) llevan su color de
+   marca en el stroke, no en el fill. */
+.icon-mono * {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
 /* ─── Motion library ──────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: 200% center; }

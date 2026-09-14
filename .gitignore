@@ -47,3 +47,7 @@ next-env.d.ts
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Hoja de contacto de scripts/contact-sheet-icons.mjs: ruta real de la app,
+# generada, no se commitea.
+/app/dev-iconos/

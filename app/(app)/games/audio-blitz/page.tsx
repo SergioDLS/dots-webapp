@@ -12,6 +12,7 @@ import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Sound from "@/components/ui/sound/sound";
+import { Icon } from "@/components/ui/icon";
 import {
   getAudioBlitzService,
   type AudioBlitzItem,
@@ -405,13 +406,13 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
               className="flex flex-col items-center gap-1"
             >
               <div
-                className="dots-pressable flex h-20 w-20 items-center justify-center rounded-full text-4xl"
+                className="dots-pressable flex h-20 w-20 items-center justify-center rounded-full"
                 style={{
                   background: "color-mix(in srgb, var(--accent) 15%, transparent)",
                   border: "3px solid color-mix(in srgb, var(--accent) 40%, transparent)",
                 }}
               >
-                🔊
+                <Icon name="escucha" size={36} />
               </div>
               <span className="text-xs font-bold" style={{ color: "var(--muted)" }}>
                 Toca para repetir

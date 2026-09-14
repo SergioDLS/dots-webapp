@@ -299,7 +299,7 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
               >
                 <span className="text-3xl font-extrabold">{it.letter}</span>
                 <span className="text-[11px] font-bold text-(--muted)">
-                  {isSeen ? <Icon name="check" size={16} /> : "🔊"}
+                  {isSeen ? <Icon name="check" size={16} /> : <Icon name="escucha" size={16} />}
                 </span>
               </button>
             );
@@ -370,13 +370,13 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
             <button
               type="button"
               onClick={() => play(target.audio)}
-              className="dots-pressable flex h-24 w-24 items-center justify-center rounded-full text-4xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2"
+              className="dots-pressable flex h-24 w-24 items-center justify-center rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2"
               style={{
                 background: "var(--accent)",
                 color: "var(--accent-contrast)",
               }}
             >
-              🔊
+              <Icon name="escucha" size={36} />
             </button>
             <p className="text-sm font-bold text-(--foreground)">
               ¿Qué letra escuchaste?

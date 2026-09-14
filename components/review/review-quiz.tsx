@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import {
   baseOptionCls,
@@ -90,7 +91,7 @@ export default function ReviewQuiz({ items }: { items: ReviewQuestion[] }) {
     <div className="flex flex-col gap-4 w-full">
       <LessonTopBar progress={series.progress} streak={series.streak} />
       <PanelWrapper>
-        <SectionLabel emoji="🔁">Repaso</SectionLabel>
+        <SectionLabel emoji={<Icon name="repaso" size={20} />}>Repaso</SectionLabel>
         <p className="font-display text-xl font-extrabold text-center leading-relaxed">
           {cur.text.split("__").map((part, i, arr) => (
             <span key={i}>

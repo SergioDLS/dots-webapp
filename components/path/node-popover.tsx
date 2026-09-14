@@ -77,7 +77,11 @@ export default function NodePopover({
             color: `color-mix(in srgb, ${accentHex} 55%, var(--foreground))`,
           }}
         >
-          <Icon name={meta.icon} size={12} /> {meta.label}
+          {/* mono: mismo problema que el badge del nodo, a menor escala —
+              hereda el `color` de arriba (ya pensado para contrastar sobre
+              este fondo tenue) en vez de los rellenos fijos de marca. */}
+          <Icon name={meta.icon} size={14} mono />
+          {meta.label}
         </span>
         <span
           className="text-[10px] font-black tabular-nums"

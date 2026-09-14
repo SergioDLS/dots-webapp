@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import AudioChoiceQuiz, {
   type AudioChoice,
@@ -384,7 +385,9 @@ function NumbersDrill({
               className="rounded-3xl bg-(--accent) px-8 py-5 text-2xl font-extrabold text-white transition-transform active:scale-95"
               onClick={() => play(audioSrc)}
             >
-              🔊 Escuchar
+              <span className="inline-flex items-center justify-center gap-2">
+                <Icon name="escucha" size={24} /> Escuchar
+              </span>
             </button>
           </>
         ) : (

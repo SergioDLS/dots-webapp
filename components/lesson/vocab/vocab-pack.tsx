@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import UIButton from "@/components/ui/button/button";
+import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
@@ -152,7 +153,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
       <div className="flex flex-col gap-4 w-full">
         <LessonTopBar progress={progress} />
         <PanelWrapper>
-          <SectionLabel emoji="👂">{content.title}</SectionLabel>
+          <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
           <ListenQuiz
             items={tramo}
             pool={content.items}
@@ -177,7 +178,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
       <div className="flex flex-col gap-4 w-full">
         <LessonTopBar progress={progress} />
         <PanelWrapper>
-          <SectionLabel emoji="🔊">{content.title}</SectionLabel>
+          <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
           <AudioChoiceQuiz
             items={inverseItems}
             pool={inversePool}

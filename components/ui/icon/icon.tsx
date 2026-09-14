@@ -5,6 +5,17 @@ interface Props {
   /** Lado en px. El viewBox es siempre 48; esto solo escala. */
   size?: number;
   className?: string;
+  /**
+   * Silueta monocroma: todo el icono se pinta en `currentColor` (fills y
+   * strokes de marca incluidos) en vez de la paleta cerrada de `paths.tsx`.
+   * Para cuando el icono va sobre un fondo arbitrario que no controla esta
+   * familia —p. ej. el disco de dificultad del Camino, que cambia de color
+   * con el nivel— y los rellenos fijos (rosa/azul/cyan) no pueden garantizar
+   * contraste. El contenedor decide el color con CSS `color`; a ese tamaño
+   * conviene además una silueta sólida: no depende del grosor de trazo,
+   * que a 12-13 px ya es submétrico.
+   */
+  mono?: boolean;
 }
 
 /**
@@ -18,13 +29,14 @@ interface Props {
  * path-node.tsx, path-section.tsx, sound.tsx). Quien porte a RN tiene que
  * localizarlos aparte; este componente no los cubre.
  */
-export default function Icon({ name, size = 24, className }: Props) {
+export default function Icon({ name, size = 24, className, mono = false }: Props) {
+  const cls = mono ? `icon-mono${className ? ` ${className}` : ""}` : className;
   return (
     <svg
       viewBox="0 0 48 48"
       width={size}
       height={size}
-      className={className}
+      className={cls}
       aria-hidden
       focusable="false"
     >

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import Image from "next/image";
 import WordImg from "@/components/ui/word-img/word-img";
 import NodePopover from "./node-popover";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { NODE_META } from "@/lib/path-node-meta";
+import { DIFFICULTY_TEXT_ON_HEX } from "@/lib/difficulty-palette";
 import type { PathNode as PathNodeType } from "@/types/path.types";
 
 /* Geometry shared with path-section for slot/connector math */
@@ -230,19 +230,21 @@ export default function PathNode({
             <div
               className="absolute inset-0 flex items-center justify-center bg-black/10"
               style={{ borderRadius: shapeRadius }}
+              role="img"
+              aria-label="Bloqueado"
             >
-              <Image
-                src="/images/Lock_icon.png"
-                alt="Bloqueado"
-                width={28}
-                height={28}
-                style={{ opacity: 0.45 }}
-              />
+              <Icon name="candado" size={28} className="opacity-[0.45]" />
             </div>
           )}
         </div>
 
         {/* ── Badge: type (bottom-left, section color) ──────── */}
+        {/* mono: el disco es accentHex, y varía con la dificultad — los
+            rellenos fijos de marca del icono (rosa/cyan) chocan contra
+            varios acentos de la paleta (p. ej. 1.03:1 sobre pale_blue). En
+            mono el icono hereda `color`, que aquí es el token de
+            DIFFICULTY_TEXT_ON_HEX: navy sobre los ocho acentos pastel,
+            blanco solo sobre `blue`, el único acento oscuro del set. */}
         <div
           className="absolute flex items-center justify-center"
           style={{
@@ -255,11 +257,12 @@ export default function PathNode({
             border: "2px solid var(--surface)",
             boxShadow: isLocked ? "none" : `0 2px 6px ${accentHex}55`,
             filter: isLocked ? "grayscale(1)" : "none",
+            color: DIFFICULTY_TEXT_ON_HEX[accentHex] ?? "#ffffff",
             zIndex: 10,
           }}
           title={meta.label}
         >
-          <Icon name={meta.icon} size={13} />
+          <Icon name={meta.icon} size={16} mono />
         </div>
 
         {/* ── Badge: current star ───────────────────────────── */}

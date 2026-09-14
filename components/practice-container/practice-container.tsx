@@ -134,7 +134,9 @@ export default function PracticeContainer({
         >
           {streak} in a row!
         </p>
-        <span className="text-3xl" style={{ animation: "pc-wiggle 1s ease-in-out infinite" }}>🎯</span>
+        <span style={{ display: "inline-flex", animation: "pc-wiggle 1s ease-in-out infinite" }}>
+          <Icon name="retos" size={30} />
+        </span>
       </PanelWrapper>
     );
   }
@@ -277,7 +279,7 @@ export default function PracticeContainer({
 
   if (mode === "whatDoYouHear" || mode === "whatDoYouHearSentence" || mode === "guessImg") {
     titleText = mode === "guessImg" ? "What is this?" : "What do you hear?";
-    titleEmoji = mode === "guessImg" ? <Icon name="imagen" size={20} /> : "👂";
+    titleEmoji = mode === "guessImg" ? <Icon name="imagen" size={20} /> : <Icon name="escucha" size={20} />;
     const src = mode === "whatDoYouHearSentence" ? audioSrc : (dataSentence.img_sound ?? audioSrc);
     soundContent = mode !== "guessImg"
       ? (

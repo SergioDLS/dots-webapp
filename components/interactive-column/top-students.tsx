@@ -146,15 +146,14 @@ export default function TopStudents() {
               }}
             >
               <div className="flex items-center gap-3">
-                {/* Rank medal or number */}
-                <div className="shrink-0 w-8 flex items-center justify-center">
-                  {item.rank <= 3 ? (
-                    <UiIcon name={MEDALS[item.rank - 1]} size={24} />
-                  ) : (
-                    <span className="text-sm font-bold text-(--muted)">
-                      {item.rank}
-                    </span>
-                  )}
+                {/* Rank medal + número: el icono decora, el número informa
+                    — podio-plata/podio-bronce solo se distinguen entre sí
+                    por un aro a este tamaño, el número no depende del color. */}
+                <div className="shrink-0 w-10 flex items-center justify-center gap-1">
+                  {item.rank <= 3 && <UiIcon name={MEDALS[item.rank - 1]} size={18} />}
+                  <span className="text-sm font-bold text-(--muted)">
+                    {item.rank}
+                  </span>
                 </div>
 
                 {/* Name */}

@@ -255,6 +255,59 @@ pasa por `<Doty>` ni por `poses.ts`:
 > hoja de contacto de Python miente en cualquier pieza con `evenodd` — hay
 > que mirarla en un navegador de verdad antes de descartarla.
 
+### Emoji que quedan fuera de los 29 (por ahora)
+
+La revisión final de esta rama (2026-09-14) encontró emoji que el criterio de
+arriba clasifica como iconografía —nombran una cosa del sistema y se
+repiten— pero que ningún icono de los 29 cubría todavía. Cuatro coincidían con
+un icono ya dibujado para otra cosa y se cablearon en esta misma pasada:
+`repaso`←🔁, `retos`←🎯, `checkpoint`←🏁, `escucha`←🔊 y 👂. Los cuatro que
+quedan no tienen icono, y esta pasada no dibuja ninguno nuevo — el porqué,
+sitio por sitio:
+
+- **⚔️ — "duelo 1v1".** Tres sitios son icono, no copy: el botón que abre
+  el picker de rival (`components/interactive-column/top-students.tsx:175`),
+  la cabecera del panel "Duelo directo"
+  (`components/quests/challenges-panel.tsx:99`) y el prefijo de cada reto
+  saliente en su lista (`challenges-panel.tsx:156`). Es el gap más real de
+  los cuatro: nombra una cosa del sistema —el reto 1v1— y se repite en dos
+  componentes, no en uno. No hay ningún glifo de espada/duelo en el set de
+  29; es candidato a una familia futura, no una decisión de quedarse así
+  para siempre. (Un cuarto sitio, `top-students.tsx:88` — el toast
+  "¡Reto enviado! ⚔️" — sí es copy dentro de una frase por el criterio de la
+  spec original, y queda fuera de esta cuenta por la misma razón que exime
+  a los 13 emoji de copy.)
+- **🧭 — prueba de ubicación.** `components/onboarding/placement-test.tsx:57`
+  y `components/onboarding/placement-result.tsx:19`, las dos pantallas del
+  mismo flujo de onboarding y nada más. A diferencia del nav o `escucha`,
+  que el usuario ve todo el tiempo, esto se ve como mucho una vez por
+  cuenta: no es iconografía de sistema en el sentido que pesa aquí ("el
+  usuario lo ve cien veces y espera que signifique siempre lo mismo"), es la
+  decoración de un flujo puntual y autocontenido. Se queda como emoji;
+  reconsiderar si el onboarding deja de ser una pantalla de una sola vez.
+- **🧩 — "arma la oración" (modo `buildUp` de `PracticeContainer`).**
+  `components/practice-container/practice-container.tsx:185`. El candidato
+  obvio sería reutilizar `gramatica` (dos piezas encajando, rosa y cyan) —
+  pero `gramatica` ya está cableado al tipo de nodo Gramática
+  (`NODE_META.grammar`, `lib/path-node-meta.ts`). Prestarlo aquí mezclaría
+  las dos señales: un ejercicio "arma la oración" puede vivir en cualquier
+  tipo de lección, no solo en Gramática, y el préstamo le diría al usuario
+  que está en un nodo que no es. Necesita geometría propia, no un préstamo,
+  y dibujarla no entra en esta pasada.
+- **🛡️ — "no aflojes" (rival por detrás).**
+  `components/quests/rival-banner.tsx:83`. Es la contraparte del 🎯 de la
+  línea 53 de ese mismo archivo (el rival por delante, ya cableado a
+  `retos`) — pero no hay ningún icono de escudo/defensa en el set. Mismo
+  caso que ⚔️: gap real del set, no decoración de una pantalla.
+
+El criterio de aceptación 1 de
+`docs/superpowers/specs/2026-09-13-iconografia-propia-design.md` se da por
+**conscientemente incumplido** en estos cuatro sitios, no por cumplido:
+queda iconografía-emoji en código de producto. ⚔️ y 🛡️ son candidatos claros
+a una familia futura; 🧩 necesita geometría propia que no colisione con
+`gramatica`; 🧭 puede quedarse como está mientras el onboarding siga siendo
+un flujo de una sola vez.
+
 ### Los 12 PNG de economía
 
 Mismo pipeline que el resto del arte de Doty (Midjourney → `rembg` → recorte

@@ -4,6 +4,7 @@ import Confetti from "@/components/ui/confetti/confetti";
 import Doty from "@/components/ui/doty/doty";
 import DotySticker from "@/components/ui/doty/doty-sticker";
 import UIButton from "@/components/ui/button/button";
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import { UiIcon } from "@/components/ui/ui-icon";
 import type { CheckpointResult as CheckpointResultData } from "@/services/lessons.service";
@@ -52,7 +53,7 @@ export default function CheckpointResult({ result, onRetry, onExit }: Props) {
   return (
     <div className="flex flex-col gap-4 w-full">
       <PanelWrapper>
-        <SectionLabel emoji="🏁">Esta vez no fue</SectionLabel>
+        <SectionLabel emoji={<Icon name="checkpoint" size={20} />}>Esta vez no fue</SectionLabel>
         <DotySticker kind="almost" size="tiny" />
         <p className="font-display text-2xl font-extrabold text-center">
           {result.correct} de {result.total} correctas ({pct}%)

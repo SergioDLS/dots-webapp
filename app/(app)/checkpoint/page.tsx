@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
+import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import CheckpointExam from "@/components/checkpoint/checkpoint-exam";
 import CheckpointResult from "@/components/checkpoint/checkpoint-result";
@@ -80,7 +81,7 @@ function CheckpointClient() {
 
   return (
     <PanelWrapper>
-      <SectionLabel emoji="🏁">Checkpoint</SectionLabel>
+      <SectionLabel emoji={<Icon name="checkpoint" size={20} />}>Checkpoint</SectionLabel>
       <Doty pose="pensando" size="small" say="¿Listo para demostrar lo que sabes?" />
       <div className="flex flex-col gap-2 text-sm text-center" style={{ color: "var(--muted)" }}>
         <p>Un examen corto de la sección: sin pistas y sin ayuda.</p>

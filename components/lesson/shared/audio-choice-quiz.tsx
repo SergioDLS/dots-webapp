@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 
+import { Icon } from "@/components/ui/icon";
 import UIButton from "@/components/ui/button/button";
 import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { optionStyles } from "@/components/lesson/option-styles";
@@ -161,7 +162,7 @@ export default function AudioChoiceQuiz({
             onClick={() => pick(option)}
           >
             <VoiceAvatar character={option.character} size="xs" />
-            <span className="text-3xl">🔊</span>
+            <Icon name="escucha" size={30} />
             <span className="text-xs" style={{ opacity: 0.7 }}>
               Opción {idx + 1}
             </span>
