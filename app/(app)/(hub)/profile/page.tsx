@@ -150,7 +150,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Streak />
+          <Streak streak={stats?.streak ?? 0} />
         </div>
         <div className="w-full max-w-xs">
           <XpLevel stats={stats} />

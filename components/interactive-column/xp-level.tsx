@@ -2,6 +2,7 @@
 
 import React from "react";
 import { UiIcon } from "@/components/ui/ui-icon";
+import { levelProgress } from "@/lib/level-math";
 import type { MyStats } from "../../services/engagement.service";
 
 /**
@@ -9,18 +10,12 @@ import type { MyStats } from "../../services/engagement.service";
  * Renders nothing when stats are unavailable (e.g. not logged in yet).
  * Stats are fetched once by InteractiveColumn and shared with the
  * streak-freeze chip and daily-quest card.
- * Level formula (backend contract): level = floor(sqrt(xp / 100)) + 1,
- * so the current level starts at 100 * (level - 1)^2 XP.
+ * Level formula: ver lib/level-math.ts.
  */
 export default function XpLevel({ stats }: { stats: MyStats | null }) {
   if (!stats) return null;
 
-  const levelStart = 100 * (stats.level - 1) * (stats.level - 1);
-  const span = Math.max(1, stats.xpForNextLevel - levelStart);
-  const pct = Math.min(
-    100,
-    Math.max(0, Math.round(((stats.xp - levelStart) / span) * 100)),
-  );
+  const { pct } = levelProgress(stats.xp, stats.level, stats.xpForNextLevel);
 
   return (
     <div

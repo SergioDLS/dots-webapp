@@ -148,6 +148,8 @@ export type MyStats = {
   xpWeek: number;
   /** Gemas (moneda del juego); puede faltar si la economía aún no se migró. */
   gems?: number;
+  /** true si la racha de hoy (día Santiago) ya está asegurada. Lo emite el backend desde el subproyecto A. */
+  streakSecuredToday?: boolean;
 };
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────

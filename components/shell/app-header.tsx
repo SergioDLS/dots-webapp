@@ -5,13 +5,13 @@ import Link from "next/link";
 
 import { getMyStatsService, type MyStats } from "@/services/engagement.service";
 import { UiIcon } from "@/components/ui/ui-icon";
+import { levelProgress } from "@/lib/level-math";
 
 /**
  * HUD superior de las pantallas hub: racha (llama), nivel y progreso de XP.
  * Consume el endpoint existente /me/stats. Si no hay sesión/stats, no
  * renderiza cifras (degrada sin romper). Las gemas se añaden en Fase 5.
- * Fórmula de nivel (contrato backend): level = floor(sqrt(xp/100)) + 1,
- * el nivel actual empieza en 100 * (level - 1)^2 XP.
+ * Fórmula de nivel: ver lib/level-math.ts.
  */
 export default function AppHeader() {
   const [stats, setStats] = useState<MyStats | null>(null);
@@ -26,11 +26,7 @@ export default function AppHeader() {
     };
   }, []);
 
-  const levelStart = stats ? 100 * (stats.level - 1) * (stats.level - 1) : 0;
-  const span = stats ? Math.max(1, stats.xpForNextLevel - levelStart) : 1;
-  const pct = stats
-    ? Math.min(100, Math.max(0, Math.round(((stats.xp - levelStart) / span) * 100)))
-    : 0;
+  const { pct } = stats ? levelProgress(stats.xp, stats.level, stats.xpForNextLevel) : { pct: 0 };
 
   return (
     <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-(--border) bg-(--background)/85 px-4 py-2.5 backdrop-blur-md md:px-8">
