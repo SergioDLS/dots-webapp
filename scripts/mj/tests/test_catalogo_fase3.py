@@ -86,3 +86,34 @@ def test_ningun_prompt_invita_a_degradado_o_brillo():
 def test_ningun_prompt_pide_navy_de_relleno():
     for p in _cat()["pieces"]:
         mjlib.dark_fill_mentions(p["prompt"])  # lanza si lo pide
+
+
+def test_las_doce_piden_saturacion_plena_sin_metalico_ni_transparencia():
+    # La tanda descartada no solo salió del tono equivocado: salió lavada
+    # (mediana 21% de píxeles apagados contra 4.2% de los tiles de la fase 2,
+    # medido por el coordinador en la ronda 4 sobre la tanda real). Nombrar el
+    # hex no bastó -- Midjourney lo suaviza, sobre todo en objetos metálicos o
+    # translúcidos -- así que las doce piden la saturación como propiedad
+    # explícita, no solo el color como valor.
+    marcadores = ("full saturation", "no metallic finish", "no transparency", "no shading")
+    for p in _cat()["pieces"]:
+        for marcador in marcadores:
+            assert marcador in p["prompt"], f"{p['slug']}: falta {marcador!r}"
+
+
+def test_gemas_trofeo_medalla_y_podio_piden_forma_no_material():
+    # Estas seis son, por convención, objetos de metal o cristal de verdad --
+    # ahí es donde salió el peor lavado de la tanda descartada (las tres del
+    # podio primero, gema y trofeo justo detrás). Cada una tiene que decir
+    # explícitamente que es la FORMA del objeto, no el material: una gema de
+    # cristal o una medalla de metal traen brillos y medios tonos por
+    # definición, y ningún adjetivo de color se los va a quitar.
+    con_riesgo_de_material = {"gemas", "trofeo", "medalla", "podio-oro", "podio-plata", "podio-bronce"}
+    piezas = {p["slug"]: p["prompt"] for p in _cat()["pieces"]}
+    for slug in con_riesgo_de_material:
+        assert "not real" in piezas[slug], f"{slug}: no declara forma-no-material"
+    # Y ninguna de las otras seis debería necesitarlo -- si aparece ahí, algo
+    # se copió de más.
+    for slug, prompt in piezas.items():
+        if slug not in con_riesgo_de_material:
+            assert "not real" not in prompt, f"{slug}: forma-no-material fuera de lugar"

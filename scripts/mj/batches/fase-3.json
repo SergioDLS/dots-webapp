@@ -5,7 +5,7 @@
       "slug": "gemas",
       "group": "ui",
       "prefix": "Ui icon gem",
-      "prompt": "a single faceted gem seen from the front, wide flat top facet and three facets below, every facet a single flat matte color with no gradient and no shine, the three lower facets solid #35D8F5 cyan, the top facet solid #FF1F8F pink, a thick solid #1E1B5C navy outline around every facet",
+      "prompt": "a single faceted gem seen from the front, wide flat top facet and three facets below, drawn as a flat graphic shape, not real gemstone material, every facet a single flat matte color with no gradient, the three lower facets solid #35D8F5 cyan, the top facet solid #FF1F8F pink, a thick solid #1E1B5C navy outline around every facet, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false,
@@ -16,7 +16,7 @@
       "slug": "racha",
       "group": "ui",
       "prefix": "Ui icon flame",
-      "prompt": "a single bold flame with two inner tongues, pink outer flame and cyan inner tongues",
+      "prompt": "a single bold flame with two inner tongues, pink outer flame and cyan inner tongues, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -25,7 +25,7 @@
       "slug": "vidas",
       "group": "ui",
       "prefix": "Ui icon heart",
-      "prompt": "a plump rounded heart, pink body with a small solid cyan dot in the upper left",
+      "prompt": "a plump rounded heart, pink body with a small solid cyan dot in the upper left, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -34,7 +34,7 @@
       "slug": "xp",
       "group": "ui",
       "prefix": "Ui icon star",
-      "prompt": "a single five-pointed star with thick rounded points, blue body with a solid cyan inner star",
+      "prompt": "a single five-pointed star with thick rounded points, blue body with a solid cyan inner star, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -43,7 +43,7 @@
       "slug": "corona",
       "group": "ui",
       "prefix": "Ui icon crown",
-      "prompt": "a three-peaked crown with a wide band, pink body with three cyan round jewels on the band",
+      "prompt": "a three-peaked crown with a wide band, pink body with three cyan round jewels on the band, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -52,7 +52,7 @@
       "slug": "trofeo",
       "group": "ui",
       "prefix": "Ui icon trophy",
-      "prompt": "a two-handled cup on a square base, cyan cup and pink base",
+      "prompt": "a two-handled cup on a square base, drawn as a flat graphic shape, not real metal, cyan cup and pink base, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -61,7 +61,7 @@
       "slug": "medalla",
       "group": "ui",
       "prefix": "Ui icon medal",
-      "prompt": "a round medal hanging from a short ribbon, blue disc and pink ribbon",
+      "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, blue disc and pink ribbon, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -70,7 +70,7 @@
       "slug": "regalo",
       "group": "ui",
       "prefix": "Ui icon gift box",
-      "prompt": "a square gift box with a ribbon cross and a cyan bow on top, pink box and cyan ribbon",
+      "prompt": "a square gift box with a ribbon cross and a cyan bow on top, pink box and cyan ribbon, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -79,7 +79,7 @@
       "slug": "podio-oro",
       "group": "ui",
       "prefix": "Ui icon pink medal",
-      "prompt": "a round medal hanging from a short ribbon, disc and ribbon both solid pink, nothing inside the disc",
+      "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, disc and ribbon both solid pink, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -88,7 +88,7 @@
       "slug": "podio-plata",
       "group": "ui",
       "prefix": "Ui icon cyan medal",
-      "prompt": "a round medal hanging from a short ribbon, disc and ribbon both solid cyan, nothing inside the disc",
+      "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, disc and ribbon both solid cyan, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -97,7 +97,7 @@
       "slug": "podio-bronce",
       "group": "ui",
       "prefix": "Ui icon blue medal",
-      "prompt": "a round medal hanging from a short ribbon, disc and ribbon both solid blue, nothing inside the disc",
+      "prompt": "a round medal hanging from a short ribbon, drawn as a flat graphic shape, not real metal, disc and ribbon both solid blue, nothing inside the disc, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
@@ -106,7 +106,7 @@
       "slug": "rayo",
       "group": "ui",
       "prefix": "Ui icon lightning bolt",
-      "prompt": "a single thick zigzag lightning bolt, cyan body with a pink edge",
+      "prompt": "a single thick zigzag lightning bolt, cyan body with a pink edge, flat colors at full saturation, no pale tints, no washed-out tones, no metallic finish, no transparency, no shading",
       "size": 512,
       "mascot": false,
       "done": false
