@@ -5,6 +5,7 @@ import Image from "next/image";
 import WordImg from "@/components/ui/word-img/word-img";
 import NodePopover from "./node-popover";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { NODE_META } from "@/lib/path-node-meta";
 import type { PathNode as PathNodeType } from "@/types/path.types";
 
@@ -279,13 +280,11 @@ export default function PathNode({
           >
             <span
               style={{
-                fontSize: 15,
-                lineHeight: 1,
+                display: "inline-flex",
                 animation: "dots-star-spin 3s linear infinite",
-                display: "inline-block",
               }}
             >
-              ⭐
+              <UiIcon name="xp" size={15} />
             </span>
           </div>
         )}
@@ -305,12 +304,11 @@ export default function PathNode({
           >
             <span
               style={{
-                fontSize: 24,
-                lineHeight: 1,
+                display: "inline-flex",
                 filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
               }}
             >
-              👑
+              <UiIcon name="corona" size={24} />
             </span>
           </div>
         )}

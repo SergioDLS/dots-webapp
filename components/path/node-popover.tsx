@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { NODE_META } from "@/lib/path-node-meta";
 import type { PathNode } from "@/types/path.types";
 
@@ -111,7 +112,7 @@ export default function NodePopover({
       {/* Mastery (dos niveles): dominado = corona */}
       {mastery != null && (
         <p
-          className="text-[10px] font-black tabular-nums"
+          className="flex items-center gap-1 text-[10px] font-black tabular-nums"
           style={{
             color:
               mastery >= 100
@@ -119,7 +120,7 @@ export default function NodePopover({
                 : "var(--muted)",
           }}
         >
-          👑 Dominado {mastery}%
+          <UiIcon name="corona" size={16} /> Dominado {mastery}%
         </p>
       )}
 

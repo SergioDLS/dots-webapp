@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { getRivalService, type RivalData } from "@/services/engagement.service";
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -69,9 +70,7 @@ export default function RivalBanner() {
       {/* No one above = user is #1 this week */}
       {!above && (
         <div className="flex items-center gap-2">
-          <span className="text-lg select-none" aria-hidden>
-            👑
-          </span>
+          <UiIcon name="corona" size={18} />
           <p className="text-sm font-bold" style={{ color: "var(--accent)" }}>
             ¡Eres el #1 de la semana! Nadie te alcanza.
           </p>

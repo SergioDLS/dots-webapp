@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import Doty from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import {
   getShopService,
   buyItemService,
   type ShopItem,
 } from "@/services/shop.service";
 
-const kindIcon = (item: ShopItem): string => {
+const kindIcon = (item: ShopItem): ReactNode => {
   const emoji = item.meta?.emoji;
   if (typeof emoji === "string") return emoji;
   if (item.kind === "streak_shield") return "❄️";
-  if (item.kind === "xp_boost") return "⚡";
+  if (item.kind === "xp_boost") return <UiIcon name="rayo" size={36} />;
   if (item.kind === "gesture") return "🎭";
-  return "🎁";
+  return <UiIcon name="regalo" size={36} />;
 };
 
 const KIND_LABEL: Record<string, string> = {
@@ -87,7 +88,7 @@ export default function ShopPage() {
             color: "var(--gem-edge)",
           }}
         >
-          💎 {balance}
+          <UiIcon name="gemas" size={16} /> {balance}
         </span>
       </header>
 
@@ -153,7 +154,7 @@ export default function ShopPage() {
                         ? <span className="inline-flex items-center gap-1"><Icon name="check" size={16} /> Tienes</span>
                         : busy === item.key
                           ? "…"
-                          : `💎 ${item.price}`}
+                          : <span className="inline-flex items-center gap-1"><UiIcon name="gemas" size={16} /> {item.price}</span>}
                     </button>
                   </div>
                 );

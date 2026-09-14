@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { UiIcon } from "@/components/ui/ui-icon";
 import {
   getWordTowerService,
   type TowerRound,
@@ -428,15 +429,14 @@ function WordTowerInner({ seed }: { seed?: number }) {
                 return (
                   <span
                     key={justBroke ? `heart-break-${i}-${lives}` : `heart-${i}`}
-                    className="text-lg"
                     style={{
-                      opacity: i < lives ? 1 : 0.2,
+                      display: "inline-flex",
                       animation: justBroke
                         ? "dots-heart-break 0.6s var(--ease-out-strong) both"
                         : "none",
                     }}
                   >
-                    ❤️
+                    <UiIcon name="vidas" size={18} apagado={i >= lives} />
                   </span>
                 );
               })}
@@ -487,7 +487,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
                   animation: "dots-pop-in 0.15s ease-out both",
                 }}
               >
-                🔥×{combo}
+                <span className="inline-flex items-center gap-0.5"><UiIcon name="racha" size={16} />×{combo}</span>
               </span>
             )}
           </div>

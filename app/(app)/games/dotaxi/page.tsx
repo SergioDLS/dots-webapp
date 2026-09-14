@@ -12,6 +12,7 @@ import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { getDotaxiService, type DotaxiQuestion } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
@@ -502,9 +503,10 @@ function DotaxiInner({ seed }: { seed?: number }) {
             >
               ← Salir
             </button>
-            <span className="text-sm font-black" aria-label={`${hearts} corazones`}>
-              {"❤️".repeat(hearts)}
-              {"🤍".repeat(START_HEARTS - hearts)}
+            <span className="flex items-center gap-0.5" aria-label={`${hearts} corazones`}>
+              {Array.from({ length: START_HEARTS }).map((_, i) => (
+                <UiIcon key={i} name="vidas" size={16} apagado={i >= hearts} />
+              ))}
             </span>
             <div className="flex flex-col items-end">
               <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
@@ -524,7 +526,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     animation: "dots-pop-in 0.15s var(--ease-out-strong) both",
                   }}
                 >
-                  🔥 x{combo}
+                  <span className="inline-flex items-center gap-0.5"><UiIcon name="racha" size={16} /> x{combo}</span>
                 </span>
               )}
             </div>

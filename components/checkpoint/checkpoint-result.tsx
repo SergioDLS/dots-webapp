@@ -5,6 +5,7 @@ import Doty from "@/components/ui/doty/doty";
 import DotySticker from "@/components/ui/doty/doty-sticker";
 import UIButton from "@/components/ui/button/button";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
+import { UiIcon } from "@/components/ui/ui-icon";
 import type { CheckpointResult as CheckpointResultData } from "@/services/lessons.service";
 
 interface Props {
@@ -21,7 +22,7 @@ export default function CheckpointResult({ result, onRetry, onExit }: Props) {
       <div className="flex flex-col gap-4 w-full">
         <PanelWrapper>
           <Confetti burstKey="checkpoint-passed" count={50} />
-          <SectionLabel emoji="🏆">¡Sección superada!</SectionLabel>
+          <SectionLabel emoji={<UiIcon name="trofeo" size={20} />}>¡Sección superada!</SectionLabel>
           <Doty pose="lo-lograste" size="small" animation="cheer" say="¡Eres increíble!" />
           <p className="font-display text-2xl font-extrabold text-center">
             {result.correct} de {result.total} correctas ({pct}%)

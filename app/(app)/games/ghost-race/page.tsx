@@ -12,6 +12,7 @@ import GameIntro from "@/components/games/shared/game-intro";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Sound from "@/components/ui/sound/sound";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import {
   getAudioBlitzService,
   type AudioBlitzItem,
@@ -118,7 +119,7 @@ function ResultCard({
                   : undefined
             }
           >
-            {beatGhost === null ? "⏳" : beatGhost ? "🏆" : "👻"}
+            {beatGhost === null ? "⏳" : beatGhost ? <UiIcon name="trofeo" size={60} /> : "👻"}
           </div>
 
           <div className="flex flex-col gap-1">

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import Confetti from "@/components/ui/confetti/confetti";
 import WordImg from "@/components/ui/word-img/word-img";
 import Sound from "@/components/ui/sound/sound";
@@ -120,7 +121,7 @@ export default function PracticeContainer({
     return (
       <PanelWrapper>
         <Confetti burstKey={streak} count={34} />
-        <SectionLabel emoji="🔥">Streak</SectionLabel>
+        <SectionLabel emoji={<UiIcon name="racha" size={20} />}>Streak</SectionLabel>
         <Doty pose="emocionado" size="small" animation="cheer" say="You're on fire!" />
         <p
           className="font-display text-5xl font-extrabold"

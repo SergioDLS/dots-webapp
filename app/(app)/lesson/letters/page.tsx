@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
@@ -253,8 +254,8 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
           {firstTry}/{tramo.length} a la primera
         </p>
         {learnedNow != null && (
-          <p className="text-sm font-bold text-(--foreground)">
-            👑 Aprendidas {learnedNow} de {session.packTotal}
+          <p className="flex items-center gap-1 text-sm font-bold text-(--foreground)">
+            <UiIcon name="corona" size={16} /> Aprendidas {learnedNow} de {session.packTotal}
           </p>
         )}
         {reward && (

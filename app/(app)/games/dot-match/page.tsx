@@ -12,6 +12,7 @@ import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { getMatchPairsService, type MatchPair } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
@@ -613,7 +614,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
                   animation: "dots-pop-in 0.15s ease-out both",
                 }}
               >
-                🔥 {combo}
+                <span className="inline-flex items-center gap-0.5"><UiIcon name="racha" size={16} /> {combo}</span>
               </span>
             )}
           </div>

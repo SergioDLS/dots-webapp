@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { UiIcon } from "@/components/ui/ui-icon";
 import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
@@ -244,8 +245,8 @@ function NumbersDrill({
           {firstTry}/{tramo.length} a la primera
         </p>
         {learnedNow != null && (
-          <p className="text-center font-semibold">
-            👑 Aprendidos {learnedNow} de {session.packTotal}
+          <p className="flex items-center justify-center gap-1 text-center font-semibold">
+            <UiIcon name="corona" size={16} /> Aprendidos {learnedNow} de {session.packTotal}
           </p>
         )}
         {reward && (

@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { getGameWordsService, type GameWord } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTicker } from "@/hooks/use-ticker";
@@ -431,9 +432,10 @@ function DotBombsInner({ seed }: { seed?: number }) {
             >
               ← Salir
             </button>
-            <span className="text-sm font-black tabular-nums" aria-label={`${lives} vidas`}>
-              {"❤️".repeat(lives)}
-              {"🤍".repeat(MAX_LIVES - lives)}
+            <span className="flex items-center gap-0.5" aria-label={`${lives} vidas`}>
+              {Array.from({ length: MAX_LIVES }).map((_, i) => (
+                <UiIcon key={i} name="vidas" size={16} apagado={i >= lives} />
+              ))}
             </span>
             <div className="flex flex-col items-end">
               <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
