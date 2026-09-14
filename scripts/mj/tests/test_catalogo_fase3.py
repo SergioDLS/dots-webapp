@@ -1,5 +1,6 @@
 import json
 import pathlib
+import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -32,30 +33,49 @@ def test_exactamente_un_ancla_y_es_gemas():
     assert anclas == ["gemas"]
 
 
-def test_los_tres_del_podio_son_la_misma_medalla_solo_cambia_el_color_del_disco():
-    # Dos intentos anteriores (barras verticales/horizontales, luego
-    # "one/two/three short horizontal bars") salieron con un numeral escrito
-    # igual: la palabra "medal" con un rango asociado empuja a Midjourney para
-    # ese lado pase lo que diga el resto del prompt -- no se gana esa pelea
-    # con adjetivos. El rango ahora lo da el color del disco (rosa/cyan/azul,
-    # los tres colores de marca) y el disco queda vacío. Esto protege que las
-    # tres sigan siendo la misma plantilla -- si una cambia de forma o de
-    # estructura, deja de leerse como serie -- y que ninguna vuelva a invocar
-    # un puesto, un metal o un numeral.
+def _color_del_disco(prompt: str) -> str:
+    """Extrae el color del disco de un prompt del podio. Las tres piezas ya no
+    comparten una plantilla textual idéntica -- podio-bronce fija a mano el
+    hex de marca -- así que hacen falta dos formas: "disc and ribbon both
+    solid {color}" (oro y plata) y "the disc solid {hex} {color} and the
+    ribbon solid {hex} {color}" (bronce)."""
+    m = re.search(r"disc and ribbon both solid (\w+)", prompt)
+    if m:
+        return m.group(1)
+    m = re.search(r"the disc solid \S+ ([a-z ]+?) and the ribbon", prompt)
+    if m:
+        return m.group(1).strip()
+    raise AssertionError(f"no se pudo leer el color del disco en: {prompt!r}")
+
+
+def test_los_tres_del_podio_comparten_forma_y_cada_uno_tiene_disco_de_color_distinto():
+    # Versión anterior de este test: exigía la plantilla literal "disc and
+    # ribbon both solid {color}" en las tres piezas. Esa afirmación ya era
+    # falsa antes de que podio-bronce cambiara -- el arte generado de
+    # podio-oro salió con disco rosa y cinta cyan pese a pedir "both solid
+    # pink", así que Midjourney nunca respetó el "both" -- y con tres colores
+    # de relleno y un objeto de dos partes tampoco es alcanzable: si disco y
+    # cinta comparten color la pieza queda monocroma, y si la cinta es
+    # siempre el mismo color choca con el disco en una de las tres. Lo que de
+    # verdad hay que proteger es más débil pero cierto: que las tres sigan
+    # siendo la misma medalla, que cada una tenga su propio color de disco, y
+    # que ninguna vuelva a nombrar un puesto, un metal o un numeral.
     piezas = {p["slug"]: p["prompt"] for p in _cat()["pieces"]}
     prefijos = {p["slug"]: p["prefix"] for p in _cat()["pieces"]}
-    color_por_slug = {"podio-oro": "pink", "podio-plata": "cyan", "podio-bronce": "blue"}
+    slugs = ("podio-oro", "podio-plata", "podio-bronce")
 
-    plantillas = set()
-    for slug, color in color_por_slug.items():
-        prompt = piezas[slug]
-        assert f"disc and ribbon both solid {color}" in prompt
-        assert "nothing inside the disc" in prompt
-        plantillas.add(prompt.replace(color, "COLOR"))
-    assert len(plantillas) == 1, "las tres piezas del podio dejaron de ser la misma plantilla"
+    compartido = ("round medal hanging from a short ribbon", "nothing inside the disc")
+    for slug in slugs:
+        for fragmento in compartido:
+            assert fragmento in piezas[slug], f"{slug}: no describe {fragmento!r}"
+
+    colores = {slug: _color_del_disco(piezas[slug]) for slug in slugs}
+    assert len(set(colores.values())) == len(slugs), (
+        f"los discos del podio no son de tres colores distintos: {colores}"
+    )
 
     prohibidas = ("first", "second", "third", "place", "gold", "silver", "bronze", "numeral")
-    for slug in color_por_slug:
+    for slug in slugs:
         texto = (piezas[slug] + " " + prefijos[slug]).lower()
         for palabra in prohibidas:
             assert palabra not in texto, f"{slug}: {palabra!r} invoca puesto, metal o numeral"
