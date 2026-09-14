@@ -2,6 +2,8 @@
 
 import { PALETTES, THEME_COLORS, type Palette } from "@/lib/theme-colors";
 
+/** Preferencia del usuario. Distinto del `ThemeMode` de lib/theme-colors.ts
+ *  (solo light|dark: el modo YA resuelto); este incluye "auto". */
 export type ThemeMode = "light" | "dark" | "auto";
 export type ThemePrefs = { palette: Palette; mode: ThemeMode };
 
@@ -17,15 +19,22 @@ const isPalette = (v: unknown): v is Palette =>
 const isMode = (v: unknown): v is ThemeMode =>
   v === "light" || v === "dark" || v === "auto";
 
+/** Sanea valores que vienen de fuera (storage ajeno, respuesta del servidor):
+ *  cualquier campo inválido cae al default. */
+export function normalizePrefs(prefs: { palette?: unknown; mode?: unknown } | null | undefined): ThemePrefs {
+  return {
+    palette: isPalette(prefs?.palette) ? prefs.palette : DEFAULT_PREFS.palette,
+    mode: isMode(prefs?.mode) ? prefs.mode : DEFAULT_PREFS.mode,
+  };
+}
+
 export function readMirror(): ThemePrefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
   try {
-    const p = window.localStorage.getItem(PALETTE_KEY);
-    const m = window.localStorage.getItem(MODE_KEY);
-    return {
-      palette: isPalette(p) ? p : DEFAULT_PREFS.palette,
-      mode: isMode(m) ? m : DEFAULT_PREFS.mode,
-    };
+    return normalizePrefs({
+      palette: window.localStorage.getItem(PALETTE_KEY) as Palette | null,
+      mode: window.localStorage.getItem(MODE_KEY) as ThemeMode | null,
+    });
   } catch {
     return DEFAULT_PREFS;
   }
@@ -42,12 +51,16 @@ export function writeMirror(prefs: ThemePrefs): void {
 
 export function resolveMode(mode: ThemeMode): "light" | "dark" {
   if (mode !== "auto") return mode;
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-/** Aplica paleta y modo al documento. Debe hacer exactamente lo mismo que el
- *  script anti-parpadeo de app/layout.tsx: si cambias uno, cambia el otro. */
-export function applyThemePrefs(prefs: ThemePrefs): void {
+/** Aplica paleta y modo al documento. Produce exactamente el mismo estado del
+ *  DOM que el script anti-parpadeo de app/layout.tsx (atributos, clase dark,
+ *  colorScheme y una sola <meta name="theme-color">); el script además traga
+ *  cualquier error porque corre antes de React. Si cambias uno, cambia el otro. */
+export function applyThemePrefs(input: ThemePrefs): void {
+  const prefs = normalizePrefs(input);
   const root = document.documentElement;
   root.setAttribute("data-palette", prefs.palette);
   if (prefs.mode === "auto") root.removeAttribute("data-theme");
