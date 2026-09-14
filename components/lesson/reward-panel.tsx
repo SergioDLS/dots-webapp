@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
+import { UiIcon } from "@/components/ui/ui-icon";
 import type { ProgressReward } from "@/services/engagement.service";
 
 /** Hitos de racha que merecen una celebración extra */
@@ -50,7 +51,7 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
     background: string;
     border: string;
     color: string;
-    content: string;
+    content: ReactNode;
   };
   const chipDefs: (Chip | false | undefined)[] = [
     reward.xpGained > 0 && {
@@ -65,7 +66,11 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
       background: "color-mix(in srgb, var(--flame) 16%, transparent)",
       border: "2px solid color-mix(in srgb, var(--flame) 40%, transparent)",
       color: "var(--flame-edge)",
-      content: `🔥 Día ${reward.streak}`,
+      content: (
+        <span className="inline-flex items-center gap-1">
+          <UiIcon name="racha" size={16} /> Día {reward.streak}
+        </span>
+      ),
     },
     reward.freezeUsed && {
       key: "freeze-used",

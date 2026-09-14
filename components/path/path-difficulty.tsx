@@ -9,6 +9,7 @@ import {
   DIFFICULTY_COLOR_HEX,
 } from "@/lib/difficulty-palette";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 
 interface PathDifficultyProps {
   difficulty: PathDifficultyType;
@@ -17,14 +18,14 @@ interface PathDifficultyProps {
 
 const motivational = (
   pct: number,
-): { msg: string; emoji: string; trailingIcon?: IconName } => {
+): { msg: string; emoji: React.ReactNode; trailingIcon?: IconName } => {
   if (pct === 0)  return { msg: "¡Vamos! Empieza aquí",              emoji: "🚀", trailingIcon: "abajo" };
   if (pct < 20)   return { msg: "¡Buen comienzo, sigue así!",        emoji: "✨" };
-  if (pct < 40)   return { msg: "¡Vas con todo!",                    emoji: "🔥" };
+  if (pct < 40)   return { msg: "¡Vas con todo!",                    emoji: <UiIcon name="racha" size={16} /> };
   if (pct < 60)   return { msg: "¡Mitad del camino, no pares!",      emoji: "💪" };
-  if (pct < 80)   return { msg: "¡Ya casi, termina con fuerza!",     emoji: "⚡" };
-  if (pct < 100)  return { msg: "¡A un paso de dominarlo!",          emoji: "🏅" };
-  return           { msg: "¡Nivel dominado! ¡Increíble!",            emoji: "🏆" };
+  if (pct < 80)   return { msg: "¡Ya casi, termina con fuerza!",     emoji: <UiIcon name="rayo" size={16} /> };
+  if (pct < 100)  return { msg: "¡A un paso de dominarlo!",          emoji: <UiIcon name="medalla" size={16} /> };
+  return           { msg: "¡Nivel dominado! ¡Increíble!",            emoji: <UiIcon name="trofeo" size={16} /> };
 };
 
 export default function PathDifficulty({

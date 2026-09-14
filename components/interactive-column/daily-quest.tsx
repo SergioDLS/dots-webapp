@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Confetti from "../ui/confetti/confetti";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import {
   getMyQuestService,
   claimQuestService,
@@ -126,11 +127,17 @@ export default function DailyQuestCard({
               : "dots-pulse-ring 1.6s ease-out infinite",
           }}
         >
-          {claiming ? "Reclamando..." : `Reclamar +${quest.reward} XP 🎁`}
+          {claiming ? (
+            "Reclamando..."
+          ) : (
+            <>
+              Reclamar +{quest.reward} XP <UiIcon name="regalo" size={16} className="inline-block align-middle" />
+            </>
+          )}
         </button>
       ) : (
         <p className="text-xs font-bold text-(--muted)">
-          ¡Sigue! Te espera un premio 🎁
+          ¡Sigue! Te espera un premio <UiIcon name="regalo" size={16} className="inline-block align-middle" />
         </p>
       )}
     </div>

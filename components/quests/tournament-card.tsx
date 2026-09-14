@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { UiIcon, type UiIconName } from "@/components/ui/ui-icon";
 import {
   getTournamentService,
   type TournamentData,
@@ -86,7 +87,7 @@ export default function TournamentCard() {
             {gameName}
           </h2>
         </div>
-        <div className="text-2xl select-none">🏆</div>
+        <UiIcon name="trofeo" size={24} />
       </div>
 
       {/* Countdown */}
@@ -101,8 +102,8 @@ export default function TournamentCard() {
       {top.length > 0 && (
         <ol className="flex flex-col gap-1">
           {top.slice(0, 10).map((entry, i) => {
-            const medal =
-              i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+            const medalIcon: UiIconName | null =
+              i === 0 ? "podio-oro" : i === 1 ? "podio-plata" : i === 2 ? "podio-bronce" : null;
             return (
               <li
                 key={i}
@@ -112,8 +113,8 @@ export default function TournamentCard() {
                   className="font-semibold truncate"
                   style={{ color: "var(--foreground)" }}
                 >
-                  {medal ? (
-                    <span className="mr-1">{medal}</span>
+                  {medalIcon ? (
+                    <UiIcon name={medalIcon} size={16} className="mr-1 inline-block align-middle" />
                   ) : (
                     <span
                       className="mr-1 inline-block w-4 text-center text-xs font-bold"

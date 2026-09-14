@@ -1,4 +1,5 @@
 import LoadBar from "@/components/ui/load-bar/load-bar";
+import { UiIcon } from "@/components/ui/ui-icon";
 
 interface LessonTopBarProps {
   progress: number;
@@ -19,10 +20,8 @@ export default function LessonTopBar({ progress, streak = null, hearts }: Lesson
             return (
               <span
                 key={i}
-                className="text-xl leading-none select-none"
                 style={{
-                  filter: alive ? "none" : "grayscale(1)",
-                  opacity: alive ? 1 : 0.25,
+                  display: "inline-flex",
                   animation: critical
                     ? "dots-heart-pop 0.8s ease-in-out infinite"
                     : !alive
@@ -31,7 +30,7 @@ export default function LessonTopBar({ progress, streak = null, hearts }: Lesson
                   animationDelay: critical ? `${i * 0.15}s` : "0s",
                 }}
               >
-                ❤️
+                <UiIcon name="vidas" size={20} apagado={!alive} />
               </span>
             );
           })}

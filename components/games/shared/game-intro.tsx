@@ -3,6 +3,7 @@
 import React from "react";
 import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
+import { UiIcon } from "@/components/ui/ui-icon";
 
 interface ThroneInfo {
   name: string;
@@ -92,7 +93,7 @@ export default function GameIntro({
             className="text-sm font-bold"
             style={{ color: "var(--muted)", animation: "dots-pop-in 0.4s ease-out 0.1s both" }}
           >
-            🏅 Tu récord:{" "}
+            <UiIcon name="medalla" size={16} className="inline-block align-middle" /> Tu récord:{" "}
             <span className="font-black text-foreground">{record}</span>
           </p>
         )}
@@ -103,7 +104,7 @@ export default function GameIntro({
             className="text-sm font-bold"
             style={{ color: "var(--muted)", animation: "dots-pop-in 0.4s ease-out 0.2s both" }}
           >
-            🏆{" "}
+            <UiIcon name="trofeo" size={16} className="inline-block align-middle" />{" "}
             <span className="font-black text-foreground">{throne.name}</span>{" "}
             reina con{" "}
             <span className="font-black text-foreground">{throne.score}</span>{" "}

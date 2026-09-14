@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { UiIcon } from "@/components/ui/ui-icon";
 import {
   getMyBadgesService,
   type Badge,
@@ -39,8 +40,8 @@ export default function BadgesCard() {
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-(--accent)/6"
       >
-        <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted)">
-          🏅 Mis logros
+        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-(--muted)">
+          <UiIcon name="medalla" size={16} /> Mis logros
         </span>
         <span className="flex items-center gap-2">
           <span className="text-[10px] font-extrabold text-(--accent) tabular-nums">

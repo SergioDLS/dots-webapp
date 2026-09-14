@@ -7,6 +7,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import Doty from "../ui/doty/doty";
+import { UiIcon, type UiIconName } from "@/components/ui/ui-icon";
 import {
   getLeaderboardService,
   type LeaderboardEntry,
@@ -17,7 +18,7 @@ import {
   postChallengeService,
 } from "../../services/challenges.service";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+const MEDALS: UiIconName[] = ["podio-oro", "podio-plata", "podio-bronce"];
 
 /** Kid privacy: first name + last-name initial only (e.g. "Sofia G.") */
 const displayName = (entry: LeaderboardEntry) => {
@@ -148,9 +149,7 @@ export default function TopStudents() {
                 {/* Rank medal or number */}
                 <div className="shrink-0 w-8 flex items-center justify-center">
                   {item.rank <= 3 ? (
-                    <span className="text-2xl leading-none">
-                      {MEDALS[item.rank - 1]}
-                    </span>
+                    <UiIcon name={MEDALS[item.rank - 1]} size={24} />
                   ) : (
                     <span className="text-sm font-bold text-(--muted)">
                       {item.rank}
@@ -183,8 +182,8 @@ export default function TopStudents() {
                   <span className="text-xs font-black text-(--accent) tabular-nums">
                     {item.xp} XP
                   </span>
-                  <span className="text-[11px] font-bold text-(--muted) tabular-nums">
-                    🔥 {item.streak}
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-(--muted) tabular-nums">
+                    <UiIcon name="racha" size={16} /> {item.streak}
                   </span>
                 </div>
               </div>

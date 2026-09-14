@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { UiIcon } from "@/components/ui/ui-icon";
 import type { MyStats } from "../../services/engagement.service";
 
 /**
@@ -28,14 +29,14 @@ export default function XpLevel({ stats }: { stats: MyStats | null }) {
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className="rounded-full px-2 py-0.5 text-[10px] font-black"
+          className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black"
           style={{
             background: "color-mix(in srgb, var(--primary) 14%, transparent)",
             border: "1.5px solid color-mix(in srgb, var(--primary) 35%, transparent)",
             color: "var(--primary)",
           }}
         >
-          ⭐ Level {stats.level}
+          <UiIcon name="xp" size={16} /> Level {stats.level}
         </span>
         <span className="text-[10px] font-extrabold text-(--muted) tabular-nums">
           {stats.xp}/{stats.xpForNextLevel} XP

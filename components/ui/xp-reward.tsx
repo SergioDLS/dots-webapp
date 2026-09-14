@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { UiIcon } from "@/components/ui/ui-icon";
 import type { ScoreResult } from "@/services/engagement.service";
 
 /**
@@ -30,10 +31,10 @@ export default function XpReward({ reward }: { reward: ScoreResult | null }) {
       )}
       {reward.isNewHighScore && (
         <span
-          className="text-sm font-extrabold text-(--accent)"
+          className="flex items-center gap-1 text-sm font-extrabold text-(--accent)"
           style={{ animation: "dots-wiggle 1.2s ease-in-out infinite" }}
         >
-          🏆 New high score!
+          <UiIcon name="trofeo" size={16} /> New high score!
         </span>
       )}
     </div>

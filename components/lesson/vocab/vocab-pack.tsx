@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import UIButton from "@/components/ui/button/button";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ResultScreen from "@/components/lesson/result-screen";
@@ -228,7 +229,11 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
         session.isReview
           ? "¡Repaso completo! Estas palabras siguen firmes."
           : learnedNow != null
-            ? `👑 Aprendidas ${learnedNow} de ${session.packTotal} palabras`
+            ? (
+                <span className="inline-flex items-center gap-1.5 align-middle">
+                  <UiIcon name="corona" size={24} /> Aprendidas {learnedNow} de {session.packTotal} palabras
+                </span>
+              )
             : `¡${tramo.length} palabras practicadas!`
       }
       ctaLabel="Seguir practicando"

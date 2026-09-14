@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { getMyStatsService, type MyStats } from "@/services/engagement.service";
+import { UiIcon } from "@/components/ui/ui-icon";
 
 /**
  * HUD superior de las pantallas hub: racha (llama), nivel y progreso de XP.
@@ -43,7 +44,7 @@ export default function AppHeader() {
         }}
         title="Racha diaria"
       >
-        <span className="text-base leading-none">🔥</span>
+        <UiIcon name="racha" size={16} />
         <span className="text-sm">{stats?.streak ?? 0}</span>
       </div>
 
@@ -58,21 +59,21 @@ export default function AppHeader() {
         }}
         title="Tienda"
       >
-        <span className="text-base leading-none">💎</span>
+        <UiIcon name="gemas" size={16} />
         <span className="text-sm">{stats?.gems ?? 0}</span>
       </Link>
 
       {/* Nivel + XP */}
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span
-          className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black"
+          className="flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black"
           style={{
             background: "color-mix(in srgb, var(--primary) 14%, transparent)",
             border: "1.5px solid color-mix(in srgb, var(--primary) 35%, transparent)",
             color: "var(--primary)",
           }}
         >
-          ⭐ Nivel {stats?.level ?? 1}
+          <UiIcon name="xp" size={16} /> Nivel {stats?.level ?? 1}
         </span>
         <div
           className="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full"

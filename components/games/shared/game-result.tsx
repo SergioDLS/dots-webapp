@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { useCountUp } from "@/hooks/use-count-up";
 import {
   submitGameScoreService,
@@ -123,7 +124,7 @@ export default function GameResult({
                 animation: "dots-pop-in 0.4s ease-out 0.2s both",
               }}
             >
-              🏆 ¡Nuevo récord!
+              <UiIcon name="trofeo" size={16} className="inline-block align-middle" /> ¡Nuevo récord!
             </span>
           )}
           {tookThrone && dethronedName && (
@@ -136,7 +137,7 @@ export default function GameResult({
                 animation: "dots-pop-in 0.4s ease-out 0.3s both",
               }}
             >
-              👑 ¡Trono robado a {dethronedName}!
+              <UiIcon name="corona" size={16} className="inline-block align-middle" /> ¡Trono robado a {dethronedName}!
             </span>
           )}
         </div>

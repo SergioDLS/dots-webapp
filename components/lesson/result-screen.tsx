@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import UIButton from "@/components/ui/button/button";
@@ -12,8 +13,8 @@ export type ResultMode = "perfect" | "finished" | "gameover";
 interface ResultScreenProps {
   mode: ResultMode;
   reward?: ProgressReward | null;
-  /** Overrides the per-mode default subtext */
-  subtext?: string;
+  /** Overrides the per-mode default subtext. Acepta un <UiIcon> inline (p. ej. vocab-pack). */
+  subtext?: ReactNode;
   /** Overrides the per-mode default CTA label */
   ctaLabel?: string;
   onCta: () => void;
