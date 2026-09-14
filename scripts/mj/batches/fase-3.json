@@ -1,0 +1,114 @@
+{
+  "fase": "fase-3",
+  "pieces": [
+    {
+      "slug": "gemas",
+      "group": "ui",
+      "prefix": "Ui icon gem",
+      "prompt": "a single faceted gem seen from the front, wide flat top facet and three facets below, cyan body with a lighter cyan highlight facet",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "anchor": true
+    },
+    {
+      "slug": "racha",
+      "group": "ui",
+      "prefix": "Ui icon flame",
+      "prompt": "a single bold flame with two inner tongues, pink outer flame and cyan inner tongue",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "vidas",
+      "group": "ui",
+      "prefix": "Ui icon heart",
+      "prompt": "a plump rounded heart, pink body with a small white highlight in the upper left",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "xp",
+      "group": "ui",
+      "prefix": "Ui icon star",
+      "prompt": "a single five-pointed star with thick rounded points, blue body with a lighter blue inner star",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "corona",
+      "group": "ui",
+      "prefix": "Ui icon crown",
+      "prompt": "a three-peaked crown with a wide band, pink body with three cyan round jewels on the band",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "trofeo",
+      "group": "ui",
+      "prefix": "Ui icon trophy",
+      "prompt": "a two-handled cup on a square base, cyan cup and pink base",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "medalla",
+      "group": "ui",
+      "prefix": "Ui icon medal",
+      "prompt": "a round medal hanging from a short ribbon, blue disc and pink ribbon",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "regalo",
+      "group": "ui",
+      "prefix": "Ui icon gift box",
+      "prompt": "a square gift box with a ribbon cross and a bow on top, pink box and cyan ribbon",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "podio-oro",
+      "group": "ui",
+      "prefix": "Ui icon first place medal",
+      "prompt": "a round medal with the numeral one shape suggested by a single vertical bar in white, cyan disc and pink ribbon",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "podio-plata",
+      "group": "ui",
+      "prefix": "Ui icon second place medal",
+      "prompt": "a round medal with two short horizontal bars in white, blue disc and pink ribbon",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "podio-bronce",
+      "group": "ui",
+      "prefix": "Ui icon third place medal",
+      "prompt": "a round medal with three short horizontal bars in white, pink disc and cyan ribbon",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "rayo",
+      "group": "ui",
+      "prefix": "Ui icon lightning bolt",
+      "prompt": "a single thick zigzag lightning bolt, cyan body with a pink edge",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    }
+  ]
+}
