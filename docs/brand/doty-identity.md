@@ -198,3 +198,127 @@ Cinco cosas que costaron intentos y ahorran los siguientes:
   se come el blanco de un ojo o de un pergamino; el pipeline lo repara
   (`fill_internal_holes`), pero si el hueco da al fondo en vez de estar
   encerrado, no lo alcanza y hay que regenerar.
+
+## Iconografía
+
+Desde septiembre de 2026 la app no usa emoji como iconografía de producto: un
+emoji lo dibuja el sistema operativo, sale distinto en Safari de iPhone que en
+escritorio, y no se puede teñir con CSS. Dos sistemas lo reemplazan, ninguno
+pasa por `<Doty>` ni por `poses.ts`:
+
+- **29 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
+  tres familias: nav, nodo y glifo.
+- **12 PNG de economía** — `<UiIcon name=…>`, `public/images/ui/` —
+  generados con Midjourney igual que el resto del arte de Doty, porque su
+  color es identidad (una gema es cyan, una racha es fuego) y no algo que el
+  contexto deba teñir.
+
+`npm run lint` verifica los dos (`scripts/check-icons.mjs`).
+
+### Los 29 SVG
+
+| Familia | N | `strokeWidth` | Slugs |
+|---|---|---|---|
+| `nav` | 5 | 3 | camino, repaso, retos, juegos, perfil |
+| `nodo` | 8 | 2.5 | leccion, escucha, gramatica, vocabulario, letras, numeros, lectura, checkpoint |
+| `glifo` | 16 | 3.5 | check, cruz, aviso, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate |
+
+- **Paleta cerrada de rellenos**: rosa `#FF1F8F`, azul `#3768FF`, cyan
+  `#35D8F5` y blanco. Nada más entra en un `fill`.
+- **El navy `#1E1B5C` es la línea, nunca el relleno.** Sobre el tema oscuro
+  mide 1,18:1 de contraste y una masa navy se funde con el fondo — el mismo
+  criterio 5 que rige el arte de Midjourney (`mjlib.py::dark_fill_mentions`).
+  `check-icons.mjs` lo rechaza si aparece en un `fill`.
+- **Un solo `viewBox`, 48**, igual en las tres familias, para que un mismo
+  número de grosor signifique lo mismo en cualquiera de ellas.
+- **El grosor es constante dentro de cada familia y NO se copia de los tiles
+  de Midjourney** (`public/images/levels/`, fase 2): su contorno mide el 1.8%
+  del sujeto, que a 24 px —el tamaño real al que se ven esos tiles en la
+  cabecera— son 0.45 px, invisibles. El grosor de un SVG se decide por el
+  tamaño real al que se renderiza esa familia, no imitando el trazo de un PNG
+  generado a otra escala. Por eso nav es 3, nodo 2.5 y glifo 3.5, y no los
+  tres iguales.
+- **El tamaño de render se elige por call site, no se fija en un número.** El
+  "16 px" que calibra el grosor de la familia glifo (3.5 se lee bien entre 16
+  y 24 px) es una referencia de calibración del trazo, no una orden de
+  renderizar todo a 16. Seguirla al pie de la letra dejó diminuto un `aviso`
+  en `memory/page.tsx` que antes era un emoji grande: el tamaño lo decide lo
+  que el icono reemplaza en cada sitio (16 como piso para texto corrido,
+  20-24+ para lo que antes era un emoji grande), no una constante global.
+
+> **`cairosvg` pinta macizo lo que es un agujero.** Si verificas estos SVG
+> fuera del navegador —una hoja de contacto en Python, por ejemplo—, ten en
+> cuenta que `cairosvg` renderiza mal `fill-rule="evenodd"`: un icono como
+> `enlace` (dos anillos huecos entrelazados) sale con los anillos rellenos,
+> como si fueran discos macizos. En el navegador real se ven huecos, que es
+> como se leen. Esto estuvo a punto de tirar un icono que estaba bien: la
+> hoja de contacto de Python miente en cualquier pieza con `evenodd` — hay
+> que mirarla en un navegador de verdad antes de descartarla.
+
+### Los 12 PNG de economía
+
+Mismo pipeline que el resto del arte de Doty (Midjourney → `rembg` → recorte
+y alfa → `--apply`). Los criterios de rechazo, verificados a 24 px —el
+tamaño real en la cabecera— sobre los dos fondos del tema:
+
+1. Ninguna pieza pierde un elemento sobre el fondo oscuro.
+2. Los tres del podio se distinguen entre sí.
+3. Ningún color fuera de la paleta de marca.
+4. La fracción de píxeles "apagados" (HSV, saturación < 0.45, sin contar el
+   blanco del fondo ni el navy de la línea) queda por debajo de un umbral.
+
+**Sobre qué etapa se mide el criterio 4.** El mismo cálculo da números muy
+distintos según la imagen que le pases:
+
+| Tanda | Descarga cruda (sobre blanco) | PNG procesado (alfa, recortado) |
+|---|---|---|
+| Buena (aceptada) | 6.8% | 0.7% |
+| Descartada (ronda 4) | 21% | *no existe* — se descartó antes de procesarse |
+
+La diferencia entre etapas son los píxeles del borde: al reducir una imagen
+con fondo blanco, el degradado entre la figura y el fondo son píxeles
+desaturados, y `rembg` los elimina de raíz al recortar el alfa. **Medir sobre
+el PNG procesado da una cifra entre cinco y diez veces menor que medir sobre
+la descarga cruda** — un umbral calibrado en una etapa no dice nada sobre la
+otra.
+
+**El criterio se mide sobre la descarga cruda**, nunca sobre el PNG
+procesado: es la etapa en la que de verdad se decide si una candidata merece
+procesarse (para cuando existe un PNG procesado, la generación ya se aceptó),
+y además es la única etapa en la que hay dato de las dos tandas — una tanda
+que se descarta no llega a tener versión procesada con la que comparar.
+
+Umbral: **12%**. No es arbitrario: es, redondeado, la media geométrica entre
+la mediana de la tanda buena en crudo (6.8%) y la de la tanda descartada en
+crudo (21%) — √(6.8 × 21) ≈ 12.0 —, así que dista lo mismo *proporcionalmente*
+(~1.75×) de cada una en vez de estar pegado a un extremo: da margen a que un
+lote algo peor que el de referencia siga pasando, sin acercarse a la zona de
+las tandas que de verdad estaban mal. Cualquier pieza que falle vuelve al
+catálogo con `regen: true`, nunca `done: false`.
+
+### Aviso: las métricas por píxel priorizan, no deciden
+
+En las dos fases de arte generado de este proyecto (tiles del Camino e
+iconos de economía), una medición por píxel estuvo a punto de tirar arte
+bueno o de aceptar arte malo, cuatro veces:
+
+- Midiendo la saturación "apagada" del criterio 4 sobre el PNG ya procesado
+  en vez de sobre la descarga cruda — la diferencia es de cinco a diez veces
+  (ver arriba).
+- Midiendo el contraste de un tile de nivel promediando todos sus píxeles
+  contra el fondo, en vez de mirar su estructura local (la línea contra lo
+  que tiene inmediatamente al lado) — el promedio global no dice si el trazo
+  se lee.
+- Midiendo conformidad de paleta con un score que dio 37% para arte fuera de
+  marca y 34% para arte ya publicado y correcto — la métrica no separaba los
+  dos mundos; puesta al lado del arte de referencia, la diferencia se veía a
+  simple vista.
+- Midiendo el color del disco de `podio-bronce` con una ventana centrada que
+  también cogía el anillo exterior, lo que hizo parecer que una regeneración
+  válida era peor que la anterior — mirarlas a 24 px, una junto a otra,
+  mostró que no lo era.
+
+El patrón se repite porque la métrica mide algo real, pero no mide lo que
+decide. **Una métrica por píxel sirve para priorizar qué mirar, nunca para
+decidir sin mirar.** La decisión se toma viendo la pieza al tamaño real de
+uso, sobre el fondo real.
