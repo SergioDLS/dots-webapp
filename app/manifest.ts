@@ -27,13 +27,14 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     // El fondo, no el rosa de marca: el theme_color tiñe la barra de estado y
     // un acento ahí se lee como una cabecera que la app no tiene. Ambos
-    // vienen de THEME_COLORS (lib/theme-colors.ts) para no divergir del
-    // script anti-flash de app/layout.tsx ni de components/theme-toggle.tsx.
-    // Nota: este manifest es estático — no puede leer el tema guardado en
-    // localStorage, así que splash y barra siempre salen en claro (ver
-    // docs/superpowers/specs/2026-08-16-pwa-manifest-design.md).
-    background_color: THEME_COLORS.light,
-    theme_color: THEME_COLORS.light,
+    // vienen de THEME_COLORS (lib/theme-colors.ts, GENERADO desde
+    // design/themes.json) para no divergir del script anti-flash de
+    // app/layout.tsx ni de components/theme-toggle.tsx.
+    // Nota: este manifest es estático — no puede leer la paleta ni el modo
+    // guardados en localStorage, así que splash y barra siempre salen en
+    // Rosa claro (ver docs/superpowers/specs/2026-08-16-pwa-manifest-design.md).
+    background_color: THEME_COLORS.rosa.light,
+    theme_color: THEME_COLORS.rosa.light,
     lang: "es",
     dir: "ltr",
     categories: ["education"],

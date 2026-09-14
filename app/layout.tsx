@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Baloo_2, Geist_Mono, Nunito } from "next/font/google";
+import "./themes.generated.css";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
@@ -76,23 +77,37 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <head>
         {/*
-          Aplica el tema guardado ANTES del primer paint (evita flash) y deja
-          exactamente una <meta name="theme-color"> autoritativa, sin `media`.
-          El `viewport` exportado arriba define SOLO viewportFit — jamás
-          themeColor: React no gestiona ninguna <meta name="theme-color">
-          propia, así que no hay hidratación que pueda reclamar la etiqueta
-          de este script ni recrear una segunda con media query. El borrado defensivo (querySelectorAll +
-          remove antes de insertar) no es por eso — es solo para que el
-          script siga siendo idempotente si llegara a ejecutarse más de una
-          vez. Si necesitas reintroducir `viewport.themeColor`, vuelve a leer
-          por qué se quitó antes de hacerlo (commit que simplificó esto).
-          Los dos colores se interpolan desde THEME_COLORS
-          (lib/theme-colors.ts), la misma constante que usan app/manifest.ts
-          y components/theme-toggle.tsx — no los reescribas a mano aquí.
+          Aplica la paleta y el modo guardados ANTES del primer paint (evita
+          flash) y deja exactamente una <meta name="theme-color">
+          autoritativa, sin `media`. El `viewport` exportado arriba define
+          SOLO viewportFit — jamás themeColor: React no gestiona ninguna
+          <meta name="theme-color"> propia, así que no hay hidratación que
+          pueda reclamar la etiqueta de este script ni recrear una segunda
+          con media query. El borrado defensivo (querySelectorAll + remove
+          antes de insertar) no es por eso — es solo para que el script siga
+          siendo idempotente si llegara a ejecutarse más de una vez. Si
+          necesitas reintroducir `viewport.themeColor`, vuelve a leer por qué
+          se quitó antes de hacerlo (commit que simplificó esto).
+
+          Los colores salen de THEME_COLORS (lib/theme-colors.ts), GENERADO
+          por scripts/themes/build.mjs desde design/themes.json (npm run
+          themes:build) — no lo reescribas a mano. Es un mapa
+          paleta → modo → --background; la misma constante que usan
+          app/manifest.ts y components/theme-toggle.tsx.
+
+          Paleta: "dots-palette" en localStorage; si no hay una guardada o no
+          existe en THEME_COLORS, cae a "rosa". Modo: "dots-theme" vale
+          "light" o "dark" — quien lo tenga guardado conserva su modo tal
+          cual. Cualquier otro valor, incluido no tener nada guardado, es
+          modo Auto: NO se fija `data-theme` en <html>, y
+          app/themes.generated.css resuelve el tema por
+          `prefers-color-scheme` — este script hace la misma resolución aquí
+          para elegir el color de la meta y la clase `dark`. Antes, sin nada
+          guardado, el modo por defecto era "light" a secas; ahora es Auto.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("dots-theme")||"light";document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=t;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var m=document.createElement("meta");m.setAttribute("name","theme-color");m.setAttribute("content",t==="dark"?"${THEME_COLORS.dark}":"${THEME_COLORS.light}");document.head.appendChild(m);}catch(e){}})();`,
+            __html: `(function(){try{var d=document.documentElement;var C=${JSON.stringify(THEME_COLORS)};var p=localStorage.getItem("dots-palette");if(!C[p])p="rosa";var m=localStorage.getItem("dots-theme");if(m!=="light"&&m!=="dark")m="auto";d.setAttribute("data-palette",p);if(m==="auto"){d.removeAttribute("data-theme");}else{d.setAttribute("data-theme",m);}var r=m==="auto"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m;d.classList.toggle("dark",r==="dark");d.style.colorScheme=r;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var t=document.createElement("meta");t.setAttribute("name","theme-color");t.setAttribute("content",C[p][r]);document.head.appendChild(t);}catch(e){}})();`,
           }}
         />
       </head>
