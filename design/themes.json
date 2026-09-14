@@ -1,0 +1,85 @@
+{
+  "static": {
+    "--navy": "#201a4d",
+    "--navy-2": "#2c2560",
+    "--navy-edge": "#14102f",
+    "--purple": "var(--primary)",
+    "--purple-edge": "var(--primary-edge)",
+    "--primary-accent": "var(--accent)",
+    "--primary-accent-contrast": "var(--accent-contrast)",
+    "--sun": "var(--gold)",
+    "--shadow-press": "0 4px 0",
+    "--radius-md": "1rem",
+    "--radius-lg": "1.5rem",
+    "--radius-xl": "2rem",
+    "--ease-out-strong": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "--ease-in-out-strong": "cubic-bezier(0.77, 0, 0.175, 1)"
+  },
+  "modes": {
+    "light": {
+      "--success": "#22c55e", "--success-soft": "#dcfce7", "--success-edge": "#16a34a",
+      "--danger": "#f43f5e", "--danger-soft": "#ffe4e6", "--danger-edge": "#b72f47",
+      "--gold": "#ffb020", "--gold-edge": "#bf8418",
+      "--gem": "#12b5c9", "--gem-edge": "#0c8a99",
+      "--flame": "#ff7a1a", "--flame-edge": "#d95f00",
+      "--sky-top": "#7ec8f5", "--sky-bottom": "#cdeafd"
+    },
+    "dark": {
+      "--navy": "#201a4d", "--navy-2": "#2c2560", "--navy-edge": "#14102f",
+      "--success": "#34d399", "--success-soft": "rgba(52, 211, 153, 0.16)", "--success-edge": "#14966b",
+      "--danger": "#fb7185", "--danger-soft": "rgba(251, 113, 133, 0.16)", "--danger-edge": "#bc5564",
+      "--gold": "#ffc53d", "--gold-edge": "#bf942e",
+      "--gem": "#35d0e2", "--gem-edge": "#159fb0",
+      "--flame": "#ff9540", "--flame-edge": "#e06a10",
+      "--sky-top": "#1c2c54", "--sky-bottom": "#34467a"
+    }
+  },
+  "palettes": {
+    "rosa": {
+      "label": "Rosa",
+      "light": {
+        "--background": "#fff7fb", "--surface": "#ffffff", "--surface-2": "#fff0f7",
+        "--border": "#f4dcea", "--dot": "#f4dcea",
+        "--foreground": "#201a4d", "--muted": "#6a6690",
+        "--primary": "var(--navy)", "--primary-contrast": "#ffffff", "--primary-edge": "var(--navy-edge)",
+        "--accent": "#e5077e", "--accent-soft": "#ff64b4", "--accent-contrast": "#ffffff", "--accent-edge": "#b0005c",
+        "--neutral-edge": "#e7cfdd", "--scrim": "rgba(28, 16, 48, 0.5)",
+        "--shadow-card": "0 2px 0 var(--border), 0 10px 30px -12px rgba(33, 22, 80, 0.18)",
+        "--input-bg": "#ffffff"
+      },
+      "dark": {
+        "--background": "#14122e", "--surface": "#201a4d", "--surface-2": "#1b1640",
+        "--border": "#332c66", "--dot": "#1b1640",
+        "--foreground": "#f4f2ff", "--muted": "#b6aee0",
+        "--primary": "#6a5cff", "--primary-contrast": "#ffffff", "--primary-edge": "#4a3fd0",
+        "--accent": "#ff3d9e", "--accent-soft": "#ff77bf", "--accent-contrast": "#ffffff", "--accent-edge": "#c1156f",
+        "--neutral-edge": "#1a0f2e", "--scrim": "rgba(0, 0, 0, 0.6)",
+        "--shadow-card": "0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5)",
+        "--input-bg": "rgba(255, 255, 255, 0.06)"
+      }
+    },
+    "electrico": {
+      "label": "Eléctrico",
+      "light": {
+        "--background": "#f4f7ff", "--surface": "#ffffff", "--surface-2": "#e9efff",
+        "--border": "#d3ddff", "--dot": "#d3ddff",
+        "--foreground": "#201a4d", "--muted": "#5f6a8e",
+        "--primary": "var(--navy)", "--primary-contrast": "#ffffff", "--primary-edge": "var(--navy-edge)",
+        "--accent": "#3768ff", "--accent-soft": "#7aa0ff", "--accent-contrast": "#ffffff", "--accent-edge": "#2447c9",
+        "--neutral-edge": "#c9d4f2", "--scrim": "rgba(16, 22, 48, 0.5)",
+        "--shadow-card": "0 2px 0 var(--border), 0 10px 30px -12px rgba(22, 33, 80, 0.18)",
+        "--input-bg": "#ffffff"
+      },
+      "dark": {
+        "--background": "#0d1330", "--surface": "#172046", "--surface-2": "#121a3d",
+        "--border": "#2a386b", "--dot": "#121a3d",
+        "--foreground": "#eef2ff", "--muted": "#a9b6e6",
+        "--primary": "#35d8f5", "--primary-contrast": "#0d1330", "--primary-edge": "#1ba9c4",
+        "--accent": "#5c86ff", "--accent-soft": "#8fb0ff", "--accent-contrast": "#ffffff", "--accent-edge": "#2b55d6",
+        "--neutral-edge": "#0a0f26", "--scrim": "rgba(0, 0, 0, 0.6)",
+        "--shadow-card": "0 2px 0 var(--border), 0 10px 30px -12px rgba(0, 0, 0, 0.5)",
+        "--input-bg": "rgba(255, 255, 255, 0.06)"
+      }
+    }
+  }
+}
