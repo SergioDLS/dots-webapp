@@ -140,11 +140,11 @@ export default function PathSection({
               />
               {/*
                 Doty and peers claim the same slot: the interior side of the
-                node, top-aligned. There is no room for both — a row is 170px
-                tall, Doty takes ~110 and two peers need ~105 — so on a node
-                that has peers, Doty yields. The star badge and the pulse still
-                mark the current node, and a peer is information while "¡Sigue
-                aquí!" is decoration.
+                node, top-aligned. There is no room for both — a row is
+                NODE_ROW_H (182px) tall, Doty takes ~110 and two peers need
+                ~105 — so on a node that has peers, Doty yields. The star
+                badge and the pulse still mark the current node, and a peer
+                is information while "¡Sigue aquí!" is decoration.
               */}
               {!preview && p.node.current && peersHere.length === 0 && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
@@ -159,7 +159,6 @@ export default function PathSection({
                     // on the 15% and 85% slots.
                     side={p.xPct >= 50 ? "left" : "right"}
                     stackIndex={peerIndex}
-                    offset={0}
                   />
                 ))}
             </div>

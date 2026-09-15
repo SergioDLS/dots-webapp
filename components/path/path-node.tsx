@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import NodePopover from "./node-popover";
 import { Icon } from "@/components/ui/icon";
@@ -128,14 +128,10 @@ export default function PathNode({
           <div
             aria-hidden
             className="absolute inset-2 rounded-full"
-            style={
-              {
-                "--pulse-color": isTestable
-                  ? "color-mix(in srgb, var(--gold) 35%, transparent)"
-                  : `${accentHex}44`,
-                animation: `dots-pulse-ring ${isTestable ? "2.6s" : "2s"} ease-out infinite`,
-              } as React.CSSProperties
-            }
+            style={{
+              border: `3px solid ${isTestable ? "color-mix(in srgb, var(--gold) 55%, transparent)" : `${accentHex}88`}`,
+              animation: `dots-pulse-scale ${isTestable ? "2.6s" : "2s"} ease-out infinite`,
+            }}
           />
         )}
 
@@ -143,7 +139,7 @@ export default function PathNode({
           style={{
             opacity: artOpacity,
             filter: artFilter,
-            transition: "opacity 200ms, filter 200ms",
+            transition: "opacity 200ms",
             animation: isCurrent
               ? `dots-wiggle 3s ease-in-out ${animationIndex * 0.2}s infinite`
               : "none",
