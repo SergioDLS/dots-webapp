@@ -88,8 +88,11 @@ Desbloquea a los demás. Sin él, B–F repintarían colores dos veces.
 
 - **Nombres en la UI**: "Rosa" y "Eléctrico". Por estilo, nunca por género.
 - **Persistencia**: la preferencia vive en el servidor (2.4) y `localStorage` (`dots-theme`,
-  `dots-palette`) es solo el espejo anti-parpadeo que lee el script inline de `app/layout.tsx`.
-  Al cargar `/me/settings`, si difiere del espejo, se aplica y se reescribe el espejo.
+  `dots-palette`) es el espejo anti-parpadeo que lee el script inline de `app/layout.tsx`.
+  Mientras solo el toggle escribe en el servidor (y solo el modo), `ThemeSync` completa desde
+  `/me/settings` únicamente los dispositivos sin espejo y nunca pisa una elección local; cuando
+  la hoja de ajustes (D) escriba paleta y modo, el servidor pasa a ser autoritativo y el espejo
+  se reescribe al diferir. En modo Auto, `ThemeSync` sigue los cambios de tema del SO.
 - El componente `theme-toggle.tsx` (binario, en inglés) desaparece: sus controles pasan a la hoja
   de ajustes del perfil (subproyecto D). Mientras tanto, sus etiquetas se traducen.
 
