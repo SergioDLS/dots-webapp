@@ -3,7 +3,6 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
-import { UiIcon } from "@/components/ui/ui-icon";
 import Doty, { poseOrFallback } from "@/components/ui/doty/doty";
 import { NODE_META } from "@/lib/path-node-meta";
 import type { PathNode } from "@/types/path.types";
@@ -117,19 +116,19 @@ export default function NodePopover({
         />
       </div>
 
-      {/* Maestría (dos niveles): dominado = corona + Doty cerebro galaxia (fallback orgulloso hasta que llegue el arte, spec §2.3). */}
+      {/* Maestría (dos niveles): dominado = Doty cerebro galaxia (fallback orgulloso hasta que llegue el arte, spec §2.3). */}
       {mastery != null &&
         (mastery >= 100 ? (
           <div className="flex items-center gap-2">
             <Doty pose={poseOrFallback("cerebro-galaxia", "orgulloso")} size="chip" shadow={false} />
             <p className="text-[11px] font-black leading-tight" style={{ color: "var(--gold-edge)" }}>
-              <span className="flex items-center gap-1"><UiIcon name="corona" size={14} /> Dominado</span>
+              <span>Dominado</span>
               Cerebro galaxia. Este nivel ya es tuyo.
             </p>
           </div>
         ) : (
-          <p className="flex items-center gap-1 text-[10px] font-black tabular-nums text-(--muted)">
-            <UiIcon name="corona" size={16} /> Dominado {mastery}%
+          <p className="text-[10px] font-black tabular-nums text-(--muted)">
+            Dominado {mastery}%
           </p>
         ))}
 

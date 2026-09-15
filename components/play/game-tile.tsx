@@ -51,10 +51,9 @@ export default function GameTile({ game, badges, onOpen }: Props) {
           style={{ width: TILE_ART }}
           draggable={false}
         />
-        {(badges.throne || badges.tournament) && (
+        {badges.tournament && (
           <span className="absolute flex items-center gap-0.5" style={{ top: 0, right: 0 }}>
-            {badges.throne && <UiIcon name="corona" size={BADGE} />}
-            {badges.tournament && <UiIcon name="trofeo" size={BADGE} />}
+            <UiIcon name="trofeo" size={BADGE} />
           </span>
         )}
       </span>

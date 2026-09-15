@@ -220,19 +220,7 @@ export default function PathNode({
           </div>
         )}
 
-        {/* Corona de maestría (arriba-centro) */}
-        {isMastered && !isLocked && (
-          <div
-            className="absolute flex items-center justify-center"
-            style={{ top: -2, left: "50%", transform: "translateX(-50%)", width: 32, height: 32, zIndex: 10 }}
-          >
-            <span style={{ display: "inline-flex", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }}>
-              <UiIcon name="corona" size={24} />
-            </span>
-          </div>
-        )}
-
-        {/* Check de completado (abajo-derecha) */}
+        {/* Check de completado (abajo-derecha): el dorado es la marca de dominado desde que se retiró la corona */}
         {isDone && !isLocked && (
           <div
             className="absolute flex items-center justify-center text-white"
@@ -242,9 +230,9 @@ export default function PathNode({
               width: 26,
               height: 26,
               borderRadius: "50%",
-              background: "var(--success)",
+              background: isMastered ? "linear-gradient(135deg, var(--gold), var(--gold-edge))" : "var(--success)",
               border: "2px solid var(--surface)",
-              boxShadow: "0 2px 6px color-mix(in srgb, var(--success) 40%, transparent)",
+              boxShadow: `0 2px 6px color-mix(in srgb, ${isMastered ? "var(--gold)" : "var(--success)"} 40%, transparent)`,
               zIndex: 10,
             }}
           >
