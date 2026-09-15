@@ -296,6 +296,12 @@ h1, h2, h3, .font-display {
    nacen sin ella (spec 2026-09-07-doty-midjourney-assets §4.3). */
 .doty-shadow { filter: drop-shadow(0 6px 4px rgba(30, 27, 92, 0.18)); }
 
+/* Misma sombra que .doty-shadow, para arte que no es Doty: los tiles del
+   arcade flotan sobre el fondo sin caja (spec §1 principio 4) y la sombra es
+   lo único que los apoya. Clase aparte a propósito: un tile de juego no es una
+   pose y no debe llevar una clase doty-*. */
+.dots-floor-shadow { filter: drop-shadow(0 6px 4px rgba(30, 27, 92, 0.18)); }
+
 @keyframes doty-bob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-6px); }

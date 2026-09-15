@@ -6,6 +6,7 @@ import {
   type GameRecord,
 } from "@/services/games.service";
 import { getGameScoresService, type GameScore } from "@/services/engagement.service";
+import { readCurrentUserId } from "@/lib/current-user";
 
 export interface ThroneInfo {
   name: string;
@@ -38,20 +39,7 @@ export function useGameRecords(gameKey: string): GameRecordsResult {
   useEffect(() => {
     let active = true;
 
-    // Read current user id from localStorage (same pattern as other components)
-    const currentUserId: number | null = (() => {
-      try {
-        const raw =
-          typeof window !== "undefined"
-            ? window.localStorage.getItem("user")
-            : null;
-        if (!raw) return null;
-        const parsed = JSON.parse(raw) as { id?: number };
-        return typeof parsed.id === "number" ? parsed.id : null;
-      } catch {
-        return null;
-      }
-    })();
+    const currentUserId: number | null = readCurrentUserId();
 
     Promise.all([getGameRecordsService(), getGameScoresService()]).then(
       ([records, scores]: [GameRecord[], GameScore[]]) => {
