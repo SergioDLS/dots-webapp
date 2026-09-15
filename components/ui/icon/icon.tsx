@@ -26,7 +26,7 @@ interface Props {
  *
  * No es la única costura SVG del repo: quedan gráficos preexistentes que no
  * son iconografía sino decoración estructural (hot-air-balloon.tsx,
- * path-node.tsx, path-section.tsx, sound.tsx). Quien porte a RN tiene que
+ * path-section.tsx, sound.tsx). Quien porte a RN tiene que
  * localizarlos aparte; este componente no los cubre.
  */
 export default function Icon({ name, size = 24, className, mono = false }: Props) {

@@ -194,8 +194,11 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 ### 3.2 Banner de dificultad (composición A) y cómo viaja contigo
 
 - **Banner**: panel teñido `color-mix(acento de dificultad 14 %, surface)`, radio 28, sin borde,
-  padding 18/150/18/20; Doty narrador de **158 px** asomando por la esquina superior derecha
-  (`top:-38px; right:-6px`, sin recorte). Contenido: kicker "Dificultad 1 de 3", título Baloo 800,
+  padding 18/20; la cabecera (kicker, título y línea de ánimo) deja 134 px libres a la derecha para
+  el narrador y mide al menos 104 px; la barra segmentada, el conteo y las flechas van a ancho
+  completo por debajo del narrador (que termina a 120 px del borde superior); Doty narrador de
+  **158 px** asomando por la esquina superior derecha (`top:-38px; right:-6px`, sin recorte).
+  Contenido: kicker "Dificultad 1 de 3", título Baloo 800,
   línea de ánimo (tabla de voz), **barra segmentada** (un segmento por sección, relleno =
   `section.progress`, completadas en `--success`), y "**12** de 30 lecciones · 40 %" con el número
   en el color de la dificultad. El conteo excluye checkpoints, como hoy.
