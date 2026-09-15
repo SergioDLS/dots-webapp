@@ -19,9 +19,27 @@ import LockedTile from "./locked-tile";
   */
 export const ARCADE_GRID_CLASS = "grid grid-cols-3 gap-3 md:grid-cols-5 md:gap-4 lg:grid-cols-6";
 
+/**
+ * Contenedor principal del arcade. El esqueleto de carga usa ESTA misma cadena
+ * para que los héroes, eyebrow y primera fila del grid caigan en el mismo píxel.
+ */
+export const ARCADE_STACK_CLASS = "flex flex-col gap-6";
+
+/**
+ * Grid de los héroes diarios (dos columnas). El esqueleto lo reutiliza para
+ * alinear sus placeholders con la rejilla real.
+ */
+export const HERO_ROW_CLASS = "grid grid-cols-2 gap-3";
+
+/**
+ * Altura de línea del eyebrow (h2 de títulos de sección). Se exporta porque
+ * el esqueleto necesita replicar exactamente este alto en sus placeholders.
+ */
+export const EYEBROW_H = 16;
+
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-bold uppercase tracking-widest text-(--muted)">{children}</h2>
+    <h2 className="text-xs font-bold uppercase tracking-widest text-(--muted)" style={{ lineHeight: `${EYEBROW_H}px` }}>{children}</h2>
   );
 }
 
@@ -37,9 +55,9 @@ export default function ArcadeGrid({ games, badgeContext, dailyStates, onOpen }:
   const { daily, arcade, locked } = splitGames(games);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={ARCADE_STACK_CLASS}>
       {daily.length > 0 && (
-        <ul className="grid grid-cols-2 gap-3">
+        <ul className={HERO_ROW_CLASS}>
           {daily.map((game) => (
             <li key={game.id}>
               <DailyHero
