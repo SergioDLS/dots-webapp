@@ -253,7 +253,12 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 - **Tiles flotantes (variante B)**: arte del juego a 82 px con sombra de piso, sin mancha, sin
   caja; nombre debajo (12.5 px, 800); tres por fila en móvil, cinco en `md`, seis en `lg`.
 - **Héroes diarios** (Wordle, Crucigrama): arte de 96 px centrado, eyebrow "Nuevo cada día" en
-  `--accent`, nombre Baloo y estado: "Hecho por hoy" con check verde o "Sin resolver · +40 XP".
+  `--accent`, nombre Baloo y estado, en tres casos: "Hecho por hoy" con check verde si lo
+  resolvió; "Vuelve mañana" si agotó los intentos sin resolverlo (el spec original no contemplaba
+  este caso, y "Sin resolver" invitaría a algo imposible hasta mañana); y "Sin resolver · hasta
+  +40 XP" si sigue abierto. **"hasta"**: el backend da `XP_PER_GAME_PLAY` = 15 por partida y
+  `XP_NEW_HIGH_SCORE_BONUS` = 25 más solo si el score supera el récord personal, así que 40 es el
+  máximo y no lo que se lleva cada partida.
 - **Badges** de 28 px sobre el arte, arriba a la derecha: corona si el usuario tiene el trono
   global del juego (`GET /games/records`), trofeo si el juego es el del torneo de la semana. La
   medalla de "récord reciente" **queda fuera** hasta que `/games/records` exponga la fecha del

@@ -15,7 +15,7 @@ Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lec
 | Camino | `/levels` | Camino v3 — una dificultad a la vez; detalle de componentes abajo. |
 | Repaso | `/review` | SRS (SM-2) — cloze de oraciones falladas. |
 | Retos | `/quests` | Rival banner + torneo semanal + retos 1v1 + misión diaria + leaderboard. |
-| Juegos | `/play` | Lista de juegos con candados por niveles completados. |
+| Juegos | `/play` | Arcade: dos héroes diarios con su estado de hoy, tiles de arte flotante con badges de trono y torneo, y bloqueados en gris. |
 | Perfil | `/profile` | Stats, CEFR por nivel, badges, Doty custom (cosméticos/gestos de la tienda). |
 | Tienda | `/shop` | Gemas → escudos de racha, boost XP, cosméticos/gestos de Doty. |
 
@@ -72,6 +72,22 @@ Nuevos (12, todos RN-safe y con `?seed=` determinista donde aplica):
 | Dotaxi | dotaxi | frase con hueco; mueves el taxi al carril de la palabra y confirmas con «¡Vamos!»; los carriles crecen 2→3→4 con los aciertos | dotaxi (frases) |
 
 Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar → `GameIntro` (récord propio + trono vía `useGameRecords`) → juego → `GameResult` (score una vez; muestra +XP, récord, trono robado). Hooks `useTournamentMode` (`?tournament=1`) y `useChallengeMode` (`?challenge=<id>`) envían scores adicionales a sus endpoints al llegar a result.
+
+### El arcade (`/play`)
+
+`components/play/arcade-container.tsx` pide la lista (`GET /games`, obligatoria) y en
+paralelo lo que solo decora: récords globales, torneo de la semana y el estado de
+hoy de los dos diarios. Ninguna de esas cuatro retrasa la rejilla ni la rompe si
+falla. El reparto en bloques, la clave de juego, los badges y el copy del estado
+diario viven en `lib/arcade.ts`, que es puro y está bajo `node --test`. Los tiles
+exportan su geometría para que `arcade-skeleton.tsx` calque la retícula real en vez
+de aproximarla. Se entra a un juego con `router.push`: la excepción legacy de
+`window.location.assign` murió aquí.
+
+El esqueleto de carga presupone que los dos juegos diarios están desbloqueados y, por tanto,
+los retira si el usuario aún no los tiene. Solo lo perciben los usuarios con menos de cinco
+niveles completados, que es cuando el primero de ellos se abre; se aceptó así deliberadamente
+porque cambiar este comportamiento sería incorrecto para el resto.
 
 ## Social (visible en /quests)
 
