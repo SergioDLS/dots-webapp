@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import PathNode, { NODE_SVG_SIZE, CHECKPOINT_SVG_SIZE } from "./path-node";
+import PathNode, { NODE_W, ART_BOX, NODE_ROW_H } from "./path-node";
 import DotyMarker from "./doty-marker";
 import PathPeer from "./path-peer";
 import type {
@@ -25,9 +25,7 @@ const zigzagX = (i: number): number => {
   return 50;
 };
 
-const LABEL_H = 30; // px – title under the circle
 const ROW_GAP = 18; // px – vertical gap between nodes
-const NODE_W = 150; // px – node wrapper width
 
 export default function PathSection({
   section,
@@ -39,24 +37,20 @@ export default function PathSection({
 
   const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
 
-  // Per-node slot geometry (checkpoint is bigger, always centered)
-  const slots = nodes.map((n, i) => {
-    const isCp = n.type === "checkpoint";
-    return {
-      node: n,
-      key: `${n.type}-${n.id}`,
-      xPct: isCp ? 50 : zigzagX(i),
-      svg: isCp ? CHECKPOINT_SVG_SIZE : NODE_SVG_SIZE,
-      h: (isCp ? CHECKPOINT_SVG_SIZE : NODE_SVG_SIZE) + LABEL_H,
-    };
-  });
+  // Todas las filas miden lo mismo (checkpoint incluido): NODE_ROW_H.
+  const slots = nodes.map((n, i) => ({
+    node: n,
+    key: `${n.type}-${n.id}`,
+    xPct: n.type === "checkpoint" ? 50 : zigzagX(i),
+    h: NODE_ROW_H,
+  }));
   const offsets = slots.map((_, i) =>
     slots.slice(0, i).reduce((sum, s) => sum + s.h + ROW_GAP, 0),
   );
   const placed = slots.map((s, i) => ({
     ...s,
     y: offsets[i],
-    centerY: offsets[i] + s.svg / 2,
+    centerY: offsets[i] + ART_BOX / 2,
   }));
   const totalH =
     slots.length === 0
@@ -118,7 +112,7 @@ export default function PathSection({
       {placed.length === 0 ? (
         <span className="text-(--muted)">No hay lecciones disponibles.</span>
       ) : (
-        <div className="relative w-full" style={{ maxWidth: 520, height: totalH }}>
+        <div className="relative w-full" style={{ maxWidth: 640, height: totalH }}>
           {/* SVG connector: solid where already travelled, dashed ahead */}
           {placed.length >= 2 && (
             <svg
@@ -190,8 +184,7 @@ export default function PathSection({
                   // on the 15% and 85% slots.
                   side={p.xPct >= 50 ? "left" : "right"}
                   stackIndex={peerIndex}
-                  // Compensate for nodes that overshoot their 150px wrapper.
-                  offset={Math.max(0, (p.svg - NODE_W) / 2)}
+                  offset={0}
                 />
               ))}
             </div>

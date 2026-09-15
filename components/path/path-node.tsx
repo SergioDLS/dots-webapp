@@ -1,20 +1,29 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import WordImg from "@/components/ui/word-img/word-img";
+import Image from "next/image";
 import NodePopover from "./node-popover";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { NODE_META } from "@/lib/path-node-meta";
 import { DIFFICULTY_TEXT_ON_HEX } from "@/lib/difficulty-palette";
+import { wordImageUrl } from "@/lib/media-url";
+import { BASE_URL_IMAGES } from "@/constants";
 import type { PathNode as PathNodeType } from "@/types/path.types";
 
-/* Geometry shared with path-section for slot/connector math */
-const RING_W = 6;
-const CIRCLE = 100;
-const CP_CIRCLE = 130; // checkpoint ≈ 1.3x
-export const NODE_SVG_SIZE = CIRCLE + RING_W * 2 + 10;
-export const CHECKPOINT_SVG_SIZE = CP_CIRCLE + RING_W * 2 + 16;
+/* ── Geometría compartida con path-section (slots y conectores) ──────────
+ * El arte flota sin disco ni anillo (spec §3.1): 128 px dentro de una caja de
+ * 136 (8 px de aire para el resplandor), barra de 100×8 y etiqueta de 13 px.
+ * Todas las filas miden lo mismo, checkpoints incluidos: la pista no tiene que
+ * distinguir tamaños. */
+export const NODE_W = 150;
+export const ART_BOX = 136;
+export const ART = 128;
+export const BAR_W = 100;
+export const BAR_H = 8;
+export const LABEL_H = 30;
+export const NODE_ROW_H = ART_BOX + 4 + BAR_H + 4 + LABEL_H; // 182
+const TROPHY = 118;
 
 interface PathNodeProps {
   node: PathNodeType;
@@ -24,16 +33,14 @@ interface PathNodeProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   popoverAlign: "left" | "center" | "right";
+  /** Vista previa de una dificultad bloqueada: todo en gris, sin popover ni marcas de progreso. */
+  preview?: boolean;
 }
 
 /** Módulos con dominio por ítem: la corona exige mastery 100, no solo completar. */
-const MASTERY_TYPES = new Set([
-  "letters",
-  "numbers",
-  "vocab",
-  "pronunciation",
-  "grammar",
-]);
+const MASTERY_TYPES = new Set(["letters", "numbers", "vocab", "pronunciation", "grammar"]);
+
+const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
 
 export default function PathNode({
   node,
@@ -43,286 +50,197 @@ export default function PathNode({
   open,
   onOpenChange,
   popoverAlign,
+  preview = false,
 }: PathNodeProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const isCheckpoint = node.type === "checkpoint";
-  const isLocked = !node.unlocked;
-  const progress = Math.max(0, Math.min(100, Math.round(node.progress)));
-  const isDone = node.completed;
-  // Dos niveles (F3e): completado = respondiste todo 1× (check verde);
-  // corona = pack dominado. Nodos sin ítems conservan corona al completar.
-  const isMastered = MASTERY_TYPES.has(node.type)
-    ? (node.mastery ?? 0) >= 100
-    : isDone;
-  const isCurrent = node.current && !isLocked && !isDone;
+  const isLocked = preview || !node.unlocked;
+  const progress = clamp(node.progress);
+  const isDone = !preview && node.completed;
+  // Dos niveles (F3e): completado = respondiste todo 1× (check); corona = pack dominado.
+  const isMastered =
+    !preview && (MASTERY_TYPES.has(node.type) ? (node.mastery ?? 0) >= 100 : isDone);
+  const isCurrent = !preview && node.current && !isLocked && !isDone;
   const isTestable =
-    isCheckpoint && node.unlocked && !node.completed && checkpointAvailable;
-
+    !preview && isCheckpoint && node.unlocked && !node.completed && checkpointAvailable;
   const meta = NODE_META[node.type];
 
+  // Cerrar el popover al tocar fuera (pointerdown: sirve para ratón y dedo).
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node))
-        onOpenChange(false);
+    const h = (e: PointerEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) onOpenChange(false);
     };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    document.addEventListener("pointerdown", h);
+    return () => document.removeEventListener("pointerdown", h);
   }, [open, onOpenChange]);
 
-  /* ── Dark-mode-safe tints: hex + color-mix over theme vars ── */
-  const bg = isLocked
-    ? "var(--surface-2)"
-    : `color-mix(in srgb, ${accentHex} 16%, var(--surface))`;
-  const ringColor = isLocked
-    ? "var(--border)"
-    : `color-mix(in srgb, ${accentHex} 45%, var(--surface))`;
-  const txt = isLocked
+  const labelColor = isLocked
     ? "var(--muted)"
     : isDone
       ? "var(--success)"
-      : `color-mix(in srgb, ${accentHex} 55%, var(--foreground))`;
+      : isCheckpoint
+        ? "var(--gold-edge)"
+        : `color-mix(in srgb, ${accentHex} 55%, var(--foreground))`;
 
-  const circle = isCheckpoint ? CP_CIRCLE : CIRCLE;
-  const svgSize = isCheckpoint ? CHECKPOINT_SVG_SIZE : NODE_SVG_SIZE;
-  const radius = circle / 2 + RING_W / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeOffset = circumference - (progress / 100) * circumference;
-  const shapeRadius = isCheckpoint ? 36 : circle / 2; // checkpoint = squircle
-
-  const border = isTestable
-    ? "3px solid var(--gold)"
-    : isCurrent
-      ? `3px solid ${accentHex}`
-      : `2px solid ${ringColor}`;
-  const shadow = isLocked
-    ? "none"
+  // Sombra de piso por defecto; resplandor del color de la sección en el actual;
+  // dorado en el checkpoint listo. Bloqueado: gris y apagado, sin sombra.
+  const artFilter = isLocked
+    ? "grayscale(1)"
     : isTestable
-      ? "0 4px 20px color-mix(in srgb, var(--gold) 45%, transparent)"
-      : isDone
-        ? "0 4px 12px color-mix(in srgb, var(--success) 25%, transparent)"
-        : isCurrent
-          ? `0 4px 20px ${accentHex}40, inset 0 0 20px ${accentHex}10`
-          : `0 4px 12px ${accentHex}20`;
-
+      ? "drop-shadow(0 0 16px color-mix(in srgb, var(--gold) 60%, transparent))"
+      : isCurrent
+        ? `drop-shadow(0 0 14px ${accentHex}aa)`
+        : "drop-shadow(0 6px 4px rgba(30, 27, 92, 0.18))";
+  const artOpacity = isLocked ? 0.3 : isDone ? 0.88 : 1;
   const delay = Math.min(animationIndex, 8) * 80;
+  const src = node.src ? wordImageUrl(node.src, BASE_URL_IMAGES) : null;
+  const showBar = !isLocked && !isCheckpoint;
 
   return (
     <div
       ref={wrapperRef}
-      className="relative flex flex-col items-center gap-1.5"
+      className="relative flex flex-col items-center"
       style={{
+        width: NODE_W,
         animation: `dots-pop-in 500ms cubic-bezier(.34,1.56,.64,1) ${delay}ms both`,
       }}
     >
-      {/* ── Node shape ─────────────────────────────────────── */}
-      <div
-        className="relative flex items-center justify-center"
+      {/* ── Arte (el tile es el botón) ─────────────────────── */}
+      <button
+        type="button"
+        aria-label={`${meta.label}: ${node.title}`}
+        aria-expanded={open}
+        disabled={isLocked}
+        onClick={() => onOpenChange(!open)}
+        className="relative flex items-center justify-center bg-transparent p-0 transition-transform duration-150 hover:enabled:scale-[1.06] active:enabled:scale-95 disabled:cursor-default"
         style={{
-          width: svgSize,
-          height: svgSize,
-          cursor: !isLocked ? "pointer" : "default",
+          width: ART_BOX,
+          height: ART_BOX,
           animation: isCurrent
             ? `dots-float 2.5s ease-in-out ${(animationIndex % 3) * 0.4}s infinite`
             : "none",
         }}
-        onClick={() => !isLocked && onOpenChange(!open)}
-        onMouseEnter={(e) => {
-          if (!isLocked)
-            (e.currentTarget as HTMLElement).style.transform = "scale(1.08)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.transform = "";
-        }}
-        onMouseDown={(e) => {
-          if (!isLocked)
-            (e.currentTarget as HTMLElement).style.transform = "scale(0.94)";
-        }}
-        onMouseUp={(e) => {
-          (e.currentTarget as HTMLElement).style.transform = "";
-        }}
       >
-        {/* Progress ring (circular nodes only) */}
-        {!isCheckpoint && (
-          <svg
-            width={svgSize}
-            height={svgSize}
-            className="absolute inset-0"
-            style={{ transform: "rotate(-90deg)" }}
-          >
-            <circle
-              cx={svgSize / 2}
-              cy={svgSize / 2}
-              r={radius}
-              fill="none"
-              stroke="color-mix(in srgb, var(--foreground) 10%, transparent)"
-              strokeWidth={RING_W}
-            />
-            {!isLocked && progress > 0 && (
-              <circle
-                cx={svgSize / 2}
-                cy={svgSize / 2}
-                r={radius}
-                fill="none"
-                stroke={isDone ? "var(--success)" : accentHex}
-                strokeWidth={RING_W}
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeOffset}
-                style={{ transition: "stroke-dashoffset 1s ease-out" }}
-              />
-            )}
-          </svg>
-        )}
-
-        {/* Pulse: accent for current, soft gold for testable checkpoint */}
+        {/* Pulso: acento en el actual, oro suave en el checkpoint listo */}
         {(isCurrent || isTestable) && (
           <div
-            className="absolute inset-0"
-            style={{
-              borderRadius: isCheckpoint ? shapeRadius + 6 : "50%",
-              "--pulse-color": isTestable
-                ? "color-mix(in srgb, var(--gold) 35%, transparent)"
-                : `${accentHex}44`,
-              animation: `dots-pulse-ring ${isTestable ? "2.6s" : "2s"} ease-out infinite`,
-            } as React.CSSProperties}
+            aria-hidden
+            className="absolute inset-2 rounded-full"
+            style={
+              {
+                "--pulse-color": isTestable
+                  ? "color-mix(in srgb, var(--gold) 35%, transparent)"
+                  : `${accentHex}44`,
+                animation: `dots-pulse-ring ${isTestable ? "2.6s" : "2s"} ease-out infinite`,
+              } as React.CSSProperties
+            }
           />
         )}
 
-        {/* Inner shape: circle, or squircle for checkpoints */}
         <div
-          className="relative overflow-hidden flex items-center justify-center"
           style={{
-            width: circle,
-            height: circle,
-            borderRadius: shapeRadius,
-            background: bg,
-            border,
-            boxShadow: shadow,
-            transition: "box-shadow 200ms, border 200ms",
+            opacity: artOpacity,
+            filter: artFilter,
+            transition: "opacity 200ms, filter 200ms",
+            animation: isCurrent
+              ? `dots-wiggle 3s ease-in-out ${animationIndex * 0.2}s infinite`
+              : "none",
           }}
         >
-          {/* Content: level image for practice, type icon otherwise */}
-          <div
-            style={{
-              opacity: isLocked ? 0.25 : isDone ? 0.75 : 1,
-              filter: isLocked ? "grayscale(1)" : "none",
-              animation: isCurrent
-                ? `dots-wiggle 3s ease-in-out ${animationIndex * 0.2}s infinite`
-                : "none",
-            }}
-          >
-            {node.type === "practice" && node.src ? (
-              <WordImg
-                size="medium"
-                src={node.src}
-                opacity={1}
-                customClass="w-[68px] h-[68px] object-contain drop-shadow-md"
-              />
-            ) : (
-              <Icon name={meta.icon} size={isCheckpoint ? 52 : 40} />
-            )}
-          </div>
-
-          {/* Lock overlay */}
-          {isLocked && (
-            <div
-              className="absolute inset-0 flex items-center justify-center bg-black/10"
-              style={{ borderRadius: shapeRadius }}
-              role="img"
-              aria-label="Bloqueado"
-            >
-              <Icon name="candado" size={28} className="opacity-[0.45]" />
-            </div>
+          {isCheckpoint ? (
+            <UiIcon name="trofeo" size={TROPHY} />
+          ) : src ? (
+            <Image
+              src={src}
+              alt=""
+              width={ART}
+              height={ART}
+              sizes={`${ART}px`}
+              className="object-contain"
+              style={{ width: ART, height: ART }}
+              draggable={false}
+            />
+          ) : (
+            <Icon name={meta.icon} size={72} />
           )}
         </div>
 
-        {/* ── Badge: type (bottom-left, section color) ──────── */}
-        {/* mono: el disco es accentHex, y varía con la dificultad — los
-            rellenos fijos de marca del icono (rosa/cyan) chocan contra
-            varios acentos de la paleta (p. ej. 1.03:1 sobre pale_blue). En
-            mono el icono hereda `color`, que aquí es el token de
-            DIFFICULTY_TEXT_ON_HEX: navy sobre los ocho acentos pastel,
-            blanco solo sobre `blue`, el único acento oscuro del set. */}
-        <div
-          className="absolute flex items-center justify-center"
-          style={{
-            bottom: 2,
-            left: 2,
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: isLocked ? "var(--border)" : accentHex,
-            border: "2px solid var(--surface)",
-            boxShadow: isLocked ? "none" : `0 2px 6px ${accentHex}55`,
-            filter: isLocked ? "grayscale(1)" : "none",
-            color: DIFFICULTY_TEXT_ON_HEX[accentHex] ?? "#ffffff",
-            zIndex: 10,
-          }}
-          title={meta.label}
-        >
-          <Icon name={meta.icon} size={16} mono />
-        </div>
+        {isLocked && (
+          <div
+            className="absolute inset-0 flex items-center justify-center text-(--muted)"
+            role="img"
+            aria-label="Bloqueado"
+          >
+            <Icon name="candado" size={36} />
+          </div>
+        )}
 
-        {/* ── Badge: current star ───────────────────────────── */}
+        {/* Badge de tipo (abajo-izquierda), en mono sobre el acento: ver DIFFICULTY_TEXT_ON_HEX */}
+        {!isCheckpoint && (
+          <div
+            className="absolute flex items-center justify-center"
+            style={{
+              bottom: 6,
+              left: 6,
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              background: isLocked ? "var(--border)" : accentHex,
+              border: "2px solid var(--surface)",
+              boxShadow: isLocked ? "none" : `0 2px 6px ${accentHex}55`,
+              filter: isLocked ? "grayscale(1)" : "none",
+              color: DIFFICULTY_TEXT_ON_HEX[accentHex] ?? "#ffffff",
+              zIndex: 10,
+            }}
+            title={meta.label}
+          >
+            <Icon name={meta.icon} size={16} mono />
+          </div>
+        )}
+
+        {/* Estrella del actual (arriba-derecha) */}
         {isCurrent && (
           <div
             className="absolute flex items-center justify-center"
             style={{
-              top: 0,
-              right: 4,
+              top: 4,
+              right: 8,
               width: 30,
               height: 30,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+              background: "linear-gradient(135deg, var(--gold), var(--gold-edge))",
               border: "2px solid var(--surface)",
-              boxShadow: "0 2px 8px rgba(245,158,11,0.5)",
+              boxShadow: "0 2px 8px color-mix(in srgb, var(--gold) 50%, transparent)",
               zIndex: 10,
             }}
           >
-            <span
-              style={{
-                display: "inline-flex",
-                animation: "dots-star-spin 3s linear infinite",
-              }}
-            >
+            <span style={{ display: "inline-flex", animation: "dots-star-spin 3s linear infinite" }}>
               <UiIcon name="xp" size={15} />
             </span>
           </div>
         )}
 
-        {/* ── Badge: mastery crown (checkpoints wear it on done) ── */}
+        {/* Corona de maestría (arriba-centro) */}
         {isMastered && !isLocked && (
           <div
             className="absolute flex items-center justify-center"
-            style={{
-              top: -6,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 32,
-              height: 32,
-              zIndex: 10,
-            }}
+            style={{ top: -2, left: "50%", transform: "translateX(-50%)", width: 32, height: 32, zIndex: 10 }}
           >
-            <span
-              style={{
-                display: "inline-flex",
-                filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
-              }}
-            >
+            <span style={{ display: "inline-flex", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }}>
               <UiIcon name="corona" size={24} />
             </span>
           </div>
         )}
 
-        {/* ── Badge: done check ─────────────────────────────── */}
+        {/* Check de completado (abajo-derecha) */}
         {isDone && !isLocked && (
           <div
-            className="absolute flex items-center justify-center"
+            className="absolute flex items-center justify-center text-white"
             style={{
-              bottom: 0,
-              right: 4,
+              bottom: 6,
+              right: 8,
               width: 26,
               height: 26,
               borderRadius: "50%",
@@ -332,50 +250,42 @@ export default function PathNode({
               zIndex: 10,
             }}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3.5 8.5l3 3 6-7" />
-            </svg>
+            <Icon name="check" size={16} mono />
           </div>
         )}
+      </button>
 
-        {/* ── Progress % pill ───────────────────────────────── */}
-        {!isLocked && !isDone && progress > 0 && (
+      {/* ── Barra de progreso (oculta en bloqueados y checkpoints; el hueco se conserva) ── */}
+      {showBar ? (
+        <div
+          className="mt-1 overflow-hidden rounded-full"
+          role="progressbar"
+          aria-label="Progreso de la lección"
+          aria-valuenow={isDone ? 100 : progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          style={{
+            width: BAR_W,
+            height: BAR_H,
+            background: `color-mix(in srgb, ${accentHex} 18%, transparent)`,
+          }}
+        >
           <div
-            className="absolute flex items-center justify-center"
+            className="h-full rounded-full transition-[width] duration-700 ease-out"
             style={{
-              bottom: -2,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: accentHex,
-              color: "#fff",
-              fontSize: "0.65rem",
-              fontWeight: 900,
-              lineHeight: 1,
-              padding: "3px 8px",
-              borderRadius: 10,
-              boxShadow: `0 2px 6px ${accentHex}55`,
-              zIndex: 10,
-              letterSpacing: "0.02em",
+              width: `${isDone ? 100 : progress}%`,
+              background: isDone ? "var(--success)" : accentHex,
             }}
-          >
-            {progress}%
-          </div>
-        )}
-      </div>
+          />
+        </div>
+      ) : (
+        <div aria-hidden className="mt-1" style={{ height: BAR_H }} />
+      )}
 
-      {/* ── Label ──────────────────────────────────────────── */}
+      {/* ── Etiqueta ───────────────────────────────────────── */}
       <span
-        className="font-extrabold text-center leading-tight w-full truncate"
-        style={{ color: txt, fontSize: "0.78rem", letterSpacing: "-0.01em" }}
+        className="mt-1 w-full truncate text-center font-extrabold leading-tight"
+        style={{ color: labelColor, fontSize: 13, letterSpacing: "-0.01em", height: LABEL_H - 4 }}
       >
         {node.title}
       </span>
