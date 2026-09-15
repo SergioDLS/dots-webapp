@@ -63,6 +63,45 @@ export function writeMirror(prefs: ThemePrefs): void {
   }
 }
 
+/** Clave del flag "hay un cambio de ajustes sin confirmar todavía". Sirve
+ *  para que ThemeSync sepa si puede fiarse del servidor o si primero tiene
+ *  que reintentar el PATCH que dejó el espejo local a medio confirmar. */
+export const DIRTY_KEY = "dots-settings-dirty";
+
+/** Marca que el espejo local acaba de cambiar y el PATCH todavía no confirmó
+ *  ese cambio en el servidor. Mientras la marca esté puesta, ThemeSync no
+ *  debe dejar que la respuesta del servidor pise lo que hay en el espejo. */
+export function markSettingsDirty(): void {
+  try {
+    window.localStorage.setItem(DIRTY_KEY, "1");
+  } catch {
+    /* modo privado o storage lleno: no queda marca que limpiar después */
+  }
+}
+
+/** Borra la marca de pendiente. Solo se llama cuando el PATCH ya confirmó,
+ *  para que ThemeSync vuelva a fiarse del servidor en el próximo montaje. */
+export function clearSettingsDirty(): void {
+  try {
+    window.localStorage.removeItem(DIRTY_KEY);
+  } catch {
+    /* modo privado o storage lleno: no hay marca fiable que borrar */
+  }
+}
+
+/** true si queda una escritura local sin confirmar en el servidor. Ante
+ *  cualquier duda (renderizado en servidor, storage inaccesible) contesta
+ *  false: mejor fiarse del servidor de más que quedarse reenviando algo que
+ *  ya no hace falta. */
+export function hasPendingSettings(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(DIRTY_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export function resolveMode(mode: ThemeMode): "light" | "dark" {
   if (mode !== "auto") return mode;
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "light";

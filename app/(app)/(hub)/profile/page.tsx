@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import BadgesGrid from "@/components/profile/badges-grid";
 import GesturesCard from "@/components/profile/gestures-card";
@@ -48,10 +48,6 @@ export default function ProfilePage() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const loadInventory = useCallback(() => {
-    getInventoryService().then((inv) => setInventory(inv.items));
-  }, []);
-
   useEffect(() => {
     let active = true;
     getMyStatsService().then((d) => {
@@ -60,11 +56,13 @@ export default function ProfilePage() {
     getMyBadgesService().then((b) => {
       if (active) setBadges(b);
     });
-    loadInventory();
+    getInventoryService().then((inv) => {
+      if (active) setInventory(inv.items);
+    });
     return () => {
       active = false;
     };
-  }, [loadInventory]);
+  }, []);
 
   const toggleEquip = (item: InventoryItem) => {
     equipItemService(item.id, item.equippedSlot === null).then((inv) => setInventory(inv.items));

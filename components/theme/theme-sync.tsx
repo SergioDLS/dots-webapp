@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { getMySettingsService } from "@/services/settings.service";
+import { getMySettingsService, patchMySettingsService } from "@/services/settings.service";
 import {
   applyThemePrefs,
+  clearSettingsDirty,
+  hasPendingSettings,
   normalizePrefs,
   readMirror,
   writeMirror,
@@ -18,6 +20,18 @@ import {
  * espejo, porque la paleta no tenía escritor y un servidor con defaults habría
  * pisado una elección local.
  *
+ * "El servidor manda" tiene una excepción: si queda una escritura local sin
+ * confirmar (`hasPendingSettings()`), el PATCH de la hoja de ajustes pudo
+ * perderse por falta de red, y este componente se remonta cada vez que se
+ * entra y se sale de una lección, práctica, checkpoint, juego o lectura —
+ * frecuente en una PWA con conectividad imperfecta. Aplicar en ese momento lo
+ * que diga el servidor revertiría el cambio local sin avisar. Por eso, con
+ * marca pendiente, la rama reenvía el espejo local al servidor en vez de leer
+ * de él, y solo limpia la marca si ese reintento confirma; si vuelve a
+ * fallar, no hace nada y se reintenta en el próximo montaje. Sin nada
+ * pendiente, el comportamiento es el de siempre: pide `/me/settings` y, si
+ * difiere del espejo, aplica y reescribe.
+ *
  * Además, en modo Auto sigue los cambios de tema del SO con la pestaña abierta:
  * el CSS cambia solo, pero la clase `dark`, `colorScheme` y la meta no.
  *
@@ -26,14 +40,23 @@ import {
 export default function ThemeSync() {
   useEffect(() => {
     let alive = true;
-    getMySettingsService().then((settings) => {
-      if (!alive || !settings) return;
-      const server = normalizePrefs(settings);
-      const local = readMirror();
-      if (server.palette === local.palette && server.mode === local.mode) return;
-      applyThemePrefs(server);
-      writeMirror(server);
-    });
+    if (hasPendingSettings()) {
+      const { palette, mode } = readMirror();
+      void patchMySettingsService({ palette, mode })
+        .then(() => {
+          if (alive) clearSettingsDirty();
+        })
+        .catch(() => {});
+    } else {
+      getMySettingsService().then((settings) => {
+        if (!alive || !settings) return;
+        const server = normalizePrefs(settings);
+        const local = readMirror();
+        if (server.palette === local.palette && server.mode === local.mode) return;
+        applyThemePrefs(server);
+        writeMirror(server);
+      });
+    }
     return () => {
       alive = false;
     };

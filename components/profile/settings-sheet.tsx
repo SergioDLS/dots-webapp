@@ -8,6 +8,8 @@ import { PALETTE_ACCENTS, PALETTES, PALETTE_LABELS, type Palette } from "@/lib/t
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
 import {
   applyThemePrefs,
+  clearSettingsDirty,
+  markSettingsDirty,
   normalizePrefs,
   readMirror,
   writeMirror,
@@ -102,12 +104,20 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
 
   if (!open) return null;
 
-  /** Escribe espejo + DOM + servidor. El PATCH falla en silencio: el espejo conserva la elección. */
+  /**
+   * Escribe espejo + DOM + servidor. El PATCH falla en silencio: el espejo
+   * conserva la elección, y la marca de pendiente es lo que evita perderla si
+   * ThemeSync se remonta (al entrar y salir de una lección, por ejemplo)
+   * antes de que ese PATCH confirme.
+   */
   const setTheme = (next: { palette?: Palette; mode?: ThemeMode }) => {
     const prefs = normalizePrefs({ ...readMirror(), ...next });
     writeMirror(prefs);
     applyThemePrefs(prefs);
-    void patchMySettingsService(next).catch(() => {});
+    markSettingsDirty();
+    void patchMySettingsService(next)
+      .then(() => clearSettingsDirty())
+      .catch(() => {});
   };
 
   const setSound = (on: boolean) => {
@@ -115,7 +125,10 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
     // Toca un atributo del <html> para que el useSyncExternalStore de arriba
     // se entere: el espejo de sonido no tiene evento propio en la misma pestaña.
     document.documentElement.dataset.sound = on ? "on" : "off";
-    void patchMySettingsService({ sound: on }).catch(() => {});
+    markSettingsDirty();
+    void patchMySettingsService({ sound: on })
+      .then(() => clearSettingsDirty())
+      .catch(() => {});
   };
 
   return (
