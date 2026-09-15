@@ -12,12 +12,25 @@ Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lec
 
 | Tab | Ruta | Qué hay |
 |---|---|---|
-| Camino | `/levels` | `PathContainer` — sendero zigzag de nodos (practice/pronunciation/grammar/vocab/reading/checkpoint). Dificultades bloqueadas se colapsan con candado. |
+| Camino | `/levels` | Camino v3 — una dificultad a la vez; detalle de componentes abajo. |
 | Repaso | `/review` | SRS (SM-2) — cloze de oraciones falladas. |
 | Retos | `/quests` | Rival banner + torneo semanal + retos 1v1 + misión diaria + leaderboard. |
 | Juegos | `/play` | Lista de juegos con candados por niveles completados. |
 | Perfil | `/profile` | Stats, CEFR por nivel, badges, Doty custom (cosméticos/gestos de la tienda). |
 | Tienda | `/shop` | Gemas → escudos de racha, boost XP, cosméticos/gestos de Doty. |
+
+Camino v3 muestra una dificultad a la vez (`?d=<id>`; por defecto, la
+actual, resuelta en `lib/path-view.ts`). `path-container` (fetch,
+navegación entre dificultades, tarjetas de las bloqueadas);
+`path-difficulty` (vista de una dificultad: banner con narrador,
+secciones, niebla, grid md+ de 300 px + pista); `path-section` (zigzag
+15/50/85 %, filas de 182 px, sub-banner); `path-node` (arte de 128 px sin
+contenedor, barra 100×8, badges); `folded-header` + `back-to-current`
+(visibles según el `IntersectionObserver` que arma `path-container` en
+`hooks/use-in-view.ts`); `segmented-bar`. Las poses de Doty sin arte
+propio caen a `poseOrFallback` (`components/ui/doty/doty.tsx`, sobre la
+lógica pura de `pending.ts`). El HUD (`components/shell/app-header.tsx`)
+enciende la llama solo con `streakSecuredToday`.
 
 Flujos inmersivos (sin chrome): `/practice`, `/lesson/{pronunciation,grammar,vocab}`, `/checkpoint`, `/onboarding` (placement), `/readings/:id`, `/games/*`.
 
