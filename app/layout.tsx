@@ -93,7 +93,7 @@ export default function RootLayout({
           por scripts/themes/build.mjs desde design/themes.json (npm run
           themes:build) — no lo reescribas a mano. Es un mapa
           paleta → modo → --background; la misma constante que usan
-          app/manifest.ts y components/theme-toggle.tsx.
+          app/manifest.ts y components/profile/settings-sheet.tsx.
 
           Paleta: "dots-palette" en localStorage; si no hay una guardada o no
           existe en THEME_COLORS, cae a "rosa". Modo: "dots-theme" vale

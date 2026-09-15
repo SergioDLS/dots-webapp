@@ -29,7 +29,7 @@ export default function manifest(): MetadataRoute.Manifest {
     // un acento ahí se lee como una cabecera que la app no tiene. Ambos
     // vienen de THEME_COLORS (lib/theme-colors.ts, GENERADO desde
     // design/themes.json) para no divergir del script anti-flash de
-    // app/layout.tsx ni de components/theme-toggle.tsx.
+    // app/layout.tsx ni de components/profile/settings-sheet.tsx.
     // Nota: este manifest es estático — no puede leer la paleta ni el modo
     // guardados en localStorage, así que splash y barra siempre salen en
     // Rosa claro (ver docs/superpowers/specs/2026-08-16-pwa-manifest-design.md).
