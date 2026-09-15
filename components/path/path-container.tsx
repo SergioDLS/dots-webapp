@@ -7,9 +7,12 @@ import Spinner from "@/components/ui/Spinner/Spinner";
 import Doty from "@/components/ui/doty/doty";
 import PathDifficulty, { difficultyColors } from "./path-difficulty";
 import LockedDifficulty from "./locked-difficulty";
+import FoldedHeader from "./folded-header";
+import BackToCurrent from "./back-to-current";
 import { getLevelsService, getPathService, getPathNeighborsService } from "@/services/levels.service";
 import { adaptLevelsToPath } from "@/lib/path-adapter";
 import { useAuth } from "@/context/auth-context";
+import { useInView } from "@/hooks/use-in-view";
 import {
   difficultyNav,
   isDifficultyUnlocked,
@@ -162,6 +165,39 @@ export default function PathContainer() {
     return () => clearTimeout(t);
   }, [path, shownId, currentId]);
 
+  // El banner sale del viewport → cabecera plegada. Margen superior = alto del HUD.
+  const bannerInView = useInView(() => bannerRef.current, shownId, { rootMargin: "-64px 0px 0px 0px" });
+  // El nodo actual sale del viewport → botón flotante. Si se mira otra dificultad no existe en el DOM.
+  const currentInView = useInView(
+    () => document.querySelector('[data-path-current="true"]'),
+    `${shownId}:${path ? 1 : 0}`,
+    { threshold: 0.4 },
+  );
+  const showBack = shownId !== null && (shownId !== currentId || !currentInView);
+
+  const pendingScrollRef = useRef(false);
+  const scrollToCurrent = useCallback(() => {
+    document
+      .querySelector('[data-path-current="true"]')
+      ?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, []);
+  const backToCurrent = useCallback(() => {
+    if (shownId !== currentId && currentId !== null) {
+      pendingScrollRef.current = true;
+      goTo(currentId);
+      return;
+    }
+    scrollToCurrent();
+  }, [shownId, currentId, goTo, scrollToCurrent]);
+
+  // Tras cambiar a "mi nivel" desde otra dificultad, centrar el nodo cuando ya está pintado.
+  useEffect(() => {
+    if (!pendingScrollRef.current || shownId !== currentId) return;
+    pendingScrollRef.current = false;
+    const t = setTimeout(scrollToCurrent, 350);
+    return () => clearTimeout(t);
+  }, [shownId, currentId, scrollToCurrent]);
+
   if (error) {
     return (
       <div className="dots-card mx-auto flex w-full max-w-md flex-col items-center gap-4 px-6 py-10 text-center">
@@ -204,7 +240,10 @@ export default function PathContainer() {
         preview={preview}
         onGo={goTo}
         bannerRef={bannerRef}
+        header={<FoldedHeader difficulty={shown} nav={nav} accentHex={accentHex} visible={!bannerInView} onGo={goTo} />}
+        aside={<div className="hidden md:block"><BackToCurrent visible={showBack} onClick={backToCurrent} variant="inline" /></div>}
       />
+      <BackToCurrent visible={showBack} onClick={backToCurrent} variant="floating" />
 
       {locked.length > 0 && (
         <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
