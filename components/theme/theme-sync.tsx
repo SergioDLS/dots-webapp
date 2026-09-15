@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { getMySettingsService, patchMySettingsService } from "@/services/settings.service";
+import { readSoundEnabled } from "@/lib/sound-prefs";
 import {
   applyThemePrefs,
   clearSettingsDirty,
@@ -26,8 +27,11 @@ import {
  * entra y se sale de una lección, práctica, checkpoint, juego o lectura —
  * frecuente en una PWA con conectividad imperfecta. Aplicar en ese momento lo
  * que diga el servidor revertiría el cambio local sin avisar. Por eso, con
- * marca pendiente, la rama reenvía el espejo local al servidor en vez de leer
- * de él, y solo limpia la marca si ese reintento confirma; si vuelve a
+ * marca pendiente, la rama reenvía al servidor el estado completo de los
+ * espejos locales (paleta, modo y sonido), no solo el tema: la marca es una
+ * sola y no distingue qué control la dejó pendiente, así que en vez de
+ * adivinar cuál PATCH falló se sincroniza todo de una vez y se acaba la
+ * ambigüedad. Solo se limpia la marca si ese reintento confirma; si vuelve a
  * fallar, no hace nada y se reintenta en el próximo montaje. Sin nada
  * pendiente, el comportamiento es el de siempre: pide `/me/settings` y, si
  * difiere del espejo, aplica y reescribe.
@@ -42,7 +46,7 @@ export default function ThemeSync() {
     let alive = true;
     if (hasPendingSettings()) {
       const { palette, mode } = readMirror();
-      void patchMySettingsService({ palette, mode })
+      void patchMySettingsService({ palette, mode, sound: readSoundEnabled() })
         .then(() => {
           if (alive) clearSettingsDirty();
         })
