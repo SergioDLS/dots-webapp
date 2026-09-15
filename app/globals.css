@@ -137,6 +137,14 @@ h1, h2, h3, .font-display {
   100% { transform: translateY(0); opacity: 1; }
 }
 
+/* Entrada de la hoja lateral de ajustes en escritorio (spec §5). Solo
+   transform y opacity: RN-safe (regla 2). En móvil la hoja usa
+   dots-slide-up, que ya existe. */
+@keyframes dots-slide-right {
+  0%   { transform: translateX(100%); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+
 /* board slot dealing in (game boards; pair with `backwards` fill + stagger) */
 @keyframes dots-slot-in {
   0%   { transform: scale(0.9) translateY(6px); opacity: 0; }
