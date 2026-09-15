@@ -190,8 +190,10 @@ energía en punta", nunca el nombre de la serie).
 | Boost de XP activo | `flexeando` | "XP x2 activo. Modo bestia." |
 | Repaso al día | `meditando` | "Repaso al día. Paz mental." |
 | Dificultad: 0 % | narrador | "Todo el mundo empezó aquí. Hasta yo." |
-| Dificultad: < 40 % | narrador | "Vas con todo. Ni una lección te frena." |
+| Dificultad: < 50 % | narrador | "Vas con todo. Ni una lección te frena." |
 | Dificultad: < 80 % | narrador | "Más de la mitad. Ya no hay vuelta atrás." |
+| Dificultad: < 100 % | narrador | "Ya casi. Cierra con estilo." |
+| Dificultad bloqueada (vista previa) | narrador | "Termina la anterior y este camino se abre." |
 | Dificultad: 100 % | narrador | "Nivel dominado. +1000 de aura." |
 | Bienvenida (primer inicio) | `saludando` | "¡Hola! Soy Doty. Tu coach de inglés. Prometo no regañarte." |
 | Pista: primer nivel | `senalando` | "Este es tu primer nivel. Toca la imagen y arrancamos. Cada lección son unos tres minutos." |

@@ -12,7 +12,7 @@
     "icons:compose": "node scripts/mj/compose-icons.mjs",
     "splash:compose": "node scripts/mj/compose-splash.mjs",
     "themes:build": "node scripts/themes/build.mjs",
-    "test:scripts": "node --test scripts/themes/render.test.mjs"
+    "test:scripts": "node --test scripts/themes/render.test.mjs lib/*.test.mjs components/ui/doty/*.test.mjs"
   },
   "dependencies": {
     "axios": "^1.7.7",
