@@ -59,7 +59,7 @@ export default function PathDifficulty({
 
       <aside className="md:sticky md:top-[72px]">
         {/* Aire arriba para el narrador que asoma por encima del panel. */}
-        <div ref={bannerRef} className="pt-9">
+        <div ref={bannerRef} className="pt-9" style={{ filter: preview ? "grayscale(1)" : undefined }}>
           <DifficultyBanner
             difficulty={difficulty}
             index={nav.index}

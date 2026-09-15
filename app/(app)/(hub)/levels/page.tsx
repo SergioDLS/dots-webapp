@@ -1,15 +1,17 @@
-import React from "react";
+import React, { Suspense } from "react";
 
 import PathContainer from "@/components/path/path-container";
+import Spinner from "@/components/ui/Spinner/Spinner";
 
 /**
- * Camino (home). El chrome (nav + HUD con racha/XP) lo aporta el layout del
- * grupo hub; aquí solo vive el sendero de progreso a ancho completo. El
- * contenido que antes estaba en el sidebar-carrusel se movió a /profile,
- * /quests y /play.
+ * Camino (home). El chrome (nav + HUD) lo aporta el layout del grupo hub; aquí
+ * vive una dificultad a la vez (`?d=<id>`, por defecto la actual). El Suspense
+ * es obligatorio por `useSearchParams` (regla 6).
  */
-function Levels() {
-  return <PathContainer />;
+export default function Levels() {
+  return (
+    <Suspense fallback={<Spinner title="Cargando tu camino..." />}>
+      <PathContainer />
+    </Suspense>
+  );
 }
-
-export default Levels;

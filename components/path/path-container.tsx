@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Doty from "@/components/ui/doty/doty";
-import PathDifficulty from "./path-difficulty";
+import PathDifficulty, { difficultyColors } from "./path-difficulty";
+import LockedDifficulty from "./locked-difficulty";
 import { getLevelsService, getPathService, getPathNeighborsService } from "@/services/levels.service";
 import { adaptLevelsToPath } from "@/lib/path-adapter";
 import { useAuth } from "@/context/auth-context";
+import {
+  difficultyNav,
+  isDifficultyUnlocked,
+  pickDefaultDifficultyId,
+  prettyDifficultyName,
+} from "@/lib/path-view";
 import type { PathPeer, PathResponse } from "@/types/path.types";
 
 /**
@@ -54,7 +61,6 @@ export default function PathContainer() {
   const [peersByNodeId, setPeersByNodeId] = useState<
     Record<number, PathPeer[]>
   >({});
-  const scrolledRef = useRef(false);
 
   useEffect(() => {
     if (isBootstrapping) return;
@@ -124,17 +130,37 @@ export default function PathContainer() {
     if (path?.placementPending) router.replace("/onboarding");
   }, [path?.placementPending, router]);
 
-  // Auto-scroll to the current node once the path is rendered
+  const searchParams = useSearchParams();
+  const requested = Number(searchParams.get("d"));
+  const difficulties = path?.difficulties ?? [];
+  // "Mi nivel": la dificultad current del backend, o la del nodo current, o la primera abierta.
+  const currentId = pickDefaultDifficultyId(difficulties);
+  const shownId = difficulties.some((d) => d.id === requested) ? requested : currentId;
+  const shown = difficulties.find((d) => d.id === shownId) ?? null;
+  const preview = shown ? !isDifficultyUnlocked(shown) : false;
+  const nav = shownId === null ? null : difficultyNav(difficulties, shownId);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  const goTo = useCallback(
+    (id: number) => {
+      // Sin `?d=` para "mi nivel": la URL limpia sigue siendo la del Camino de siempre.
+      router.push(id === currentId ? "/levels" : `/levels?d=${id}`);
+    },
+    [router, currentId],
+  );
+
+  const scrolledForRef = useRef<number | null>(null);
   useEffect(() => {
-    if (!path || scrolledRef.current) return;
-    scrolledRef.current = true;
+    if (!path || shownId === null || shownId !== currentId) return;
+    if (scrolledForRef.current === shownId) return;
+    scrolledForRef.current = shownId;
     const t = setTimeout(() => {
       document
         .querySelector('[data-path-current="true"]')
         ?.scrollIntoView({ block: "center", behavior: "smooth" });
     }, 300);
     return () => clearTimeout(t);
-  }, [path]);
+  }, [path, shownId, currentId]);
 
   if (error) {
     return (
@@ -161,17 +187,43 @@ export default function PathContainer() {
     return <Spinner title="Cargando tu camino..." />;
   }
 
+  if (!shown || nav === null) {
+    return <span className="text-(--muted)">No hay dificultades disponibles.</span>;
+  }
+
+  const accentHex = difficultyColors(shown.id)[0];
+  const locked = difficulties.filter((d) => d.id !== shown.id && !isDifficultyUnlocked(d));
+
   return (
-    <div className="w-full">
-      <div className="flex flex-col gap-8">
-        {path.difficulties.map((difficulty) => (
-          <PathDifficulty
-            key={difficulty.id}
-            difficulty={difficulty}
-            peersByNodeId={peersByNodeId}
-          />
-        ))}
-      </div>
+    <div className="flex w-full flex-col gap-8">
+      <PathDifficulty
+        difficulty={shown}
+        nav={nav}
+        accentHex={accentHex}
+        peersByNodeId={peersByNodeId}
+        preview={preview}
+        onGo={goTo}
+        bannerRef={bannerRef}
+      />
+
+      {locked.length > 0 && (
+        <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
+          {locked.map((d) => {
+            const i = difficulties.findIndex((x) => x.id === d.id);
+            const previous = difficulties[i - 1];
+            return (
+              <LockedDifficulty
+                key={d.id}
+                difficulty={d}
+                index={i}
+                previousName={previous ? prettyDifficultyName(previous.name) : "la dificultad anterior"}
+                accentHex={difficultyColors(d.id)[0]}
+                onPreview={goTo}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
