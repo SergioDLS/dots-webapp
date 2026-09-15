@@ -52,3 +52,13 @@ test("renderThemeColors emite el mapa paleta → modo → --background", () => {
   assert.match(ts, /electrico: \{ light: "#f4f7ff", dark: "#0d1330" \}/);
   assert.match(ts, /export const PALETTE_LABELS: Record<Palette, string> = \{ rosa: "Rosa", electrico: "Eléctrico" \};/);
 });
+
+test("renderThemeColors emite el acento de cada paleta y modo", () => {
+  // La muestra de color de la hoja de ajustes lo necesita como DATO: los
+  // bloques generados usan selectores :root[data-palette], y :root solo casa
+  // con <html>, así que un envoltorio anidado no heredaría el token.
+  const ts = renderThemeColors(themes);
+  assert.match(ts, /export const PALETTE_ACCENTS: Record<Palette, Record<ThemeMode, string>> = \{/);
+  assert.match(ts, /rosa: \{ light: "#e5077e", dark: "#ff3d9e" \}/);
+  assert.match(ts, /electrico: \{ light: "#3768ff", dark: "#5c86ff" \}/);
+});

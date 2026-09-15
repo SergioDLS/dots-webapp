@@ -59,6 +59,7 @@ export function renderThemeColors(themes) {
   validateThemes(themes);
   const ids = Object.keys(themes.palettes);
   const rows = ids.map((id) => `  ${id}: { light: "${themes.palettes[id].light["--background"]}", dark: "${themes.palettes[id].dark["--background"]}" },`).join("\n");
+  const accents = ids.map((id) => `  ${id}: { light: "${themes.palettes[id].light["--accent"]}", dark: "${themes.palettes[id].dark["--accent"]}" },`).join("\n");
   const labels = ids.map((id) => `${id}: "${themes.palettes[id].label}"`).join(", ");
   return `// GENERADO por scripts/themes/build.mjs a partir de design/themes.json — no editar a mano.
 // Colores que hace falta conocer FUERA de CSS: el manifest de la PWA y la
@@ -70,6 +71,13 @@ export type ThemeMode = "light" | "dark";
 export const PALETTE_LABELS: Record<Palette, string> = { ${labels} };
 export const THEME_COLORS: Record<Palette, Record<ThemeMode, string>> = {
 ${rows}
+};
+
+// El --accent de cada paleta y modo. Lo necesita la muestra de color de la hoja
+// de ajustes (subproyecto D): los bloques CSS generados usan :root[data-palette],
+// que solo casa con <html>, así que el color tiene que viajar como dato.
+export const PALETTE_ACCENTS: Record<Palette, Record<ThemeMode, string>> = {
+${accents}
 };
 `;
 }
