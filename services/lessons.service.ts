@@ -123,7 +123,7 @@ export type NodeItemResult = {
 
 export type NodeProgressReward = ProgressReward & {
   nodeProgress: number;
-  /** % de ítems del pack dominados (corona al llegar a 100). */
+  /** % de ítems del pack dominados (check dorado al llegar a 100). */
   mastery?: number;
 };
 

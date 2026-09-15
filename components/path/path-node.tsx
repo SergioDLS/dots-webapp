@@ -37,7 +37,7 @@ interface PathNodeProps {
   preview?: boolean;
 }
 
-/** Módulos con dominio por ítem: la corona exige mastery 100, no solo completar. */
+/** Módulos con dominio por ítem: el check dorado exige mastery 100, no solo completar. */
 const MASTERY_TYPES = new Set(["letters", "numbers", "vocab", "pronunciation", "grammar"]);
 
 const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
@@ -58,9 +58,8 @@ export default function PathNode({
   const isLocked = preview || !node.unlocked;
   const progress = clamp(node.progress);
   const isDone = !preview && node.completed;
-  // Dos niveles (F3e): completado = respondiste todo 1× (check); corona = pack dominado.
-  const isMastered =
-    !preview && (MASTERY_TYPES.has(node.type) ? (node.mastery ?? 0) >= 100 : isDone);
+  // Dos niveles (F3e): completado = respondiste todo 1× (check); check dorado = pack dominado.
+  const isGoldCheck = !preview && MASTERY_TYPES.has(node.type) && (node.mastery ?? 0) >= 100;
   const isCurrent = !preview && node.current && !isLocked && !isDone;
   const isTestable =
     !preview && isCheckpoint && node.unlocked && !node.completed && checkpointAvailable;
@@ -220,7 +219,7 @@ export default function PathNode({
           </div>
         )}
 
-        {/* Check de completado (abajo-derecha): el dorado es la marca de dominado desde que se retiró la corona */}
+        {/* Check de completado (abajo-derecha): el dorado marca el dominio y solo lo reciben los módulos con dominio por ítem al 100%; el resto se queda en verde */}
         {isDone && !isLocked && (
           <div
             className="absolute flex items-center justify-center text-white"
@@ -230,9 +229,9 @@ export default function PathNode({
               width: 26,
               height: 26,
               borderRadius: "50%",
-              background: isMastered ? "linear-gradient(135deg, var(--gold), var(--gold-edge))" : "var(--success)",
+              background: isGoldCheck ? "linear-gradient(135deg, var(--gold), var(--gold-edge))" : "var(--success)",
               border: "2px solid var(--surface)",
-              boxShadow: `0 2px 6px color-mix(in srgb, ${isMastered ? "var(--gold)" : "var(--success)"} 40%, transparent)`,
+              boxShadow: `0 2px 6px color-mix(in srgb, ${isGoldCheck ? "var(--gold)" : "var(--success)"} 40%, transparent)`,
               zIndex: 10,
             }}
           >

@@ -36,7 +36,7 @@ export default function GameTile({ game, badges, onOpen }: Props) {
       onClick={() => onOpen(game.path)}
       // active:scale en vez de .dots-pressable: ese canto 3-D necesita una caja
       // y aquí no hay ninguna (principio 4). Solo transform: RN-safe.
-      className="group flex w-full flex-col items-center gap-1.5 rounded-2xl transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--accent)"
+      className="flex w-full flex-col items-center gap-1.5 rounded-2xl transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--accent)"
       style={{ height: TILE_H }}
     >
       <span className="relative flex items-center justify-center" style={{ height: TILE_ART_BOX, width: TILE_ART_BOX }}>

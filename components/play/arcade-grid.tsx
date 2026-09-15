@@ -1,6 +1,6 @@
 "use client";
 
-import { badgesFor, splitGames, type BadgeContext, type DailyState } from "@/lib/arcade";
+import { badgesFor, splitGames, type DailyState } from "@/lib/arcade";
 import type { Game } from "@/services/games.service";
 import DailyHero from "./daily-hero";
 import GameTile from "./game-tile";
@@ -45,13 +45,14 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 
 interface Props {
   games: Game[];
-  badgeContext: BadgeContext;
+  /** `gamePath` del torneo de la semana — ya viene con barra desde el backend. */
+  tournamentPath: string | null;
   /** Estado del puzzle de hoy por ruta ("/wordle" → {done, won}); null si aún no llega. */
   dailyStates: Record<string, DailyState | null>;
   onOpen: (path: string) => void;
 }
 
-export default function ArcadeGrid({ games, badgeContext, dailyStates, onOpen }: Props) {
+export default function ArcadeGrid({ games, tournamentPath, dailyStates, onOpen }: Props) {
   const { daily, arcade, locked } = splitGames(games);
 
   return (
@@ -76,7 +77,7 @@ export default function ArcadeGrid({ games, badgeContext, dailyStates, onOpen }:
           <ul className={ARCADE_GRID_CLASS}>
             {arcade.map((game) => (
               <li key={game.id}>
-                <GameTile game={game} badges={badgesFor(game.path, badgeContext)} onOpen={onOpen} />
+                <GameTile game={game} badges={badgesFor(game.path, { tournamentPath })} onOpen={onOpen} />
               </li>
             ))}
           </ul>

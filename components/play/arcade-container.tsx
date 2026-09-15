@@ -5,15 +5,12 @@ import { useRouter } from "next/navigation";
 
 import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
-import { DAILY_PATHS, type BadgeContext, type DailyState } from "@/lib/arcade";
-import { readCurrentUserId } from "@/lib/current-user";
+import { DAILY_PATHS, type DailyState } from "@/lib/arcade";
 import {
   getCrosswordService,
-  getGameRecordsService,
   getGamesService,
   getWordleService,
   type Game,
-  type GameRecord,
 } from "@/services/games.service";
 import { getTournamentService } from "@/services/tournament.service";
 import ArcadeGrid from "./arcade-grid";
@@ -21,13 +18,11 @@ import ArcadeSkeleton from "./arcade-skeleton";
 
 /** Lo que adorna la rejilla pero nunca la bloquea: badges y estado de hoy. */
 interface Extras {
-  records: GameRecord[];
   tournamentPath: string | null;
   dailyStates: Record<string, DailyState | null>;
 }
 
 const NO_EXTRAS: Extras = {
-  records: [],
   tournamentPath: null,
   dailyStates: { [DAILY_PATHS[0]]: null, [DAILY_PATHS[1]]: null },
 };
@@ -56,25 +51,27 @@ export default function ArcadeContainer() {
   }, [attempt]);
 
   // Badges y estado de hoy: decoran la rejilla y no deben retrasarla ni
-  // romperla. Cada fuente cae a su valor neutro por separado.
+  // romperla. Cada fuente cae a su valor neutro por separado; el catch final
+  // es la red de seguridad del Promise.all mismo, no depende de que cada
+  // servicio trague su propio error.
   useEffect(() => {
     let active = true;
     Promise.all([
-      getGameRecordsService(),
       getTournamentService(),
       getWordleService().catch(() => null),
       getCrosswordService().catch(() => null),
-    ]).then(([records, tournament, wordle, crossword]) => {
-      if (!active) return;
-      setExtras({
-        records,
-        tournamentPath: tournament?.gamePath ?? null,
-        dailyStates: {
-          [DAILY_PATHS[0]]: wordle ? { done: wordle.done, won: wordle.won } : null,
-          [DAILY_PATHS[1]]: crossword ? { done: crossword.done, won: crossword.won } : null,
-        },
-      });
-    });
+    ])
+      .then(([tournament, wordle, crossword]) => {
+        if (!active) return;
+        setExtras({
+          tournamentPath: tournament?.gamePath ?? null,
+          dailyStates: {
+            [DAILY_PATHS[0]]: wordle ? { done: wordle.done, won: wordle.won } : null,
+            [DAILY_PATHS[1]]: crossword ? { done: crossword.done, won: crossword.won } : null,
+          },
+        });
+      })
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -117,16 +114,10 @@ export default function ArcadeContainer() {
     );
   }
 
-  const badgeContext: BadgeContext = {
-    records: extras.records,
-    currentUserId: readCurrentUserId(),
-    tournamentPath: extras.tournamentPath,
-  };
-
   return (
     <ArcadeGrid
       games={games}
-      badgeContext={badgeContext}
+      tournamentPath={extras.tournamentPath}
       dailyStates={extras.dailyStates}
       onOpen={open}
     />

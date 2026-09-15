@@ -122,7 +122,7 @@ export default function NodePopover({
           <div className="flex items-center gap-2">
             <Doty pose={poseOrFallback("cerebro-galaxia", "orgulloso")} size="chip" shadow={false} />
             <p className="text-[11px] font-black leading-tight" style={{ color: "var(--gold-edge)" }}>
-              <span>Dominado</span>
+              <span className="block">Dominado</span>
               Cerebro galaxia. Este nivel ya es tuyo.
             </p>
           </div>

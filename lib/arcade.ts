@@ -1,4 +1,4 @@
-import type { Game, GameRecord } from "@/services/games.service";
+import type { Game } from "@/services/games.service";
 
 /**
  * Lógica pura de la vista del arcade (spec §4). Vive fuera de los componentes
@@ -52,25 +52,17 @@ export function lockedLabel(levelsLeft: number): string {
 }
 
 export interface TileBadges {
-  /** El trono global de este juego es del usuario actual. */
-  throne: boolean;
   /** Este es el juego del torneo de esta semana. */
   tournament: boolean;
 }
 
 export interface BadgeContext {
-  records: GameRecord[];
-  currentUserId: number | null;
   /** `gamePath` del torneo — ya viene con barra desde el backend. */
   tournamentPath: string | null;
 }
 
 export function badgesFor(path: string, ctx: BadgeContext): TileBadges {
-  const key = gameKey(path);
   return {
-    throne:
-      ctx.currentUserId !== null &&
-      ctx.records.some((r) => r.gameKey === key && r.holderId === ctx.currentUserId),
     tournament: ctx.tournamentPath !== null && ctx.tournamentPath === path,
   };
 }

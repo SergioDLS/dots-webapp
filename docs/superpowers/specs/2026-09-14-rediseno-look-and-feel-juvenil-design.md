@@ -259,15 +259,16 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   +40 XP" si sigue abierto. **"hasta"**: el backend da `XP_PER_GAME_PLAY` = 15 por partida y
   `XP_NEW_HIGH_SCORE_BONUS` = 25 más solo si el score supera el récord personal, así que 40 es el
   máximo y no lo que se lleva cada partida.
-- **Badges** de 28 px sobre el arte, arriba a la derecha: corona si el usuario tiene el trono
-  global del juego (`GET /games/records`), trofeo si el juego es el del torneo de la semana. La
-  medalla de "récord reciente" **queda fuera** hasta que `/games/records` exponga la fecha del
-  récord.
+- **Badges** de 28 px sobre el arte, arriba a la derecha: solo trofeo si el juego es el del
+  torneo de la semana. El badge de trono se retiró a petición del dueño del producto por el
+  aspecto del icono; la información del trono se sigue mostrando en la pantalla de inicio de
+  cada juego (`GameIntro`, vía `useGameRecords`). La medalla de "récord reciente" **queda fuera**
+  hasta que `/games/records` exponga la fecha del récord.
 - "Por desbloquear": arte en gris al 35 % con candado y "faltan N niveles", no tocable.
 - Navegación con `router.push('/games' + path)`: se elimina `window.location.assign` y la
   excepción legacy del CLAUDE.md. El skeleton replica exactamente la retícula real (hoy salta).
 - Criterios: doce juegos en una pantalla y media a 390 px; entrar a un juego no recarga la app ni
-  pierde el token; el badge de trono coincide con `GET /games/records`.
+  pierde el token; el badge de trofeo coincide con el juego del torneo de la semana.
 
 ## 5. Subproyecto D — Perfil compacto (variante A) y hoja de ajustes
 
