@@ -1,7 +1,7 @@
 "use client";
 
 import Doty from "@/components/ui/doty/doty";
-import { clampPct, countLessons, sectionPose } from "@/lib/path-view";
+import { clampPct, countLessons, panelTint, sectionPose } from "@/lib/path-view";
 import type { PathSection } from "@/types/path.types";
 
 interface Props {
@@ -21,7 +21,7 @@ export default function SectionBanner({ section, index, total, accentHex, muted 
     <header
       className="relative w-full"
       style={{
-        background: `color-mix(in srgb, ${accentHex} 14%, var(--surface))`,
+        background: panelTint(accentHex),
         borderRadius: 22,
         padding: "14px 120px 14px 16px",
         opacity: muted ? 0.6 : 1,
@@ -35,7 +35,7 @@ export default function SectionBanner({ section, index, total, accentHex, muted 
         Sección {index + 1} de {total}
         {section.skipped ? " · Superada" : ""}
       </p>
-      <h3 className="truncate font-display text-lg font-extrabold leading-tight text-foreground">
+      <h3 className="line-clamp-2 font-display text-lg font-extrabold leading-tight text-foreground">
         {section.name}
       </h3>
       <div className="mt-2 flex items-center gap-2">

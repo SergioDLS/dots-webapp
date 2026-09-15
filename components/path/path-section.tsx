@@ -114,7 +114,7 @@ export default function PathSection({
           )}
 
           {/* Nodes */}
-          {placed.map((p, index) => {
+          {placed.map((p, nodeIndex) => {
             const peersHere = peersByNodeId[p.node.id] ?? [];
             return (
             <div
@@ -132,7 +132,7 @@ export default function PathSection({
                 node={p.node}
                 accentHex={accentHex}
                 checkpointAvailable={checkpointAvailable}
-                animationIndex={index}
+                animationIndex={nodeIndex}
                 open={openKey === p.key}
                 onOpenChange={(v) => setOpenKey(v ? p.key : null)}
                 popoverAlign={p.xPct < 35 ? "left" : p.xPct > 65 ? "right" : "center"}

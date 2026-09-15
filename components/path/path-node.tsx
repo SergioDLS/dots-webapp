@@ -78,17 +78,17 @@ export default function PathNode({
 
   const labelColor = isLocked
     ? "var(--muted)"
-    : isDone
-      ? "var(--success)"
-      : isCheckpoint
-        ? "var(--gold-edge)"
+    : isCheckpoint
+      ? "var(--gold-edge)"
+      : isDone
+        ? "var(--success)"
         : `color-mix(in srgb, ${accentHex} 55%, var(--foreground))`;
 
   // Sombra de piso por defecto; resplandor del color de la sección en el actual;
-  // dorado en el checkpoint listo. Bloqueado: gris y apagado, sin sombra.
+  // dorado en el checkpoint (no bloqueado). Bloqueado: gris y apagado, sin sombra.
   const artFilter = isLocked
     ? "grayscale(1)"
-    : isTestable
+    : isCheckpoint
       ? "drop-shadow(0 0 16px color-mix(in srgb, var(--gold) 60%, transparent))"
       : isCurrent
         ? `drop-shadow(0 0 14px ${accentHex}aa)`
@@ -131,6 +131,8 @@ export default function PathNode({
             style={{
               border: `3px solid ${isTestable ? "color-mix(in srgb, var(--gold) 55%, transparent)" : `${accentHex}88`}`,
               animation: `dots-pulse-scale ${isTestable ? "2.6s" : "2s"} ease-out infinite`,
+              // opacity base: con prefers-reduced-motion la animación colapsa y este borde tenue es el feedback que queda.
+              opacity: 0.7,
             }}
           />
         )}
@@ -280,8 +282,8 @@ export default function PathNode({
 
       {/* ── Etiqueta ───────────────────────────────────────── */}
       <span
-        className="mt-1 w-full truncate text-center font-extrabold leading-tight"
-        style={{ color: labelColor, fontSize: 13, letterSpacing: "-0.01em", height: LABEL_H - 4 }}
+        className="mt-1 w-full text-center font-extrabold line-clamp-2"
+        style={{ color: labelColor, fontSize: 13, lineHeight: "15px", letterSpacing: "-0.01em", height: LABEL_H }}
       >
         {node.title}
       </span>

@@ -1,4 +1,5 @@
 import type { PathDifficulty, PathSection } from "@/types/path.types";
+import type { DotyPose } from "@/components/ui/doty/poses";
 
 /**
  * Lógica pura de la vista del Camino (spec §3): qué dificultad se muestra, sus
@@ -82,19 +83,23 @@ export const PREVIEW_LINE = "Termina la anterior y este camino se abre.";
 export const SECTION_POSES = [
   "leyendo", "escribiendo", "pensando", "en-laptop", "idea",
   "escuchando", "hablando", "libro", "lapiz", "mochila",
-] as const;
+] as const satisfies readonly DotyPose[];
 
 export function sectionPose(sectionId: number): (typeof SECTION_POSES)[number] {
   return SECTION_POSES[Math.abs(sectionId) % SECTION_POSES.length];
 }
 
 /** Narrador por posición mientras no llegue el arte de fase 4 (spec §2.3 reemplaza justo a estos tres). */
-export const NARRATOR_FALLBACK = ["bienvenido", "sigue-asi", "orgulloso"] as const;
+export const NARRATOR_FALLBACK = ["bienvenido", "sigue-asi", "orgulloso"] as const satisfies readonly DotyPose[];
 
 export function narratorFallback(index: number): (typeof NARRATOR_FALLBACK)[number] {
   const i = Math.min(Math.max(index, 0), NARRATOR_FALLBACK.length - 1);
   return NARRATOR_FALLBACK[i];
 }
+
+/** Tinte de los paneles de cabecera del Camino (banner y sub-banner): acento al 14 % sobre la superficie. */
+export const panelTint = (accentHex: string): string =>
+  `color-mix(in srgb, ${accentHex} 14%, var(--surface))`;
 
 export function prettyDifficultyName(name: string): string {
   return String(name || "")

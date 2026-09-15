@@ -24,6 +24,8 @@ const MASTERY_TYPES = new Set([
   "grammar",
 ]);
 
+const POPOVER_W = 212;
+
 export default function NodePopover({
   node,
   accentHex,
@@ -48,7 +50,8 @@ export default function NodePopover({
       ? { left: 0 }
       : align === "right"
         ? { right: 0 }
-        : { left: "50%", transform: "translateX(-50%)" };
+        : // Sin transform: dots-pop-in lo anima y con fill "both" pisaba el desplazamiento que centraba esto.
+          { left: "50%", marginLeft: -POPOVER_W / 2 };
 
   return (
     <div
@@ -58,7 +61,7 @@ export default function NodePopover({
       onClick={(e) => e.stopPropagation()}
       style={{
         top: "calc(100% + 6px)",
-        width: 212,
+        width: POPOVER_W,
         zIndex: 50,
         background: "var(--surface)",
         border: `2px solid color-mix(in srgb, ${accentHex} 40%, var(--border))`,

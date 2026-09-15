@@ -7,10 +7,12 @@ interface Props {
   height?: number;
   gap?: number;
   className?: string;
+  /** % real por lecciones que pasa el banner; sin él, media simple de secciones. */
+  valueNow?: number;
 }
 
 /** Un segmento por sección: relleno = `section.progress`; las completadas o superadas, en --success. */
-export default function SegmentedBar({ sections, accentHex, height = 8, gap = 4, className = "" }: Props) {
+export default function SegmentedBar({ sections, accentHex, height = 8, gap = 4, className = "", valueNow }: Props) {
   const avg =
     sections.length === 0
       ? 0
@@ -23,7 +25,7 @@ export default function SegmentedBar({ sections, accentHex, height = 8, gap = 4,
       aria-label="Progreso por sección"
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={avg}
+      aria-valuenow={valueNow ?? avg}
     >
       {sections.map((s) => {
         const pct = s.skipped ? 100 : clampPct(s.progress);

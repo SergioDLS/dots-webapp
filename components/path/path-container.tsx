@@ -166,7 +166,7 @@ export default function PathContainer() {
   }, [path, shownId, currentId]);
 
   // El banner sale del viewport → cabecera plegada. Margen superior = alto del HUD.
-  const bannerInView = useInView(() => bannerRef.current, shownId, { rootMargin: "-64px 0px 0px 0px" });
+  const bannerInView = useInView(() => bannerRef.current, shownId, { rootMargin: "-48px 0px 0px 0px" });
   // El nodo actual sale del viewport → botón flotante. Si se mira otra dificultad no existe en el DOM.
   const currentInView = useInView(
     () => document.querySelector('[data-path-current="true"]'),
@@ -184,6 +184,7 @@ export default function PathContainer() {
   const backToCurrent = useCallback(() => {
     if (shownId !== currentId && currentId !== null) {
       pendingScrollRef.current = true;
+      scrolledForRef.current = currentId;
       goTo(currentId);
       return;
     }
@@ -224,7 +225,17 @@ export default function PathContainer() {
   }
 
   if (!shown || nav === null) {
-    return <span className="text-(--muted)">No hay dificultades disponibles.</span>;
+    return (
+      <div className="dots-card mx-auto flex w-full max-w-md flex-col items-center gap-4 px-6 py-10 text-center">
+        <Doty pose="pensando" size="tiny" />
+        <h2 className="font-display text-2xl font-extrabold text-foreground">
+          Todavía no hay camino que mostrar
+        </h2>
+        <p className="text-sm font-semibold text-(--muted)">
+          Cuando tu cuenta tenga contenido asignado, aparecerá aquí.
+        </p>
+      </div>
+    );
   }
 
   const accentHex = difficultyColors(shown.id)[0];
@@ -241,7 +252,7 @@ export default function PathContainer() {
         onGo={goTo}
         bannerRef={bannerRef}
         header={<FoldedHeader difficulty={shown} nav={nav} accentHex={accentHex} visible={!bannerInView} onGo={goTo} />}
-        aside={<div className="hidden md:block"><BackToCurrent visible={showBack} onClick={backToCurrent} variant="inline" /></div>}
+        bannerFooter={<div className="hidden md:block"><BackToCurrent visible={showBack} onClick={backToCurrent} variant="inline" /></div>}
       />
       <BackToCurrent visible={showBack} onClick={backToCurrent} variant="floating" />
 

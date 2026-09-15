@@ -1,9 +1,10 @@
 "use client";
 
-import Doty, { isDotyPose } from "@/components/ui/doty/doty";
+import Doty from "@/components/ui/doty/doty";
 import SegmentedBar from "./segmented-bar";
 import { DifficultyArrow } from "./difficulty-nav";
-import { countLessons, narratorFallback, prettyDifficultyName, type DifficultyNav } from "@/lib/path-view";
+import { narratorPose } from "./narrator-pose";
+import { countLessons, panelTint, prettyDifficultyName, type DifficultyNav } from "@/lib/path-view";
 import type { PathDifficulty } from "@/types/path.types";
 
 interface Props {
@@ -23,13 +24,14 @@ interface Props {
  */
 export default function FoldedHeader({ difficulty, nav, accentHex, visible, onGo }: Props) {
   const { done, total } = countLessons(difficulty.sections);
-  const pose = isDotyPose(difficulty.img) ? difficulty.img : narratorFallback(nav.index);
+  const pose = narratorPose(difficulty.img, nav.index);
   return (
-    <div className="sticky z-20 h-0 md:hidden" style={{ top: 56 }} aria-hidden={!visible}>
+    <div className="sticky z-20 h-0 md:hidden" style={{ top: 44 }} aria-hidden={!visible}>
       <div
+        inert={!visible}
         className="absolute inset-x-0 top-0 flex items-center gap-2 rounded-2xl px-2.5 py-1.5 transition-[opacity,transform] duration-200"
         style={{
-          background: `color-mix(in srgb, ${accentHex} 14%, var(--surface))`,
+          background: panelTint(accentHex),
           boxShadow: "var(--shadow-card)",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(-8px)",

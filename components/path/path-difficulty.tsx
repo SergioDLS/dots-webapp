@@ -21,7 +21,7 @@ interface PathDifficultyProps {
   /** Cabecera plegada (móvil): va antes del banner para poder ser sticky dentro de esta vista. */
   header?: React.ReactNode;
   /** Botón "Volver a mi nivel" en escritorio: dentro del panel sticky. */
-  aside?: React.ReactNode;
+  bannerFooter?: React.ReactNode;
 }
 
 /** La rotación de la paleta por id de dificultad es la del dashboard legacy: no cambia. */
@@ -47,7 +47,7 @@ export default function PathDifficulty({
   onGo,
   bannerRef,
   header,
-  aside,
+  bannerFooter,
 }: PathDifficultyProps) {
   const colors = difficultyColors(difficulty.id);
   const { sections } = difficulty;
@@ -69,7 +69,7 @@ export default function PathDifficulty({
             onGo={onGo}
             preview={preview}
           >
-            {aside}
+            {bannerFooter}
           </DifficultyBanner>
         </div>
       </aside>

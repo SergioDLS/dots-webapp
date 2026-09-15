@@ -10,14 +10,14 @@ interface Props {
 }
 
 const PILL =
-  "dots-pressable relative inline-flex items-center rounded-full bg-(--accent) text-[13px] font-black text-(--accent-contrast) [--press-color:var(--accent-edge)]";
+  "dots-pressable inline-flex items-center rounded-full bg-(--accent) text-[13px] font-black text-(--accent-contrast) [--press-color:var(--accent-edge)]";
 
 /** "Volver a mi nivel" (spec §3.2): visible cuando el nodo actual no está en pantalla o se mira otra dificultad. */
 export default function BackToCurrent({ visible, onClick, variant }: Props) {
   if (!visible) return null;
   if (variant === "inline") {
     return (
-      <button type="button" onClick={onClick} className={`${PILL} w-full justify-center gap-2 px-4 py-2.5`}>
+      <button type="button" onClick={onClick} className={`${PILL} relative w-full justify-center gap-2 px-4 py-2.5`}>
         <Doty pose="corriendo" size="chip" shadow={false} /> Volver a mi nivel
       </button>
     );
@@ -29,7 +29,8 @@ export default function BackToCurrent({ visible, onClick, variant }: Props) {
       className={`${PILL} fixed right-4 z-30 py-2.5 pr-4 pl-14 md:hidden`}
       style={{
         bottom: "calc(76px + env(safe-area-inset-bottom))",
-        animation: "dots-pop-in 250ms cubic-bezier(.34,1.56,.64,1) both",
+        // backwards: al terminar, el elemento recupera su transform y el :active de dots-pressable vuelve a funcionar.
+        animation: "dots-pop-in 250ms cubic-bezier(.34,1.56,.64,1) backwards",
       }}
     >
       <span aria-hidden className="absolute" style={{ left: -6, top: -30 }}>

@@ -2,7 +2,8 @@
 
 import Doty from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
-import { narratorFallback, prettyDifficultyName } from "@/lib/path-view";
+import { narratorPose } from "./narrator-pose";
+import { prettyDifficultyName } from "@/lib/path-view";
 import type { PathDifficulty } from "@/types/path.types";
 
 interface Props {
@@ -27,7 +28,7 @@ export default function LockedDifficulty({ difficulty, index, previousName, acce
       }}
     >
       <div aria-hidden style={{ filter: "grayscale(1)", opacity: 0.5 }}>
-        <Doty pose={narratorFallback(index)} size="mini" shadow={false} />
+        <Doty pose={narratorPose(difficulty.img, index)} size="mini" shadow={false} />
       </div>
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-(--muted)">
