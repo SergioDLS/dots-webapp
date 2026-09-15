@@ -1,206 +1,96 @@
 "use client";
 
 import React from "react";
-import Doty, { isDotyPose } from "@/components/ui/doty/doty";
 import PathSection from "./path-section";
+import DifficultyBanner from "./difficulty-banner";
+import UpcomingDivider from "./upcoming-divider";
+import { DIFFICULTY_COLOR_NAMES, DIFFICULTY_COLOR_HEX } from "@/lib/difficulty-palette";
+import { firstUpcomingSectionIndex, type DifficultyNav } from "@/lib/path-view";
 import type { PathDifficulty as PathDifficultyType, PathPeer } from "@/types/path.types";
-import {
-  DIFFICULTY_COLOR_NAMES,
-  DIFFICULTY_COLOR_HEX,
-} from "@/lib/difficulty-palette";
-import { Icon, type IconName } from "@/components/ui/icon";
-import { UiIcon } from "@/components/ui/ui-icon";
 
 interface PathDifficultyProps {
   difficulty: PathDifficultyType;
+  nav: DifficultyNav;
+  accentHex: string;
   peersByNodeId: Record<number, PathPeer[]>;
+  /** Dificultad bloqueada vista "por curiosidad": todo en gris, sin popovers ni marcador. */
+  preview: boolean;
+  onGo: (id: number) => void;
+  /** El contenedor observa el banner para plegar la cabecera. */
+  bannerRef: React.Ref<HTMLDivElement>;
+  /** Cabecera plegada (móvil): va antes del banner para poder ser sticky dentro de esta vista. */
+  header?: React.ReactNode;
+  /** Botón "Volver a mi nivel" en escritorio: dentro del panel sticky. */
+  aside?: React.ReactNode;
 }
 
-const motivational = (
-  pct: number,
-): { msg: string; emoji: React.ReactNode; trailingIcon?: IconName } => {
-  if (pct === 0)  return { msg: "¡Vamos! Empieza aquí",              emoji: "🚀", trailingIcon: "abajo" };
-  if (pct < 20)   return { msg: "¡Buen comienzo, sigue así!",        emoji: "✨" };
-  if (pct < 40)   return { msg: "¡Vas con todo!",                    emoji: <UiIcon name="racha" size={16} /> };
-  if (pct < 60)   return { msg: "¡Mitad del camino, no pares!",      emoji: "💪" };
-  if (pct < 80)   return { msg: "¡Ya casi, termina con fuerza!",     emoji: <UiIcon name="rayo" size={16} /> };
-  if (pct < 100)  return { msg: "¡A un paso de dominarlo!",          emoji: <UiIcon name="medalla" size={16} /> };
-  return           { msg: "¡Nivel dominado! ¡Increíble!",            emoji: <UiIcon name="trofeo" size={16} /> };
-};
+/** La rotación de la paleta por id de dificultad es la del dashboard legacy: no cambia. */
+export function difficultyColors(id: number): string[] {
+  const base = [...DIFFICULTY_COLOR_NAMES];
+  const shift = (id ?? 0) % base.length;
+  return [...base.slice(shift), ...base.slice(0, shift)].map(
+    (name) => DIFFICULTY_COLOR_HEX[name] ?? DIFFICULTY_COLOR_HEX.pink,
+  );
+}
 
+/**
+ * Vista de UNA dificultad (spec §3.2). Móvil: cabecera plegada + banner +
+ * secciones en columna. Escritorio (md+): grid de 300 px + pista, con el banner
+ * completo en la columna izquierda en `position: sticky`.
+ */
 export default function PathDifficulty({
   difficulty,
+  nav,
+  accentHex,
   peersByNodeId,
+  preview,
+  onGo,
+  bannerRef,
+  header,
+  aside,
 }: PathDifficultyProps) {
-  const { id, name, img, progress, skipped, sections } = difficulty;
-
-  // Same palette rotation as the legacy dashboard: shift by difficulty id
-  const baseColors = [...DIFFICULTY_COLOR_NAMES];
-  const shift = (id ?? 0) % baseColors.length;
-  const colors = [...baseColors.slice(shift), ...baseColors.slice(0, shift)];
-
-  const accentHex = DIFFICULTY_COLOR_HEX[colors[0]] ?? DIFFICULTY_COLOR_HEX.pink;
-
-  const prettyName = String(name || "")
-    .split(" ")
-    .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ");
-
-  const allNodes = sections.flatMap((s) =>
-    s.nodes.filter((n) => n.type !== "checkpoint"),
-  );
-  const doneCount = allNodes.filter((n) => n.completed).length;
-
-  const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
-  const { msg, emoji, trailingIcon } = motivational(pct);
-
-  // Una dificultad está desbloqueada si alguna sección lo está (o fue superada
-  // por test). Un usuario nuevo solo tiene Beginner abierta; el resto se
-  // muestran como bloques bloqueados hasta llegar a ellas por el camino.
-  const unlocked =
-    skipped || sections.some((s) => s.unlocked || s.skipped);
-
-  if (!unlocked) {
-    return (
-      <div
-        className="flex w-full items-center gap-4 rounded-3xl p-5 opacity-90"
-        style={{ background: "var(--surface)", border: "2px dashed var(--border)" }}
-        aria-labelledby={`path-difficulty-${id}`}
-      >
-        <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
-          style={{ background: "var(--surface-2)", border: "2px solid var(--border)" }}
-        >
-          <Icon name="candado" size={24} />
-        </div>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h3
-            id={`path-difficulty-${id}`}
-            className="truncate font-display text-lg font-extrabold text-(--muted)"
-          >
-            {prettyName}
-          </h3>
-          <p className="text-xs font-bold text-(--muted)">
-            Completa el nivel anterior para desbloquear
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const colors = difficultyColors(difficulty.id);
+  const { sections } = difficulty;
+  const upcoming = preview ? -1 : firstUpcomingSectionIndex(sections);
 
   return (
-    <div className="flex w-full flex-col gap-4" aria-labelledby={`path-difficulty-${id}`}>
+    <div className="w-full md:grid md:grid-cols-[300px_minmax(0,1fr)] md:items-start md:gap-8">
+      {header}
 
-      {/* ── Banner (evolved from difficulty.tsx) ───────────── */}
-      <div
-        className="relative rounded-3xl overflow-hidden"
-        style={{
-          background: "var(--surface)",
-          border: `2px solid ${accentHex}66`,
-          boxShadow: `0 4px 0 ${accentHex}44, 0 12px 30px -14px rgba(33,22,80,0.2)`,
-        }}
-      >
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: `${accentHex}14` }}
-        />
-        <div className="relative flex items-start gap-4 p-5 pb-4">
-
-          {/* Avatar */}
-          <div
-            className="shrink-0 w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center"
-            style={{
-              background: `${accentHex}22`,
-              border: `2px solid ${accentHex}44`,
-              animation: "dots-float 4s ease-in-out infinite",
-            }}
+      <aside className="md:sticky md:top-[72px]">
+        {/* Aire arriba para el narrador que asoma por encima del panel. */}
+        <div ref={bannerRef} className="pt-9">
+          <DifficultyBanner
+            difficulty={difficulty}
+            index={nav.index}
+            total={nav.total}
+            accentHex={accentHex}
+            nav={nav}
+            onGo={onGo}
+            preview={preview}
           >
-            <Doty size="mini" pose={isDotyPose(img) ? img : "bienvenido"} />
-          </div>
-
-          {/* Right side */}
-          <div className="flex-1 flex flex-col gap-2.5 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <h3
-                id={`path-difficulty-${id}`}
-                className="font-display text-xl md:text-2xl font-extrabold leading-tight truncate text-foreground"
-              >
-                {prettyName}
-              </h3>
-
-              {skipped && (
-                <div
-                  className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold tracking-wide"
-                  style={{
-                    background: "color-mix(in srgb, var(--gold) 18%, var(--surface))",
-                    border: "2px solid var(--gold)",
-                    color: "var(--gold-edge)",
-                  }}
-                >
-                  ⏭️ Superado
-                </div>
-              )}
-            </div>
-
-            <p className="flex items-center gap-1 text-xs font-bold text-(--muted) leading-none">
-              {emoji} {msg}
-              {trailingIcon && <Icon name={trailingIcon} size={16} />}
-            </p>
-
-            {/* Progress bar */}
-            <div className="flex items-center gap-2">
-              <div
-                className="relative flex-1 rounded-full overflow-hidden"
-                style={{ height: 8, background: `${accentHex}22` }}
-              >
-                <div
-                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
-                  style={{ width: `${pct}%`, background: accentHex }}
-                />
-              </div>
-              <span
-                className="shrink-0 text-xs font-extrabold tabular-nums leading-none"
-                style={{ color: accentHex }}
-              >
-                {pct}%
-              </span>
-            </div>
-          </div>
+            {aside}
+          </DifficultyBanner>
         </div>
+      </aside>
 
-        {/* Footer: completed nodes */}
-        {allNodes.length > 0 && (
-          <div
-            className="relative px-5 py-2 flex items-center gap-2"
-            style={{ borderTop: `2px solid ${accentHex}33` }}
-          >
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: accentHex }} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-(--muted)">
-              {doneCount} / {allNodes.length} lecciones completadas
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ── Sections: the path itself ──────────────────────── */}
-      <div className="space-y-6">
+      <div className="mt-6 flex w-full flex-col items-center gap-10 md:mt-0">
         {sections.length === 0 ? (
           <span className="text-(--muted)">No hay secciones disponibles.</span>
         ) : (
-          sections.map((section, i) => {
-            const colorName = colors[i % colors.length];
-            return (
+          sections.map((section, i) => (
+            <React.Fragment key={section.id}>
+              {i === upcoming && <UpcomingDivider sectionNumber={i + 1} />}
               <PathSection
-                key={section.id}
                 section={section}
                 index={i}
                 total={sections.length}
-                accentHex={DIFFICULTY_COLOR_HEX[colorName] ?? accentHex}
+                accentHex={colors[i % colors.length]}
                 peersByNodeId={peersByNodeId}
+                preview={preview}
               />
-            );
-          })
+            </React.Fragment>
+          ))
         )}
       </div>
     </div>
