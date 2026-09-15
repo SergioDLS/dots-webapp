@@ -782,7 +782,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes de Task 1: `splitGames`, `badgesFor`, `type DailyState`, `type BadgeContext`. De Task 2: `GameTile`, `LockedTile`, `TILE_H`, `TILE_ART_BOX`, `TILE_LABEL_H`. De Task 3: `DailyHero`, `HERO_H`, `HERO_ART_BOX`.
-- Produces (lo consume Task 5): `ArcadeGrid` (default export) con props `{ games: Game[]; badgeContext: BadgeContext; dailyStates: Record<string, DailyState | null>; onOpen: (path: string) => void }`; `ArcadeSkeleton` (default export) sin props.
+- Produces (lo consume Task 5): `ArcadeGrid` (default export) con props `{ games: Game[]; badgeContext: BadgeContext; dailyStates: Record<string, DailyState | null>; onOpen: (path: string) => void }` y la constante `ARCADE_GRID_CLASS` exportada desde el mismo archivo; `ArcadeSkeleton` (default export) sin props. **Crea `arcade-grid.tsx` antes que `arcade-skeleton.tsx`: el esqueleto importa `ARCADE_GRID_CLASS` de la rejilla.**
 
 - [ ] **Step 1: Crear `components/play/arcade-grid.tsx`**
 
@@ -801,8 +801,12 @@ import LockedTile from "./locked-tile";
  * se pueda renderizar con datos de prueba.
  */
 
-/** Tres por fila en móvil, cinco en md y seis en lg (spec §4). */
-const GRID = "grid grid-cols-3 gap-3 md:grid-cols-5 md:gap-4 lg:grid-cols-6";
+/**
+  * Tres por fila en móvil, cinco en md y seis en lg (spec §4). Se exporta
+  * porque el esqueleto de carga usa ESTA misma cadena: si cada uno tuviera la
+  * suya, cambiar una columna aquí haría saltar la pantalla al cargar.
+  */
+export const ARCADE_GRID_CLASS = "grid grid-cols-3 gap-3 md:grid-cols-5 md:gap-4 lg:grid-cols-6";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -840,7 +844,7 @@ export default function ArcadeGrid({ games, badgeContext, dailyStates, onOpen }:
       {arcade.length > 0 && (
         <section className="flex flex-col gap-3">
           <Eyebrow>Arcade</Eyebrow>
-          <ul className={GRID}>
+          <ul className={ARCADE_GRID_CLASS}>
             {arcade.map((game) => (
               <li key={game.id}>
                 <GameTile game={game} badges={badgesFor(game.path, badgeContext)} onOpen={onOpen} />
@@ -853,7 +857,7 @@ export default function ArcadeGrid({ games, badgeContext, dailyStates, onOpen }:
       {locked.length > 0 && (
         <section className="flex flex-col gap-3">
           <Eyebrow>Por desbloquear</Eyebrow>
-          <ul className={GRID}>
+          <ul className={ARCADE_GRID_CLASS}>
             {locked.map((game) => (
               <li key={game.id}>
                 <LockedTile game={game} />
@@ -872,6 +876,7 @@ export default function ArcadeGrid({ games, badgeContext, dailyStates, onOpen }:
 ```tsx
 "use client";
 
+import { ARCADE_GRID_CLASS } from "./arcade-grid";
 import {
   HERO_ART_BOX,
   HERO_EYEBROW_H,
@@ -888,7 +893,6 @@ import { TILE_ART_BOX, TILE_H, TILE_LABEL_H } from "./game-tile";
  * (spec §4: "el skeleton replica exactamente la retícula real").
  */
 
-const GRID = "grid grid-cols-3 gap-3 md:grid-cols-5 md:gap-4 lg:grid-cols-6";
 const PULSE = "animate-pulse rounded-full bg-(--surface-2)";
 
 /** Diez arcade: los doce juegos menos los dos diarios, que son héroes. */
@@ -910,7 +914,7 @@ export default function ArcadeSkeleton() {
 
       <div className="flex flex-col gap-3">
         <span className={`${PULSE} w-20`} style={{ height: 14 }} />
-        <ul className={GRID}>
+        <ul className={ARCADE_GRID_CLASS}>
           {Array.from({ length: ARCADE_SLOTS }, (_, i) => (
             <li key={i} className="flex flex-col items-center gap-1.5" style={{ height: TILE_H }}>
               <span className={PULSE} style={{ height: TILE_ART_BOX, width: TILE_ART_BOX }} />
