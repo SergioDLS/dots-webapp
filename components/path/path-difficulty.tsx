@@ -74,7 +74,9 @@ export default function PathDifficulty({
         </div>
       </aside>
 
-      <div className="mt-6 flex w-full flex-col items-center gap-10 md:mt-0">
+      {/* Aire en escritorio: el primer sub-banner queda a la altura del panel del aside
+          (sticky 72 + 36 de aire) y su Doty, que asoma 22 px, no se mete bajo el HUD. */}
+      <div className="mt-6 flex w-full flex-col items-center gap-10 md:mt-0 md:pt-12">
         {sections.length === 0 ? (
           <span className="text-(--muted)">No hay secciones disponibles.</span>
         ) : (
