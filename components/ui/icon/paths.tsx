@@ -172,6 +172,12 @@ export const ICON_PATHS = {
   abajo: (
     <path d="M24,6 V30 M12,22 L24,34 L36,22" fill="none" stroke="currentColor" strokeWidth={3.5} />
   ),
+  izquierda: (
+    <path d="M42,24 H18 M26,12 L14,24 L26,36" fill="none" stroke="currentColor" strokeWidth={3.5} />
+  ),
+  derecha: (
+    <path d="M6,24 H30 M22,12 L34,24 L22,36" fill="none" stroke="currentColor" strokeWidth={3.5} />
+  ),
   sol: (
     <g fill="none" stroke="currentColor" strokeWidth={3.5}>
       <circle cx="24" cy="24" r="8" fill="#FF1F8F" />

@@ -3,11 +3,17 @@
 import React from "react";
 import Image from "next/image";
 import { POSES, FALLBACK_POSE, isDotyPose, toDotyPose, type DotyPose } from "./poses";
+import { resolvePoseOrFallback } from "./pending";
 
 export type DotyAnimation = "none" | "bob" | "cheer" | "sad" | "wave";
-export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big";
+export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner";
 export type { DotyPose };
 export { toDotyPose, isDotyPose };
+
+/** Cableado con fallback (spec §2.3): usa la pose nueva solo cuando su arte ya no es el placeholder. */
+export function poseOrFallback(pose: DotyPose, fallback: DotyPose): DotyPose {
+  return resolvePoseOrFallback(POSES, pose, fallback);
+}
 
 interface DotyProps {
   /** Pose semántica del registro (components/ui/doty/poses.ts). Para strings dinámicos usa toDotyPose(). */
@@ -36,6 +42,9 @@ const SIZE_PX: Record<DotySize, number> = {
   small: 144,
   medium: 192,
   big: 352,
+  chip: 44,
+  section: 104,
+  banner: 158,
 };
 
 const sizeClass: Record<DotySize, string> = {
@@ -46,6 +55,10 @@ const sizeClass: Record<DotySize, string> = {
   small: "w-36",
   medium: "w-48",
   big: "w-[22rem] max-w-full",
+  // chip: cabecera plegada y píldoras; section: sub-banner; banner: narrador del banner de dificultad (spec §3.2).
+  chip: "w-11",
+  section: "w-26",
+  banner: "w-[158px]",
 };
 
 const animationClass: Record<DotyAnimation, string> = {

@@ -262,7 +262,7 @@ emoji lo dibuja el sistema operativo, sale distinto en Safari de iPhone que en
 escritorio, y no se puede teñir con CSS. Dos sistemas lo reemplazan, ninguno
 pasa por `<Doty>` ni por `poses.ts`:
 
-- **33 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
+- **35 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
   tres familias: nav, nodo y glifo.
 - **12 PNG de economía** — `<UiIcon name=…>`, `public/images/ui/` —
   generados con Midjourney igual que el resto del arte de Doty, porque su
@@ -271,13 +271,13 @@ pasa por `<Doty>` ni por `poses.ts`:
 
 `npm run lint` verifica los dos (`scripts/check-icons.mjs`).
 
-### Los 33 SVG
+### Los 35 SVG
 
 | Familia | N | `strokeWidth` | Slugs |
 |---|---|---|---|
 | `nav` | 5 | 3 | camino, repaso, retos, juegos, perfil |
 | `nodo` | 8 | 2.5 | leccion, escucha, gramatica, vocabulario, letras, numeros, lectura, checkpoint |
-| `glifo` | 20 | 3.5 | check, cruz, aviso, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate, duelo, brujula, escudo, armar |
+| `glifo` | 22 | 3.5 | check, cruz, aviso, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate, duelo, brujula, escudo, armar, izquierda, derecha |
 
 - **Paleta cerrada de rellenos**: rosa `#FF1F8F`, azul `#3768FF`, cyan
   `#35D8F5` y blanco. Nada más entra en un `fill`.
@@ -301,6 +301,8 @@ pasa por `<Doty>` ni por `poses.ts`:
   en `memory/page.tsx` que antes era un emoji grande: el tamaño lo decide lo
   que el icono reemplaza en cada sitio (16 como piso para texto corrido,
   20-24+ para lo que antes era un emoji grande), no una constante global.
+- **`izquierda` y `derecha`**: flechas de navegación entre dificultades del
+  Camino (familia glifo).
 
 > **`cairosvg` pinta macizo lo que es un agujero.** Si verificas estos SVG
 > fuera del navegador —una hoja de contacto en Python, por ejemplo—, ten en
