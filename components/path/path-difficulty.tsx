@@ -194,6 +194,8 @@ export default function PathDifficulty({
               <PathSection
                 key={section.id}
                 section={section}
+                index={i}
+                total={sections.length}
                 accentHex={DIFFICULTY_COLOR_HEX[colorName] ?? accentHex}
                 peersByNodeId={peersByNodeId}
               />

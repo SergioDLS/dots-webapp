@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import PathNode, { NODE_W, ART_BOX, NODE_ROW_H } from "./path-node";
 import DotyMarker from "./doty-marker";
 import PathPeer from "./path-peer";
+import SectionBanner from "./section-banner";
 import type {
   PathPeer as PathPeerType,
   PathSection as PathSectionType,
@@ -11,8 +12,11 @@ import type {
 
 interface PathSectionProps {
   section: PathSectionType;
+  index: number;
+  total: number;
   accentHex: string;
   peersByNodeId: Record<number, PathPeerType[]>;
+  preview?: boolean;
 }
 
 /* ── Zigzag helpers (evolved from level-section) ────────────── */
@@ -29,13 +33,14 @@ const ROW_GAP = 18; // px – vertical gap between nodes
 
 export default function PathSection({
   section,
+  index,
+  total,
   accentHex,
   peersByNodeId,
+  preview = false,
 }: PathSectionProps) {
-  const { id, name, progress, skipped, checkpointAvailable, nodes } = section;
+  const { id, checkpointAvailable, nodes } = section;
   const [openKey, setOpenKey] = useState<string | null>(null);
-
-  const pct = Math.max(0, Math.min(100, Math.round(progress ?? 0)));
 
   // Todas las filas miden lo mismo (checkpoint incluido): NODE_ROW_H.
   const slots = nodes.map((n, i) => ({
@@ -68,45 +73,13 @@ export default function PathSection({
 
   return (
     <div className="flex w-full flex-col gap-4 items-center" data-section-id={id}>
-      {/* ── Section header ─────────────────────────────────── */}
-      <div className="w-full flex flex-col items-center gap-1.5">
-        <span className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
-          <span
-            className="w-2.5 h-2.5 rounded-full shrink-0"
-            style={{ background: accentHex }}
-          />
-          {name}
-          {skipped && (
-            <span
-              className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-              style={{
-                background: "color-mix(in srgb, var(--gold) 18%, var(--surface))",
-                border: "1.5px solid var(--gold)",
-                color: "var(--gold-edge)",
-              }}
-            >
-              Superada
-            </span>
-          )}
-        </span>
-        <div className="w-40 flex items-center gap-1.5">
-          <div
-            className="flex-1 h-1 rounded-full overflow-hidden"
-            style={{ background: "color-mix(in srgb, var(--foreground) 8%, transparent)" }}
-          >
-            <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${pct}%`, background: accentHex, opacity: 0.65 }}
-            />
-          </div>
-          <span
-            className="text-[9px] font-bold tabular-nums leading-none"
-            style={{ color: accentHex, opacity: 0.75 }}
-          >
-            {pct}%
-          </span>
-        </div>
-      </div>
+      <SectionBanner
+        section={section}
+        index={index}
+        total={total}
+        accentHex={accentHex}
+        muted={preview || (!section.unlocked && !section.skipped)}
+      />
 
       {/* ── Path (zigzag + connector) ──────────────────────── */}
       {placed.length === 0 ? (
@@ -147,7 +120,7 @@ export default function PathSection({
             <div
               key={p.key}
               className="absolute"
-              data-path-current={p.node.current ? "true" : undefined}
+              data-path-current={!preview && p.node.current ? "true" : undefined}
               style={{
                 left: `calc(${p.xPct}% - ${NODE_W / 2}px)`,
                 top: p.y,
@@ -163,6 +136,7 @@ export default function PathSection({
                 open={openKey === p.key}
                 onOpenChange={(v) => setOpenKey(v ? p.key : null)}
                 popoverAlign={p.xPct < 35 ? "left" : p.xPct > 65 ? "right" : "center"}
+                preview={preview}
               />
               {/*
                 Doty and peers claim the same slot: the interior side of the
@@ -172,21 +146,22 @@ export default function PathSection({
                 mark the current node, and a peer is information while "¡Sigue
                 aquí!" is decoration.
               */}
-              {p.node.current && peersHere.length === 0 && (
+              {!preview && p.node.current && peersHere.length === 0 && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
-              {peersHere.map((peer, peerIndex) => (
-                <PathPeer
-                  key={peer.id}
-                  peer={peer}
-                  // Always toward the inside of the zigzag. Flipping to the
-                  // outside on the current node would push the peer off-screen
-                  // on the 15% and 85% slots.
-                  side={p.xPct >= 50 ? "left" : "right"}
-                  stackIndex={peerIndex}
-                  offset={0}
-                />
-              ))}
+              {!preview &&
+                peersHere.map((peer, peerIndex) => (
+                  <PathPeer
+                    key={peer.id}
+                    peer={peer}
+                    // Always toward the inside of the zigzag. Flipping to the
+                    // outside on the current node would push the peer off-screen
+                    // on the 15% and 85% slots.
+                    side={p.xPct >= 50 ? "left" : "right"}
+                    stackIndex={peerIndex}
+                    offset={0}
+                  />
+                ))}
             </div>
             );
           })}
