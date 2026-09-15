@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
+import Doty, { poseOrFallback } from "@/components/ui/doty/doty";
 import { NODE_META } from "@/lib/path-node-meta";
 import type { PathNode } from "@/types/path.types";
 
@@ -113,20 +114,21 @@ export default function NodePopover({
         />
       </div>
 
-      {/* Mastery (dos niveles): dominado = corona */}
-      {mastery != null && (
-        <p
-          className="flex items-center gap-1 text-[10px] font-black tabular-nums"
-          style={{
-            color:
-              mastery >= 100
-                ? "var(--gold, #f59e0b)"
-                : "var(--muted)",
-          }}
-        >
-          <UiIcon name="corona" size={16} /> Dominado {mastery}%
-        </p>
-      )}
+      {/* Maestría (dos niveles): dominado = corona + Doty cerebro galaxia (fallback orgulloso hasta que llegue el arte, spec §2.3). */}
+      {mastery != null &&
+        (mastery >= 100 ? (
+          <div className="flex items-center gap-2">
+            <Doty pose={poseOrFallback("cerebro-galaxia", "orgulloso")} size="chip" shadow={false} />
+            <p className="text-[11px] font-black leading-tight" style={{ color: "var(--gold-edge)" }}>
+              <span className="flex items-center gap-1"><UiIcon name="corona" size={14} /> Dominado</span>
+              Cerebro galaxia. Este nivel ya es tuyo.
+            </p>
+          </div>
+        ) : (
+          <p className="flex items-center gap-1 text-[10px] font-black tabular-nums text-(--muted)">
+            <UiIcon name="corona" size={16} /> Dominado {mastery}%
+          </p>
+        ))}
 
       {/* CTA */}
       <button
@@ -142,7 +144,10 @@ export default function NodePopover({
           boxShadow: `0 3px 0 color-mix(in srgb, ${accentHex} 70%, black)`,
         }}
       >
-        ▶ {cta}
+        <span className="inline-flex items-center justify-center gap-1">
+          <Icon name="derecha" size={14} mono />
+          {cta}
+        </span>
       </button>
     </div>
   );
