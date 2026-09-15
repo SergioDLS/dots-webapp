@@ -40,6 +40,20 @@ export function readMirror(): ThemePrefs {
   }
 }
 
+/** true si este dispositivo ya guardó alguna preferencia (aunque sea inválida):
+ *  ThemeSync solo completa desde el servidor los dispositivos sin espejo. */
+export function hasMirror(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      window.localStorage.getItem(PALETTE_KEY) !== null ||
+      window.localStorage.getItem(MODE_KEY) !== null
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function writeMirror(prefs: ThemePrefs): void {
   try {
     window.localStorage.setItem(PALETTE_KEY, prefs.palette);

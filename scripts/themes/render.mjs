@@ -1,5 +1,6 @@
 // Funciones puras del generador de temas. Sin E/S: build.mjs las llama.
 // Contrato del JSON: design/themes.json → { static, modes.{light,dark}, palettes.{id}.{label,light,dark} }.
+// Las paletas también están escritas a mano en dots-backend/src/common/user-settings.ts (PALETTES/MODES): al añadir una, actualizar ambos.
 export const DEFAULT_PALETTE = "rosa";
 
 export function validateThemes(themes) {

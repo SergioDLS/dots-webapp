@@ -4,9 +4,10 @@
 //   node scripts/themes/build.mjs --check  # falla (exit 1) si los generados divergen del JSON
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { renderCss, renderThemeColors } from "./render.mjs";
 
-const root = new URL("../..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("../..", import.meta.url));
 const themes = JSON.parse(readFileSync(join(root, "design/themes.json"), "utf8"));
 const targets = [
   { path: join(root, "app/themes.generated.css"), content: renderCss(themes) },

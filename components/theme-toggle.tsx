@@ -2,7 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import { Icon, type IconName } from "@/components/ui/icon";
-import { applyThemePrefs, readMirror, writeMirror, type ThemePrefs } from "@/lib/theme-prefs";
+import { applyThemePrefs, normalizePrefs, writeMirror, type ThemePrefs } from "@/lib/theme-prefs";
+import { patchMySettingsService } from "@/services/settings.service";
 
 type Resolved = "light" | "dark";
 
@@ -28,9 +29,15 @@ export default function ThemeToggle() {
 
   const toggle = () => {
     const next: Resolved = mode === "light" ? "dark" : "light";
-    const prefs: ThemePrefs = { palette: readMirror().palette, mode: next };
+    // La paleta se lee del DOM, la misma fuente de verdad que el modo.
+    const palette = normalizePrefs({ palette: document.documentElement.dataset.palette }).palette;
+    const prefs: ThemePrefs = { palette, mode: next };
     writeMirror(prefs);
     applyThemePrefs(prefs);
+    // Escritura en segundo plano al servidor (spec §2.1: la preferencia vive
+    // allí). Falla en silencio: 404 si el backend aún no expone /me/settings,
+    // 503 si falta aplicar migrate:settings; el espejo conserva la elección.
+    void patchMySettingsService({ mode: next }).catch(() => {});
   };
 
   return (

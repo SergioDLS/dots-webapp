@@ -107,7 +107,7 @@ export default function RootLayout({
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=document.documentElement;var C=${JSON.stringify(THEME_COLORS)};var p=localStorage.getItem("dots-palette");if(!C[p])p="rosa";var m=localStorage.getItem("dots-theme");if(m!=="light"&&m!=="dark")m="auto";d.setAttribute("data-palette",p);if(m==="auto"){d.removeAttribute("data-theme");}else{d.setAttribute("data-theme",m);}var r=m==="auto"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m;d.classList.toggle("dark",r==="dark");d.style.colorScheme=r;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var t=document.createElement("meta");t.setAttribute("name","theme-color");t.setAttribute("content",C[p][r]);document.head.appendChild(t);}catch(e){}})();`,
+            __html: `(function(){try{var d=document.documentElement;var C=${JSON.stringify(THEME_COLORS)};var p=localStorage.getItem("dots-palette");if(!Object.prototype.hasOwnProperty.call(C,p))p="rosa";var m=localStorage.getItem("dots-theme");if(m!=="light"&&m!=="dark")m="auto";d.setAttribute("data-palette",p);if(m==="auto"){d.removeAttribute("data-theme");}else{d.setAttribute("data-theme",m);}var r=m==="auto"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m;d.classList.toggle("dark",r==="dark");d.style.colorScheme=r;var olds=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<olds.length;i++)olds[i].remove();var t=document.createElement("meta");t.setAttribute("name","theme-color");t.setAttribute("content",C[p][r]);document.head.appendChild(t);}catch(e){}})();`,
           }}
         />
       </head>

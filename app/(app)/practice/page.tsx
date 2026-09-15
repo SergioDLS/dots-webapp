@@ -166,12 +166,6 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
     putSentencesProgressService({ sentences, level_id: Number(id) })
       .then((res) => {
         setReward(res);
-        // keep the sidebar streak pill (localStorage-backed) in sync
-        try {
-          localStorage.setItem("streak", String(res.streak));
-        } catch {
-          /* ignore */
-        }
       })
       .catch(() => {});
   };

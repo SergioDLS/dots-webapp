@@ -72,7 +72,7 @@ Desbloquea a los demás. Sin él, B–F repintarían colores dos veces.
 - **Tokens que cambian por paleta**: `--background`, `--surface`, `--surface-2`, `--border`,
   `--dot`, `--muted`, `--accent` (+ `-soft`, `-edge`, `-contrast`), `--primary` (+ `-edge`,
   `-contrast`), `--input-bg`, `--scrim`, `--shadow-card`. **No cambian**: `--gem`, `--flame`,
-  `--gold`, `--success`, `--danger`, `--sky-*`, `--foreground` (navy en claro), la paleta de nueve
+  `--gold`, `--success`, `--danger`, `--sky-*`, la paleta de nueve
   colores de sección (`lib/difficulty-palette.ts`).
 - **Eléctrico, dirección aprobada** (afinar con contraste medido: texto ≥ 4.5:1, UI ≥ 3:1, en
   ambos modos, con el validador de `check-icons`/OKLCH antes de fijar):

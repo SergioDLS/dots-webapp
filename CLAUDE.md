@@ -12,6 +12,8 @@ npm run dev                 # dev server :3000
 npm run lint                # eslint (incluye reglas del compiler de React)
 npx next build              # build de producción CON type-check — debe pasar antes de commitear
 npx tsc --noEmit            # type-check suelto
+npm run themes:build        # regenera CSS y theme-colors desde design/themes.json
+npm run test:scripts        # tests node:test de scripts/ (renderizador de temas)
 ```
 
 No hay test runner de componentes: la verificación es lint + build + preview manual.
@@ -23,7 +25,7 @@ No hay test runner de componentes: la verificación es lint + build + preview ma
 - `components/games/shared/` — `GameIntro` (pantalla de inicio; es el gesto de usuario que legaliza el autoplay de audio) y `GameResult` (envía el score UNA vez, StrictMode-safe).
 - `hooks/` — use-countdown, use-ticker (rAF), use-game-records (récord+trono), use-tournament-mode, use-challenge-mode, use-rival-watch, use-lesson-series, use-lesson-keys.
 - `services/*.service.ts` — fetchers axios sobre `lib/api-client.ts`. **El access token vive EN MEMORIA** (refresh token en cookie HttpOnly).
-- Estilos: variables CSS en `app/globals.css` (`--accent`, `--surface`, `--border`, `--muted`, `--gem`, `--flame`...) + utilidades (`dots-card`, `dots-pressable`). **No hay CSS modules.**
+- Estilos: los tokens de color viven en `design/themes.json` y se GENERAN en `app/themes.generated.css` + `lib/theme-colors.ts` con `npm run themes:build` (`npm run lint` falla si están desactualizados); `app/globals.css` conserva utilidades (`dots-card`, `dots-pressable`) y estilos que no son tokens. Paleta y modo se leen de `<html data-palette="rosa|electrico" data-theme="light|dark">` (sin `data-theme` = Auto); espejo local `localStorage` `dots-palette`/`dots-theme`; la preferencia del servidor vive en `users.settings` (`GET/PATCH /me/settings`). **No hay CSS modules.**
 
 ## Reglas duras (violarlas rompe build, review o producción)
 
@@ -41,6 +43,8 @@ No hay test runner de componentes: la verificación es lint + build + preview ma
 10. **Doty.** Solo se renderiza con `<Doty pose=…>` y poses del registro **generado** `components/ui/doty/poses.ts` (los strings dinámicos pasan por `toDotyPose`, que cae a `feliz` en vez de a un 404). Las piezas nuevas entran por `scripts/mj/` (catálogo → `--emit-lote` → generar → `--apply` → `--emit-registry`), **nunca copiando un PNG a mano** a `public/images/Doty/`: `npm run lint` lo rechaza (`check-doty-assets --strict` prohíbe huérfanos ahí y legacy en el registro). Para rehacer una pieza que ya existe usa `regen: true`, no `done: false` — con `done: false` el registro cae al placeholder mientras dure. El navy es la línea de la marca, no la masa: sobre el tema oscuro mide 1.18:1 y la forma se funde con el fondo. Guía de canon y de tono→pose: `docs/brand/doty-identity.md`.
 
 11. **Iconos.** Ningún emoji como iconografía en código de producto. Los iconos de sistema se pintan con `<Icon name=…>` (SVG, `components/ui/icon/paths.tsx`) y los de economía con `<UiIcon name=…>` (PNG, `public/images/ui/`). Un emoji lo dibuja el sistema operativo: sale distinto en Safari de iPhone que en escritorio, y no se puede teñir. `npm run lint` lo comprueba (`check-icons.mjs`): rellenos solo en rosa `#FF1F8F`, azul `#3768FF`, cyan `#35D8F5` o blanco; el contorno navy `#1E1B5C` nunca como relleno (sobre el tema oscuro mide 1.18:1 y la forma se funde con el fondo); `viewBox` 48 y grosor constante por familia — nav 3, nodo 2.5, glifo 3.5. Ese grosor NO se copia de los tiles de Midjourney: el suyo es el 1.8% del sujeto, que a 24 px es invisible (0.45 px); el de un icono se elige por el tamaño real al que se renderiza esa familia, no al revés. Los emoji dentro de frases de copy se quedan: ahí son puntuación, no iconos. Guía completa: `docs/brand/doty-identity.md`.
+
+12. **Temas.** Nunca editar `app/themes.generated.css` ni `lib/theme-colors.ts` a mano: se generan desde `design/themes.json` (`npm run themes:build`). Los tokens que NO cambian por paleta: `--gem`, `--flame`, `--gold`, `--success`, `--danger`, `--sky-*` y la paleta de `lib/difficulty-palette.ts`; Doty siempre es rosa. Un componente cliente lee el modo resuelto del DOM (`html.dark`), nunca de `matchMedia` en el render, para no romper la hidratación (ver `components/theme-toggle.tsx`).
 
 ## Contexto ampliado
 

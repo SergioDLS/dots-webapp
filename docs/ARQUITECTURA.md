@@ -71,8 +71,24 @@ Patrón de página: Suspense (searchParams) → fetch con loadError/Reintentar �
 
 `lib/api-client.ts`: axios con access token **en memoria** + refresh cookie HttpOnly → por eso `router.push` obligatorio. Usuario cacheado en `localStorage["user"]` (id/nombre para UI). Services resilientes: los de features sociales devuelven null/[] en error para no romper el shell.
 
+## Temas y preferencias
+
+`design/themes.json` (paleta × modo) → `scripts/themes/render.mjs` (funciones puras) + `scripts/themes/build.mjs` (E/S, `--check`) → generados `app/themes.generated.css` y `lib/theme-colors.ts`; `npm run lint` falla si están desactualizados.
+
+`<html data-palette="rosa|electrico" data-theme="light|dark">`: Auto es la ausencia de `data-theme` (resuelve por `prefers-color-scheme`). El script anti-flash inline de `app/layout.tsx` fija estos atributos antes del primer paint desde el espejo de `localStorage`; `applyThemePrefs` (`lib/theme-prefs.ts`) hace exactamente lo mismo desde React — si cambias uno, cambia el otro.
+
+`components/theme-toggle.tsx`: toggle binario claro/oscuro, lee el modo resuelto del DOM (`html.dark`) y nunca de `matchMedia` en el render; escribe el espejo local y manda `PATCH /me/settings` en segundo plano (falla en silencio si el backend aún no lo expone).
+
+`components/theme/theme-sync.tsx`: solo completa desde `GET /me/settings` los dispositivos SIN espejo local (primera visita) — la paleta no tiene escritor hasta la hoja de ajustes (subproyecto D), que hará el servidor autoritativo; en Auto también sigue `prefers-color-scheme` con la pestaña abierta.
+
+`services/settings.service.ts`: fetchers de `/me/settings` (`GET`/`PATCH`), tolerantes a que el endpoint no exista todavía.
+
+`lib/level-math.ts` es la única fórmula de nivel (la comparten HUD y perfil).
+
 ## Deuda conocida (frontend)
 
+- La entidad `Users` del backend no declara `settings` hasta aplicar `migrate:settings`:
+  lee/escribe por SQL crudo tolerante a la Postgres 42703.
 - `GameResult` traga errores del submit sin estado de error (patrón aceptado batch-wide).
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.
