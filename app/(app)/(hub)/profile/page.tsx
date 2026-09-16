@@ -2,24 +2,27 @@
 
 import { useEffect, useState } from "react";
 
+import AvatarPicker from "@/components/profile/avatar-picker";
 import BadgesGrid from "@/components/profile/badges-grid";
 import GesturesCard from "@/components/profile/gestures-card";
 import ProfileIdentity from "@/components/profile/profile-identity";
 import ProfileStats from "@/components/profile/profile-stats";
 import ProfileXpBar from "@/components/profile/profile-xp-bar";
 import SettingsSheet from "@/components/profile/settings-sheet";
-import type { DotyAnimation } from "@/components/ui/doty/doty";
-import { equippedGesture } from "@/lib/profile-view";
+import type { PublicAvatar } from "@/lib/avatar";
 import {
   getMyBadgesService,
   getMyStatsService,
   type Badge,
   type MyStats,
 } from "@/services/engagement.service";
+import { getMySettingsService, postMyAvatarService } from "@/services/settings.service";
 import {
   equipItemService,
   getInventoryService,
+  getShopService,
   type InventoryItem,
+  type ShopItem,
 } from "@/services/shop.service";
 import { ADMIN_PROFILE } from "@/constants";
 import { useAuth } from "@/context/auth-context";
@@ -27,7 +30,8 @@ import { useAuth } from "@/context/auth-context";
 /**
  * Perfil (spec §5, variante A "identidad abierta"). Los ajustes viven en una
  * hoja, no en una tarjeta de la página. La foto `profile_pic` deja de
- * mostrarse: la cara es siempre Doty (la columna se conserva en la base).
+ * mostrarse: la cara es siempre el avatar elegido (la columna se conserva en
+ * la base).
  */
 
 type StoredUser = { name?: string; last_name?: string; profile?: number };
@@ -47,6 +51,10 @@ export default function ProfilePage() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [avatar, setAvatar] = useState<PublicAvatar | null>(null);
+  const [avatarKey, setAvatarKey] = useState<string | null>(null);
+  const [avatarItems, setAvatarItems] = useState<ShopItem[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -59,6 +67,17 @@ export default function ProfilePage() {
     getInventoryService().then((inv) => {
       if (active) setInventory(inv.items);
     });
+    getMySettingsService().then((s) => {
+      if (active && s) {
+        setAvatar(s.avatar);
+        setAvatarKey(s.avatar_key);
+      }
+    });
+    getShopService().then((shop) => {
+      if (active) {
+        setAvatarItems(shop.items.filter((i) => i.kind === "avatar" && (i.price === 0 || i.owned)));
+      }
+    });
     return () => {
       active = false;
     };
@@ -68,9 +87,21 @@ export default function ProfilePage() {
     equipItemService(item.id, item.equippedSlot === null).then((inv) => setInventory(inv.items));
   };
 
+  // Si falla (avatar de pago no comprado, por ejemplo) cierra igual y no
+  // cambia nada: comprarlo es cosa de la tienda, no de este selector.
+  const pick = (key: string) => {
+    postMyAvatarService(key)
+      .then((a) => {
+        setAvatar(a);
+        setAvatarKey(key);
+        setPickerOpen(false);
+      })
+      .catch(() => {
+        setPickerOpen(false);
+      });
+  };
+
   const name = [user.name, user.last_name].filter(Boolean).join(" ") || "Aprendiz";
-  const gesture = equippedGesture(inventory);
-  const gestureAnimation = gesture?.meta?.animation as DotyAnimation | undefined;
 
   return (
     <>
@@ -79,7 +110,8 @@ export default function ProfilePage() {
           <ProfileIdentity
             name={name}
             stats={stats}
-            gestureAnimation={gestureAnimation}
+            avatar={avatar}
+            onChangeAvatar={() => setPickerOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
           />
           <ProfileXpBar stats={stats} />
@@ -97,6 +129,15 @@ export default function ProfilePage() {
         onClose={() => setSettingsOpen(false)}
         isAdmin={user.profile === ADMIN_PROFILE}
         onLogout={() => void logout()}
+        onChangeAvatar={() => setPickerOpen(true)}
+      />
+
+      <AvatarPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        items={avatarItems}
+        currentKey={avatarKey}
+        onPick={pick}
       />
     </>
   );

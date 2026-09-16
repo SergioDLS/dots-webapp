@@ -38,3 +38,9 @@ export async function patchMySettingsService(patch: SettingsPatch): Promise<User
   const { data } = await api.patch<UserSettings>("/me/settings", patch);
   return data;
 }
+
+/** Concede si hace falta y equipa el avatar. Propaga el error (403 si es de pago y no lo tienes). */
+export async function postMyAvatarService(key: string): Promise<PublicAvatar> {
+  const { data } = await api.post<PublicAvatar>("/me/avatar", { key });
+  return data;
+}

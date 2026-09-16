@@ -22,8 +22,9 @@ import { patchMySettingsService } from "@/services/settings.service";
  * escritorio. Cada control escribe el espejo local, aplica el cambio al DOM y
  * manda un PATCH /me/settings en segundo plano.
  *
- * NO lleva fila "Cambiar avatar": los avatares son el subproyecto E, que según
- * el spec §8 depende de este. Un control que no hace nada es peor que ninguno.
+ * La fila "Cambiar avatar" no cambia nada aquí: cierra la hoja y delega en
+ * AvatarPicker, que monta la página (subproyecto E, cierra la desviación 1
+ * que D dejó a propósito).
  *
  * El estado visible sale del DOM y de localStorage con `useSyncExternalStore`,
  * el mismo patrón que usaba el toggle que esta hoja reemplaza: el servidor no
@@ -75,9 +76,10 @@ interface Props {
   onClose: () => void;
   isAdmin: boolean;
   onLogout: () => void;
+  onChangeAvatar: () => void;
 }
 
-export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Props) {
+export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChangeAvatar }: Props) {
   const dom = useSyncExternalStore(subscribeDom, domSnapshot, domServerSnapshot);
   const [palette, mode, resolved, soundFlag] = dom.split("|") as [
     Palette,
@@ -259,6 +261,17 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
 
         {/* Acciones */}
         <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onChangeAvatar();
+            }}
+            className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
+          >
+            Cambiar avatar
+            <Icon name="derecha" size={16} mono />
+          </button>
           {isAdmin && (
             <Link
               href="/admin"

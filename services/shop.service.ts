@@ -3,7 +3,7 @@ import api from "@/lib/api-client";
 export type ShopItem = {
   id: number;
   key: string;
-  kind: "streak_shield" | "xp_boost" | "cosmetic" | "gesture";
+  kind: "streak_shield" | "xp_boost" | "cosmetic" | "gesture" | "avatar";
   name: string;
   img: string | null;
   description: string | null;
