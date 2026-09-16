@@ -52,14 +52,13 @@ Native. Spec: `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md`.
 
 ### El perfil (`/profile`)
 
-`components/profile/` reparte la pantalla: `profile-identity.tsx` (Doty, nombre, chips
+`components/profile/` reparte la pantalla: `profile-identity.tsx` (avatar, nombre, chips
 MCER y racha, engranaje), `profile-xp-bar.tsx`, `profile-stats.tsx` (los cuatro números
 sin cajas), `badges-grid.tsx`, `gestures-card.tsx` y `settings-sheet.tsx`. La lógica de
 vista es pura y está bajo `node --test` en `lib/profile-view.ts`. El avatar de
-`profile-identity.tsx` usa el tamaño `perfil` del registro de
-`components/ui/doty/doty.tsx` (78 px en móvil, 96 en `md`) y no un `customClass`,
-porque entre dos utilidades de `width` con la misma especificidad gana la que Tailwind
-emita última.
+`profile-identity.tsx` se pinta con `<Avatar>` a 78 px en móvil y 96 en escritorio —no
+con `<Doty>`—; el porqué de esos dos tamaños y el resto del sistema de avatares se
+documentan abajo, en «Avatares».
 
 La hoja de ajustes escribe tres cosas a la vez en cada cambio: el espejo de
 `localStorage`, el DOM (vía `applyThemePrefs`) y `PATCH /me/settings`. Desde aquí el
@@ -79,6 +78,22 @@ fallos sin tocar ninguno; la narración no pasa por ahí y nunca se silencia.
 El acento de cada paleta viaja como dato (`PALETTE_ACCENTS` en el `lib/theme-colors.ts`
 generado) porque los bloques CSS generados usan selectores `:root[data-palette]`, que
 solo casan con `<html>`: un envoltorio anidado no heredaría el token.
+
+### Avatares (`components/ui/avatar/`)
+
+La cara pública del usuario. Un único `<Avatar avatar size>` pinta el marco —disco
+del color propio del avatar al 42 % sobre la superficie y anillo del acento del
+tema— y lo usan el perfil (78/96), el selector y la tienda (96), y el leaderboard,
+los vecinos del Camino y el aviso de rival (34). La geometría y el fallback viven
+en `lib/avatar.ts`, puro y bajo `node --test`.
+
+Los avatares **no son poses de Doty**: son filas de `shop_items` con `kind='avatar'`,
+sus PNG viven en `public/images/avatars/` y están fuera del registro generado
+(`components/ui/doty/poses.ts`). Quien no tiene avatar equipado ve `clasico`, y ese
+fallback lo resuelve el backend para que ninguna pantalla tenga que decidirlo.
+
+Equipar va por `POST /me/avatar { key }`, que concede el ítem si es gratis y lo
+equipa en una transacción; los de pago se compran antes por `/shop/buy`.
 
 ## Los 12 juegos (`app/(app)/games/`)
 

@@ -318,6 +318,22 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   toasts, 34 leaderboard y vecinos. Componente único `<Avatar>`.
 - Los **vecinos del Camino** pasan de iniciales a avatares (revierte esa decisión de la spec de
   vecinos del 2026-08-09; el resto de sus reglas se mantiene).
+- **Tres desviaciones decididas durante la implementación (2026-09-16):** (1) el avatar
+  del perfil mide 78 px en móvil y 96 en escritorio, no 128: el §5 fija esos valores y
+  el 78 se eligió para que identidad y stats quepan sobre el pliegue a 390 px, que es
+  criterio de aceptación de ese mismo §5; el resto de la lista de tamaños se respeta;
+  (2) solo se siembran los seis avatares gratis, porque los 19 de pago son la tanda 3
+  de arte y sus PNG no existen — el modelo y la tienda los soportan sin cambios y
+  aparecen al sembrarlos; igual que el de retiro, `scripts/seed-avatars.js` se entrega
+  con el dry-run corrido y sin `--apply`, así que ahora mismo no hay ninguna fila de
+  avatar en `shop_items`: la sección "Avatares" de la tienda y el selector del perfil
+  se ven vacíos y todo el mundo ve el `clasico` por el fallback del backend, hasta que
+  Sergio aplique el sembrado; (3) el retiro de gorros y fondos se entrega como script
+  probado con su dry-run corrido, no aplicado: toca saldos de gemas en la base de
+  datos compartida y el `--apply` lo lanza Sergio; ese dry-run encontró
+  `dots.user_items` vacía —nadie posee todavía ningún ítem de la tienda—, así que al
+  aplicarse desactivará los cinco cosméticos (tres gorros y dos fondos) sin reembolsar
+  ninguna gema, porque no hay a quién reembolsar.
 
 ### 6.2 Retiro de gorros y fondos
 
