@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Avatar from "@/components/ui/avatar/avatar";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { getRivalService, type RivalData } from "@/services/engagement.service";
@@ -51,6 +52,7 @@ export default function RivalBanner() {
       {above && (
         <div className="flex items-center gap-2">
           <Icon name="retos" size={18} />
+          <Avatar avatar={above.avatar} size={34} alt="" />
           <p className="text-sm flex-1" style={{ color: "var(--foreground)" }}>
             Estás a{" "}
             <span
@@ -80,6 +82,7 @@ export default function RivalBanner() {
       {below && (
         <div className="flex items-center gap-2">
           <Icon name="escudo" size={18} />
+          <Avatar avatar={below.avatar} size={34} alt="" />
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             <span className="font-bold" style={{ color: "var(--foreground)" }}>
               {below.name}

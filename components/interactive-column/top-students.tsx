@@ -7,6 +7,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import Doty from "../ui/doty/doty";
+import Avatar from "@/components/ui/avatar/avatar";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon, type UiIconName } from "@/components/ui/ui-icon";
 import {
@@ -156,6 +157,9 @@ export default function TopStudents() {
                     {item.rank}
                   </span>
                 </div>
+
+                {/* Avatar */}
+                <Avatar avatar={item.avatar} size={34} alt="" />
 
                 {/* Name */}
                 <span className="text-sm font-extrabold text-foreground truncate flex-1 min-w-0">

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { peerColor } from "@/lib/peer-colors";
+import Avatar from "@/components/ui/avatar/avatar";
 import type { PathPeer as PathPeerType } from "@/types/path.types";
 
 interface PathPeerProps {
@@ -29,8 +29,6 @@ export default function PathPeer({
 }: PathPeerProps) {
   const anchor: React.CSSProperties =
     side === "right" ? { left: "100%" } : { right: "100%" };
-  const hex = peerColor(peer.id);
-  const initial = (peer.name?.trim()?.[0] ?? "?").toUpperCase();
   const label = peer.lastName ? `${peer.name} ${peer.lastName}.` : peer.name;
 
   return (
@@ -43,21 +41,7 @@ export default function PathPeer({
         ...anchor,
       }}
     >
-      <div
-        className="flex items-center justify-center rounded-full font-display font-black"
-        style={{
-          width: CIRCLE,
-          height: CIRCLE,
-          fontSize: 15,
-          lineHeight: 1,
-          background: `color-mix(in srgb, ${hex} 22%, var(--surface))`,
-          border: `2.5px solid ${hex}`,
-          color: `color-mix(in srgb, ${hex} 55%, var(--foreground))`,
-          boxShadow: `0 2px 8px ${hex}44`,
-        }}
-      >
-        {initial}
-      </div>
+      <Avatar avatar={peer.avatar} size={CIRCLE} alt="" />
       <span className="w-full truncate text-center text-[10px] font-extrabold leading-tight text-(--muted)">
         {label}
       </span>
