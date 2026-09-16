@@ -70,7 +70,9 @@ export default function ProfilePage() {
     getMySettingsService().then((s) => {
       if (active && s) {
         setAvatar(s.avatar);
-        setAvatarKey(s.avatar_key);
+        // Sin key equipada el backend igual resuelve "clasico" en perfil, ranking
+        // y aviso de rival: mismo fallback aquí para que selector y tienda coincidan.
+        setAvatarKey(s.avatar_key ?? "clasico");
       }
     });
     getShopService().then((shop) => {

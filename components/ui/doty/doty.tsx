@@ -6,7 +6,7 @@ import { POSES, FALLBACK_POSE, isDotyPose, toDotyPose, type DotyPose } from "./p
 import { resolvePoseOrFallback } from "./pending";
 
 export type DotyAnimation = "none" | "bob" | "cheer" | "sad" | "wave";
-export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner" | "perfil";
+export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner";
 export type { DotyPose };
 export { toDotyPose, isDotyPose };
 
@@ -45,7 +45,6 @@ const SIZE_PX: Record<DotySize, number> = {
   chip: 44,
   section: 104,
   banner: 158,
-  perfil: 96,
 };
 
 const sizeClass: Record<DotySize, string> = {
@@ -60,7 +59,6 @@ const sizeClass: Record<DotySize, string> = {
   chip: "w-11",
   section: "w-26",
   banner: "w-[158px]",
-  perfil: "w-[78px] md:w-24", // avatar del perfil (spec §5: 78 en móvil, 96 en `md`)
 };
 
 const animationClass: Record<DotyAnimation, string> = {

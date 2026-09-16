@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import Avatar from "@/components/ui/avatar/avatar";
+import Doty from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
 import type { PublicAvatar } from "@/lib/avatar";
 import type { ShopItem } from "@/services/shop.service";
@@ -72,37 +73,46 @@ export default function AvatarPicker({ open, onClose, items, currentKey, onPick 
           </button>
         </div>
 
-        <ul className="grid grid-cols-3 gap-3">
-          {items.map((item) => {
-            const on = item.key === currentKey;
-            const avatar = {
-              img: item.img ?? "",
-              color: (item.meta?.color as string) ?? "#FF1F8F",
-            } as PublicAvatar;
-            return (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => onPick(item.key)}
-                  aria-pressed={on}
-                  className="flex w-full flex-col items-center gap-1.5 rounded-2xl px-1 py-2 transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-                  style={{
-                    background: on ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
-                    border: on ? "2px solid var(--accent)" : "2px solid transparent",
-                  }}
-                >
-                  <Avatar avatar={avatar} size={96} alt="" />
-                  <span
-                    className="line-clamp-1 text-[11px] font-extrabold"
-                    style={{ color: on ? "var(--accent)" : "var(--foreground)" }}
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <Doty pose="timido" size="small" />
+            <p className="text-sm font-semibold text-(--muted)">
+              Todavía no hay avatares para elegir. Vuelve pronto.
+            </p>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-3 gap-3">
+            {items.map((item) => {
+              const on = item.key === currentKey;
+              const avatar = {
+                img: item.img ?? "",
+                color: (item.meta?.color as string) ?? "#FF1F8F",
+              } as PublicAvatar;
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => onPick(item.key)}
+                    aria-pressed={on}
+                    className="flex w-full flex-col items-center gap-1.5 rounded-2xl px-1 py-2 transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+                    style={{
+                      background: on ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
+                      border: on ? "2px solid var(--accent)" : "2px solid transparent",
+                    }}
                   >
-                    {(item.meta?.label as string) ?? item.name}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                    <Avatar avatar={avatar} size={96} alt="" />
+                    <span
+                      className="line-clamp-1 text-[11px] font-extrabold"
+                      style={{ color: on ? "var(--accent)" : "var(--foreground)" }}
+                    >
+                      {(item.meta?.label as string) ?? item.name}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );

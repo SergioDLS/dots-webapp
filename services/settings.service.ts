@@ -34,8 +34,9 @@ export async function getMySettingsService(): Promise<UserSettings | null> {
   }
 }
 
-export async function patchMySettingsService(patch: SettingsPatch): Promise<UserSettings> {
-  const { data } = await api.patch<UserSettings>("/me/settings", patch);
+// El avatar es derivado y no vive en la columna: solo viaja en el GET, así que el PATCH no lo devuelve.
+export async function patchMySettingsService(patch: SettingsPatch): Promise<Omit<UserSettings, "avatar">> {
+  const { data } = await api.patch<Omit<UserSettings, "avatar">>("/me/settings", patch);
   return data;
 }
 

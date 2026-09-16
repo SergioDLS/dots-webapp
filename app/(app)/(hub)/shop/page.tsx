@@ -49,7 +49,9 @@ export default function ShopPage() {
 
   useEffect(() => {
     getMySettingsService().then((s) => {
-      if (s) setAvatarKey(s.avatar_key);
+      // Sin key equipada el backend igual resuelve "clasico" en perfil, ranking
+      // y aviso de rival: mismo fallback aquí para que la tienda coincida.
+      if (s) setAvatarKey(s.avatar_key ?? "clasico");
     });
   }, []);
 
@@ -104,7 +106,9 @@ export default function ShopPage() {
   // Los avatares se pintan en su propia sección (retrato, no icono): fuera de
   // groupable para que no salgan también como una tarjeta más de "Otros".
   const avatarItems = shoppable.filter((i) => i.kind === "avatar");
-  const groupable = shoppable.filter((i) => i.kind !== "avatar");
+  // Una tienda no debe ofrecer algo que la app no sabe renderizar: sin etiqueta
+  // no hay pantalla para equiparlo — se añade junto con esa pantalla al reactivar.
+  const groupable = shoppable.filter((i) => i.kind !== "avatar" && KIND_LABEL[i.kind]);
   const groups = Array.from(new Set(groupable.map((i) => KIND_LABEL[i.kind] ?? "Otros")));
 
   return (

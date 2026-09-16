@@ -31,7 +31,7 @@ export default function GesturesCard({ items, onToggle }: Props) {
 
       {gestures.length === 0 ? (
         <p className="text-sm font-semibold text-(--muted)">
-          Todavía no tienes gestos. Cámbiale el movimiento a Doty con tus gemas.
+          Todavía no tienes gestos. Consíguelos en la tienda y elige cómo se mueve tu Doty aquí.
         </p>
       ) : (
         <ul className="grid grid-cols-3 gap-2">
