@@ -60,6 +60,12 @@ vista es pura y está bajo `node --test` en `lib/profile-view.ts`. El avatar de
 con `<Doty>`—; el porqué de esos dos tamaños y el resto del sistema de avatares se
 documentan abajo, en «Avatares».
 
+Ese avatar es una carta de dos caras (`avatar-flip.tsx`, spec §6.4): retrato al frente y,
+detrás, Doty con el gesto equipado dentro del mismo disco. Gira sola al entrar (una vez,
+cuando ajustes e inventario ya respondieron), gira al tocarla o al pasar el ratón, y el
+lápiz es un botón aparte que abre el selector. Los tiempos del giro y la pose por gesto
+son puros y están bajo `node --test` en `lib/avatar-flip.ts`.
+
 La hoja de ajustes escribe tres cosas a la vez en cada cambio: el espejo de
 `localStorage`, el DOM (vía `applyThemePrefs`) y `PATCH /me/settings`. Desde aquí el
 servidor es autoritativo: `components/theme/theme-sync.tsx` reconcilia al cargar y
@@ -85,7 +91,9 @@ La cara pública del usuario. Un único `<Avatar avatar size>` pinta el marco �
 del color propio del avatar al 42 % sobre la superficie y anillo del acento del
 tema— y lo usan el perfil (78/96), el selector y la tienda (96), y el leaderboard,
 los vecinos del Camino y el aviso de rival (34). La geometría y el fallback viven
-en `lib/avatar.ts`, puro y bajo `node --test`.
+en `lib/avatar.ts`, puro y bajo `node --test`. El disco sin contenido se exporta como `<AvatarDisc>`: el dorso del avatar del perfil lo
+reutiliza con un `<Doty size="dorso">` al 70 % del diámetro, así el gesto vive dentro del
+mismo marco que el retrato.
 
 Los avatares **no son poses de Doty**: son filas de `shop_items` con `kind='avatar'`,
 sus PNG viven en `public/images/avatars/` y están fuera del registro generado

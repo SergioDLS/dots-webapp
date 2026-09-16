@@ -277,7 +277,8 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   derecha. Barra "Nivel 4 · 620 / 900 XP".
 - **Stats** como fila de cuatro números sin cajas: XP total, mejor racha, insignias, gemas.
 - **Insignias**: tile dorado suave de 58 px; bloqueadas en gris con "n / m". **Gesto de tu Doty**:
-  tres tarjetas con el gesto equipado marcado, enlace a la tienda.
+  tres tarjetas con el gesto equipado marcado, enlace a la tienda. Su escenario es el dorso del
+  avatar (§6.4).
 - **Escritorio**: dos columnas (identidad + XP + stats + ajustes | insignias a seis por fila +
   gestos) dentro de `max-w-5xl`.
 - **Hoja de ajustes** (bottom sheet en móvil, hoja lateral en escritorio): Tema (Rosa / Eléctrico
@@ -340,7 +341,7 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 - Los ítems `cosmetic` de slots `hat` y `background` pasan a `enabled = false` y se desequipan;
   a cada `user_items` de esos ítems se le devuelve el precio en `gem_ledger` con reason
   `'refund'`. Script `scripts/retire-emoji-cosmetics.js` con dry-run, `--apply`, respaldo y
-  `--rollback`. Los gestos (`gesture`) se conservan.
+  `--rollback`. Los gestos (`gesture`) se conservan y pasan al dorso del avatar (§6.4).
 
 ### 6.3 Tienda
 
@@ -350,6 +351,33 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 - Criterios: comprar un avatar lo deja equipable y visible en leaderboard, vecinos y rival sin
   recargar; el usuario sin avatar ve `clasico`; el script de retiro deja saldo y ledger coherentes
   en dry-run antes de aplicarse.
+
+### 6.4 Dorso del avatar (E.2, fase 1 — decidido el 2026-09-16)
+
+- **El problema.** Los gestos perdieron su escenario cuando el avatar sustituyó a Doty en la
+  identidad del perfil (§5): solo se veían en las miniaturas de 32 px de su propia tarjeta y nadie
+  más los veía. Se conservan (§6.2) y su escenario pasa a ser el **dorso del avatar**.
+- **La carta.** El disco del perfil tiene dos caras: el retrato al frente y, detrás, Doty haciendo
+  el gesto equipado dentro del mismo disco (mismo color y anillo), con la pose que corresponde al
+  gesto —`saludando` para `wave`, `emocionado` para `cheer`, `feliz` para cualquier otra— a un 70 %
+  del diámetro (56 px en el disco de 78, 68 en el de 96), para que la animación no se recorte.
+- **Giro de entrada.** Al abrir el perfil, cuando ajustes e inventario ya respondieron y hay gesto
+  equipado: el retrato se ve 600 ms, la carta gira en 400 ms (`rotateY`, solo `transform`), el
+  gesto da vueltas completas hasta cubrir unos 3 s (dos de `wave` = 3.2 s, tres de `cheer` =
+  2.7 s) y vuelve al retrato. Una vez por visita; equipar otro gesto lo vuelve a reproducir. Sin
+  gesto equipado el disco no gira nunca.
+- **Tap y hover.** Tocar el disco lo gira y lo deja en el dorso hasta el siguiente toque; con
+  ratón, pasar por encima lo gira y salir lo devuelve. El tap es la señal primaria. El lápiz pasa a
+  ser un botón propio y el único acceso al selector de avatar.
+- **Movimiento reducido.** No hay giro de entrada (como la animación de entrada a la app); el tap
+  sigue cambiando de cara, sin transición.
+- **A 34 px nada gira**: ranking, vecinos del Camino y tarjeta de rival muestran el retrato quieto,
+  porque a ese tamaño el gesto no se distingue.
+- La tarjeta "Gesto de tu Doty" dice dónde se ve el gesto y usa la misma pose por gesto en sus
+  miniaturas. Lógica pura en `lib/avatar-flip.ts`; componente `components/profile/avatar-flip.tsx`.
+- **Fuera de alcance, pendiente de decisión (fase 2):** aviso "te pasó" con el nombre y el gesto de
+  quien te adelanta en el ranking, y perfil público de otros usuarios. Plan de la fase 1:
+  `docs/superpowers/plans/2026-09-16-rediseno-e2-avatar-dos-caras.md`.
 
 ## 7. Subproyecto F — Primer inicio guiado
 

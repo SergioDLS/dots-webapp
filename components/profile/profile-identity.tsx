@@ -1,6 +1,7 @@
 "use client";
 
-import Avatar from "@/components/ui/avatar/avatar";
+import AvatarFlip from "@/components/profile/avatar-flip";
+import type { DotyAnimation } from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { cefrBand } from "@/lib/profile-view";
@@ -12,40 +13,57 @@ import type { MyStats } from "@/services/engagement.service";
  * nombre, chips y engranaje, en horizontal y SIN tarjeta — el principio 4 del
  * spec reserva los contenedores para las cabeceras.
  *
- * El avatar se pinta con <Avatar> (nunca <Doty>, regla 10) y lleva un lápiz
- * que abre el selector (subproyecto E).
+ * El avatar es una carta de dos caras (spec §6.4): retrato al frente y, detrás,
+ * Doty con el gesto equipado. Tocar el disco lo gira; el lápiz es un botón
+ * aparte —nunca anidado dentro del disco— y el único acceso al selector.
  */
 interface Props {
   name: string;
   stats: MyStats | null;
   avatar: PublicAvatar | null;
+  /** Animación del gesto equipado, o null si no hay ninguno. */
+  gesture: DotyAnimation | null;
+  /** true cuando /me/settings y el inventario ya respondieron. */
+  ready: boolean;
   onChangeAvatar: () => void;
   onOpenSettings: () => void;
 }
 
-export default function ProfileIdentity({ name, stats, avatar, onChangeAvatar, onOpenSettings }: Props) {
+export default function ProfileIdentity({
+  name,
+  stats,
+  avatar,
+  gesture,
+  ready,
+  onChangeAvatar,
+  onOpenSettings,
+}: Props) {
   const band = cefrBand(stats?.level ?? 1);
   const streak = stats?.streak ?? 0;
+  // La key remonta la carta al cambiar de gesto: reinicia su estado (fijado,
+  // hover) y repite el giro de entrada como confirmación de haber equipado.
+  const flipKey = gesture ?? "none";
 
   return (
     <header className="flex items-center gap-4">
-      <button
-        type="button"
-        onClick={onChangeAvatar}
-        aria-label="Cambiar avatar"
-        className="relative shrink-0 rounded-full transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-      >
-        {/* 78 px en móvil y 96 en escritorio (no los 128 del §6.1): Ruling 2 del plan. */}
-        <span className="md:hidden"><Avatar avatar={avatar} size={78} /></span>
-        <span className="hidden md:inline-flex"><Avatar avatar={avatar} size={96} /></span>
-        <span
-          aria-hidden
-          className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full"
+      <div className="relative shrink-0">
+        {/* 78 px en móvil y 96 en escritorio (no los 128 del §6.1): Ruling 2 del plan de E. */}
+        <span className="md:hidden">
+          <AvatarFlip key={flipKey} avatar={avatar} gesture={gesture} size={78} ready={ready} />
+        </span>
+        <span className="hidden md:inline-flex">
+          <AvatarFlip key={flipKey} avatar={avatar} gesture={gesture} size={96} ready={ready} />
+        </span>
+        <button
+          type="button"
+          onClick={onChangeAvatar}
+          aria-label="Cambiar avatar"
+          className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
           style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
         >
           <Icon name="lapiz" size={14} mono />
-        </span>
-      </button>
+        </button>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <h1 className="truncate font-display text-2xl font-extrabold text-foreground">{name}</h1>

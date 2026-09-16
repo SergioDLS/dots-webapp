@@ -10,6 +10,8 @@ import ProfileStats from "@/components/profile/profile-stats";
 import ProfileXpBar from "@/components/profile/profile-xp-bar";
 import SettingsSheet from "@/components/profile/settings-sheet";
 import type { PublicAvatar } from "@/lib/avatar";
+import { gestureAnimation } from "@/lib/avatar-flip";
+import { equippedGesture } from "@/lib/profile-view";
 import {
   getMyBadgesService,
   getMyStatsService,
@@ -55,6 +57,11 @@ export default function ProfilePage() {
   const [avatarKey, setAvatarKey] = useState<string | null>(null);
   const [avatarItems, setAvatarItems] = useState<ShopItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // El giro de entrada de la carta espera a que respondan ajustes (avatar) e
+  // inventario (gesto): si girara con el clásico y luego llegara el retrato
+  // real, cambiaría de cara a media vuelta.
+  const [settingsResolved, setSettingsResolved] = useState(false);
+  const [inventoryResolved, setInventoryResolved] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -64,17 +71,25 @@ export default function ProfilePage() {
     getMyBadgesService().then((b) => {
       if (active) setBadges(b);
     });
-    getInventoryService().then((inv) => {
-      if (active) setInventory(inv.items);
-    });
-    getMySettingsService().then((s) => {
-      if (active && s) {
-        setAvatar(s.avatar);
-        // Sin key equipada el backend igual resuelve "clasico" en perfil, ranking
-        // y aviso de rival: mismo fallback aquí para que selector y tienda coincidan.
-        setAvatarKey(s.avatar_key ?? "clasico");
-      }
-    });
+    getInventoryService()
+      .then((inv) => {
+        if (active) setInventory(inv.items);
+      })
+      .finally(() => {
+        if (active) setInventoryResolved(true);
+      });
+    getMySettingsService()
+      .then((s) => {
+        if (active && s) {
+          setAvatar(s.avatar);
+          // Sin key equipada el backend igual resuelve "clasico" en perfil, ranking
+          // y aviso de rival: mismo fallback aquí para que selector y tienda coincidan.
+          setAvatarKey(s.avatar_key ?? "clasico");
+        }
+      })
+      .finally(() => {
+        if (active) setSettingsResolved(true);
+      });
     getShopService().then((shop) => {
       if (active) {
         setAvatarItems(shop.items.filter((i) => i.kind === "avatar" && (i.price === 0 || i.owned)));
@@ -104,6 +119,8 @@ export default function ProfilePage() {
   };
 
   const name = [user.name, user.last_name].filter(Boolean).join(" ") || "Aprendiz";
+  const gesture = gestureAnimation(equippedGesture(inventory));
+  const ready = settingsResolved && inventoryResolved;
 
   return (
     <>
@@ -113,6 +130,8 @@ export default function ProfilePage() {
             name={name}
             stats={stats}
             avatar={avatar}
+            gesture={gesture}
+            ready={ready}
             onChangeAvatar={() => setPickerOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
           />
