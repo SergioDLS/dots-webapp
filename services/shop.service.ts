@@ -5,6 +5,7 @@ export type ShopItem = {
   key: string;
   kind: "streak_shield" | "xp_boost" | "cosmetic" | "gesture";
   name: string;
+  img: string | null;
   description: string | null;
   price: number;
   slot: string | null;
@@ -19,6 +20,7 @@ export type InventoryItem = {
   key: string;
   kind: string;
   name: string;
+  img: string | null;
   slot: string | null;
   meta: Record<string, unknown> | null;
   equippedSlot: string | null;

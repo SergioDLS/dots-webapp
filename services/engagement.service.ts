@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import type { PublicAvatar } from "@/lib/avatar";
 
 // ── Types (frozen backend contracts) ─────────────────────────────────────────
 export type GameKey =
@@ -89,6 +90,7 @@ export type LeaderboardEntry = {
   id?: number;
   name: string;
   last_name: string;
+  avatar: PublicAvatar;
   xp: number;
   streak: number;
 };
@@ -124,6 +126,7 @@ export type Badge = {
 /** One neighbour in the weekly XP leaderboard. */
 export type RivalNeighbor = {
   name: string;
+  avatar: PublicAvatar;
   delta: number;
 };
 

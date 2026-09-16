@@ -1,3 +1,5 @@
+import type { PublicAvatar } from "@/lib/avatar";
+
 export type PathNodeType =
   | "practice"
   | "pronunciation"
@@ -58,6 +60,7 @@ export type PathPeer = {
   name: string;
   /** Inicial del apellido, ya recortada por el backend. */
   lastName: string;
+  avatar: PublicAvatar;
   nodeId: number;
   /** Nodos de separación respecto a ti. 0 = mismo nodo. */
   distance: number;

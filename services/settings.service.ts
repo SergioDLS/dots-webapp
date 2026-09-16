@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import type { PublicAvatar } from "@/lib/avatar";
 import type { Palette } from "@/lib/theme-colors";
 import type { ThemeMode } from "@/lib/theme-prefs";
 
@@ -8,6 +9,7 @@ export type UserSettings = {
   mode: ThemeMode;
   sound: boolean;
   avatar_key: string | null;
+  avatar: PublicAvatar;
   onboarded_at: string | null;
   tips_seen: string[];
 };
