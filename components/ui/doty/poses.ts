@@ -96,7 +96,7 @@ export const POSES = {
   bostezo: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
   "narrador-beginner": { src: "/images/Doty/poses/narrador-beginner.png", group: "poses" },
   "narrador-intermediate": { src: "/images/Doty/poses/narrador-intermediate.png", group: "poses" },
-  "narrador-advanced": { src: "/images/Doty/expressions/feliz.png", group: "poses" },
+  "narrador-advanced": { src: "/images/Doty/poses/narrador-advanced.png", group: "poses" },
 } as const satisfies Record<string, PoseEntry>;
 
 export type DotyPose = keyof typeof POSES;
