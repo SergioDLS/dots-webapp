@@ -44,7 +44,7 @@
       "slug": "cerebro-galaxia",
       "group": "expressions",
       "prefix": "Doty with a galaxy brain",
-      "prompt": "eyes half closed in serene enlightenment, tiny knowing smile, the tuft swirled into a spiral shape filled with a swirling blue and cyan galaxy pattern with small white stars, one finger raised to the temple, cosmic genius",
+      "prompt": "eyes half closed in serene enlightenment, tiny knowing smile, the tuft swirled into a spiral shape filled with a swirling blue and cyan galaxy pattern with small white stars inside the swirl and nothing floating outside the silhouette, one finger raised to the temple, cosmic genius",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -119,7 +119,7 @@
       "slug": "meditando",
       "group": "expressions",
       "prefix": "Doty meditating in peace",
-      "prompt": "sitting cross legged, hands resting on the knees with fingertips touching, eyes closed, serene tiny smile, the tuft neatly smooth, a soft cyan glow hugging the outline of the body, total calm",
+      "prompt": "sitting cross legged, hands resting on the knees with fingertips touching, eyes closed, serene tiny smile, a soft cyan glow hugging the outline of the body and touching the silhouette everywhere, never floating apart, total calm",
       "size": 1024,
       "mascot": true,
       "done": false
