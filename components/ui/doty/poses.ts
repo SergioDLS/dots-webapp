@@ -88,7 +88,7 @@ export const POSES = {
   reojo: { src: "/images/Doty/expressions/reojo.png", group: "expressions" },
   "mente-volada": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
   "lentes-deal": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
-  gamer: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  gamer: { src: "/images/Doty/expressions/gamer.png", group: "expressions" },
   chismoso: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
   facepalm: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
   flexeando: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
