@@ -18,8 +18,9 @@
       "prompt": "standing tall and relaxed, one hand adjusting a pair of bold cyan sunglasses on his face, smug tiny smile, a soft golden glow hugging the outline of the body, the glow touching the silhouette and not floating apart, chill and unbothered",
       "size": 1024,
       "mascot": true,
-      "done": false,
-      "glasses": true
+      "done": true,
+      "glasses": true,
+      "source_file": "Mandrakin_Doty_glowing_with_confidence_standing_tall_and_rela_f9fbc077-c6cf-4a5f-a32d-eb0aed5ec991_3.png"
     },
     {
       "slug": "cocinado",
@@ -44,7 +45,7 @@
       "slug": "cerebro-galaxia",
       "group": "expressions",
       "prefix": "Doty with a galaxy brain",
-      "prompt": "eyes half closed in serene enlightenment, tiny knowing smile, the tuft swirled into a spiral shape filled with a swirling blue and cyan galaxy pattern with small white stars inside the swirl and nothing floating outside the silhouette, one finger raised to the temple, cosmic genius",
+      "prompt": "eyes half closed in serene enlightenment, tiny knowing smile, one finger raised to the temple, the crest filled with a bright cyan and blue starry galaxy pattern with tiny white stars inside it, nothing floating outside the silhouette, cosmic genius",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -63,7 +64,7 @@
       "slug": "mente-volada",
       "group": "expressions",
       "prefix": "Doty with mind blown",
-      "prompt": "eyes huge and wide, mouth open in a perfect O, both hands on the sides of the head, the tuft splayed outward in every direction like a burst, three small cyan and pink starbursts touching the tips of the tuft, astonished delight",
+      "prompt": "eyes huge and wide, mouth open in a perfect O, both hands pressed to the sides of the head, the crest bristling upward in surprise, astonished delight, nothing floating separate from the body",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -72,7 +73,7 @@
       "slug": "lentes-deal",
       "group": "expressions",
       "prefix": "Doty lowering cool shades",
-      "prompt": "chin up, one hand pulling a pair of bold cyan sunglasses halfway down the face, one eye visible over the rim, confident lopsided grin, the other hand on the hip, effortlessly cool",
+      "prompt": "chin up, one hand pulling a pair of bold cyan sunglasses straight down the face so they rest low and level across the cheeks, both eyes looking over the top rim, confident lopsided grin, the other hand on the hip, effortlessly cool",
       "size": 1024,
       "mascot": true,
       "done": false,
@@ -92,7 +93,7 @@
       "slug": "chismoso",
       "group": "expressions",
       "prefix": "Doty peeking with gossip face",
-      "prompt": "peeking from behind the edge of a big pink speech bubble that he holds with both hands, only the head and hands visible above it, eyes wide and darting, eyebrows high, tiny mischievous smile, about to share gossip",
+      "prompt": "leaning in close with one hand cupped beside the mouth as if telling you a secret, eyes wide and darting to one side, eyebrows high, tiny mischievous smile, about to share gossip",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -110,7 +111,7 @@
       "slug": "flexeando",
       "group": "expressions",
       "prefix": "Doty flexing muscles",
-      "prompt": "both arms raised and bent flexing exaggerated round cartoon biceps, chin up, proud grin with gritted teeth, one eye winking, small cyan sparkle touching the top of each bicep, hype pose",
+      "prompt": "both arms raised and bent flexing exaggerated round cartoon biceps, chin up, proud grin with gritted teeth, one eye winking, hype pose",
       "size": 1024,
       "mascot": true,
       "done": false

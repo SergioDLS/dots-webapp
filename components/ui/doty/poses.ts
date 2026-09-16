@@ -81,7 +81,7 @@ export const POSES = {
   "sticker-excellent": { src: "/images/Doty/stickers/excellent.png", group: "stickers" },
   "sticker-see-you": { src: "/images/Doty/stickers/see-you.png", group: "stickers" },
   "en-llamas": { src: "/images/Doty/expressions/en-llamas.png", group: "expressions" },
-  aura: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  aura: { src: "/images/Doty/expressions/aura.png", group: "expressions" },
   cocinado: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
   "llanto-dramatico": { src: "/images/Doty/expressions/llanto-dramatico.png", group: "expressions" },
   "cerebro-galaxia": { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
