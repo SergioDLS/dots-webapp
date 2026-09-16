@@ -12,6 +12,8 @@ import api, {
   refreshAccessToken,
   setAccessToken as setApiAccessToken,
 } from "@/lib/api-client";
+import { SOUND_KEY } from "@/lib/sound-prefs";
+import { DIRTY_KEY, MODE_KEY, PALETTE_KEY } from "@/lib/theme-prefs";
 
 type AuthContextType = {
   accessToken: string | null;
@@ -73,6 +75,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("user");
+        // Limpia también los espejos (tema, sonido, pendiente): si no, en un
+        // equipo compartido heredas los ajustes de quien cerró sesión.
+        try {
+          window.localStorage.removeItem(PALETTE_KEY);
+          window.localStorage.removeItem(MODE_KEY);
+          window.localStorage.removeItem(SOUND_KEY);
+          window.localStorage.removeItem(DIRTY_KEY);
+        } catch {
+          /* modo privado o storage lleno: nada que limpiar */
+        }
         // window.location a propósito (par de lib/api-client.ts): en logout
         // la recarga completa ES el objetivo — descarta todo estado en memoria.
         window.location.replace("/");

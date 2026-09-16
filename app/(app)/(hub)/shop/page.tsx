@@ -67,7 +67,12 @@ export default function ShopPage() {
   }
 
   const consumable = (k: string) => k === "streak_shield" || k === "xp_boost";
-  const groups = Array.from(new Set(items.map((i) => KIND_LABEL[i.kind] ?? "Otros")));
+  // Temporal: D quitó del perfil la única superficie para equipar/quitar
+  // gorros y fondos, así que se ocultan de la tienda para no vender algo que
+  // ya no se puede gestionar. El catálogo y el inventario no se tocan aquí:
+  // el reembolso y la retirada de verdad son del subproyecto E (spec §6.2).
+  const shoppable = items.filter((i) => i.slot !== "hat" && i.slot !== "background");
+  const groups = Array.from(new Set(shoppable.map((i) => KIND_LABEL[i.kind] ?? "Otros")));
 
   return (
     <div className="flex flex-col gap-6">
@@ -121,7 +126,7 @@ export default function ShopPage() {
             {group}
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {items
+            {shoppable
               .filter((i) => (KIND_LABEL[i.kind] ?? "Otros") === group)
               .map((item) => {
                 const affordable = balance >= item.price;

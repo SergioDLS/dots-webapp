@@ -72,8 +72,9 @@ de los espejos (paleta, modo y sonido) en vez de aplicar lo que diga el servidor
 ella, un cambio hecho sin red se perdía en cuanto el usuario entraba a una lección y
 volvía, porque este componente se remonta en cada ida y vuelta al hub. La preferencia
 de sonido tiene su propio espejo en `lib/sound-prefs.ts` y `lib/feedback-sounds.ts` la
-consulta antes de sonar, así que apagarla silencia las ocho pantallas que reproducen
-aciertos y fallos sin tocar ninguna; la narración no pasa por ahí y nunca se silencia.
+consulta antes de sonar, así que apagarla silencia los quince importadores (diez
+juegos, la práctica, tres componentes de lección y un hook) que reproducen aciertos y
+fallos sin tocar ninguno; la narración no pasa por ahí y nunca se silencia.
 
 El acento de cada paleta viaja como dato (`PALETTE_ACCENTS` en el `lib/theme-colors.ts`
 generado) porque los bloques CSS generados usan selectores `:root[data-palette]`, que
@@ -135,9 +136,9 @@ porque cambiar este comportamiento sería incorrecto para el resto.
 
 `<html data-palette="rosa|electrico" data-theme="light|dark">`: Auto es la ausencia de `data-theme` (resuelve por `prefers-color-scheme`). El script anti-flash inline de `app/layout.tsx` fija estos atributos antes del primer paint desde el espejo de `localStorage`; `applyThemePrefs` (`lib/theme-prefs.ts`) hace exactamente lo mismo desde React — si cambias uno, cambia el otro.
 
-`components/theme-toggle.tsx`: toggle binario claro/oscuro, lee el modo resuelto del DOM (`html.dark`) y nunca de `matchMedia` en el render; escribe el espejo local y manda `PATCH /me/settings` en segundo plano (falla en silencio si el backend aún no lo expone).
+`components/profile/settings-sheet.tsx`: hoja de ajustes que reemplazó al toggle binario claro/oscuro; lee el modo resuelto del DOM (`html.dark`) y nunca de `matchMedia` en el render (regla 12). Ver "El perfil" arriba para el detalle de qué escribe (paleta, modo y sonido) y cómo se reconcilia con el servidor.
 
-`components/theme/theme-sync.tsx`: solo completa desde `GET /me/settings` los dispositivos SIN espejo local (primera visita) — la paleta no tiene escritor hasta la hoja de ajustes (subproyecto D), que hará el servidor autoritativo; en Auto también sigue `prefers-color-scheme` con la pestaña abierta.
+`components/theme/theme-sync.tsx`: reconcilia paleta, modo y sonido contra `GET /me/settings` — ver "El perfil" arriba para el detalle completo (servidor autoritativo salvo marca de pendiente); en Auto también sigue `prefers-color-scheme` con la pestaña abierta.
 
 `services/settings.service.ts`: fetchers de `/me/settings` (`GET`/`PATCH`), tolerantes a que el endpoint no exista todavía.
 
@@ -145,8 +146,13 @@ porque cambiar este comportamiento sería incorrecto para el resto.
 
 ## Deuda conocida (frontend)
 
-- La entidad `Users` del backend no declara `settings` hasta aplicar `migrate:settings`:
-  lee/escribe por SQL crudo tolerante a la Postgres 42703.
+- Con `settings` ya declarada en la entidad `Users` del backend, viaja en todos
+  los `save(user)`: un `PATCH /me/settings` que confirme entre la lectura y el
+  guardado de una escritura de XP puede quedar pisado. La vía limpia sería
+  marcar la columna como no seleccionada por defecto y pedirla explícitamente
+  donde se usa, pero hacerlo mal es peor que la carrera — si la lectura
+  devolviera vacío, el merge partiría de los valores por defecto y borraría
+  los ajustes del usuario —, así que queda anotado y sin cambiar.
 - `GameResult` traga errores del submit sin estado de error (patrón aceptado batch-wide).
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.

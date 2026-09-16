@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getMySettingsService, patchMySettingsService } from "@/services/settings.service";
-import { readSoundEnabled } from "@/lib/sound-prefs";
+import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
 import {
   applyThemePrefs,
   clearSettingsDirty,
@@ -33,8 +33,10 @@ import {
  * adivinar cuál PATCH falló se sincroniza todo de una vez y se acaba la
  * ambigüedad. Solo se limpia la marca si ese reintento confirma; si vuelve a
  * fallar, no hace nada y se reintenta en el próximo montaje. Sin nada
- * pendiente, el comportamiento es el de siempre: pide `/me/settings` y, si
- * difiere del espejo, aplica y reescribe.
+ * pendiente, el comportamiento es el de siempre: pide `/me/settings` y
+ * reconcilia paleta, modo y sonido por separado, cada uno solo si difiere de
+ * su espejo (paleta y modo vía `applyThemePrefs`+`writeMirror`; sonido vía
+ * `writeSoundEnabled`).
  *
  * Además, en modo Auto sigue los cambios de tema del SO con la pestaña abierta:
  * el CSS cambia solo, pero la clase `dark`, `colorScheme` y la meta no.
@@ -56,9 +58,15 @@ export default function ThemeSync() {
         if (!alive || !settings) return;
         const server = normalizePrefs(settings);
         const local = readMirror();
-        if (server.palette === local.palette && server.mode === local.mode) return;
-        applyThemePrefs(server);
-        writeMirror(server);
+        if (server.palette !== local.palette || server.mode !== local.mode) {
+          applyThemePrefs(server);
+          writeMirror(server);
+        }
+        // El sonido se reconcilia igual que paleta y modo: sin nada
+        // pendiente, el servidor manda también aquí.
+        if (settings.sound !== readSoundEnabled()) {
+          writeSoundEnabled(settings.sound);
+        }
       });
     }
     return () => {

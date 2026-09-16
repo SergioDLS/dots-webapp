@@ -48,6 +48,8 @@ export default function ProfileIdentity({ name, stats, gestureAnimation, onOpenS
             {band.code} · {band.name}
           </span>
           <span
+            role="img"
+            aria-label={`Racha: ${streak} días`}
             className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-black tabular-nums"
             style={{
               background: "color-mix(in srgb, var(--flame) 14%, transparent)",

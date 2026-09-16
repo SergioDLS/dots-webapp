@@ -40,8 +40,11 @@ export function readMirror(): ThemePrefs {
   }
 }
 
-/** true si este dispositivo ya guardó alguna preferencia (aunque sea inválida):
- *  ThemeSync solo completa desde el servidor los dispositivos sin espejo. */
+/** true si este dispositivo ya guardó alguna preferencia (aunque sea inválida).
+ *  Sin consumidores desde que ThemeSync pasó a reconciliar siempre contra el
+ *  servidor (subproyecto D) en vez de solo completar los dispositivos sin
+ *  espejo; se conserva por si un futuro subproyecto (p. ej. F) necesita
+ *  distinguir un dispositivo nuevo de uno que ya trae preferencias propias. */
 export function hasMirror(): boolean {
   if (typeof window === "undefined") return false;
   try {

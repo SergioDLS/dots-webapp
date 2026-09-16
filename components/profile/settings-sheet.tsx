@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 
 import { Icon } from "@/components/ui/icon";
@@ -86,10 +86,14 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
     string,
   ];
   const sound = soundFlag !== "off";
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar con Escape y bloquear el scroll del fondo mientras la hoja está abierta.
+  // Cerrar con Escape, bloquear el scroll del fondo y mover el foco al panel
+  // mientras la hoja está abierta. Sin trampa de foco completa todavía (Tab
+  // puede salir del panel): queda anotado como deuda, no implementado aquí.
   useEffect(() => {
     if (!open) return;
+    panelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -105,28 +109,36 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
   if (!open) return null;
 
   /**
-   * Escribe espejo + DOM + servidor. El PATCH falla en silencio: el espejo
-   * conserva la elección, y la marca de pendiente es lo que evita perderla si
-   * ThemeSync se remonta (al entrar y salir de una lección, por ejemplo)
-   * antes de que ese PATCH confirme.
+   * Escribe espejo + DOM + servidor. Manda el juego COMPLETO de preferencias
+   * (paleta, modo y sonido, leídos de los espejos ya actualizados) aunque
+   * este control solo cambie una: paleta, modo y sonido comparten la única
+   * marca de pendiente (DIRTY_KEY), así que si el PATCH de este control
+   * confirma primero tiene que llevarse también cualquier cambio que haya
+   * dejado pendiente el otro control — si mandara solo el delta, limpiaría
+   * la marca sin que el servidor llegara a enterarse de ese otro cambio.
+   * El PATCH falla en silencio: el espejo conserva la elección, y la marca de
+   * pendiente es lo que evita perderla si ThemeSync se remonta (al entrar y
+   * salir de una lección, por ejemplo) antes de que ese PATCH confirme.
    */
   const setTheme = (next: { palette?: Palette; mode?: ThemeMode }) => {
     const prefs = normalizePrefs({ ...readMirror(), ...next });
     writeMirror(prefs);
     applyThemePrefs(prefs);
     markSettingsDirty();
-    void patchMySettingsService(next)
+    void patchMySettingsService({ ...prefs, sound: readSoundEnabled() })
       .then(() => clearSettingsDirty())
       .catch(() => {});
   };
 
+  // Igual que setTheme: manda paleta, modo y sonido completos, no solo
+  // `{sound}` — ver el comentario de setTheme para el porqué.
   const setSound = (on: boolean) => {
     writeSoundEnabled(on);
     // Toca un atributo del <html> para que el useSyncExternalStore de arriba
     // se entere: el espejo de sonido no tiene evento propio en la misma pestaña.
     document.documentElement.dataset.sound = on ? "on" : "off";
     markSettingsDirty();
-    void patchMySettingsService({ sound: on })
+    void patchMySettingsService({ ...readMirror(), sound: on })
       .then(() => clearSettingsDirty())
       .catch(() => {});
   };
@@ -141,9 +153,11 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
       />
 
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Ajustes"
+        tabIndex={-1}
         className="relative z-10 flex max-h-[85vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-(--surface) px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 [animation:dots-slide-up_.25s_ease-out_both] md:max-h-none md:w-[380px] md:rounded-none md:rounded-l-3xl md:pb-5 md:[animation:dots-slide-right_.25s_ease-out_both]"
       >
         <div className="flex items-center justify-between gap-2 pb-2">
