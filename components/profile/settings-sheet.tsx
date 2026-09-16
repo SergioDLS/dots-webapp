@@ -88,12 +88,19 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout }: Prop
   const sound = soundFlag !== "off";
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar con Escape, bloquear el scroll del fondo y mover el foco al panel
-  // mientras la hoja está abierta. Sin trampa de foco completa todavía (Tab
-  // puede salir del panel): queda anotado como deuda, no implementado aquí.
+  // Va en su propio efecto con [open] como única dependencia: si dependiera
+  // de onClose (nueva en cada render de la página), le robas el foco al
+  // usuario en cada repintado en vez de moverlo una sola vez al abrir. Sin
+  // trampa de foco completa todavía (Tab puede salir del panel): queda
+  // anotado como deuda, no implementado aquí.
   useEffect(() => {
     if (!open) return;
     panelRef.current?.focus();
+  }, [open]);
+
+  // Cerrar con Escape y bloquear el scroll del fondo mientras la hoja está abierta.
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
