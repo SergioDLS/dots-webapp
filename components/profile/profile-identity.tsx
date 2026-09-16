@@ -15,7 +15,8 @@ import type { MyStats } from "@/services/engagement.service";
  *
  * El avatar es una carta de dos caras (spec §6.4): retrato al frente y, detrás,
  * Doty con el gesto equipado. Tocar el disco lo gira; el lápiz es un botón
- * aparte —nunca anidado dentro del disco— y el único acceso al selector.
+ * aparte —nunca anidado dentro del disco— y el único acceso al selector desde
+ * la identidad; la hoja de ajustes conserva el suyo.
  */
 interface Props {
   name: string;
@@ -58,10 +59,16 @@ export default function ProfileIdentity({
           type="button"
           onClick={onChangeAvatar}
           aria-label="Cambiar avatar"
-          className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-          style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+          // 40 px de área táctil (WCAG 2.5.8 recomienda 44; el mínimo es 24) alrededor
+          // de un lápiz visible de 28: el centro queda en el mismo punto que antes.
+          className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
         >
-          <Icon name="lapiz" size={14} mono />
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-full"
+            style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+          >
+            <Icon name="lapiz" size={14} mono />
+          </span>
         </button>
       </div>
 

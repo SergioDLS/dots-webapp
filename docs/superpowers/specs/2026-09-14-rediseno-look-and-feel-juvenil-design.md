@@ -363,12 +363,14 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   del diámetro (56 px en el disco de 78, 68 en el de 96), para que la animación no se recorte.
 - **Giro de entrada.** Al abrir el perfil, cuando ajustes e inventario ya respondieron y hay gesto
   equipado: el retrato se ve 600 ms, la carta gira en 400 ms (`rotateY`, solo `transform`), el
-  gesto da vueltas completas hasta cubrir unos 3 s (dos de `wave` = 3.2 s, tres de `cheer` =
-  2.7 s) y vuelve al retrato. Una vez por visita; equipar otro gesto lo vuelve a reproducir. Sin
-  gesto equipado el disco no gira nunca.
+  gesto da vueltas completas hasta cubrir unos 3 s (dos de `wave` = 3.2 s, tres de `cheer` = 2.7 s;
+  completas en duración, no en fase: la animación corre desde que la carta se monta, así que el
+  dorso aparece a mitad de ciclo) y vuelve al retrato. Una vez por visita; equipar otro gesto lo
+  vuelve a reproducir. Sin gesto equipado el disco no gira nunca.
 - **Tap y hover.** Tocar el disco lo gira y lo deja en el dorso hasta el siguiente toque; con
   ratón, pasar por encima lo gira y salir lo devuelve. El tap es la señal primaria. El lápiz pasa a
-  ser un botón propio y el único acceso al selector de avatar.
+  ser un botón propio —28 px visibles sobre un área táctil de 40— y el único acceso al selector
+  desde la identidad; la hoja de ajustes conserva el suyo.
 - **Movimiento reducido.** No hay giro de entrada (como la animación de entrada a la app); el tap
   sigue cambiando de cara, sin transición.
 - **A 34 px nada gira**: ranking, vecinos del Camino y tarjeta de rival muestran el retrato quieto,
