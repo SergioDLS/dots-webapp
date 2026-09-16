@@ -133,7 +133,7 @@
       "slug": "narrador-beginner",
       "group": "poses",
       "prefix": "Doty hyped welcomer throwing the doors open",
-      "prompt": "both arms flung wide and high in a huge welcome, leaning forward on the tiptoes, mouth wide open in a delighted shout, eyes huge and bright, nothing on the head and the tuft standing free and fully visible, unstoppable first-day energy, no bow, no blush, no tilted head, no hand on the chest",
+      "prompt": "both arms flung wide and high in a huge welcome, leaning forward on the tiptoes, mouth wide open in a delighted shout, eyes huge and bright, nothing on the head and the tuft as it always is, soft and natural, not spiky, unstoppable first-day energy, no bow, no blush, no tilted head, no hand on the chest",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -180,8 +180,8 @@
     {
       "slug": "crack",
       "group": "avatars",
-      "prefix": "Avatar Doty crack with a cap",
-      "prompt": "a bold blue baseball cap worn backwards and pushed up high on the back of the head so the tuft rises free and fully visible in front of it, never squashed under the cap nor poking out behind it, a cocky confident smirk, one eye winking",
+      "prefix": "Avatar Doty crack with a beanie",
+      "prompt": "a bold blue knit beanie pulled all the way down covering the whole head and hiding the tuft completely under it, a smooth rounded silhouette with no hair sticking out anywhere, a cocky confident smirk, one eye winking",
       "size": 512,
       "mascot": true,
       "done": false,
@@ -191,7 +191,7 @@
       "slug": "hype",
       "group": "avatars",
       "prefix": "Avatar Doty hype with headphones",
-      "prompt": "bulky cyan headphones with the band resting behind the tuft on the back of the head and the cups over the ears, the tuft rising free and fully visible between them, mouth open in an excited shout, eyes squeezed into happy crescents",
+      "prompt": "bulky cyan headphones worn over the whole head with the padded band sitting flat across the top and the cups covering the ears, the tuft tucked flat under the band with no hair sticking out, mouth open in an excited shout, eyes squeezed into happy crescents",
       "size": 512,
       "mascot": true,
       "done": false,
