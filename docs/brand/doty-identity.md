@@ -245,14 +245,17 @@ Cinco cosas que costaron intentos y ahorran los siguientes:
 - **El navy solo como línea.** Ocho prompts lo pedían de relleno y eran el
   origen real de las piezas que no se leían sobre el tema oscuro. Hay un guard
   en `validate_catalog`.
-- **La cresta son exactamente tres picos.** Medido sobre el contorno superior de
-  las piezas aprobadas (cimas con prominencia real, no a ojo): `cansado`,
-  `decepcionado`, `dormido`, `enamorado`, `enojado` y `feliz` dan tres; en
-  `muy-feliz` y `emocionado` las cimas de más son los puños en alto. Nacen
-  arriba a la izquierda y apuntan hacia arriba, algo inclinados. Al prompt hay
-  que darle el número exacto: un rango ("tres o cuatro") hace que cada pieza
-  salga distinta, y negar el rasgo en vez de describirlo falla de los dos lados
-  — "not spiky" dio dos picos verticales y "spikes lying down" dio flequillo.
+- **Al rasgo que trae la referencia no se le habla.** Medido sobre las 102
+  piezas de mascota aprobadas: mencionan la cresta el 3 % y las patas el 5 %,
+  frente al 64 % que menciona la boca, el 48 % los brazos y el 28 % los ojos. Se
+  describe lo que CAMBIA — pose, gesto, expresión, accesorio — y se calla lo que
+  `ref-patron.png` ya fija. Tres tiradas seguidas de un narrador salieron con la
+  cresta mal justo por describirla: "not spiky" dio dos picos verticales,
+  "spikes lying down" dio flequillo y "exactly three spikes" dio cinco. Las
+  cuatro piezas aprobadas que sí la nombran (`idea` y los tres narradores de
+  voz) son las que la cambian a propósito. Lo mismo con las patas: la pata
+  fusionada de una tirada no vino de no describirlas, vino de pedir una postura
+  ("on the tiptoes") sin que la referencia la tuviera.
 - **Un accesorio pequeño sale mal y cinco salen peor.** Dos objetos grandes es
   lo que funciona: gorra + pañuelo, gafas + bata.
 - **Los rasgos infantiles vienen en racimo** — lazo, rubor, cabeza ladeada,
