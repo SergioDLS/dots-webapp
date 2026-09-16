@@ -40,10 +40,12 @@ def test_grupos_y_slugs_exactos():
     assert len(_cat()["pieces"]) == 42
 
 
-def test_todo_es_mascota_sin_hacer_y_con_tamano_por_grupo():
+def test_todo_es_mascota_con_tamano_por_grupo():
+    # `done` no se comprueba: deja de ser falso en cuanto se aplica una tanda, y
+    # los tests de las fases ya trabajadas (2 y 3) tampoco lo miran. Lo que sigue
+    # siendo invariante es que todas son piezas de mascota y su tamaño por grupo.
     for p in _cat()["pieces"]:
         assert p["mascot"] is True, p["slug"]
-        assert p["done"] is False, p["slug"]
         assert p["size"] == (512 if p["group"] == "avatars" else 1024), p["slug"]
 
 

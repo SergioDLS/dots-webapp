@@ -8,7 +8,8 @@
       "prompt": "powered up like an anime fighter, feet planted wide, fists clenched at his sides, teeth gritted in a fierce determined grin, the tuft standing straight up in sharp spikes, a bold golden yellow flame aura hugging the whole body with the flames growing out of the outline itself and touching the silhouette everywhere, small cyan sparks inside the flames, intense glowing eyes, nothing floating separate from the body",
       "size": 1024,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_on_fire_power_up_powered_up_like_an_anime_figh_02c10ae6-cdd4-4367-8fa3-c877dd75257b_3.png"
     },
     {
       "slug": "aura",
@@ -36,7 +37,8 @@
       "prompt": "melodramatic sobbing, both hands pressed to the cheeks, huge glossy eyes with two thick cyan tear streams running down and pooling at the feet, mouth wide open in an exaggerated wail, theatrical soap opera drama, comic and endearing",
       "size": 1024,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_crying_dramatically_melodramatic_sobbing_both__2d28fa10-8de0-4cb6-b631-c22858df2b0b_0.png"
     },
     {
       "slug": "cerebro-galaxia",
@@ -54,7 +56,8 @@
       "prompt": "arms crossed, body turned three quarters, eyes sliding sideways toward the viewer in a suspicious side glance, one eyebrow raised, lips pressed in a tiny pout, playful passive aggressive attitude, cute not hostile",
       "size": 1024,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_side_eye_glance_arms_crossed_body_turned_three_9f2fad3e-05dc-4cd3-a1b0-7355c9784b3c_0.png"
     },
     {
       "slug": "mente-volada",
@@ -79,7 +82,7 @@
       "slug": "gamer",
       "group": "expressions",
       "prefix": "Doty gaming with a controller",
-      "prompt": "holding a chunky blue game controller with both hands, thumbs on the sticks, bulky cyan headphones over the tuft, leaning forward with focused excited eyes and an open grin, fully absorbed in the game",
+      "prompt": "holding a chunky blue game controller with both hands, thumbs on the sticks, leaning forward with focused excited eyes and an open grin, fully absorbed in the game",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -136,7 +139,8 @@
       "prompt": "leaning in toward the viewer with one arm sweeping wide to wave you in and the other hand beckoning, a big cheeky grin with one eyebrow raised, eyes locked straight on the viewer, the easy swagger of someone welcoming a friend he already knows",
       "size": 1024,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_hyped_welcomer_throwing_the_doors_open_leaning_0a38631a-4041-40ed-9a48-ea196c77fb4b_0.png"
     },
     {
       "slug": "narrador-intermediate",
@@ -145,13 +149,14 @@
       "prompt": "a big cyan megaphone held up to the mouth with one hand, the other arm jabbing a finger straight at the viewer, leaning right into the camera, a cocky half smile with one eyebrow raised, eyes locked straight on the viewer, the energy of a coach teasing you into one more round",
       "size": 1024,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_coach_shouting_into_a_megaphone_a_big_cyan_meg_5f68cff7-6e6b-4215-9fbd-90a82d08e766_0.png"
     },
     {
       "slug": "narrador-advanced",
       "group": "poses",
       "prefix": "Doty champion glowing with aura",
-      "prompt": "arms crossed high on the chest, chin raised, a smug half smile with one eye winking straight at the viewer, a big round golden medal on a thick cyan ribbon covering most of the chest, a soft golden aura growing out of the outline itself and hugging the whole silhouette everywhere, nothing floating separate from the body, pure untouchable swagger",
+      "prompt": "arms crossed high on the chest, chin raised, a smug half smile with one eye winking straight at the viewer, a big round golden medal resting on the chest just below the crossed arms, a soft golden aura growing out of the outline itself and hugging the whole silhouette everywhere, nothing floating separate from the body, pure untouchable swagger",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -163,8 +168,9 @@
       "prompt": "a confident lopsided grin showing the teeth, one eyebrow raised, eyes locked straight on the viewer, chin tipped forward, the easy confidence of someone who already knows you, no accessories",
       "size": 512,
       "mascot": true,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_classic_smile_a_confident_lopsided_grin_a74e4985-f6fe-4391-9c30-29639994ecb9_3.png"
     },
     {
       "slug": "nerd",
@@ -173,9 +179,10 @@
       "prompt": "big round cyan-framed glasses, pushing them up the nose with one finger, a smug clever grin, eyes locked straight on the viewer over the rim",
       "size": 512,
       "mascot": true,
-      "done": false,
+      "done": true,
       "glasses": true,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_nerd_with_round_glasses_big_round_cyan-_ee2cdc0f-d1b4-4e54-8a48-afdabbfe3e42_3.png"
     },
     {
       "slug": "crack",
@@ -184,8 +191,9 @@
       "prompt": "a bold blue knit beanie pulled all the way down covering the whole head, a cocky smirk with one eye winking straight at the viewer, chin tipped up, the swagger of the one who always wins",
       "size": 512,
       "mascot": true,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_crack_with_a_beanie_a_bold_blue_knit_be_1151b626-e196-4f43-a772-d176fddb07d6_3.png"
     },
     {
       "slug": "hype",
@@ -194,8 +202,9 @@
       "prompt": "bulky cyan headphones worn over the whole head with the padded band flat across the top and the cups over the ears, mouth wide open in an excited shout aimed right at the viewer, eyes squeezed into happy crescents, both fists up beside the face",
       "size": 512,
       "mascot": true,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_hype_with_headphones_bulky_cyan_headpho_9fed016a-9807-4abd-98b7-b52c017739fb_0.png"
     },
     {
       "slug": "buena-onda",
@@ -204,8 +213,9 @@
       "prompt": "one hand raised beside the face in a relaxed open wave, a warm lopsided smile, eyes half closed and easy, the calm of someone who has all day for you",
       "size": 512,
       "mascot": true,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_good_vibes_waving_one_hand_raised_besid_72118a25-ce53-4627-bc8b-a6ab14393048_1.png"
     },
     {
       "slug": "techie",
@@ -214,8 +224,9 @@
       "prompt": "a sleek cyan visor across the eyes reflecting a faint blue grid, a knowing half smile at one corner of the mouth, the calm of someone three steps ahead",
       "size": 512,
       "mascot": true,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_techie_with_a_visor_a_sleek_cyan_visor__184f3e11-acee-423b-bb68-fd4f6c225184_0.png"
     },
     {
       "slug": "genio",
