@@ -6,7 +6,7 @@ import { POSES, FALLBACK_POSE, isDotyPose, toDotyPose, type DotyPose } from "./p
 import { resolvePoseOrFallback } from "./pending";
 
 export type DotyAnimation = "none" | "bob" | "cheer" | "sad" | "wave";
-export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner";
+export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner" | "dorso";
 export type { DotyPose };
 export { toDotyPose, isDotyPose };
 
@@ -45,6 +45,8 @@ const SIZE_PX: Record<DotySize, number> = {
   chip: 44,
   section: 104,
   banner: 158,
+  // dorso: Doty en la cara trasera del avatar del perfil (spec §6.4); 68 es el mayor de sus dos anchos.
+  dorso: 68,
 };
 
 const sizeClass: Record<DotySize, string> = {
@@ -59,6 +61,8 @@ const sizeClass: Record<DotySize, string> = {
   chip: "w-11",
   section: "w-26",
   banner: "w-[158px]",
+  // dorso: 70 % del disco del perfil — 56 px dentro del de 78 (móvil) y 68 dentro del de 96 (escritorio).
+  dorso: "w-14 md:w-17",
 };
 
 const animationClass: Record<DotyAnimation, string> = {
