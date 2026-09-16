@@ -90,7 +90,7 @@ export const POSES = {
   "lentes-deal": { src: "/images/Doty/expressions/lentes-deal.png", group: "expressions" },
   gamer: { src: "/images/Doty/expressions/gamer.png", group: "expressions" },
   chismoso: { src: "/images/Doty/expressions/chismoso.png", group: "expressions" },
-  facepalm: { src: "/images/Doty/expressions/feliz.png", group: "expressions" },
+  facepalm: { src: "/images/Doty/expressions/facepalm.png", group: "expressions" },
   flexeando: { src: "/images/Doty/expressions/flexeando.png", group: "expressions" },
   meditando: { src: "/images/Doty/expressions/meditando.png", group: "expressions" },
   bostezo: { src: "/images/Doty/expressions/bostezo.png", group: "expressions" },
