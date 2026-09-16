@@ -21,6 +21,7 @@ interface Props {
 
 export default function GesturesCard({ items, onToggle }: Props) {
   const gestures = gestureItems(items);
+  const equipped = gestures.some((g) => g.equippedSlot === "gesture");
 
   return (
     <section className="flex flex-col gap-3">
@@ -38,7 +39,9 @@ export default function GesturesCard({ items, onToggle }: Props) {
       ) : (
         <>
           <p className="text-xs font-semibold text-(--muted)">
-            Tu Doty lo hace detrás de tu avatar al abrir el perfil. Toca el avatar para verlo otra vez.
+            {equipped
+              ? "Tu Doty lo hace detrás de tu avatar al abrir el perfil. Toca el avatar para verlo otra vez."
+              : "Elige uno y tu Doty lo hará detrás de tu avatar."}
           </p>
           <ul className="grid grid-cols-3 gap-2">
             {gestures.map((item) => {
