@@ -289,6 +289,13 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   conserva).
 - Criterios: en 390 px identidad y stats caben sobre el pliegue; cambiar tema desde la hoja
   repinta sin recargar y sobrevive a cerrar sesión y volver en otro dispositivo.
+- **Tres desviaciones decididas durante la implementación (2026-09-15):** (1) la hoja NO
+  lleva la fila "Cambiar avatar" y el avatar no lleva lápiz, porque los avatares son el
+  subproyecto E y §8 lo pone después de D: un control que no hace nada es peor que
+  ninguno; (2) el perfil deja de mostrar gorros y fondos y conserva solo los gestos, tal
+  como describe la viñeta de arriba, mientras su retirada con reembolso sigue siendo §6.2
+  del subproyecto E; (3) el emoji de cada insignia se queda, porque viene del backend
+  (`Badge.emoji`) y sustituirlo exige arte que §9 deja fuera de alcance.
 
 ## 6. Subproyecto E — Avatares y tienda
 

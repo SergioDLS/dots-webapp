@@ -18,7 +18,8 @@ export default function BadgesGrid({ badges }: { badges: Badge[] }) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-xs font-bold uppercase tracking-widest text-(--muted)">Insignias</h2>
-      <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6">
+      {/* Seis columnas esperan a `lg`: entre `md` y `lg` el perfil ya se parte en dos columnas y la de insignias vale la mitad del ancho, donde seis tiles no caben a los 58 px del spec. */}
+      <ul className="grid grid-cols-4 gap-2 lg:grid-cols-6">
         {badges.map((b) => (
           <li key={b.key}>
             <div

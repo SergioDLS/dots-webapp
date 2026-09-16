@@ -16,7 +16,7 @@ Duolingo-like de inglés para hispanohablantes: un **Camino** de niveles con lec
 | Repaso | `/review` | SRS (SM-2) — cloze de oraciones falladas. |
 | Retos | `/quests` | Rival banner + torneo semanal + retos 1v1 + misión diaria + leaderboard. |
 | Juegos | `/play` | Arcade: dos héroes diarios con su estado de hoy, tiles de arte flotante con badge de torneo, y bloqueados en gris. |
-| Perfil | `/profile` | Stats, CEFR por nivel, badges, Doty custom (cosméticos/gestos de la tienda). |
+| Perfil | `/profile` | Identidad con Doty, barra de nivel, cuatro números, insignias y gestos; los ajustes viven en una hoja (inferior en móvil, lateral en escritorio). |
 | Tienda | `/shop` | Gemas → escudos de racha, boost XP, cosméticos/gestos de Doty. |
 
 Camino v3 muestra una dificultad a la vez (`?d=<id>`; por defecto, la
@@ -49,6 +49,35 @@ convención de fichero que hace que Next emita el `<link rel="apple-touch-icon">
 **No hay service worker**: la app instalada necesita red, y sin conexión
 muestra el error del navegador. El push sigue delegado a la futura app React
 Native. Spec: `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md`.
+
+### El perfil (`/profile`)
+
+`components/profile/` reparte la pantalla: `profile-identity.tsx` (Doty, nombre, chips
+MCER y racha, engranaje), `profile-xp-bar.tsx`, `profile-stats.tsx` (los cuatro números
+sin cajas), `badges-grid.tsx`, `gestures-card.tsx` y `settings-sheet.tsx`. La lógica de
+vista es pura y está bajo `node --test` en `lib/profile-view.ts`. El avatar de
+`profile-identity.tsx` usa el tamaño `perfil` del registro de
+`components/ui/doty/doty.tsx` (78 px en móvil, 96 en `md`) y no un `customClass`,
+porque entre dos utilidades de `width` con la misma especificidad gana la que Tailwind
+emita última.
+
+La hoja de ajustes escribe tres cosas a la vez en cada cambio: el espejo de
+`localStorage`, el DOM (vía `applyThemePrefs`) y `PATCH /me/settings`. Desde aquí el
+servidor es autoritativo: `components/theme/theme-sync.tsx` reconcilia al cargar y
+reescribe el espejo si difiere. El servidor manda salvo mientras haya una escritura
+local sin confirmar: para eso existe la marca `dots-settings-dirty`
+(`lib/theme-prefs.ts`), que la hoja pone antes del `PATCH` y limpia solo al
+confirmarse; si `ThemeSync` la encuentra puesta, reenvía al servidor el estado completo
+de los espejos (paleta, modo y sonido) en vez de aplicar lo que diga el servidor. Sin
+ella, un cambio hecho sin red se perdía en cuanto el usuario entraba a una lección y
+volvía, porque este componente se remonta en cada ida y vuelta al hub. La preferencia
+de sonido tiene su propio espejo en `lib/sound-prefs.ts` y `lib/feedback-sounds.ts` la
+consulta antes de sonar, así que apagarla silencia las ocho pantallas que reproducen
+aciertos y fallos sin tocar ninguna; la narración no pasa por ahí y nunca se silencia.
+
+El acento de cada paleta viaja como dato (`PALETTE_ACCENTS` en el `lib/theme-colors.ts`
+generado) porque los bloques CSS generados usan selectores `:root[data-palette]`, que
+solo casan con `<html>`: un envoltorio anidado no heredaría el token.
 
 ## Los 12 juegos (`app/(app)/games/`)
 
