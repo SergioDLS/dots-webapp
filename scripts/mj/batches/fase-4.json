@@ -133,7 +133,7 @@
       "slug": "narrador-beginner",
       "group": "poses",
       "prefix": "Doty hyped welcomer throwing the doors open",
-      "prompt": "both arms flung wide and high in a huge welcome, both short rounded legs planted apart on the ground and clearly separated, never a single limb and never crossed, mouth wide open in a delighted shout showing the teeth, eyes huge and bright, nothing on the head, the flame crest exactly as in the source image, three or four rounded spikes rising from the upper left of the head and pointing up and slightly to the left, never centered on top of the head, never standing straight up, never flattened into swept hair or a fringe, unstoppable first-day energy, no bow, no blush, no tilted head, no hand on the chest",
+      "prompt": "both arms flung wide and high in a huge welcome, both short rounded legs planted apart on the ground and clearly separated, never a single limb and never crossed, mouth wide open in a delighted shout showing the teeth, eyes huge and bright, nothing on the head, the flame crest exactly as in the source image, exactly three rounded spikes rising from the upper left of the head, never two and never four and pointing up and slightly to the left, never centered on top of the head, never standing straight up, never flattened into swept hair or a fringe, unstoppable first-day energy, no bow, no blush, no tilted head, no hand on the chest",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -142,7 +142,7 @@
       "slug": "narrador-intermediate",
       "group": "poses",
       "prefix": "Doty coach shouting into a megaphone",
-      "prompt": "a big cyan megaphone held up to the mouth with one hand, the other arm stretched out pointing straight at the viewer, both short rounded legs planted apart on the ground, leaning forward into the shout, one eye narrowed and the brow set, nothing on the head, the flame crest exactly as in the source image, three or four rounded spikes rising from the upper left of the head and pointing up and slightly to the left, never centered on top of the head, never standing straight up, never flattened into swept hair or a fringe, the energy of a coach who is not letting you quit, no bow, no blush, no tilted head",
+      "prompt": "a big cyan megaphone held up to the mouth with one hand, the other arm stretched out pointing straight at the viewer, both short rounded legs planted apart on the ground, leaning forward into the shout, one eye narrowed and the brow set, nothing on the head, the flame crest exactly as in the source image, exactly three rounded spikes rising from the upper left of the head, never two and never four and pointing up and slightly to the left, never centered on top of the head, never standing straight up, never flattened into swept hair or a fringe, the energy of a coach who is not letting you quit, no bow, no blush, no tilted head",
       "size": 1024,
       "mascot": true,
       "done": false
@@ -151,7 +151,7 @@
       "slug": "narrador-advanced",
       "group": "poses",
       "prefix": "Doty champion glowing with aura",
-      "prompt": "arms crossed high on the chest, both short rounded legs planted apart on the ground, chin raised, calm confident half smile with the eyes half closed, a big round golden medal on a thick cyan ribbon covering most of the chest, a soft golden aura growing out of the outline itself and hugging the whole silhouette everywhere, nothing floating separate from the body, the flame crest exactly as in the source image, three or four rounded spikes rising from the upper left of the head and pointing up and slightly to the left, never centered on top of the head, never standing straight up, never flattened into swept hair or a fringe, pure champion swagger, no bow, no blush, no tilted head",
+      "prompt": "arms crossed high on the chest, both short rounded legs planted apart on the ground, chin raised, calm confident half smile with the eyes half closed, a big round golden medal on a thick cyan ribbon covering most of the chest, a soft golden aura growing out of the outline itself and hugging the whole silhouette everywhere, nothing floating separate from the body, the flame crest exactly as in the source image, exactly three rounded spikes rising from the upper left of the head, never two and never four and pointing up and slightly to the left, never centered on top of the head, never standing straight up, never flattened into swept hair or a fringe, pure champion swagger, no bow, no blush, no tilted head",
       "size": 1024,
       "mascot": true,
       "done": false

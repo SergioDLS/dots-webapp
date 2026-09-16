@@ -245,6 +245,14 @@ Cinco cosas que costaron intentos y ahorran los siguientes:
 - **El navy solo como línea.** Ocho prompts lo pedían de relleno y eran el
   origen real de las piezas que no se leían sobre el tema oscuro. Hay un guard
   en `validate_catalog`.
+- **La cresta son exactamente tres picos.** Medido sobre el contorno superior de
+  las piezas aprobadas (cimas con prominencia real, no a ojo): `cansado`,
+  `decepcionado`, `dormido`, `enamorado`, `enojado` y `feliz` dan tres; en
+  `muy-feliz` y `emocionado` las cimas de más son los puños en alto. Nacen
+  arriba a la izquierda y apuntan hacia arriba, algo inclinados. Al prompt hay
+  que darle el número exacto: un rango ("tres o cuatro") hace que cada pieza
+  salga distinta, y negar el rasgo en vez de describirlo falla de los dos lados
+  — "not spiky" dio dos picos verticales y "spikes lying down" dio flequillo.
 - **Un accesorio pequeño sale mal y cinco salen peor.** Dos objetos grandes es
   lo que funciona: gorra + pañuelo, gafas + bata.
 - **Los rasgos infantiles vienen en racimo** — lazo, rubor, cabeza ladeada,
