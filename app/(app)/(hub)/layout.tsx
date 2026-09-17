@@ -5,6 +5,7 @@ import AppHeader from "@/components/shell/app-header";
 import FirstRunGate from "@/components/first-run/first-run-gate";
 import DotyEntrada from "@/components/ui/doty/doty-entrada";
 import ThemeSync from "@/components/theme/theme-sync";
+import TipsController from "@/components/tips/tips-controller";
 
 /**
  * Chrome persistente de las pantallas "hub" (camino, repaso, retos, zona de
@@ -28,6 +29,9 @@ export default function HubLayout({
           Juegos. Se autodestruye tras reproducirse y no renderiza nada si el
           login no dejó nada que reproducir. */}
       <DotyEntrada />
+      {/* Pistas contextuales (spec §7.3): espera a que el primer inicio esté
+          resuelto y a que el overlay de entrada se haya ido. */}
+      <TipsController />
       <AppNav />
       <AppHeader />
       <main className="mx-auto w-full max-w-5xl px-4 pb-24 pt-4 md:px-8 md:pb-12">
