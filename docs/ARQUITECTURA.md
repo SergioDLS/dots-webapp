@@ -50,6 +50,29 @@ convención de fichero que hace que Next emita el `<link rel="apple-touch-icon">
 muestra el error del navegador. El push sigue delegado a la futura app React
 Native. Spec: `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md`.
 
+### Aviso "te pasó"
+
+Cuando alguien te adelanta en el ranking semanal, una tarjeta te lo dice con su
+nombre y **su gesto equipado**. Es el escenario público que le da sentido a
+comprar un gesto: lo que ven los demás cuando les ganas. Un solo `RivalWatch` en
+el layout del hub reacciona a la ruta y consulta `GET /me/rival` al entrar a
+**Camino, Juegos o Retos**, y en ninguna otra pantalla — a Repaso, al Perfil y a
+la Tienda se va con una intención concreta y el aviso la interrumpiría.
+
+La detección es una comparación de puestos contra un snapshot en `localStorage`
+(`dots.rival.rank.<userId>`, `{ rank, weekStart }`): un puesto solo empeora si
+alguien te cruzó, así que quien quede justo encima ES alguien que te pasó. El
+`weekStart` está para que no se compare entre semanas: al reiniciarse el ranking
+los puestos se barajan sin que nadie te haya pasado. Un snapshot con el formato
+viejo (`{ rank }` a secas) se lee como semana desconocida y solo migra.
+
+La decisión es pura y está probada (`lib/rival-alert.ts`, bajo `node --test`);
+pintar es `components/rival/rival-alert.tsx`. Sin gesto equipado —hoy, todos— el
+rival presume con la pose `flexeando`. Cuando subes de puesto sale Doty
+aplaudiendo y **nunca** el gesto del otro: esa exclusividad es lo que convierte
+al gesto en un flex. La tarjeta no es un modal: no bloquea el scroll, no se come
+los toques y se va sola a los 6 s.
+
 ### Pistas contextuales
 
 Lo único que hace falta entender de cada pestaña, dicho una vez y nunca más. Un solo
