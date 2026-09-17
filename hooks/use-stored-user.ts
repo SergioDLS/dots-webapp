@@ -17,6 +17,14 @@ const SERVER_SNAPSHOT: StoredUser = Object.freeze({});
 // antes de navegar a ellas) y porque logout y la expiración de sesión
 // recargan la página por completo (CLAUDE.md regla 1), lo que reinicia este
 // módulo — no hace falta invalidar el valor a mitad de sesión.
+//
+// OJO si algún día algo escribe localStorage.user DESPUÉS de montar una
+// pantalla del hub (por ejemplo, editar tu nombre desde ajustes): este caché
+// serviría el valor viejo sin avisar hasta la siguiente recarga. Hoy solo lo
+// escriben el login (app/page.tsx) y aceptar una invitación
+// (app/invite/[token]/page.tsx), los dos antes de navegar aquí. Al añadir un
+// tercer sitio de escritura, hay que darle a este caché una forma de
+// invalidarse.
 let cachedClientUser: StoredUser | null = null;
 
 function clientSnapshot(): StoredUser {
