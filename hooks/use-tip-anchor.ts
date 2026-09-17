@@ -65,6 +65,10 @@ export function useTipAnchor(clave: string | null): Recorte | null {
   // la siguiente, el valor viejo deja de ser válido sin tener que borrarlo
   // desde un efecto (regla 3).
   const [medida, setMedida] = useState<{ clave: string; recorte: Recorte } | null>(null);
+  // Girar el teléfono mueve el objetivo y el recorte se quedaría apuntando al
+  // aire. `ronda` obliga a medir otra vez sin borrar `medida`, para que la
+  // pista no parpadee mientras se vuelve a colocar.
+  const [ronda, setRonda] = useState(0);
 
   useEffect(() => {
     if (clave === null) return;
@@ -139,6 +143,24 @@ export function useTipAnchor(clave: string | null): Recorte | null {
       vivo = false;
       cancelAnimationFrame(frame);
       if (previo !== null) document.body.style.overflow = previo;
+    };
+  }, [clave, ronda]);
+
+  useEffect(() => {
+    if (clave === null) return;
+    let espera = 0;
+    // Con un respiro: arrastrar el borde de una ventana dispara `resize` en
+    // cada fotograma, y cada medición suelta y vuelve a tomar el bloqueo.
+    const alCambiar = () => {
+      clearTimeout(espera);
+      espera = window.setTimeout(() => setRonda((r) => r + 1), 150);
+    };
+    window.addEventListener("resize", alCambiar);
+    window.addEventListener("orientationchange", alCambiar);
+    return () => {
+      clearTimeout(espera);
+      window.removeEventListener("resize", alCambiar);
+      window.removeEventListener("orientationchange", alCambiar);
     };
   }, [clave]);
 

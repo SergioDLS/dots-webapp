@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 import Doty from "@/components/ui/doty/doty";
 import type { Recorte } from "@/hooks/use-tip-anchor";
@@ -24,6 +24,12 @@ interface Props {
   onEntendido: () => void;
 }
 
+/** Lo que mide el bocadillo entero: Doty de 84, título, frase, botón y contador. */
+const ALTO_BOCADILLO = 270;
+
+/** Aire entre el foco y el bocadillo. */
+const MARGEN = 16;
+
 export default function DotyTip({ tip, recorte, indice, total, onEntendido }: Props) {
   const botonRef = useRef<HTMLButtonElement>(null);
 
@@ -40,11 +46,20 @@ export default function DotyTip({ tip, recorte, indice, total, onEntendido }: Pr
     return () => document.removeEventListener("keydown", alPulsar);
   }, [onEntendido]);
 
-  // Arriba o abajo del foco, según dónde quede más aire.
-  const debajo = recorte.top + recorte.height < window.innerHeight / 2;
-  const posicion = debajo
-    ? { top: recorte.top + recorte.height + 16 }
-    : { bottom: window.innerHeight - recorte.top + 16 };
+  // Arriba o abajo del foco, según dónde quepa de verdad — no según en qué
+  // mitad de la pantalla cae el objetivo, que con un objetivo alto elegía el
+  // lado sin sitio. Si no cabe a ninguno de los dos, se centra ENCIMA del foco:
+  // tapar el objetivo es malo, pero dejar "Entendido" fuera de la pantalla es
+  // peor, porque en un teléfono no hay Escape que lo rescate.
+  const alto = window.innerHeight;
+  const aireAbajo = alto - (recorte.top + recorte.height) - MARGEN;
+  const aireArriba = recorte.top - MARGEN;
+  const posicion: CSSProperties =
+    Math.max(aireAbajo, aireArriba) < ALTO_BOCADILLO
+      ? { top: 0, bottom: 0, alignItems: "center" }
+      : aireAbajo >= aireArriba
+        ? { top: recorte.top + recorte.height + MARGEN }
+        : { bottom: alto - recorte.top + MARGEN };
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={tip.titulo}>
