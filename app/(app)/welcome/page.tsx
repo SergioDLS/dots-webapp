@@ -149,12 +149,16 @@ export default function WelcomePage() {
         fijarPrimerInicio("hecho");
         return avatarKey ? postMyAvatarService(avatarKey).catch(() => undefined) : undefined;
       })
-      .then(() => getPlacementStatusService())
+      // Si el estado de placement no responde, el primer inicio YA quedó
+      // guardado y marcado: sería absurdo mostrar un error por eso. Se traga
+      // el fallo y `rutaTrasBienvenida(null)` manda al Camino, que es el
+      // destino seguro.
+      .then(() => getPlacementStatusService().catch(() => null))
       .then((status) => router.replace(rutaTrasBienvenida(status)))
       .catch(() => {
-        // Solo se llega aquí si falló el PATCH de ajustes o el estado de
-        // placement. En los dos casos el primer inicio no quedó cerrado del
-        // todo, así que nos quedamos y lo decimos en vez de navegar a ciegas.
+        // Aquí solo se llega si falló el PATCH de ajustes, o sea si el primer
+        // inicio NO se guardó. Nos quedamos y lo decimos en vez de navegar a
+        // ciegas y acabar de vuelta aquí sin explicación.
         setFallo(true);
         setCerrando(false);
       });
