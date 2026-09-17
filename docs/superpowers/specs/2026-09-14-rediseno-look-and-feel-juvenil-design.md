@@ -394,8 +394,19 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   montado en el layout del hub, redirige ahí con `router.replace` cuando `settings.onboarded_at`
   es `null`. **Aplica a todas las cuentas**
   existentes: la plataforma aún no la ve nadie, no hay modal de novedades.
-- Al terminar (o saltar), `PATCH /me/settings` con `palette`, `mode`, `sound`, `avatar_key` y
-  `onboarded_at`; después, `/onboarding` si `placementPending`, si no `/levels`.
+- Al terminar (o saltar), `PATCH /me/settings` con `palette`, `mode`, `sound` y `onboarded: true`
+  (el backend estampa `onboarded_at` una sola vez), y el avatar por `POST /me/avatar { key }`.
+  **Corregido el 2026-09-17**: `avatar_key` NO es un campo de `PatchSettingsDto` y esa ruta corre
+  con `forbidNonWhitelisted`, así que mandarlo ahí devuelve 400. Después, `/onboarding` si el
+  placement se puede tomar o está activo, si no `/levels`.
+- **El backend ya estaba listo**: `onboarded` y `tips_seen` existían en el DTO y en `mergeSettings`
+  desde el subproyecto D, así que F no toca `dots-backend`.
+- **Cerrar el primer inicio, tal como quedó**: el PATCH manda el juego completo
+  (`palette`, `mode`, `sound`) más `onboarded: true`, y solo si ese PATCH responde se marca el
+  dispositivo y se equipa el avatar; si falla, no se marca nada y la bienvenida vuelve a pedirse,
+  porque no se guardó. El avatar se traga su propio fallo: el primer inicio ya está cerrado y el
+  perfil permite cambiarlo. **Saltar** manda los valores por defecto explícitos, no los que
+  hubiera en el dispositivo.
 - **Saltar** siempre visible: deja Rosa, Auto, sonido activado y un avatar gratis al azar; el
   perfil lo recuerda con el lápiz sobre el avatar.
 
@@ -418,8 +429,13 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   Baloo, una frase y el botón "Entendido" con "Pista 1 de 2". Solo `transform`/`opacity`; el patrón
   overlay + medición es portable a RN.
 - Claves en `settings.tips_seen`: `camino.primer-nivel`, `camino.racha`, `arcade.diarios`,
-  `arcade.trono`, `repaso.que-es`, `retos.torneo`, `perfil.avatar`. Máximo dos por pestaña, solo
-  en la primera visita; "Entendido" hace `PATCH` acumulativo.
+  `repaso.que-es`, `retos.torneo`, `perfil.avatar`. Máximo dos por pestaña, solo en la primera
+  visita; "Entendido" hace `PATCH` acumulativo. **`arcade.trono` se cae (2026-09-17)**: el
+  subproyecto C retiró el trono y su icono de corona a petición de Sergio, así que esa pista se
+  quedó sin objetivo al que apuntar.
+- **F va en dos planes (2026-09-17)**: F.1 es el primer inicio de 7.1 y 7.2
+  (`docs/superpowers/plans/2026-09-17-rediseno-f1-primer-inicio.md`); F.2 son estas pistas, que
+  tocan cinco pantallas distintas y no comparten código con aquello.
 - Copy aprobado del Camino: "Este es tu primer nivel · Toca la imagen y arrancamos. Cada lección
   son unos tres minutos." y "La llama es tu racha · Practica hoy y se enciende. Un día sin
   practicar y se apaga. Drama garantizado." El resto sale de la tabla de voz (2.2).

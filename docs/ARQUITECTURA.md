@@ -50,6 +50,28 @@ convención de fichero que hace que Next emita el `<link rel="apple-touch-icon">
 muestra el error del navegador. El push sigue delegado a la futura app React
 Native. Spec: `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md`.
 
+### Primer inicio (`/welcome`)
+
+Ruta inmersiva (fuera del grupo `(hub)`, sin nav ni HUD) con las tres pantallas que
+ve una cuenta nueva: saludo de Doty, tema —paleta, modo y sonido, con vista previa
+real de cada paleta— y avatar. La página es la dueña del estado; las tres pantallas
+de `components/first-run/` son presentacionales. Al cerrar manda el juego completo
+de preferencias con `onboarded: true` y equipa el avatar con `POST /me/avatar`
+(nunca con el PATCH, que rechaza `avatar_key`), y de ahí sale a placement o al
+Camino.
+
+Quién llega ahí lo decide `FirstRunGate`, montado en el layout del hub junto a
+`ThemeSync`: pide `/me/settings` y redirige cuando `onboarded_at` es `null`. No
+envuelve ni bloquea nada —pinta `null` y decide en un efecto— y usa el espejo
+local `dots-onboarded` para saltarse el fetch de quien ya pasó. La lógica pura
+está en `lib/first-run.ts`, bajo `node --test`.
+
+El Camino también redirige por su cuenta cuando el placement está pendiente, así
+que una cuenta nueva dispara las dos carreras a la vez. El gate publica su
+veredicto en un flag de módulo de `lib/first-run.ts` y `path-container` se aparta
+mientras valga «pendiente»; con «desconocido» redirige como siempre, porque fallar
+abierto es preferible a dejar a alguien sin placement.
+
 ### El perfil (`/profile`)
 
 `components/profile/` reparte la pantalla: `profile-identity.tsx` (avatar, nombre, chips
