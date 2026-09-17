@@ -12,6 +12,7 @@ import { escribirEspejo, fijarPrimerInicio, rutaTrasBienvenida } from "@/lib/fir
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
 import {
   applyThemePrefs,
+  clearSettingsDirty,
   DEFAULT_PREFS,
   markSettingsDirty,
   readMirror,
@@ -64,11 +65,15 @@ export default function WelcomePage() {
   useEffect(() => {
     if (isBootstrapping || !accessToken) return;
     let activo = true;
-    getShopService().then((shop) => {
-      if (activo) {
-        setAvatares(shop.items.filter((i) => i.kind === "avatar" && (i.price === 0 || i.owned)));
-      }
-    });
+    getShopService()
+      .then((shop) => {
+        if (activo) {
+          setAvatares(shop.items.filter((i) => i.kind === "avatar" && (i.price === 0 || i.owned)));
+        }
+      })
+      // La lista vacía ya es un caso previsto por la pantalla 3, así que un
+      // fallo aquí no necesita más que no hacer ruido.
+      .catch(() => undefined);
     return () => {
       activo = false;
     };
@@ -113,24 +118,30 @@ export default function WelcomePage() {
       sound: sonidoFinal,
       onboarded: true,
     })
-      .then(() => (avatarKey ? postMyAvatarService(avatarKey).then(() => undefined) : undefined))
-      .catch(() => {
-        // Si el avatar falla —por ejemplo, con la tienda todavía sin sembrar—
-        // el primer inicio igual queda cerrado: lo contrario deja al usuario
-        // dando vueltas por la bienvenida. El perfil permite cambiarlo luego.
-      })
       .then(() => {
+        clearSettingsDirty();
+        // El servidor ya tiene la marca: este dispositivo puede saltarse la
+        // bienvenida sin volver a preguntar.
         escribirEspejo();
         fijarPrimerInicio("hecho");
-        return getPlacementStatusService();
+        // El avatar se traga su propio fallo —la tienda sin sembrar, por
+        // ejemplo—: el primer inicio ya quedó cerrado, el backend resuelve
+        // `clasico` y el perfil permite cambiarlo luego.
+        return avatarKey ? postMyAvatarService(avatarKey).catch(() => undefined) : undefined;
       })
+      .catch(() => {
+        // Falló el PATCH: no se marca nada, ni aquí ni en el servidor, porque
+        // el primer inicio NO se guardó y volver a pedirlo es lo correcto.
+        // Tampoco atrapa a nadie: con la red caída el gate falla abierto.
+      })
+      .then(() => getPlacementStatusService())
       .then((status) => router.replace(rutaTrasBienvenida(status)))
       .catch(() => router.replace("/levels"));
   };
 
   /** Saltar (spec §7.1): Rosa, Auto, sonido activado y un avatar gratis al azar. */
   const saltar = () => {
-    const defecto: ThemePrefs = { palette: "rosa", mode: "auto" };
+    const defecto: ThemePrefs = DEFAULT_PREFS;
     cambiarPrefs(defecto);
     cambiarSonido(true);
     const alAzar = avatares.length > 0 ? avatares[Math.floor(Math.random() * avatares.length)].key : null;
