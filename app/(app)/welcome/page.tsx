@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
+import WelcomeAvatar from "@/components/first-run/welcome-avatar";
 import WelcomeHello from "@/components/first-run/welcome-hello";
 import WelcomeTheme from "@/components/first-run/welcome-theme";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -160,7 +161,15 @@ export default function WelcomePage() {
         />
       )}
 
-      {/* El paso 3 lo monta la tarea siguiente de este plan. */}
+      {paso === 3 && (
+        <WelcomeAvatar
+          items={avatares}
+          pickedKey={elegido}
+          onPick={setElegido}
+          onFinish={() => cerrar(elegido)}
+          busy={cerrando}
+        />
+      )}
 
       <button
         type="button"
