@@ -34,7 +34,7 @@ export default function ReviewPage() {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <Doty pose="excelente" size="small" animation="cheer" say="¡Todo al día!" />
-        <h1 className="font-display text-2xl font-extrabold text-foreground">
+        <h1 className="font-display text-2xl font-extrabold text-foreground" data-tip="repaso.que-es">
           Nada que repasar hoy
         </h1>
         <p className="max-w-sm text-sm font-semibold text-(--muted)">

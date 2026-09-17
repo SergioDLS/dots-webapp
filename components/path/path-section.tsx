@@ -121,6 +121,7 @@ export default function PathSection({
               key={p.key}
               className="absolute"
               data-path-current={!preview && p.node.current ? "true" : undefined}
+              data-tip={!preview && p.node.current ? "camino.primer-nivel" : undefined}
               style={{
                 left: `calc(${p.xPct}% - ${NODE_W / 2}px)`,
                 top: p.y,

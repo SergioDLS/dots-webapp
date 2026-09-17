@@ -47,7 +47,7 @@ export default function ProfileIdentity({
 
   return (
     <header className="flex items-center gap-4">
-      <div className="relative shrink-0">
+      <div className="relative shrink-0" data-tip="perfil.avatar">
         {/* 78 px en móvil y 96 en escritorio (no los 128 del §6.1): Ruling 2 del plan de E. */}
         <span className="md:hidden">
           <AvatarFlip key={flipKey} avatar={avatar} gesture={gesture} size={78} ready={ready} />

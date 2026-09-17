@@ -46,6 +46,10 @@ export default function DotyEntrada() {
       // `fixed` e `inset-0`: cubre la pantalla entera sin desplazar nada de lo
       // que hay debajo, que sigue montándose y cargando con normalidad.
       className="fixed inset-0 z-50 flex items-center justify-center bg-(--background)"
+      // Lo mira el controlador de pistas: mientras este overlay exista está
+      // tapando la pantalla entera, así que medir un elemento debajo daría un
+      // rectángulo que el usuario no puede ver.
+      data-doty-entrada
       style={{ animation: "dots-entrada-transformacion 320ms ease-out both" }}
       aria-hidden
     >

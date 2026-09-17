@@ -69,6 +69,7 @@ export default function TournamentCard() {
   return (
     <div
       className="rounded-2xl border border-(--border) bg-(--surface) p-4 flex flex-col gap-3"
+      data-tip="retos.torneo"
       style={{ animation: "dots-pop-in 0.35s ease-out both" }}
     >
       {/* Header */}

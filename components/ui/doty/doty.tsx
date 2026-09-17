@@ -6,7 +6,7 @@ import { POSES, FALLBACK_POSE, isDotyPose, toDotyPose, type DotyPose } from "./p
 import { resolvePoseOrFallback } from "./pending";
 
 export type DotyAnimation = "none" | "bob" | "cheer" | "sad" | "wave";
-export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner" | "dorso" | "bienvenida";
+export type DotySize = "micro" | "mini" | "small" | "tiny" | "smaller" | "medium" | "big" | "chip" | "section" | "banner" | "dorso" | "bienvenida" | "pista";
 export type { DotyPose };
 export { toDotyPose, isDotyPose };
 
@@ -49,6 +49,8 @@ const SIZE_PX: Record<DotySize, number> = {
   dorso: 68,
   // bienvenida: Doty saludando en la primera pantalla del primer inicio (spec §7.2).
   bienvenida: 170,
+  // pista: Doty dentro del bocadillo de una pista contextual (spec §7.3).
+  pista: 84,
 };
 
 const sizeClass: Record<DotySize, string> = {
@@ -66,6 +68,7 @@ const sizeClass: Record<DotySize, string> = {
   // dorso: 70 % del avatar del perfil — 56 px en la caja de 78 (móvil) y 68 en la de 96 (escritorio).
   dorso: "w-14 md:w-17",
   bienvenida: "w-[170px]",
+  pista: "w-21",
 };
 
 const animationClass: Record<DotyAnimation, string> = {

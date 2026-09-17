@@ -34,6 +34,7 @@ export default function AppHeader() {
       {/* Racha: llama + número, sin pastilla. Apagada = gris y atenuada. */}
       <div
         className="flex items-center gap-1 font-black tabular-nums"
+        data-tip="camino.racha"
         title={lit ? "Racha asegurada hoy" : "Practica hoy para encender la racha"}
         style={{ color: lit ? "var(--flame-edge)" : "var(--muted)" }}
       >

@@ -58,7 +58,7 @@ export default function ArcadeGrid({ games, tournamentPath, dailyStates, onOpen 
   return (
     <div className={ARCADE_STACK_CLASS}>
       {daily.length > 0 && (
-        <ul className={HERO_ROW_CLASS}>
+        <ul className={HERO_ROW_CLASS} data-tip="arcade.diarios">
           {daily.map((game) => (
             <li key={game.id}>
               <DailyHero
