@@ -1135,16 +1135,15 @@ los toques y se va sola a los 6 s.
 
 - [ ] **Step 2: Registra los campos nuevos en la arquitectura del backend**
 
-En `docs/ARQUITECTURA.md` de **dots-backend**, busca la sección que documenta `GET /me/rival`. Si existe, añádele esta frase al final; si no existe ninguna mención de esa ruta, **dilo en tu informe y no inventes una sección nueva**:
+En `docs/ARQUITECTURA.md` de **dots-backend**, `GET /me/rival` NO tiene sección propia: está documentado en una **celda de la tabla de módulos** (busca la fila que empieza por `| me |`). Un párrafo de varias líneas ahí rompería la tabla, así que se extiende la celda.
+
+Dentro de esa celda, localiza el fragmento `rival = vecinos arriba/abajo en XP semanal + rank propio (LIMIT 200)` y sustitúyelo por:
 
 ```
-Desde E.3 cada vecino trae además `gesture` (la animación del gesto equipado, de
-`user_items.equipped_slot = 'gesture'` cruzado con `shop_items.meta->>'animation'`,
-resuelto en lote por `src/common/gesture.query.ts`) y la raíz trae `weekStart`, el
-lunes de la semana del ranking: el cliente guarda su puesto junto a esa semana y no
-compara si cambió, porque al reiniciarse el ranking los puestos se barajan sin que
-nadie haya adelantado a nadie.
+rival = vecinos arriba/abajo en XP semanal + rank propio (LIMIT 200), cada vecino con su `gesture` (animación del gesto equipado, `equipped_slot='gesture'` cruzado con `shop_items.meta->>'animation'`, en lote por `src/common/gesture.query.ts`) y la raíz con `weekStart`, el lunes de la semana del ranking, para que el cliente no compare puestos entre semanas (subproyecto E.3)
 ```
+
+**Todo en una sola línea**: es una celda de tabla Markdown y un salto de línea la partiría. No toques ninguna otra celda ni el resto de la fila.
 
 - [ ] **Step 3: Verifica y commitea**
 
