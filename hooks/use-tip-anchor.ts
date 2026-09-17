@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** Rectángulo del foco, en coordenadas de viewport, con su holgura ya sumada. */
 export interface Recorte {
@@ -43,13 +43,29 @@ const HOLGURA = 8;
 function animacionesQuietas(el: Element): Promise<unknown> {
   const pendientes = el
     .getAnimations()
-    .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+    .filter((a) => a.effect != null && a.effect.getComputedTiming().iterations !== Infinity)
     .map((a) => a.finished.catch(() => undefined));
   if (pendientes.length === 0) return Promise.resolve(undefined);
   return Promise.race([
     Promise.all(pendientes),
     new Promise((fin) => setTimeout(fin, ESPERA_ANIMACION_MS)),
   ]);
+}
+
+/**
+ * Si el elemento cuelga de algo `sticky` o `fixed`, moverlo es imposible: se
+ * queda clavado donde está y lo único que pasa es que la página salta. Se mira
+ * la cadena entera de ancestros porque el anclaje suele ser un hijo — la llama
+ * de la racha es un div dentro de una cabecera `sticky`, no la cabecera.
+ */
+function vaClavado(el: Element): boolean {
+  let n: Element | null = el;
+  while (n !== null && n !== document.body) {
+    const pos = getComputedStyle(n).position;
+    if (pos === "sticky" || pos === "fixed") return true;
+    n = n.parentElement;
+  }
+  return false;
 }
 
 /**
@@ -60,7 +76,16 @@ function animacionesQuietas(el: Element): Promise<unknown> {
  * el elemento no llega a aparecer: una pista que no encuentra a qué apuntar se
  * salta en silencio, nunca bloquea al usuario.
  */
-export function useTipAnchor(clave: string | null): Recorte | null {
+export function useTipAnchor(clave: string | null, alRendirse?: () => void): Recorte | null {
+  // Avisar de que nos rendimos va por callback y no por valor devuelto: el
+  // consumidor tendría que convertirlo en estado desde un efecto, y la regla 3
+  // no lo permite. Por ref, para que un callback recreado en cada render no
+  // reinicie la búsqueda.
+  const rendirse = useRef(alRendirse);
+  useEffect(() => {
+    rendirse.current = alRendirse;
+  });
+
   // El recorte viaja con la clave que lo midió: así, al pasar de una pista a
   // la siguiente, el valor viejo deja de ser válido sin tener que borrarlo
   // desde un efecto (regla 3).
@@ -110,10 +135,17 @@ export function useTipAnchor(clave: string | null): Recorte | null {
       // no se ve: medirlo daría un rectángulo que el usuario no puede mirar.
       if (document.querySelector("[data-doty-entrada]") !== null) {
         if (ahora - montaje < ESPERA_TAPADO_MS) frame = requestAnimationFrame(buscar);
+        else rendirse.current?.();
         return;
       }
       if (destapadoEn === null) destapadoEn = ahora;
-      if (ahora - destapadoEn >= ESPERA_MS) return;
+      if (ahora - destapadoEn >= ESPERA_MS) {
+        // Se acabó la espera. Avisamos para que quien manda pase a la
+        // siguiente: sin esto una pista que no encuentra a qué apuntar se
+        // queda a la cabeza de la cola y tapa a las que van detrás.
+        rendirse.current?.();
+        return;
+      }
 
       const el = document.querySelector(`[data-tip="${clave}"]`);
       if (el === null) {
@@ -127,13 +159,11 @@ export function useTipAnchor(clave: string | null): Recorte | null {
           frame = requestAnimationFrame(buscar);
           return;
         }
-        // Si ya está entero a la vista no lo movemos: la llama de la racha vive
-        // en una cabecera `sticky` y centrarla es imposible — solo saltaría la
-        // página con el elemento clavado donde estaba. Si hay que moverlo, de
-        // golpe: `smooth` no avisa cuándo terminó.
+        // No lo movemos si va clavado, ni si ya está entero a la vista. Si hay
+        // que moverlo, de golpe: `smooth` no avisa cuándo terminó.
         const r = el.getBoundingClientRect();
         const dentro = r.top >= HOLGURA && r.bottom <= window.innerHeight - HOLGURA;
-        if (!dentro) el.scrollIntoView({ block: "center", behavior: "instant" });
+        if (!dentro && !vaClavado(el)) el.scrollIntoView({ block: "center", behavior: "instant" });
         frame = requestAnimationFrame(() => medir(el));
       });
     };
