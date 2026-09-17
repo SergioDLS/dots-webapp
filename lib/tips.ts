@@ -60,6 +60,10 @@ export const TIPS: readonly Tip[] = [
     frase: "Cambian mañana. Juégalos y súmate XP en un minuto.",
   },
   {
+    // Solo se enseña en el estado vacío del Repaso, que es donde hay algo
+    // concreto que señalar y donde el usuario no está a mitad de nada: el
+    // cuestionario activo ocupa la pantalla entera, así que un foco a su
+    // alrededor iluminaría todo y no señalaría nada.
     key: "repaso.que-es",
     ruta: "/review",
     pose: "meditando",

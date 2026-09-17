@@ -88,7 +88,7 @@ export default function ReviewQuiz({ items }: { items: ReviewQuestion[] }) {
   if (!cur) return null;
 
   return (
-    <div className="flex flex-col gap-4 w-full" data-tip="repaso.que-es">
+    <div className="flex flex-col gap-4 w-full">
       <LessonTopBar progress={series.progress} streak={series.streak} />
       <PanelWrapper>
         <SectionLabel emoji={<Icon name="repaso" size={20} />}>Repaso</SectionLabel>
