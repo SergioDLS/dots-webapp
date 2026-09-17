@@ -6,6 +6,7 @@ import FirstRunGate from "@/components/first-run/first-run-gate";
 import DotyEntrada from "@/components/ui/doty/doty-entrada";
 import ThemeSync from "@/components/theme/theme-sync";
 import TipsController from "@/components/tips/tips-controller";
+import RivalWatch from "@/components/rival/rival-watch";
 
 /**
  * Chrome persistente de las pantallas "hub" (camino, repaso, retos, zona de
@@ -32,6 +33,9 @@ export default function HubLayout({
       {/* Pistas contextuales (spec §7.3): espera a que el primer inicio esté
           resuelto y a que el overlay de entrada se haya ido. */}
       <TipsController />
+      {/* Aviso "te pasó" (spec §6.5): reacciona a la ruta y solo en Camino,
+          Juegos y Retos. No bloquea nada: no es un modal. */}
+      <RivalWatch />
       <AppNav />
       <AppHeader />
       <main className="mx-auto w-full max-w-5xl px-4 pb-24 pt-4 md:px-8 md:pb-12">

@@ -128,6 +128,8 @@ export type RivalNeighbor = {
   name: string;
   avatar: PublicAvatar;
   delta: number;
+  /** Animación del gesto equipado ("bob"|"cheer"|"sad"|"wave"), o null. */
+  gesture: string | null;
 };
 
 /** Response of GET /me/rival */
@@ -136,6 +138,8 @@ export type RivalData = {
   below: RivalNeighbor | null;
   /** Caller's 1-based position in the weekly leaderboard; null when unranked. */
   rank: number | null;
+  /** Lunes de la semana del ranking, "YYYY-MM-DD"; null si el servidor falló. */
+  weekStart: string | null;
 };
 
 /** Response of GET /me/stats (level = floor(sqrt(xp/100)) + 1) */

@@ -6,11 +6,8 @@ import TopStudents from "@/components/interactive-column/top-students";
 import TournamentCard from "@/components/quests/tournament-card";
 import ChallengesPanel from "@/components/quests/challenges-panel";
 import RivalBanner from "@/components/quests/rival-banner";
-import { useRivalWatch } from "@/hooks/use-rival-watch";
 
 function QuestsPageInner() {
-  useRivalWatch();
-
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
