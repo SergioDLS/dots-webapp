@@ -149,9 +149,15 @@ export function useTipAnchor(clave: string | null): Recorte | null {
   useEffect(() => {
     if (clave === null) return;
     let espera = 0;
+    let ultimo = `${window.innerWidth}x${window.innerHeight}`;
     // Con un respiro: arrastrar el borde de una ventana dispara `resize` en
-    // cada fotograma, y cada medición suelta y vuelve a tomar el bloqueo.
+    // cada fotograma, y cada medición suelta y vuelve a tomar el bloqueo. Y
+    // solo si el viewport cambió de verdad: medir toca `overflow` del body, y
+    // un `resize` que saliera de ahí realimentaría el ciclo para siempre.
     const alCambiar = () => {
+      const ahora = `${window.innerWidth}x${window.innerHeight}`;
+      if (ahora === ultimo) return;
+      ultimo = ahora;
       clearTimeout(espera);
       espera = window.setTimeout(() => setRonda((r) => r + 1), 150);
     };
