@@ -86,15 +86,31 @@ export default function WelcomePage() {
 
   /**
    * Cierra el primer inicio. `avatarKey` es null al saltar sin elegir.
+   *
+   * Los valores llegan por parámetro y no se leen del estado: `saltar` los
+   * acaba de cambiar en el mismo tick y el closure de este render todavía
+   * tiene los viejos, así que el servidor recibiría lo contrario de lo que
+   * acaba de quedar en el dispositivo. Por defecto toma el estado actual,
+   * que es lo que quiere el botón de terminar.
+   *
    * El PATCH manda el juego completo, como la hoja de ajustes, más la marca
    * `onboarded`. NUNCA lleva `avatar_key`: esa ruta lo rechaza con 400 y el
    * avatar se equipa con POST /me/avatar.
    */
-  const cerrar = (avatarKey: string | null) => {
+  const cerrar = (
+    avatarKey: string | null,
+    prefsFinales: ThemePrefs = prefs,
+    sonidoFinal: boolean = sound,
+  ) => {
     if (cerrando) return;
     setCerrando(true);
     markSettingsDirty();
-    patchMySettingsService({ palette: prefs.palette, mode: prefs.mode, sound, onboarded: true })
+    patchMySettingsService({
+      palette: prefsFinales.palette,
+      mode: prefsFinales.mode,
+      sound: sonidoFinal,
+      onboarded: true,
+    })
       .then(() => (avatarKey ? postMyAvatarService(avatarKey).then(() => undefined) : undefined))
       .catch(() => {
         // Si el avatar falla —por ejemplo, con la tienda todavía sin sembrar—
@@ -116,7 +132,9 @@ export default function WelcomePage() {
     cambiarPrefs(defecto);
     cambiarSonido(true);
     const alAzar = avatares.length > 0 ? avatares[Math.floor(Math.random() * avatares.length)].key : null;
-    cerrar(alAzar);
+    // Explícito: `cambiarPrefs`/`cambiarSonido` acaban de programar su setState
+    // y este closure todavía ve los valores anteriores.
+    cerrar(alAzar, defecto, true);
   };
 
   if (isBootstrapping) {
