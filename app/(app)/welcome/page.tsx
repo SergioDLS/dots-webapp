@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import WelcomeHello from "@/components/first-run/welcome-hello";
@@ -10,6 +10,7 @@ import { escribirEspejo, fijarPrimerInicio, rutaTrasBienvenida } from "@/lib/fir
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
 import {
   applyThemePrefs,
+  DEFAULT_PREFS,
   markSettingsDirty,
   readMirror,
   writeMirror,
@@ -30,20 +31,27 @@ import { getShopService, type ShopItem } from "@/services/shop.service";
  */
 type Paso = 1 | 2 | 3;
 
+/** Suscripción vacía: el valor no cambia solo, solo importa servidor vs cliente. */
+const sinSuscripcion = () => () => {};
+
 export default function WelcomePage() {
   const router = useRouter();
   const { isBootstrapping, accessToken } = useAuth();
 
   const [paso, setPaso] = useState<Paso>(1);
-  // Arranca de lo que ya hubiera: quien llega con espejo (otro dispositivo,
-  // sesión anterior) no ve saltar sus colores al entrar. Inicializador
-  // perezoso, no un efecto: `setState` síncrono en el cuerpo de un useEffect
-  // rompe la regla 3 (react-hooks/set-state-in-effect lo marca error, no
-  // warning). Mismo criterio que ThemeSync (regla 3 en su cabecera): leer el
-  // espejo va en el render, no en un efecto. `readMirror`/`readSoundEnabled`
-  // ya devuelven su default en SSR (sin `window`), así que es seguro.
-  const [prefs, setPrefs] = useState<ThemePrefs>(() => readMirror());
-  const [sound, setSound] = useState(() => readSoundEnabled());
+  // Dos pasos, igual que app/(app)/admin/layout.tsx: en el servidor y en el
+  // primer render del cliente valen los defaults, así que no hay mismatch de
+  // hidratación posible; ya hidratado se lee el espejo del dispositivo. Un
+  // inicializador perezoso NO sirve: `readMirror` devuelve otra cosa en el
+  // servidor que en el cliente y la pantalla de tema pinta justo ese valor.
+  // Y leerlo en un efecto tampoco: `setState` en el cuerpo de un useEffect
+  // rompe la regla 3.
+  const hidratado = useSyncExternalStore(sinSuscripcion, () => true, () => false);
+  // null = el usuario todavía no ha tocado nada y manda el espejo.
+  const [prefsElegidas, setPrefsElegidas] = useState<ThemePrefs | null>(null);
+  const [sonidoElegido, setSonidoElegido] = useState<boolean | null>(null);
+  const prefs: ThemePrefs = prefsElegidas ?? (hidratado ? readMirror() : DEFAULT_PREFS);
+  const sound: boolean = sonidoElegido ?? (hidratado ? readSoundEnabled() : true);
   const [avatares, setAvatares] = useState<ShopItem[]>([]);
   const [elegido, setElegido] = useState<string | null>(null);
   const [cerrando, setCerrando] = useState(false);
@@ -66,13 +74,13 @@ export default function WelcomePage() {
 
   // Cada cambio de tema se aplica en vivo a esta misma pantalla (spec §7.2).
   const cambiarPrefs = (siguiente: ThemePrefs) => {
-    setPrefs(siguiente);
+    setPrefsElegidas(siguiente);
     writeMirror(siguiente);
     applyThemePrefs(siguiente);
   };
 
   const cambiarSonido = (on: boolean) => {
-    setSound(on);
+    setSonidoElegido(on);
     writeSoundEnabled(on);
   };
 
