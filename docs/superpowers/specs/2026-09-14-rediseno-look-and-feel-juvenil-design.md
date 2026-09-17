@@ -424,15 +424,29 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 
 ### 7.3 Pistas contextuales
 
-- Componente `DotyTip`: recibe el `ref` del elemento objetivo, mide su rect y pinta un foco
-  (`box-shadow: 0 0 0 9999px scrim`, radio del objetivo) más un bocadillo con Doty de 84 px, título
-  Baloo, una frase y el botón "Entendido" con "Pista 1 de 2". Solo `transform`/`opacity`; el patrón
-  overlay + medición es portable a RN.
+- Componente `DotyTip`: pinta un foco (`box-shadow: 0 0 0 9999px scrim`, con el radio del objetivo)
+  más un bocadillo con Doty de 84 px, título Baloo, una frase y el botón "Entendido" con
+  "Pista 1 de 2". Solo `transform`/`opacity`; el patrón overlay + medición es portable a RN.
+  **Corregido el 2026-09-17**: no recibe un `ref`, sino que encuentra el objetivo por un atributo
+  `data-tip` en el DOM. La llama de la racha vive en la cabecera del LAYOUT del hub y ninguna
+  página puede pasarle un ref; además el Camino ya usaba ese mismo truco con `data-path-current`.
+  Medir y esperar al elemento vive en `hooks/use-tip-anchor.ts`, que espera a que terminen las
+  animaciones de entrada del objetivo (`getBoundingClientRect` devuelve la caja ya transformada:
+  medir a mitad de vuelo dejaría el foco encogido), lo centra con `scrollIntoView` solo si no
+  está entero a la vista, y **bloquea el scroll antes de medirlo**, porque esconder el overflow
+  ensancha el viewport donde la barra de scroll es clásica. Con el scroll parado, el rectángulo
+  medido sigue siendo válido mientras dure la pista. Una pista cuyo objetivo no aparece en ~1,5 s
+  se salta en silencio, y no se marca como vista; el tiempo en que la animación de entrada tapa
+  la pantalla no cuenta contra ese plazo.
 - Claves en `settings.tips_seen`: `camino.primer-nivel`, `camino.racha`, `arcade.diarios`,
   `repaso.que-es`, `retos.torneo`, `perfil.avatar`. Máximo dos por pestaña, solo en la primera
   visita; "Entendido" hace `PATCH` acumulativo. **`arcade.trono` se cae (2026-09-17)**: el
   subproyecto C retiró el trono y su icono de corona a petición de Sergio, así que esa pista se
   quedó sin objetivo al que apuntar.
+- **Copy de las seis (2026-09-17)**: las dos del Camino son las aprobadas en la tabla de voz; las
+  de arcade, repaso, torneo y perfil se escribieron con este plan siguiendo las cinco reglas de
+  §2.2 y viven en `lib/tips.ts`. El `·` de las frases aprobadas separa título de frase, y así se
+  parten en el componente.
 - **F va en dos planes (2026-09-17)**: F.1 es el primer inicio de 7.1 y 7.2
   (`docs/superpowers/plans/2026-09-17-rediseno-f1-primer-inicio.md`); F.2 son estas pistas, que
   tocan cinco pantallas distintas y no comparten código con aquello.

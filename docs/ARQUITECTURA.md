@@ -50,6 +50,22 @@ convención de fichero que hace que Next emita el `<link rel="apple-touch-icon">
 muestra el error del navegador. El push sigue delegado a la futura app React
 Native. Spec: `docs/superpowers/specs/2026-08-16-pwa-manifest-design.md`.
 
+### Pistas contextuales
+
+Lo único que hace falta entender de cada pestaña, dicho una vez y nunca más. Un solo
+`TipsController` en el layout del hub decide cuál toca según la ruta, y encuentra el
+elemento al que apuntar **por un atributo `data-tip` en el DOM**, no por refs: la
+llama de la racha vive en la cabecera del propio layout y ninguna página podría
+pasársela, y el Camino ya localizaba así su nodo actual. El catálogo y la selección
+son puros (`lib/tips.ts`, bajo `node --test`); esperar, centrar y medir el objetivo
+es `hooks/use-tip-anchor.ts`; pintar el foco y el bocadillo es
+`components/ui/doty-tip/`.
+
+Se marcan con `PATCH /me/settings { tips_seen: [clave] }`, que el backend acumula
+en unión de-duplicada, así que no se repiten en otro dispositivo. Nada se enseña
+hasta que el primer inicio esté resuelto y el overlay de entrada haya terminado, y
+una pista cuyo objetivo no aparece se salta en silencio.
+
 ### Primer inicio (`/welcome`)
 
 Ruta inmersiva (fuera del grupo `(hub)`, sin nav ni HUD) con las tres pantallas que
