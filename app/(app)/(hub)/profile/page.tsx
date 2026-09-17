@@ -28,6 +28,7 @@ import {
 } from "@/services/shop.service";
 import { ADMIN_PROFILE } from "@/constants";
 import { useAuth } from "@/context/auth-context";
+import { useStoredUser } from "@/hooks/use-stored-user";
 
 /**
  * Perfil (spec §5, variante A "identidad abierta"). Los ajustes viven en una
@@ -36,19 +37,14 @@ import { useAuth } from "@/context/auth-context";
  * la base).
  */
 
-type StoredUser = { name?: string; last_name?: string; profile?: number };
-
-function readUser(): StoredUser {
-  try {
-    return JSON.parse(localStorage.getItem("user") || "{}") || {};
-  } catch {
-    return {};
-  }
-}
-
 export default function ProfilePage() {
   const { logout } = useAuth();
-  const [user] = useState<StoredUser>(readUser);
+  // Dos pasos seguros para hidratación (lib/current-user.ts +
+  // hooks/use-stored-user.ts): {} en el servidor y en el primer render del
+  // cliente, el usuario real recién después de hidratar. Antes esto leía
+  // localStorage directo en el cuerpo del render vía useState(readUser), y el
+  // servidor pintaba "Aprendiz" mientras el cliente pintaba el nombre real.
+  const user = useStoredUser();
   const [stats, setStats] = useState<MyStats | null>(null);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
