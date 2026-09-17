@@ -79,6 +79,22 @@ export default function WelcomePage() {
     };
   }, [isBootstrapping, accessToken]);
 
+  // `ThemeSync` vive en el layout del hub y `/welcome` está fuera, así que
+  // aquí no hay nadie que vuelva a aplicar el tema cuando el sistema operativo
+  // cambia de claro a oscuro. Sin esto, en modo Auto el resto de la pantalla
+  // se repinta sola por la media query del CSS generado mientras
+  // `<html class="dark">` se queda como estaba, y la vista previa —que lee esa
+  // clase— enseñaría el modo equivocado.
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const alCambiar = () => {
+      if (prefs.mode === "auto") applyThemePrefs(prefs);
+    };
+    mq.addEventListener("change", alCambiar);
+    return () => mq.removeEventListener("change", alCambiar);
+  }, [prefs]);
+
   // Cada cambio de tema se aplica en vivo a esta misma pantalla (spec §7.2).
   const cambiarPrefs = (siguiente: ThemePrefs) => {
     setPrefsElegidas(siguiente);

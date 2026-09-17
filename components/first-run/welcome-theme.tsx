@@ -12,9 +12,9 @@ import type { ThemeMode, ThemePrefs } from "@/lib/theme-prefs";
  * elección aplicada en vivo a esta misma pantalla.
  *
  * El modo resuelto se lee del DOM y nunca de `matchMedia` en el render
- * (regla 12): `applyThemePrefs` mantiene `<html class="dark">` al día, así que
- * mirar esa clase basta y no rompe la hidratación. Mismo patrón que la hoja de
- * ajustes.
+ * (regla 12): un `MutationObserver` sobre `<html>` avisa cuando cambia, ya
+ * sea por los controles de esta pantalla o por el sistema operativo en modo
+ * Auto. Mismo observador que usa la hoja de ajustes.
  */
 const MODOS: { key: ThemeMode; label: string }[] = [
   { key: "light", label: "Claro" },
@@ -22,8 +22,19 @@ const MODOS: { key: ThemeMode; label: string }[] = [
   { key: "auto", label: "Auto" },
 ];
 
-function sinSuscripcion(): () => void {
-  return () => {};
+/**
+ * El DOM es la fuente de verdad del modo resuelto: la fija el script
+ * anti-parpadeo antes del primer paint y la cambian los controles de esta
+ * pantalla. Sin observarlo, la vista previa se quedaría con el modo que
+ * hubiera al montar. Mismo observador que la hoja de ajustes.
+ */
+function suscribirDom(onChange: () => void): () => void {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme"],
+  });
+  return () => observer.disconnect();
 }
 
 function modoDelDom(): "light" | "dark" {
@@ -43,7 +54,7 @@ interface Props {
 }
 
 export default function WelcomeTheme({ prefs, sound, onPrefs, onSound, onNext }: Props) {
-  const resuelto = useSyncExternalStore(sinSuscripcion, modoDelDom, modoDelServidor);
+  const resuelto = useSyncExternalStore(suscribirDom, modoDelDom, modoDelServidor);
 
   return (
     <div className="flex w-full flex-col items-center gap-5 text-center">
@@ -117,7 +128,7 @@ export default function WelcomeTheme({ prefs, sound, onPrefs, onSound, onNext }:
           <span className="text-xs font-semibold text-(--muted)">Aciertos, fallos y celebraciones</span>
         </span>
         <span
-          className="flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors"
+          className="flex h-7 w-12 shrink-0 items-center rounded-full p-1"
           style={{ background: sound ? "var(--accent)" : "var(--border)" }}
         >
           <span
