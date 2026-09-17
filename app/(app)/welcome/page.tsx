@@ -85,15 +85,22 @@ export default function WelcomePage() {
   // se repinta sola por la media query del CSS generado mientras
   // `<html class="dark">` se queda como estaba, y la vista previa —que lee esa
   // clase— enseñaría el modo equivocado.
+  //
+  // Se registra UNA vez y lee el espejo dentro del manejador, igual que
+  // ThemeSync: con `[prefs]` el efecto se rehacía en cada render mientras
+  // nadie hubiera tocado nada, porque `readMirror()` construye un objeto
+  // nuevo cada vez y la igualdad referencial nunca se cumplía. El espejo
+  // sirve como fuente porque `cambiarPrefs` lo escribe antes de aplicar.
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const alCambiar = () => {
-      if (prefs.mode === "auto") applyThemePrefs(prefs);
+      const actuales = readMirror();
+      if (actuales.mode === "auto") applyThemePrefs(actuales);
     };
     mq.addEventListener("change", alCambiar);
     return () => mq.removeEventListener("change", alCambiar);
-  }, [prefs]);
+  }, []);
 
   // Cada cambio de tema se aplica en vivo a esta misma pantalla (spec §7.2).
   const cambiarPrefs = (siguiente: ThemePrefs) => {
