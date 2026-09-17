@@ -58,6 +58,7 @@ export default function WelcomePage() {
   const [avatares, setAvatares] = useState<ShopItem[]>([]);
   const [elegido, setElegido] = useState<string | null>(null);
   const [cerrando, setCerrando] = useState(false);
+  const [fallo, setFallo] = useState(false);
 
   // Los seis gratis para la pantalla 3. Mismo filtro que el perfil: gratis o
   // ya comprado. Si el sembrado todavía no se aplicó, llega vacío y la
@@ -133,6 +134,7 @@ export default function WelcomePage() {
     sonidoFinal: boolean = sound,
   ) => {
     if (cerrando) return;
+    setFallo(false);
     setCerrando(true);
     markSettingsDirty();
     patchMySettingsService({
@@ -143,23 +145,19 @@ export default function WelcomePage() {
     })
       .then(() => {
         clearSettingsDirty();
-        // El servidor ya tiene la marca: este dispositivo puede saltarse la
-        // bienvenida sin volver a preguntar.
         escribirEspejo();
         fijarPrimerInicio("hecho");
-        // El avatar se traga su propio fallo —la tienda sin sembrar, por
-        // ejemplo—: el primer inicio ya quedó cerrado, el backend resuelve
-        // `clasico` y el perfil permite cambiarlo luego.
         return avatarKey ? postMyAvatarService(avatarKey).catch(() => undefined) : undefined;
-      })
-      .catch(() => {
-        // Falló el PATCH: no se marca nada, ni aquí ni en el servidor, porque
-        // el primer inicio NO se guardó y volver a pedirlo es lo correcto.
-        // Tampoco atrapa a nadie: con la red caída el gate falla abierto.
       })
       .then(() => getPlacementStatusService())
       .then((status) => router.replace(rutaTrasBienvenida(status)))
-      .catch(() => router.replace("/levels"));
+      .catch(() => {
+        // Solo se llega aquí si falló el PATCH de ajustes o el estado de
+        // placement. En los dos casos el primer inicio no quedó cerrado del
+        // todo, así que nos quedamos y lo decimos en vez de navegar a ciegas.
+        setFallo(true);
+        setCerrando(false);
+      });
   };
 
   /** Saltar (spec §7.1): Rosa, Auto, sonido activado y un avatar gratis al azar. */
@@ -203,6 +201,12 @@ export default function WelcomePage() {
           onFinish={() => cerrar(elegido)}
           busy={cerrando}
         />
+      )}
+
+      {fallo && (
+        <p role="status" className="text-center text-sm font-extrabold text-(--danger)">
+          Se me cayó algo. Culpa mía. ¿Reintentamos?
+        </p>
       )}
 
       <button

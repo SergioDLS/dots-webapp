@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -19,7 +19,7 @@ import {
   pickDefaultDifficultyId,
   prettyDifficultyName,
 } from "@/lib/path-view";
-import { estadoPrimerInicio } from "@/lib/first-run";
+import { estadoPrimerInicio, suscribirPrimerInicio } from "@/lib/first-run";
 import type { PathPeer, PathResponse } from "@/types/path.types";
 
 /**
@@ -126,20 +126,30 @@ export default function PathContainer() {
     };
   }, [isBootstrapping, pathIsCanonical]);
 
+  // Suscrito y no leído una vez: el gate resuelve después de que este efecto
+  // se haya ejecutado, y sin volver a ejecutarlo un usuario ya onboardado se
+  // quedaría sin placement en esta visita.
+  const primerInicio = useSyncExternalStore(
+    suscribirPrimerInicio,
+    estadoPrimerInicio,
+    () => "desconocido" as const,
+  );
+
   // Brand-new accounts (no placement record, zero progress) go through
   // onboarding first. Fail-open by design: the adapter fallback and any
   // error path leave placementPending=false, so existing users are never
   // trapped in onboarding.
   useEffect(() => {
-    // El gate del primer inicio corre en paralelo y también redirige: mientras
-    // su veredicto sea "pendiente" este se aparta, para que una cuenta nueva
-    // vea la bienvenida ANTES del placement y no al revés. Con "desconocido"
-    // —el fetch de ajustes aún no volvió, o falló— se redirige como siempre:
-    // fallar abierto es preferible a dejar a alguien sin placement.
-    if (path?.placementPending && estadoPrimerInicio() !== "pendiente") {
+    // El gate del primer inicio publica "pendiente" al montar, antes de
+    // preguntarle nada al servidor: el Camino ESPERA ese veredicto en vez de
+    // competir por la redirección, así que una cuenta nueva ve la bienvenida
+    // ANTES del placement y no al revés. Con "desconocido" —el gate todavía
+    // no corrió— se redirige como siempre: fallar abierto es preferible a
+    // dejar a alguien sin placement.
+    if (path?.placementPending && primerInicio !== "pendiente") {
       router.replace("/onboarding");
     }
-  }, [path?.placementPending, router]);
+  }, [path?.placementPending, primerInicio, router]);
 
   const searchParams = useSearchParams();
   const requested = Number(searchParams.get("d"));

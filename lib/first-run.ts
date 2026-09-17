@@ -74,13 +74,30 @@ export type EstadoPrimerInicio = "desconocido" | "pendiente" | "hecho";
  * gate publica aquí su veredicto y el Camino se aparta mientras valga
  * "pendiente". Con "desconocido" el Camino redirige como siempre: fallar
  * abierto es preferible a dejar a alguien sin placement.
+ *
+ * El Camino se suscribe (`suscribirPrimerInicio`) en vez de leer el veredicto
+ * una sola vez: nada garantiza que el efecto del gate corra antes que el
+ * suyo, así que una lectura suelta podía ver "desconocido" y redirigir a
+ * placement de todos modos. Suscrito, el Camino reacciona en cuanto el
+ * veredicto llega, sin importar quién se montó primero.
  */
 let estado: EstadoPrimerInicio = "desconocido";
+const escuchas = new Set<() => void>();
 
 export function estadoPrimerInicio(): EstadoPrimerInicio {
   return estado;
 }
 
+/** Para `useSyncExternalStore`: el Camino necesita enterarse del veredicto. */
+export function suscribirPrimerInicio(alCambiar: () => void): () => void {
+  escuchas.add(alCambiar);
+  return () => {
+    escuchas.delete(alCambiar);
+  };
+}
+
 export function fijarPrimerInicio(siguiente: EstadoPrimerInicio): void {
+  if (estado === siguiente) return;
   estado = siguiente;
+  for (const alCambiar of escuchas) alCambiar();
 }

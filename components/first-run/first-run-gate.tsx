@@ -41,6 +41,14 @@ export default function FirstRunGate() {
       return;
     }
 
+    // Sin espejo todavía no sabemos, pero SÍ sabemos que hay que averiguarlo:
+    // publicarlo ya es lo que impide que el Camino redirija a placement en la
+    // ventana en la que `GET /path` responde antes que `GET /me/settings`.
+    // Este `fijarPrimerInicio` corre síncrono al montar; la redirección del
+    // Camino solo puede ocurrir tras una respuesta de red, así que siempre
+    // llega después.
+    fijarPrimerInicio("pendiente");
+
     let activo = true;
     getMySettingsService().then((settings) => {
       if (!activo) return;
