@@ -209,7 +209,10 @@ export default function WelcomePage() {
         type="button"
         onClick={saltar}
         disabled={cerrando}
-        className="text-sm font-extrabold text-(--muted) transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent) disabled:opacity-50"
+        // px-4 py-3 y no solo texto: es la vía de escape del flujo y el spec la
+        // quiere siempre disponible, así que necesita un objetivo que se toque
+        // con el pulgar sin apuntar. El -my-3 lo devuelve a su sitio.
+        className="-my-3 px-4 py-3 text-sm font-extrabold text-(--muted) transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent) disabled:opacity-50"
       >
         Saltar
       </button>

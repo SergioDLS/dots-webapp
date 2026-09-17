@@ -30,8 +30,10 @@ export default function FirstRunGate() {
   const { isBootstrapping, accessToken } = useAuth();
 
   useEffect(() => {
-    // Sin sesión resuelta no hay a quién preguntar; `lib/api-client.ts` ya se
-    // encarga de expulsar al login cuando el refresh falla.
+    // Sin sesión resuelta no hay a quién preguntar. Ojo: `lib/api-client.ts`
+    // solo expulsa al login con un 403 (cuenta bloqueada o expirada); un
+    // refresh que falla por cookie vencida deja `accessToken` en null sin
+    // redirigir, y este `return` es lo que evita preguntar en ese estado.
     if (isBootstrapping || !accessToken) return;
 
     if (leerEspejo()) {
