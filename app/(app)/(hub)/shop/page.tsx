@@ -26,7 +26,7 @@ const KIND_LABEL: Record<string, string> = {
   gesture: "Gestos de Doty",
 };
 
-/** ShopItem -> PublicAvatar para pintar el retrato en el marco de <Avatar>. */
+/** ShopItem -> PublicAvatar para pintar el retrato con <Avatar>. */
 const toAvatar = (item: ShopItem): PublicAvatar => ({
   img: item.img ?? "",
   color: (item.meta?.color as string) ?? "#FF1F8F",

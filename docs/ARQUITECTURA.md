@@ -61,7 +61,7 @@ con `<Doty>`—; el porqué de esos dos tamaños y el resto del sistema de avata
 documentan abajo, en «Avatares».
 
 Ese avatar es una carta de dos caras (`avatar-flip.tsx`, spec §6.4): retrato al frente y,
-detrás, Doty con el gesto equipado dentro del mismo disco. Gira sola al entrar (una vez,
+detrás, Doty con el gesto equipado, bajo la misma sombra. Gira sola al entrar (una vez,
 cuando ajustes e inventario ya respondieron), gira al tocarla o al pasar el ratón, y el
 lápiz es un botón aparte que abre el selector. Los tiempos del giro y la pose por gesto
 son puros y están bajo `node --test` en `lib/avatar-flip.ts`.
@@ -87,13 +87,19 @@ solo casan con `<html>`: un envoltorio anidado no heredaría el token.
 
 ### Avatares (`components/ui/avatar/`)
 
-La cara pública del usuario. Un único `<Avatar avatar size>` pinta el marco —disco
-del color propio del avatar al 42 % sobre la superficie y anillo del acento del
-tema— y lo usan el perfil (78/96), el selector y la tienda (96), y el leaderboard,
-los vecinos del Camino y el aviso de rival (34). La geometría y el fallback viven
-en `lib/avatar.ts`, puro y bajo `node --test`. El disco sin contenido se exporta como `<AvatarDisc>`: el dorso del avatar del perfil lo
-reutiliza con un `<Doty size="dorso">` al 70 % del diámetro, así el gesto vive dentro del
-mismo marco que el retrato.
+La cara pública del usuario. Un único `<Avatar avatar size>` pinta el retrato **sin
+marco**: flota como el arte de los nodos del Camino y lo único que lo apoya es una
+sombra tenue teñida con su propio color (`drop-shadow`, que sigue la silueta del PNG
+y no su caja). Lo usan el perfil (78/96), el selector y la tienda (96), el primer
+inicio (86), y el leaderboard, los vecinos del Camino y el aviso de rival (34). La
+geometría y el fallback viven en `lib/avatar.ts`, puro y bajo `node --test`. La caja
+con su sombra se exporta aparte como `<AvatarShadow>`: el dorso del avatar del perfil
+la reutiliza con un `<Doty size="dorso">` al 70 % del lado, así el gesto se apoya
+igual que el retrato.
+
+El círculo con anillo del acento que llevó hasta el 2026-09-17 se retiró a petición de
+Sergio: homologarlo con los nodos del Camino quitó una caja que el principio 4 del spec
+no quiere y que competía con el arte del propio avatar.
 
 Los avatares **no son poses de Doty**: son filas de `shop_items` con `kind='avatar'`,
 sus PNG viven en `public/images/avatars/` y están fuera del registro generado

@@ -14,8 +14,8 @@ import type { MyStats } from "@/services/engagement.service";
  * spec reserva los contenedores para las cabeceras.
  *
  * El avatar es una carta de dos caras (spec §6.4): retrato al frente y, detrás,
- * Doty con el gesto equipado. Tocar el disco lo gira; el lápiz es un botón
- * aparte —nunca anidado dentro del disco— y el único acceso al selector desde
+ * Doty con el gesto equipado. Tocar el avatar lo gira; el lápiz es un botón
+ * aparte —nunca anidado dentro de él— y el único acceso al selector desde
  * la identidad; la hoja de ajustes conserva el suyo.
  */
 interface Props {

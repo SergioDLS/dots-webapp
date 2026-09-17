@@ -314,9 +314,14 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 - **Cara pública**: `LeaderboardEntryDto`, `PathPeer` (`/path/neighbors`) y `RivalNeighborDto`
   suman `avatar: { img, color } | null`; `GET /me/settings` incluye el equipado. Sin avatar
   equipado, el cliente muestra `clasico`.
-- **Marco (variante A)**: círculo con fondo `color-mix(meta.color 42 %, surface)` y anillo del
-  `--accent` del tema (3 px a 128, 2 px a 34). Tamaños: 128 perfil, 96 selector y tienda, 48
-  toasts, 34 leaderboard y vecinos. Componente único `<Avatar>`.
+- **Presentación (sin marco; decidido el 2026-09-17, sustituye a la "variante A")**: el retrato
+  flota sin caja, igual que el arte de los nodos del Camino (§3.1), y lo único que lo apoya es una
+  **sombra tenue teñida con su `meta.color`** por `drop-shadow`, que sigue la silueta del PNG y no
+  su caja. La geometría escala con el tamaño: caída `size × 0.06`, difuminado `size × 0.12`, color
+  al 45 %. Tamaños: 78/96 perfil, 96 selector y tienda, 86 primer inicio, 48 toasts, 34 leaderboard
+  y vecinos. Componente único `<Avatar>`, más `<AvatarShadow>` para compartir la sombra con el
+  dorso. **El círculo con anillo del `--accent` que llevaba antes se retiró**: metía una caja donde
+  el principio 4 pide que no haya ninguna, y competía con el arte del propio avatar.
 - Los **vecinos del Camino** pasan de iniciales a avatares (revierte esa decisión de la spec de
   vecinos del 2026-08-09; el resto de sus reglas se mantiene).
 - **Tres desviaciones decididas durante la implementación (2026-09-16):** (1) el avatar
@@ -345,7 +350,7 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 
 ### 6.3 Tienda
 
-- Nueva sección **"Avatares"** con el marco A a 96 px, precio en chip de gemas, "Lo tienes" y
+- Nueva sección **"Avatares"** a 96 px, precio en chip de gemas, "Lo tienes" y
   botón "Usar" para equipar desde la tienda. La sección "Para tu Doty" desaparece con los
   cosméticos emoji.
 - Criterios: comprar un avatar lo deja equipable y visible en leaderboard, vecinos y rival sin
@@ -357,17 +362,17 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 - **El problema.** Los gestos perdieron su escenario cuando el avatar sustituyó a Doty en la
   identidad del perfil (§5): solo se veían en las miniaturas de 32 px de su propia tarjeta y nadie
   más los veía. Se conservan (§6.2) y su escenario pasa a ser el **dorso del avatar**.
-- **La carta.** El disco del perfil tiene dos caras: el retrato al frente y, detrás, Doty haciendo
-  el gesto equipado dentro del mismo disco (mismo color y anillo), con la pose que corresponde al
-  gesto —`saludando` para `wave`, `emocionado` para `cheer`, `feliz` para cualquier otra— a un 70 %
-  del diámetro (56 px en el disco de 78, 68 en el de 96), para que la animación no se recorte.
+- **La carta.** El avatar del perfil tiene dos caras: el retrato al frente y, detrás, Doty haciendo
+  el gesto equipado, con la misma sombra teñida y la pose que corresponde al gesto —`saludando`
+  para `wave`, `emocionado` para `cheer`, `feliz` para cualquier otra— a un 70 % del lado (56 px en
+  la caja de 78, 68 en la de 96).
 - **Giro de entrada.** Al abrir el perfil, cuando ajustes e inventario ya respondieron y hay gesto
   equipado: el retrato se ve 600 ms, la carta gira en 400 ms (`rotateY`, solo `transform`), el
   gesto da vueltas completas hasta cubrir unos 3 s (dos de `wave` = 3.2 s, tres de `cheer` = 2.7 s;
   completas en duración, no en fase: la animación corre desde que la carta se monta, así que el
   dorso aparece a mitad de ciclo) y vuelve al retrato. Una vez por visita; equipar otro gesto lo
-  vuelve a reproducir. Sin gesto equipado el disco no gira nunca.
-- **Tap y hover.** Tocar el disco lo gira y lo deja en el dorso hasta el siguiente toque; con
+  vuelve a reproducir. Sin gesto equipado el avatar no gira nunca.
+- **Tap y hover.** Tocar el avatar lo gira y lo deja en el dorso hasta el siguiente toque; con
   ratón, pasar por encima lo gira y salir lo devuelve. El tap es la señal primaria. El lápiz pasa a
   ser un botón propio —28 px visibles sobre un área táctil de 40— y el único acceso al selector
   desde la identidad; la hoja de ajustes conserva el suyo.
@@ -403,8 +408,8 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
    (Rosa / Eléctrico) con **vista previa real** (HUD y un nodo pintados con los tokens de cada
    paleta); segmentado Claro / Oscuro / Auto; fila "Sonidos · Aciertos, fallos y celebraciones"
    con interruptor; botón "Este me gusta". La elección se aplica en vivo a la pantalla.
-3. **Avatar**: "Elige tu Doty" + "Es tu cara en el ranking y en el Camino."; los seis gratis en
-   marco A a 86 px; botón "Listo, soy {nombre}".
+3. **Avatar**: "Elige tu Doty" + "Es tu cara en el ranking y en el Camino."; los seis gratis a
+   86 px; botón "Listo, soy {nombre}".
 
 ### 7.3 Pistas contextuales
 

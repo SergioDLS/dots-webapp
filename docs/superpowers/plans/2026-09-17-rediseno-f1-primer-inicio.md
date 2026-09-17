@@ -987,7 +987,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Consumes: `Avatar` (default) de `components/ui/avatar/avatar.tsx`; `type PublicAvatar` de `lib/avatar.ts`; `type ShopItem` de `services/shop.service.ts`; `Doty` para el estado vacío; las funciones `cerrar` y el estado `avatares`/`elegido`/`cerrando` que la página ya tiene (Task 3).
 - Produces: `export default function WelcomeAvatar({ items, pickedKey, onPick, onFinish, busy }: { items: ShopItem[]; pickedKey: string | null; onPick: (key: string) => void; onFinish: () => void; busy: boolean })`.
 
-Contexto para esta tarea: los avatares son `shop_items` con `kind='avatar'`; su retrato está en `img` y su color y nombre visible en `meta` (`{ color, label }`). Se pintan con `<Avatar>` a **86 px** (spec §7.2), que es un tamaño intermedio entre los 96 del selector del perfil y los 78 del perfil en móvil: `ringWidth` lo interpola solo, no hay nada que añadir.
+Contexto para esta tarea: los avatares son `shop_items` con `kind='avatar'`; su retrato está en `img` y su color y nombre visible en `meta` (`{ color, label }`). Se pintan con `<Avatar>` a **86 px** (spec §7.2). **Ojo, cambió el 2026-09-17 en `main`**: el avatar ya NO lleva marco circular ni anillo del acento — el retrato flota y lo apoya una sombra teñida con su propio color, que `<Avatar>` calcula sola a partir del tamaño. No hay nada que añadir ni que envolver: pasa `avatar` y `size` y ya.
 
 **El estado vacío importa de verdad**: los seis avatares se siembran con un script de base de datos que corre Sergio, y hasta que lo haga `GET /shop` no trae ninguno. Con la lista vacía la pantalla no puede quedarse muda ni bloquear el botón: enseña a Doty, explica que el avatar se elige luego en el perfil, y el botón cierra el flujo igual.
 
@@ -1067,7 +1067,7 @@ export default function WelcomeAvatar({ items, pickedKey, onPick, onFinish, busy
                     border: on ? "2px solid var(--accent)" : "2px solid transparent",
                   }}
                 >
-                  {/* 86 px (spec §7.2): ringWidth interpola el anillo sola. */}
+                  {/* 86 px (spec §7.2): sin marco, la sombra teñida la pone <Avatar>. */}
                   <Avatar avatar={comoAvatar(item)} size={86} />
                   <span
                     className="line-clamp-1 text-[11px] font-extrabold"
