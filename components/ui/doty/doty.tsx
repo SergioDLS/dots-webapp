@@ -61,7 +61,7 @@ const sizeClass: Record<DotySize, string> = {
   chip: "w-11",
   section: "w-26",
   banner: "w-[158px]",
-  // dorso: 70 % del disco del perfil — 56 px dentro del de 78 (móvil) y 68 dentro del de 96 (escritorio).
+  // dorso: 70 % del avatar del perfil — 56 px en la caja de 78 (móvil) y 68 en la de 96 (escritorio).
   dorso: "w-14 md:w-17",
 };
 

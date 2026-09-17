@@ -1,6 +1,8 @@
 /**
- * Marco del avatar (spec §6.1, variante A): círculo con el color propio del
- * avatar al 42 % sobre la superficie y un anillo del acento del tema.
+ * Presentación del avatar (spec §6.1). El retrato NO va enmarcado: flota sobre
+ * el fondo como el arte de los nodos del Camino (principio 4 del spec, "sin
+ * contenedor"), y su color propio es lo único que lo apoya, en forma de sombra
+ * tenue bajo la silueta.
  *
  * Lógica pura para poder probarse con `node --test`: por eso SOLO admite
  * `import type` — Node ejecuta este archivo sin bundler y no resolvería `@/`.
@@ -23,17 +25,17 @@ export function avatarOrDefault(a: Partial<PublicAvatar> | null | undefined): Pu
   return { img: a.img, color };
 }
 
-export function discBackground(color: string): string {
-  return `color-mix(in srgb, ${color} 42%, var(--surface))`;
-}
-
 /**
- * Grosor del anillo. El spec fija dos anclajes —3 px a 128 y 2 px a 34— y el
- * resto se interpola, para que el marco no se vea desproporcionado en los
- * tamaños intermedios (96 del selector, 48 de los toasts).
+ * La sombra que apoya al retrato, teñida con su color.
+ *
+ * `drop-shadow` y no `box-shadow` porque sigue la SILUETA del PNG, no su caja:
+ * es el mismo recurso con el que los nodos del Camino y los tiles del arcade
+ * flotan sin caja (`.doty-shadow` en globals.css). La geometría escala con el
+ * tamaño para que a 34 px no sea un borrón y a 96 no sea una línea: a los 78
+ * del perfil da 4.7 px de caída y 9.4 de difuminado.
  */
-export function ringWidth(size: number): number {
-  const t = (size - 34) / (128 - 34);
-  const w = 2 + t * (3 - 2);
-  return Math.min(3, Math.max(2, Math.round(w * 10) / 10));
+export function avatarShadow(color: string, size: number): string {
+  const y = Math.round(size * 0.06 * 10) / 10;
+  const blur = Math.round(size * 0.12 * 10) / 10;
+  return `drop-shadow(0 ${y}px ${blur}px color-mix(in srgb, ${color} 45%, transparent))`;
 }

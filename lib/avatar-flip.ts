@@ -69,7 +69,7 @@ export interface FlourishTimeline {
   flipBackAt: number;
 }
 
-/** null sin gesto: el disco no gira nunca si no hay nada que mostrar. */
+/** null sin gesto: el avatar no gira nunca si no hay nada que mostrar. */
 export function flourishTimeline(animation: DotyAnimation | null): FlourishTimeline | null {
   if (animation === null || LOOP_MS[animation] === 0) return null;
   const flipAt = FLOURISH_DELAY_MS;

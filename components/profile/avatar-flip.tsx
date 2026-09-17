@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-import Avatar, { AvatarDisc } from "@/components/ui/avatar/avatar";
+import Avatar, { AvatarShadow } from "@/components/ui/avatar/avatar";
 import Doty, { type DotyAnimation } from "@/components/ui/doty/doty";
 import { avatarOrDefault, type PublicAvatar } from "@/lib/avatar";
 import { FLIP_MS, flourishTimeline, gesturePose, shouldFlourish } from "@/lib/avatar-flip";
 
 /**
  * El avatar del perfil como carta de dos caras (spec §6.4): el retrato al
- * frente y, detrás, Doty haciendo el gesto equipado dentro del mismo disco.
+ * frente y, detrás, Doty haciendo el gesto equipado, bajo la misma sombra.
  *
  * - Giro de entrada: cuando ya hay datos (`ready`) y hay gesto, el retrato se
  *   ve un momento, la carta gira, el gesto da vueltas completas y vuelve. Una
@@ -17,7 +17,7 @@ import { FLIP_MS, flourishTimeline, gesturePose, shouldFlourish } from "@/lib/av
  *   gesto, y eso la vuelve a reproducir como confirmación de equipar.
  * - Tap: alterna el dorso fijo. Hover: solo con ratón (`pointerType`), para
  *   que un tap no cuente dos veces. El tap es la señal primaria (regla 2).
- * - Sin gesto no hay botón ni dorso: el disco no gira nunca.
+ * - Sin gesto no hay botón ni dorso: el avatar no gira nunca.
  * - Con `prefers-reduced-motion` no hay giro de entrada; el CSS global ya
  *   deja el giro instantáneo y a Doty quieto, así que el tap sigue sirviendo.
  *
@@ -92,10 +92,10 @@ export default function AvatarFlip({ avatar, gesture, size, ready }: Props) {
               transform: "rotateY(180deg)",
             }}
           >
-            {/* El disco es la base: sin drop-shadow, y Doty al 70 % para que el gesto no se recorte. */}
-            <AvatarDisc color={a.color} size={size}>
+            {/* Doty al 70 % del lado, con la sombra teñida del avatar y sin la suya propia. */}
+            <AvatarShadow color={a.color} size={size}>
               <Doty pose={gesturePose(gesture)} size="dorso" animation={gesture} shadow={false} />
-            </AvatarDisc>
+            </AvatarShadow>
           </span>
         )}
       </span>
