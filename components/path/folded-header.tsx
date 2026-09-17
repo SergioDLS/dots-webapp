@@ -29,6 +29,10 @@ export default function FoldedHeader({ difficulty, nav, accentHex, visible, onGo
     <div className="sticky z-20 h-0 md:hidden" style={{ top: 44 }} aria-hidden={!visible}>
       <div
         inert={!visible}
+        /* Tapa una franja del viewport sin ser `header` ni `nav`: las pistas
+           contextuales la descuentan por este atributo (ver `barras()` en
+           hooks/use-tip-anchor.ts). */
+        data-chrome-fijo
         className="absolute inset-x-0 top-0 flex items-center gap-2 rounded-2xl px-2.5 py-1.5 transition-[opacity,transform] duration-200"
         style={{
           background: panelTint(accentHex),

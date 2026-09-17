@@ -19,7 +19,12 @@ let anterior = "";
 /** Bloquea el scroll y devuelve la función que lo suelta. */
 export function bloquearScroll(): () => void {
   if (cuenta === 0) {
-    anterior = document.body.style.overflow;
+    // Si ya viniera en "hidden" de una fuente ajena al módulo, restaurarlo
+    // sería dejar el scroll muerto. Pasa en desarrollo con Fast Refresh: al
+    // recargarse este módulo con un diálogo abierto, el contador vuelve a 0
+    // pero el body sigue bloqueado por la instancia vieja.
+    const actual = document.body.style.overflow;
+    anterior = actual === "hidden" ? "" : actual;
     document.body.style.overflow = "hidden";
   }
   cuenta += 1;
@@ -35,6 +40,11 @@ export function bloquearScroll(): () => void {
 /**
  * Si alguien tiene el scroll bloqueado hay un diálogo encima de la pantalla.
  * Lo usan las pistas para no colarse debajo de una hoja abierta.
+ *
+ * Ojo: no distingue quién bloqueó. Vale mientras haya como mucho una pista
+ * viva a la vez —lo garantiza el controlador, que renderiza una sola— porque
+ * la limpieza de su efecto suelta antes de que el siguiente monte. Dos
+ * consumidores simultáneos de `useTipAnchor` se bloquearían entre ellos.
  */
 export function hayScrollBloqueado(): boolean {
   return cuenta > 0;

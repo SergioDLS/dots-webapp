@@ -45,7 +45,19 @@ export default function DotyTip({ tip, recorte, indice, total, onEntendido }: Pr
   useEffect(() => {
     const alPulsar = (e: KeyboardEvent) => {
       // Descartar cuenta como haberla visto: una pista se enseña una sola vez.
-      if (e.key === "Escape") onEntendido();
+      if (e.key === "Escape") {
+        onEntendido();
+        return;
+      }
+      // Trampa de foco. El bocadillo tiene un solo control, así que basta con
+      // devolverle el foco: sin esto se puede tabular hasta la página de
+      // debajo y abrir la hoja de ajustes ENCIMA de la pista, y entonces un
+      // solo Escape cierra la hoja Y da la pista por vista sin haberla
+      // enseñado — irreversible, porque el PATCH viaja a la cuenta.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        botonRef.current?.focus();
+      }
     };
     document.addEventListener("keydown", alPulsar);
     return () => document.removeEventListener("keydown", alPulsar);

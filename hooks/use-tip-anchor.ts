@@ -95,13 +95,20 @@ function vaClavado(el: Element): boolean {
 function barras(): { arriba: number; abajo: number } {
   let arriba = 0;
   let abajo = 0;
-  for (const el of document.querySelectorAll("header, nav")) {
-    const pos = getComputedStyle(el).position;
-    if (pos !== "sticky" && pos !== "fixed") continue;
+  // `vaClavado` y no la posición del propio elemento: la barra plegada del
+  // Camino es un hijo `absolute` dentro de un envoltorio `sticky`, y por eso
+  // lleva `data-chrome-fijo` — no es ni `header` ni `nav`.
+  for (const el of document.querySelectorAll("header, nav, [data-chrome-fijo]")) {
+    if (!vaClavado(el)) continue;
+    const estilo = getComputedStyle(el);
+    if (estilo.opacity === "0" || estilo.visibility === "hidden") continue;
     const r = el.getBoundingClientRect();
     if (r.height === 0 || r.width < window.innerWidth * 0.8) continue;
-    if (r.top <= 0) arriba = Math.max(arriba, r.bottom);
-    if (r.bottom >= window.innerHeight) abajo = Math.max(abajo, window.innerHeight - r.top);
+    // Por la mitad en la que empieza, no por si toca el borde: la barra
+    // plegada del Camino vive a 44 px del techo, debajo del HUD, y con la
+    // regla del borde no contaría.
+    if (r.top < window.innerHeight / 2) arriba = Math.max(arriba, r.bottom);
+    else abajo = Math.max(abajo, window.innerHeight - r.top);
   }
   return { arriba, abajo };
 }
@@ -160,12 +167,17 @@ export function useTipAnchor(clave: string | null, alRendirse?: () => void): Rec
 
     const medir = (el: Element) => {
       if (!vivo) return;
-      if (!el.isConnected) {
-        // Se fue entre que lo encontramos y lo íbamos a medir: se vuelve a
-        // buscar en vez de morir aquí, que dejaría la cola atascada.
+      // Entre que lo encontramos y llegamos aquí pasa la espera de animaciones
+      // (hasta 800 ms), así que se vuelve a mirar: puede haberse ido el
+      // elemento, o haberse abierto un diálogo encima.
+      if (!el.isConnected || hayScrollBloqueado()) {
         reloj = window.setTimeout(buscar, INTERVALO_MS);
         return;
       }
+      // Corta cualquier scroll suave que siguiera en vuelo: el Camino programa
+      // el suyo 300 ms después de cargar y `overflow: hidden` no lo detiene,
+      // así que el contenido seguiría deslizándose bajo un foco ya congelado.
+      window.scrollTo({ top: window.scrollY, behavior: "instant" });
       // Bloqueamos ANTES de medir: en un escritorio con barra de scroll clásica
       // esconder el overflow ensancha el viewport y recoloca lo centrado.
       soltar = bloquearScroll();
@@ -184,8 +196,17 @@ export function useTipAnchor(clave: string | null, alRendirse?: () => void): Rec
       // medir daría un rectángulo que el usuario no puede mirar, y la pista se
       // pintaría debajo del diálogo. Esperar no gasta el presupuesto.
       const tapado =
-        document.querySelector("[data-doty-entrada]") !== null || hayScrollBloqueado();
+        document.querySelector("[data-doty-entrada]") !== null ||
+        hayScrollBloqueado() ||
+        // Una pestaña de fondo también cuenta: con `setTimeout` el reloj sigue
+        // corriendo donde `requestAnimationFrame` se habría parado, y la pista
+        // se rendiría sin que nadie la haya podido mirar.
+        document.visibilityState === "hidden";
       if (tapado) {
+        // Se reinicia el reloj: el presupuesto es para que la pantalla pinte el
+        // objetivo, y cualquier rato tapado —no solo el del principio— lo
+        // habría gastado sin que el usuario pudiera ver nada.
+        destapadoEn = null;
         if (ahora - montaje < ESPERA_TAPADO_MS) reloj = window.setTimeout(buscar, INTERVALO_MS);
         else rendirse.current?.();
         return;
@@ -223,10 +244,13 @@ export function useTipAnchor(clave: string | null, alRendirse?: () => void): Rec
     reloj = window.setTimeout(buscar, 0);
     return () => {
       vivo = false;
+      // Lo primero: el contador de `scroll-lock` es un punto único de fallo y
+      // descuadrarlo deja el body sin scroll Y condena a toda pista futura a
+      // esperar el techo entero y rendirse.
+      soltar?.();
       clearTimeout(reloj);
       clearTimeout(confirmacion);
       cancelAnimationFrame(frame);
-      soltar?.();
     };
   }, [clave, ronda]);
 
