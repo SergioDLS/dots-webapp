@@ -56,8 +56,10 @@ export const TIPS: readonly Tip[] = [
     key: "arcade.diarios",
     ruta: "/play",
     pose: "gamer",
-    titulo: "Dos juegos cada día",
-    frase: "Cambian mañana. Juégalos y súmate XP en un minuto.",
+    // "Dos" no: `splitGames` filtra por desbloqueado, así que un usuario
+    // nuevo —el público de esta pista— puede tener uno solo.
+    titulo: "Juegos nuevos cada día",
+    frase: "Cambian mañana. Juega y suma XP en un minuto.",
   },
   {
     // Solo se enseña en el estado vacío del Repaso, que es donde hay algo
@@ -82,7 +84,8 @@ export const TIPS: readonly Tip[] = [
     ruta: "/profile",
     pose: "senalando",
     titulo: "Esta es tu cara",
-    frase: "Sale en el ranking y en el Camino. Tócala para ver tu gesto; el lápiz la cambia.",
+    // Sin "tócala": mientras la pista está puesta, el foco se come el toque.
+    frase: "Sale en el ranking y en el Camino. El lápiz la cambia, y al tocarla enseña tu gesto.",
   },
 ];
 

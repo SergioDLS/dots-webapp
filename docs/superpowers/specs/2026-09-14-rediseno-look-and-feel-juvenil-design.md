@@ -435,7 +435,7 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   medir a mitad de vuelo dejaría el foco encogido), lo centra con `scrollIntoView` solo si no
   está entero a la vista, y **bloquea el scroll antes de medirlo**, porque esconder el overflow
   ensancha el viewport donde la barra de scroll es clásica. Con el scroll parado, el rectángulo
-  medido sigue siendo válido mientras dure la pista. Una pista cuyo objetivo no aparece en ~1,5 s
+  medido sigue siendo válido mientras dure la pista. Una pista cuyo objetivo no aparece en ~6 s
   se salta en silencio, y no se marca como vista; el tiempo en que la animación de entrada tapa
   la pantalla no cuenta contra ese plazo.
 - Claves en `settings.tips_seen`: `camino.primer-nivel`, `camino.racha`, `arcade.diarios`,

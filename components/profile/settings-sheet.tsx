@@ -16,6 +16,7 @@ import {
   type ThemeMode,
 } from "@/lib/theme-prefs";
 import { patchMySettingsService } from "@/services/settings.service";
+import { bloquearScroll } from "@/lib/scroll-lock";
 
 /**
  * Hoja de ajustes del perfil (spec §5): inferior en móvil, lateral en
@@ -107,11 +108,10 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const soltar = bloquearScroll();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
+      soltar();
     };
   }, [open, onClose]);
 

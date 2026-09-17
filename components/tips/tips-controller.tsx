@@ -19,10 +19,10 @@ interface PistaProps {
 }
 
 /**
- * La pista que toca ahora. Está en su propio componente porque el controlador
- * le pone `key={tip.key}`: así el hook de medición se monta de cero con cada
- * pista y no puede devolver la medida de la anterior. Sin ese remonte, salir a
- * una pantalla sin pistas (`/shop`) y volver con el botón atrás devolvería el
+ * La pista que toca ahora. Está en su propio componente porque lleva
+ * `key={tip.key}`: así el hook de medición se monta de cero con cada pista y
+ * no puede devolver la medida de la anterior. Sin ese remonte, salir a una
+ * pantalla sin pistas (`/shop`) y volver con el botón atrás devolvería el
  * recorte de la visita anterior —misma clave, medida ya hecha— y el foco
  * aparecería donde estaba antes de navegar.
  */
@@ -36,6 +36,55 @@ function Pista({ tip, indice, total, onEntendido, onRendirse }: PistaProps) {
       indice={indice}
       total={total}
       onEntendido={onEntendido}
+    />
+  );
+}
+
+interface PantallaProps {
+  ruta: string;
+  /** La foto que llegó del servidor: da el total del contador y no cambia. */
+  iniciales: readonly string[];
+  /** Lo que ya se marcó, incluido lo de esta sesión: dice cuál toca ahora. */
+  vistas: readonly string[];
+  onVista: (clave: string) => void;
+}
+
+/**
+ * Las pistas de UNA pantalla. Lleva `key={pathname}`, así que salir y volver
+ * lo remonta y olvida lo que se saltó: si el objetivo no estaba la primera vez
+ * —porque su fetch no había llegado—, la siguiente visita lo reintenta. Dentro
+ * de una misma visita no se reintenta, para no dar vueltas sobre un objetivo
+ * que no va a aparecer.
+ */
+function Pantalla({ ruta, iniciales, vistas, onVista }: PantallaProps) {
+  // Las que no llegaron a encontrar a qué apuntar. NO se marcan como vistas:
+  // no se han enseñado, así que siguen pendientes en el servidor.
+  const [saltadas, setSaltadas] = useState<readonly string[]>([]);
+
+  const cola = pendientesPara(ruta, vistas).filter((t) => !saltadas.includes(t.key));
+  const actual = cola[0] ?? null;
+  const total = pendientesPara(ruta, iniciales).filter((t) => !saltadas.includes(t.key)).length;
+
+  const entendido = useCallback(() => {
+    if (actual) onVista(actual.key);
+  }, [actual, onVista]);
+
+  const rendirse = useCallback(() => {
+    if (!actual) return;
+    const clave = actual.key;
+    setSaltadas((s) => (s.includes(clave) ? s : [...s, clave]));
+  }, [actual]);
+
+  if (!actual) return null;
+
+  return (
+    <Pista
+      key={actual.key}
+      tip={actual}
+      indice={total - cola.length + 1}
+      total={total}
+      onEntendido={entendido}
+      onRendirse={rendirse}
     />
   );
 }
@@ -59,17 +108,8 @@ export default function TipsController() {
     () => "desconocido" as const,
   );
 
-  // `iniciales` es la foto que llegó del servidor y no cambia: da el total del
-  // contador. `vistas` crece según se marcan y dice cuál toca ahora.
-  const [iniciales, setIniciales] = useState<string[] | null>(null);
-  const [vistas, setVistas] = useState<string[]>([]);
-  // Las que no llegaron a encontrar a qué apuntar. Viajan con su ruta, así
-  // volver a entrar a la pantalla las reintenta y no hace falta borrarlas
-  // desde un efecto (regla 3). No se marcan como vistas: no se han enseñado.
-  const [saltadas, setSaltadas] = useState<{ ruta: string; claves: string[] }>({
-    ruta: "",
-    claves: [],
-  });
+  const [iniciales, setIniciales] = useState<readonly string[] | null>(null);
+  const [vistas, setVistas] = useState<readonly string[]>([]);
 
   useEffect(() => {
     if (isBootstrapping || !accessToken) return;
@@ -85,46 +125,25 @@ export default function TipsController() {
     };
   }, [isBootstrapping, accessToken]);
 
-  const fuera = saltadas.ruta === pathname ? saltadas.claves : [];
-  // Mientras el primer inicio no esté resuelto, el usuario está yendo o
-  // volviendo de la bienvenida: no es momento de explicarle la pantalla.
-  const listo = iniciales !== null && primerInicio === "hecho";
-  const cola = listo
-    ? pendientesPara(pathname, vistas).filter((t) => !fuera.includes(t.key))
-    : [];
-  const actual = cola[0] ?? null;
-  const total = listo
-    ? pendientesPara(pathname, iniciales).filter((t) => !fuera.includes(t.key)).length
-    : 0;
-
-  const entendido = useCallback(() => {
-    if (!actual) return;
-    setVistas((v) => (v.includes(actual.key) ? v : [...v, actual.key]));
+  const marcarVista = useCallback((clave: string) => {
+    setVistas((v) => (v.includes(clave) ? v : [...v, clave]));
     // Optimista: si el PATCH falla, la pista no se repite en esta sesión pero
     // sí en la siguiente. Molestar una vez más es mejor que perder la
     // explicación.
-    patchMySettingsService({ tips_seen: [actual.key] }).catch(() => undefined);
-  }, [actual]);
+    patchMySettingsService({ tips_seen: [clave] }).catch(() => undefined);
+  }, []);
 
-  const rendirse = useCallback(() => {
-    if (!actual) return;
-    const clave = actual.key;
-    setSaltadas((s) => {
-      if (s.ruta !== pathname) return { ruta: pathname, claves: [clave] };
-      return s.claves.includes(clave) ? s : { ruta: pathname, claves: [...s.claves, clave] };
-    });
-  }, [actual, pathname]);
-
-  if (!actual) return null;
+  // Mientras el primer inicio no esté resuelto, el usuario está yendo o
+  // volviendo de la bienvenida: no es momento de explicarle la pantalla.
+  if (iniciales === null || primerInicio !== "hecho") return null;
 
   return (
-    <Pista
-      key={actual.key}
-      tip={actual}
-      indice={total - cola.length + 1}
-      total={total}
-      onEntendido={entendido}
-      onRendirse={rendirse}
+    <Pantalla
+      key={pathname}
+      ruta={pathname}
+      iniciales={iniciales}
+      vistas={vistas}
+      onVista={marcarVista}
     />
   );
 }

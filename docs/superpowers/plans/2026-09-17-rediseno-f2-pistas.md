@@ -47,7 +47,7 @@
 | `camino.primer-nivel` | `components/path/path-section.tsx:123` — el `<div>` que ya lleva `data-path-current` | El repo YA localiza este elemento con `document.querySelector('[data-path-current="true"]')` desde `path-container.tsx:180,190,199` para centrarlo. El patrón por atributo está probado en casa. |
 | `camino.racha` | `components/shell/app-header.tsx:35-47` — el `<div class="flex items-center gap-1 …">` que envuelve llama y número | **Vive en el LAYOUT, no en una página**: ninguna página puede alcanzarlo por props. Este es el motivo de todo el diseño por atributo. |
 | `arcade.diarios` | `components/play/arcade-grid.tsx:61` — el `<ul>` de la fila de diarios | |
-| `repaso.que-es` | `app/(app)/(hub)/review/page.tsx:37` (el `<h1>` del estado vacío) **y** el elemento más externo de `components/review/review-quiz.tsx` | `/review` pinta tres raíces disjuntas (spinner, vacío, quiz) sin ningún elemento común. Se marcan las dos que pueden verse; el controlador usa la que exista. |
+| `repaso.que-es` | `app/(app)/(hub)/review/page.tsx:37` (el `<h1>` del estado vacío) | **Corregido durante la ejecución (commit c634693).** El plan pedía marcar también el elemento más externo de `components/review/review-quiz.tsx`, pero ese elemento envuelve la pantalla entera: un foco a su alrededor lo ilumina todo y por tanto no señala nada. Además interrumpiría un repaso en curso. La pista queda solo en el estado vacío, que es donde hay algo concreto que señalar. |
 | `retos.torneo` | `components/quests/tournament-card.tsx:70-73` — el `<div>` de la tarjeta real, no el esqueleto ni la rama `null` | |
 | `perfil.avatar` | `components/profile/profile-identity.tsx:50` — el `<div class="relative shrink-0">` que envuelve el avatar y el lápiz | Enseña de paso la carta de dos caras de E.2. |
 
@@ -311,7 +311,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `components/path/path-section.tsx:123`
 - Modify: `components/shell/app-header.tsx:35`
 - Modify: `components/play/arcade-grid.tsx:61`
-- Modify: `app/(app)/(hub)/review/page.tsx:37` y `components/review/review-quiz.tsx`
+- Modify: `app/(app)/(hub)/review/page.tsx:37` (ver la corrección de `repaso.que-es`: `review-quiz.tsx` NO se marca)
 - Modify: `components/quests/tournament-card.tsx:70`
 - Modify: `components/profile/profile-identity.tsx:50`
 - Modify: `components/ui/doty/doty-entrada.tsx:48`
@@ -368,7 +368,7 @@ En `components/play/arcade-grid.tsx`, el `<ul className={HERO_ROW_CLASS}>` gana:
 
 En `app/(app)/(hub)/review/page.tsx`, el `<h1>` del estado vacío gana `data-tip="repaso.que-es"`.
 
-En `components/review/review-quiz.tsx`, el **elemento más externo** que devuelve el componente gana el mismo `data-tip="repaso.que-es"`. Si ese elemento es un componente y no una etiqueta HTML (por ejemplo `PanelWrapper`), pon el atributo en el `<div>` o `<section>` HTML más externo que envuelva su contenido; **no modifiques la firma de ningún componente compartido** para hacerle sitio. Si no hubiera ninguno, dilo en el informe y deja solo el del estado vacío: el controlador salta en silencio la pista que no encuentra.
+~~En `components/review/review-quiz.tsx`, el elemento más externo gana el mismo `data-tip`.~~ **Retirado durante la ejecución (commit c634693):** ese elemento envuelve la pantalla entera —barra, panel, flash y pie—, así que el foco iluminaría todo y no señalaría nada. `repaso.que-es` se enseña solo en el estado vacío.
 
 - [ ] **Step 6: Marca la tarjeta del torneo**
 
@@ -910,13 +910,17 @@ UPDATE dots.users SET settings = settings - 'tips_seen' WHERE email = '<tu corre
 1. Entra al Camino: aparece el foco sobre tu nodo actual con "Este es tu primer nivel" y "Pista 1 de 2". "Entendido" la cierra y sale la de la llama, apuntando a la cabecera.
 2. Cambia de pestaña y vuelve al Camino: no reaparece ninguna.
 3. Arcade, Repaso, Retos y Perfil: una pista cada uno, sin contador.
-4. En Repaso con y sin cosas que repasar: en los dos casos hay a qué apuntar.
+4. En Repaso **sin** cosas que repasar (el estado vacío) sale la pista; **con** cosas que repasar no sale ninguna, y eso es lo correcto: el cuestionario ocupa la pantalla entera y no hay nada concreto que señalar. No se marca como vista, así que sigue pendiente para la próxima vez que el repaso esté al día.
 5. Recarga: no se repite ninguna. Entra desde otro navegador con la misma cuenta: tampoco.
 6. Mientras hay una pista, la página no scrollea; al cerrarla vuelve a scrollear.
 7. Con el nodo actual abajo del todo del Camino, la pista lo centra antes de enseñarlo.
 8. Cuenta nueva: la bienvenida va primero y las pistas esperan a que termine, sin pelearse con la animación de entrada.
 9. Con teclado: `Escape` cierra una pista y no vuelve a salir.
 10. En 390 px el bocadillo no se sale ni tapa el foco.
+11. En Retos, el agujero del foco rodea la tarjeta del torneo entera, no una versión encogida de ella.
+12. Estando puesta una pista, gira el teléfono: el agujero se recoloca sobre el objetivo en vez de quedarse apuntando al aire.
+13. En el Perfil, abre la hoja de ajustes nada más entrar (antes de que salga la pista) y ciérrala: la pista aparece después, no debajo de la hoja, y al cerrarla la página vuelve a scrollear. Este es el caso que dejaba la app sin scroll para el resto de la sesión.
+14. Con una pista puesta, `Escape` la cierra; con la hoja de ajustes abierta, `Escape` cierra solo la hoja.
 
 ## Cobertura del spec §7.3
 

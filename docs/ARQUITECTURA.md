@@ -63,8 +63,17 @@ es `hooks/use-tip-anchor.ts`; pintar el foco y el bocadillo es
 
 Se marcan con `PATCH /me/settings { tips_seen: [clave] }`, que el backend acumula
 en unión de-duplicada, así que no se repiten en otro dispositivo. Nada se enseña
-hasta que el primer inicio esté resuelto y el overlay de entrada haya terminado, y
-una pista cuyo objetivo no aparece se salta en silencio.
+hasta que el primer inicio esté resuelto, el overlay de entrada haya terminado y
+no haya ningún diálogo abierto. Una pista cuyo objetivo no aparece en ~6 s se
+salta en silencio, sin marcarse como vista, y se reintenta la próxima vez que se
+entre a esa pantalla.
+
+El scroll del body lo gobierna `lib/scroll-lock.ts`, un contador compartido con la
+hoja de ajustes y el selector de avatar. Antes cada uno guardaba y restauraba el
+valor por su cuenta, y dos bloqueos que se soltaran en orden distinto al de
+apertura dejaban el body sin scroll para el resto de la sesión: en una SPA eso no
+lo arregla ni navegar. Bloquea el primero que llega y solo suelta el último que se
+va. Cualquier diálogo nuevo que necesite parar el fondo debe usarlo.
 
 ### Primer inicio (`/welcome`)
 

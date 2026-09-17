@@ -24,8 +24,13 @@ interface Props {
   onEntendido: () => void;
 }
 
-/** Lo que mide el bocadillo entero: Doty de 84, título, frase, botón y contador. */
-const ALTO_BOCADILLO = 270;
+/**
+ * Lo que mide el bocadillo entero: Doty de 84, título, frase, botón y contador.
+ * Con la frase más larga (`camino.racha`) a 390 px de ancho pasa de 300, así
+ * que se redondea hacia arriba: quedarse corto solo hace que elija un lado
+ * donde no cabe del todo.
+ */
+const ALTO_BOCADILLO = 300;
 
 /** Aire entre el foco y el bocadillo. */
 const MARGEN = 16;
@@ -51,6 +56,9 @@ export default function DotyTip({ tip, recorte, indice, total, onEntendido }: Pr
   // lado sin sitio. Si no cabe a ninguno de los dos, se centra ENCIMA del foco:
   // tapar el objetivo es malo, pero dejar "Entendido" fuera de la pantalla es
   // peor, porque en un teléfono no hay Escape que lo rescate.
+  // `window` en el render es seguro aquí y solo aquí: este componente nunca
+  // llega al servidor, porque el controlador no lo monta hasta tener la
+  // respuesta de `/me/settings`, que solo puede llegar en cliente.
   const alto = window.innerHeight;
   const aireAbajo = alto - (recorte.top + recorte.height) - MARGEN;
   const aireArriba = recorte.top - MARGEN;

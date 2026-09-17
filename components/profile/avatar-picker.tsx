@@ -7,6 +7,7 @@ import Doty from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
 import type { PublicAvatar } from "@/lib/avatar";
 import type { ShopItem } from "@/services/shop.service";
+import { bloquearScroll } from "@/lib/scroll-lock";
 
 /**
  * Selector de avatar (spec §6.1). Lista los que el usuario puede usar ya: los
@@ -40,11 +41,10 @@ export default function AvatarPicker({ open, onClose, items, currentKey, onPick 
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const soltar = bloquearScroll();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
+      soltar();
     };
   }, [open, onClose]);
 

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { bloquearScroll, hayScrollBloqueado } from "@/lib/scroll-lock";
+
 /** Rectángulo del foco, en coordenadas de viewport, con su holgura ya sumada. */
 export interface Recorte {
   top: number;
@@ -11,23 +13,35 @@ export interface Recorte {
   radio: number;
 }
 
-/**
- * Lo que esperamos a que la pantalla pinte el elemento, ya destapada. Es tiempo
- * y no fotogramas: un contador de fotogramas valdría la mitad en un móvil de
- * 120 Hz, justo donde los fetch tardan más.
- */
-const ESPERA_MS = 1500;
+/** Cada cuánto se mira si el objetivo ya está en el DOM. */
+const INTERVALO_MS = 80;
 
 /**
- * Techo absoluto desde el montaje. La animación de entrada de Doty tapa la
- * pantalla entre 2,2 s (saludo) y 7,3 s (transformación + saludo), y mientras
- * tape NO gasta la espera de arriba; esto es solo el seguro por si se queda
- * pegada.
+ * Lo que esperamos a que la pantalla pinte el objetivo, ya destapada. No es el
+ * tiempo que tarda React en montar: el anclaje suele colgar del fetch pesado
+ * de la propia pantalla (`/path` en el Camino, los juegos en el arcade, el
+ * torneo en Retos), mientras que el reloj arranca cuando responde
+ * `/me/settings`, que es el más ligero. En una primera carga fría en móvil
+ * —justo cuando se enseñan las pistas— un presupuesto corto no llega.
  */
-const ESPERA_TAPADO_MS = 12000;
+const ESPERA_MS = 6000;
+
+/**
+ * Techo absoluto mientras algo tape la pantalla: la animación de entrada de
+ * Doty (entre 2,2 s y ~7,3 s) o un diálogo abierto. Ese tiempo NO gasta el
+ * presupuesto de arriba; esto es el seguro por si algo se queda pegado.
+ */
+const ESPERA_TAPADO_MS = 20000;
 
 /** Lo máximo que esperamos a que se quede quieta una animación del elemento. */
 const ESPERA_ANIMACION_MS = 800;
+
+/**
+ * Segunda medición, para no congelarnos sobre algo que todavía se mueve. El
+ * Camino programa su propio `scrollIntoView` suave 300 ms después de cargar, y
+ * `overflow: hidden` no detiene un scroll programático.
+ */
+const ESPERA_CONFIRMACION_MS = 700;
 
 /** Aire alrededor del elemento para que el foco no lo corte. */
 const HOLGURA = 8;
@@ -35,10 +49,9 @@ const HOLGURA = 8;
 /**
  * Espera a las animaciones finitas del propio elemento. `dots-pop-in` entra
  * desde `scale(.6)` y `getBoundingClientRect()` devuelve la caja YA
- * transformada: medir a mitad de vuelo dejaría un foco encogido para siempre,
- * porque no se vuelve a medir. Las infinitas (`dots-float`) no se esperan
- * nunca, que no terminan; y las de los hijos tampoco entran, porque un
- * `transform` de un hijo no mueve la caja del padre.
+ * transformada: medir a mitad de vuelo dejaría un foco encogido. Las infinitas
+ * (`dots-float`) no se esperan nunca, que no terminan; y las de los hijos
+ * tampoco entran, porque un `transform` de un hijo no mueve la caja del padre.
  */
 function animacionesQuietas(el: Element): Promise<unknown> {
   const pendientes = el
@@ -46,10 +59,13 @@ function animacionesQuietas(el: Element): Promise<unknown> {
     .filter((a) => a.effect != null && a.effect.getComputedTiming().iterations !== Infinity)
     .map((a) => a.finished.catch(() => undefined));
   if (pendientes.length === 0) return Promise.resolve(undefined);
+  let corte = 0;
   return Promise.race([
     Promise.all(pendientes),
-    new Promise((fin) => setTimeout(fin, ESPERA_ANIMACION_MS)),
-  ]);
+    new Promise((fin) => {
+      corte = window.setTimeout(fin, ESPERA_ANIMACION_MS);
+    }),
+  ]).finally(() => clearTimeout(corte));
 }
 
 /**
@@ -69,14 +85,45 @@ function vaClavado(el: Element): boolean {
 }
 
 /**
+ * Lo que tapan por arriba y por abajo las barras pegadas al viewport. Se miden
+ * en vez de teclearse: un elemento puede caber en el viewport y aun así vivir
+ * debajo de la cabecera, y como la pista se pinta por encima de todo, el
+ * agujero enseñaría la cabecera en vez del objetivo. Solo cuenta lo que ocupa
+ * una franja horizontal entera — el riel de escritorio va pegado a la
+ * izquierda y no estorba ni por arriba ni por abajo.
+ */
+function barras(): { arriba: number; abajo: number } {
+  let arriba = 0;
+  let abajo = 0;
+  for (const el of document.querySelectorAll("header, nav")) {
+    const pos = getComputedStyle(el).position;
+    if (pos !== "sticky" && pos !== "fixed") continue;
+    const r = el.getBoundingClientRect();
+    if (r.height === 0 || r.width < window.innerWidth * 0.8) continue;
+    if (r.top <= 0) arriba = Math.max(arriba, r.bottom);
+    if (r.bottom >= window.innerHeight) abajo = Math.max(abajo, window.innerHeight - r.top);
+  }
+  return { arriba, abajo };
+}
+
+/**
  * Encuentra el elemento marcado con `data-tip="<clave>"`, lo centra si hace
  * falta, lo mide y bloquea el scroll mientras se enseña la pista.
  *
- * Devuelve `null` mientras no haya nada que enseñar, y también para siempre si
- * el elemento no llega a aparecer: una pista que no encuentra a qué apuntar se
- * salta en silencio, nunca bloquea al usuario.
+ * Devuelve `null` mientras no haya nada que enseñar. Si el objetivo no llega a
+ * aparecer, llama a `alRendirse` y se queda en `null`: una pista que no
+ * encuentra a qué apuntar se salta en silencio, nunca bloquea al usuario ni a
+ * las pistas que van detrás.
  */
 export function useTipAnchor(clave: string | null, alRendirse?: () => void): Recorte | null {
+  // El recorte viaja con la clave que lo midió: así, al pasar de una pista a
+  // la siguiente, el valor viejo deja de ser válido sin tener que borrarlo
+  // desde un efecto (regla 3).
+  const [medida, setMedida] = useState<{ clave: string; recorte: Recorte } | null>(null);
+  // Girar el teléfono mueve el objetivo y el recorte se quedaría apuntando al
+  // aire. `ronda` obliga a medir otra vez sin borrar `medida`, para que la
+  // pista no parpadee mientras se vuelve a colocar.
+  const [ronda, setRonda] = useState(0);
   // Avisar de que nos rendimos va por callback y no por valor devuelto: el
   // consumidor tendría que convertirlo en estado desde un efecto, y la regla 3
   // no lo permite. Por ref, para que un callback recreado en cada render no
@@ -86,33 +133,17 @@ export function useTipAnchor(clave: string | null, alRendirse?: () => void): Rec
     rendirse.current = alRendirse;
   });
 
-  // El recorte viaja con la clave que lo midió: así, al pasar de una pista a
-  // la siguiente, el valor viejo deja de ser válido sin tener que borrarlo
-  // desde un efecto (regla 3).
-  const [medida, setMedida] = useState<{ clave: string; recorte: Recorte } | null>(null);
-  // Girar el teléfono mueve el objetivo y el recorte se quedaría apuntando al
-  // aire. `ronda` obliga a medir otra vez sin borrar `medida`, para que la
-  // pista no parpadee mientras se vuelve a colocar.
-  const [ronda, setRonda] = useState(0);
-
   useEffect(() => {
     if (clave === null) return;
     let vivo = true;
     let frame = 0;
-    /** Valor anterior de `overflow`, solo si llegamos a bloquear. */
-    let previo: string | null = null;
+    let reloj = 0;
+    let confirmacion = 0;
+    let soltar: (() => void) | null = null;
     const montaje = performance.now();
     let destapadoEn: number | null = null;
 
-    const medir = (el: Element) => {
-      if (!vivo || !el.isConnected) return;
-      // Bloqueamos ANTES de medir: en un escritorio con barra de scroll clásica
-      // esconder el overflow ensancha el viewport y recoloca lo centrado. Si
-      // midiéramos antes, el foco quedaría corrido esos píxeles. El bloqueo se
-      // suelta en la limpieza de este mismo efecto, que corre al cambiar de
-      // pista o al desmontar.
-      previo = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+    const tomar = (el: Element) => {
       const r = el.getBoundingClientRect();
       const radio = Number.parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
       setMedida({
@@ -127,52 +158,75 @@ export function useTipAnchor(clave: string | null, alRendirse?: () => void): Rec
       });
     };
 
+    const medir = (el: Element) => {
+      if (!vivo) return;
+      if (!el.isConnected) {
+        // Se fue entre que lo encontramos y lo íbamos a medir: se vuelve a
+        // buscar en vez de morir aquí, que dejaría la cola atascada.
+        reloj = window.setTimeout(buscar, INTERVALO_MS);
+        return;
+      }
+      // Bloqueamos ANTES de medir: en un escritorio con barra de scroll clásica
+      // esconder el overflow ensancha el viewport y recoloca lo centrado.
+      soltar = bloquearScroll();
+      tomar(el);
+      confirmacion = window.setTimeout(() => {
+        if (vivo && el.isConnected) tomar(el);
+      }, ESPERA_CONFIRMACION_MS);
+    };
+
     const buscar = () => {
       if (!vivo) return;
       const ahora = performance.now();
 
-      // Mientras la animación de entrada cubra la pantalla, lo que hay debajo
-      // no se ve: medirlo daría un rectángulo que el usuario no puede mirar.
-      if (document.querySelector("[data-doty-entrada]") !== null) {
-        if (ahora - montaje < ESPERA_TAPADO_MS) frame = requestAnimationFrame(buscar);
+      // Tapado: la animación de entrada cubre la pantalla, o hay un diálogo
+      // abierto (la hoja de ajustes, el selector de avatar). En los dos casos
+      // medir daría un rectángulo que el usuario no puede mirar, y la pista se
+      // pintaría debajo del diálogo. Esperar no gasta el presupuesto.
+      const tapado =
+        document.querySelector("[data-doty-entrada]") !== null || hayScrollBloqueado();
+      if (tapado) {
+        if (ahora - montaje < ESPERA_TAPADO_MS) reloj = window.setTimeout(buscar, INTERVALO_MS);
         else rendirse.current?.();
         return;
       }
       if (destapadoEn === null) destapadoEn = ahora;
       if (ahora - destapadoEn >= ESPERA_MS) {
-        // Se acabó la espera. Avisamos para que quien manda pase a la
-        // siguiente: sin esto una pista que no encuentra a qué apuntar se
-        // queda a la cabeza de la cola y tapa a las que van detrás.
         rendirse.current?.();
         return;
       }
 
       const el = document.querySelector(`[data-tip="${clave}"]`);
       if (el === null) {
-        frame = requestAnimationFrame(buscar);
+        reloj = window.setTimeout(buscar, INTERVALO_MS);
         return;
       }
 
       animacionesQuietas(el).then(() => {
         if (!vivo) return;
         if (!el.isConnected) {
-          frame = requestAnimationFrame(buscar);
+          reloj = window.setTimeout(buscar, INTERVALO_MS);
           return;
         }
-        // No lo movemos si va clavado, ni si ya está entero a la vista. Si hay
-        // que moverlo, de golpe: `smooth` no avisa cuándo terminó.
+        // No lo movemos si va clavado, ni si ya está a la vista y despejado de
+        // las barras. Si hay que moverlo, de golpe: `smooth` no avisa cuándo
+        // terminó.
         const r = el.getBoundingClientRect();
-        const dentro = r.top >= HOLGURA && r.bottom <= window.innerHeight - HOLGURA;
+        const { arriba, abajo } = barras();
+        const dentro =
+          r.top >= arriba + HOLGURA && r.bottom <= window.innerHeight - abajo - HOLGURA;
         if (!dentro && !vaClavado(el)) el.scrollIntoView({ block: "center", behavior: "instant" });
         frame = requestAnimationFrame(() => medir(el));
       });
     };
 
-    frame = requestAnimationFrame(buscar);
+    reloj = window.setTimeout(buscar, 0);
     return () => {
       vivo = false;
+      clearTimeout(reloj);
+      clearTimeout(confirmacion);
       cancelAnimationFrame(frame);
-      if (previo !== null) document.body.style.overflow = previo;
+      soltar?.();
     };
   }, [clave, ronda]);
 
@@ -181,9 +235,9 @@ export function useTipAnchor(clave: string | null, alRendirse?: () => void): Rec
     let espera = 0;
     let ultimo = `${window.innerWidth}x${window.innerHeight}`;
     // Con un respiro: arrastrar el borde de una ventana dispara `resize` en
-    // cada fotograma, y cada medición suelta y vuelve a tomar el bloqueo. Y
-    // solo si el viewport cambió de verdad: medir toca `overflow` del body, y
-    // un `resize` que saliera de ahí realimentaría el ciclo para siempre.
+    // cada fotograma. Y solo si el viewport cambió de verdad: medir toca el
+    // `overflow` del body, y un `resize` que saliera de ahí realimentaría el
+    // ciclo para siempre.
     const alCambiar = () => {
       const ahora = `${window.innerWidth}x${window.innerHeight}`;
       if (ahora === ultimo) return;
