@@ -382,9 +382,74 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   porque a ese tamaño el gesto no se distingue.
 - La tarjeta "Gesto de tu Doty" dice dónde se ve el gesto y usa la misma pose por gesto en sus
   miniaturas. Lógica pura en `lib/avatar-flip.ts`; componente `components/profile/avatar-flip.tsx`.
-- **Fuera de alcance, pendiente de decisión (fase 2):** aviso "te pasó" con el nombre y el gesto de
-  quien te adelanta en el ranking, y perfil público de otros usuarios. Plan de la fase 1:
-  `docs/superpowers/plans/2026-09-16-rediseno-e2-avatar-dos-caras.md`.
+- **Fase 2 decidida el 2026-09-17**, en §6.5. Sigue fuera de alcance el perfil público de otros
+  usuarios. Plan de la fase 1: `docs/superpowers/plans/2026-09-16-rediseno-e2-avatar-dos-caras.md`.
+
+### 6.5 Aviso "te pasó" (E.3, fase 2 — decidido el 2026-09-17)
+
+- **El problema.** La fase 1 le dio al gesto un escenario privado: lo ve su dueño al abrir su propio
+  perfil. Un gesto que solo te ves tú no es una posesión que nadie quiera comprar. La fase 2 le da el
+  escenario público que justifica su existencia: **tu gesto es lo que ven los demás cuando les ganas**.
+- **Lo que ya existía y se retira.** `hooks/use-rival-watch.ts` hace hoy lo contrario de esto —
+  felicita cuando tu puesto MEJORA— y lo hace fuera de las convenciones del repo: pinta el aviso
+  creando un `div` con `document.createElement` y estilos en línea, usa el token inexistente
+  `--accent-foreground` (aquí es `--accent-contrast`), lleva un emoji como iconografía (regla 11) y
+  lee el usuario de `localStorage` a mano en vez de por `hooks/use-stored-user.ts`. Se sustituye
+  entero. Su idea buena —un snapshot del puesto por usuario— se conserva.
+
+- **Dónde y cuándo.** Al entrar a **Camino, Juegos o Retos**, y en ninguna otra pantalla: ni en
+  Repaso ni en Perfil ni en la Tienda, porque a esas tres vas con una intención concreta —practicar o
+  gestionar algo— y el aviso la interrumpiría. Se consulta en cada entrada a esas tres rutas,
+  volver de una lección incluida: ese es el momento con más dramatismo, porque acabas de sumar XP y
+  aun así te adelantaron.
+- **Cómo se detecta.** Se compara tu puesto actual con el guardado de la última comprobación. Si
+  **empeoró**, te pasaron; si **mejoró**, pasaste tú. No hace falta más: tu puesto en un ranking solo
+  empeora si alguien te cruzó, así que quien quede justo encima ES alguien que te pasó. Se nombra a
+  ese vecino (`above` cuando bajaste, `below` cuando subiste). Un puesto guardado nulo —primera vez en
+  ese dispositivo— nunca avisa, solo guarda.
+- **El reinicio semanal.** El ranking es semanal y al cambiar de semana los puestos se barajan sin que
+  nadie te haya pasado, lo que dispararía un aviso falso señalando a una persona concreta. El payload
+  del rival pasa a incluir `weekStart` —el lunes de la semana del ranking, como cadena `YYYY-MM-DD`,
+  que es lo que el servicio ya calcula— y el snapshot lo guarda junto al puesto: **si la semana
+  cambió, no se compara**, solo se guarda el estado nuevo.
+
+- **El snapshot.** Sigue en `localStorage`, por usuario, en la clave que ya usa el hook actual
+  (`dots.rival.rank.<userId>`), que pasa de `{ rank }` a `{ rank, weekStart }`. Un valor con el
+  formato viejo —los que ya existen en los navegadores de la gente— se lee sin romperse y se trata
+  como semana desconocida: no compara, solo migra. Es por dispositivo, igual que hoy; un navegador
+  nuevo empieza sin avisar.
+
+- **Qué enseña.** Una tarjeta con Doty en el tamaño `smaller` del registro (`w-28`, 112 px), el
+  nombre del rival y por cuánto XP. No puede ser una tira de texto: a 34 px un gesto no se
+  distingue (§6.4) y sin tamaño la animación no significa nada.
+  - **Te pasó, con gesto equipado:** Doty hace **el gesto del rival**, con la misma traducción de la
+    fase 1 (`gesturePose` de `lib/avatar-flip.ts`: `wave` → `saludando`, `cheer` → `emocionado`, el
+    resto → `feliz`).
+  - **Te pasó, sin gesto equipado** —hoy, todos: pose fija `flexeando` con animación `cheer`. El
+    sujeto del gesto es el rival presumiendo, nunca Doty burlándose de ti: el canon dice que Doty no
+    regaña ni se ríe de un error del usuario, y que te adelanten no es un error tuyo sino un mérito
+    del otro.
+  - **Subiste de puesto:** pose `aplaudiendo`, animación `cheer`, y NUNCA el gesto del otro — el
+    gesto es exclusivamente la carga del aviso de derrota. Esa exclusividad es lo que lo convierte en
+    un flex y lo que le da sentido a comprarlo.
+- **Comportamiento.** Entra desde abajo, por encima de la barra de navegación. Se va sola a los 6 s
+  —tiempo de sobra para leer dos líneas y ver un ciclo de gesto, que el más largo dura 3 s—, se
+  puede descartar con un toque, y tocar la tarjeta lleva a Retos (`router.push`, regla 1).
+  **No es un modal**: no bloquea el scroll, no se come los toques de lo que hay debajo y no usa
+  `lib/scroll-lock.ts`. La pista contextual de §7.3 sí puede interrumpir porque se ve una vez en la
+  vida; esto puede pasar varias veces por semana.
+- **Reglas duras.** Solo `transform`/`opacity` (regla 2), solo tap, cero emoji (regla 11), Doty solo
+  desde el registro generado (regla 10). El aviso es `role="status"` con `aria-live="polite"`: informa,
+  no exige atención.
+
+- **Backend.** `GET /me/rival` gana dos campos y ninguna migración: `gesture` en cada vecino (el slot
+  equipado de `dots.user_items`, en el mismo lote que ya resuelve los avatares — nunca una consulta por
+  fila) y la semana del ranking en la raíz, que el servicio ya calcula con `mondayOfWeek(santiagoToday())`
+  para la consulta del leaderboard. `delta` ya existe y es la diferencia de XP semanal con el vecino.
+- **Lógica pura y probada.** La decisión —comparar puestos, descartar el cambio de semana, elegir a
+  quién nombrar y qué pose usar— vive en un módulo puro bajo `node --test`, separada del componente y
+  del fetch. Es donde están los casos que a mano no se prueban: primera vez, semana nueva, sin puesto,
+  empate, rival sin nombre.
 
 ## 7. Subproyecto F — Primer inicio guiado
 
