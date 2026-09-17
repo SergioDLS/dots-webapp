@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { ADMIN_PROFILE } from "@/constants";
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { useStoredUser } from "@/hooks/use-stored-user";
 
 type Access = "checking" | "granted" | "denied";
 
@@ -37,18 +38,15 @@ export default function AdminLayout({
     () => true,
     () => false,
   );
+  // Mismo storage que leía el bloque try/catch de abajo, ahora vía el lector
+  // compartido (lib/current-user.ts): {} hasta hidratar, luego el real.
+  const storedUser = useStoredUser();
 
   const access: Access = useMemo(() => {
     if (!hydrated || isBootstrapping) return "checking";
     if (!accessToken) return "denied";
-    try {
-      const raw = localStorage.getItem("user");
-      const profile = raw ? JSON.parse(raw)?.profile : undefined;
-      return Number(profile) === ADMIN_PROFILE ? "granted" : "denied";
-    } catch {
-      return "denied";
-    }
-  }, [hydrated, isBootstrapping, accessToken]);
+    return Number(storedUser.profile) === ADMIN_PROFILE ? "granted" : "denied";
+  }, [hydrated, isBootstrapping, accessToken, storedUser]);
 
   // Side-effect only: bounce unauthenticated visitors to login.
   useEffect(() => {
