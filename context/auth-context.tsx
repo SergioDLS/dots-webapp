@@ -12,6 +12,7 @@ import api, {
   refreshAccessToken,
   setAccessToken as setApiAccessToken,
 } from "@/lib/api-client";
+import { borrarEspejo } from "@/lib/first-run";
 import { SOUND_KEY } from "@/lib/sound-prefs";
 import { DIRTY_KEY, MODE_KEY, PALETTE_KEY } from "@/lib/theme-prefs";
 
@@ -82,6 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           window.localStorage.removeItem(MODE_KEY);
           window.localStorage.removeItem(SOUND_KEY);
           window.localStorage.removeItem(DIRTY_KEY);
+          // El primer inicio también es del usuario: en un equipo compartido, el
+          // siguiente en entrar tiene que pasar por su propia bienvenida.
+          borrarEspejo();
         } catch {
           /* modo privado o storage lleno: nada que limpiar */
         }

@@ -19,6 +19,7 @@ import {
   pickDefaultDifficultyId,
   prettyDifficultyName,
 } from "@/lib/path-view";
+import { estadoPrimerInicio } from "@/lib/first-run";
 import type { PathPeer, PathResponse } from "@/types/path.types";
 
 /**
@@ -130,7 +131,14 @@ export default function PathContainer() {
   // error path leave placementPending=false, so existing users are never
   // trapped in onboarding.
   useEffect(() => {
-    if (path?.placementPending) router.replace("/onboarding");
+    // El gate del primer inicio corre en paralelo y también redirige: mientras
+    // su veredicto sea "pendiente" este se aparta, para que una cuenta nueva
+    // vea la bienvenida ANTES del placement y no al revés. Con "desconocido"
+    // —el fetch de ajustes aún no volvió, o falló— se redirige como siempre:
+    // fallar abierto es preferible a dejar a alguien sin placement.
+    if (path?.placementPending && estadoPrimerInicio() !== "pendiente") {
+      router.replace("/onboarding");
+    }
   }, [path?.placementPending, router]);
 
   const searchParams = useSearchParams();

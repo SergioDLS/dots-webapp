@@ -2,6 +2,7 @@ import React from "react";
 
 import AppNav from "@/components/shell/app-nav";
 import AppHeader from "@/components/shell/app-header";
+import FirstRunGate from "@/components/first-run/first-run-gate";
 import DotyEntrada from "@/components/ui/doty/doty-entrada";
 import ThemeSync from "@/components/theme/theme-sync";
 
@@ -18,6 +19,9 @@ export default function HubLayout({
     <div className="min-h-screen md:pl-[84px]">
       {/* Reconcilia paleta/modo con /me/settings tras el primer paint. */}
       <ThemeSync />
+      {/* Primer inicio (spec §7.1): manda a /welcome a quien no tiene
+          onboarded_at. No envuelve nada: pinta null y decide en un efecto. */}
+      <FirstRunGate />
       {/* Overlay de entrada a la app. Va en el layout y no en /levels porque
           este se monta una vez por carga de página y sobrevive al cambio de
           pestañas: dentro de /levels reaparecería al volver al Camino desde
