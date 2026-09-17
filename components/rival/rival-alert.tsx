@@ -24,7 +24,7 @@ export default function RivalAlert({ aviso, onCerrar, onAbrirRetos }: Props) {
   useEffect(() => {
     const t = setTimeout(onCerrar, DURACION_MS);
     return () => clearTimeout(t);
-  }, [onCerrar]);
+  }, [aviso, onCerrar]);
 
   const perdiste = aviso.tipo === "perdiste";
   const titulo = perdiste ? `Te pasó ${aviso.nombre}` : `Le pasaste a ${aviso.nombre}`;
