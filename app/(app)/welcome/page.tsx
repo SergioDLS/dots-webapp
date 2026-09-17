@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import WelcomeHello from "@/components/first-run/welcome-hello";
+import WelcomeTheme from "@/components/first-run/welcome-theme";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { useAuth } from "@/context/auth-context";
 import { escribirEspejo, fijarPrimerInicio, rutaTrasBienvenida } from "@/lib/first-run";
@@ -149,7 +150,17 @@ export default function WelcomePage() {
     <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center gap-6 px-5 py-10">
       {paso === 1 && <WelcomeHello onNext={() => setPaso(2)} />}
 
-      {/* Los pasos 2 y 3 los montan las tareas siguientes de este plan. */}
+      {paso === 2 && (
+        <WelcomeTheme
+          prefs={prefs}
+          sound={sound}
+          onPrefs={cambiarPrefs}
+          onSound={cambiarSonido}
+          onNext={() => setPaso(3)}
+        />
+      )}
+
+      {/* El paso 3 lo monta la tarea siguiente de este plan. */}
 
       <button
         type="button"
