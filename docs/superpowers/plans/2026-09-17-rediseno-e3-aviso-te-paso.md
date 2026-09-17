@@ -22,7 +22,8 @@
 - **Cero emoji como iconografía** (regla 11). El aviso que se retira lleva uno; el nuevo no lleva ninguno.
 - **Nunca editar a mano** `app/themes.generated.css` ni `lib/theme-colors.ts` (regla 12).
 - **Copy en español, tono juguetón.** Doty nunca regaña ni se burla de un fallo del usuario: que te adelanten no es un fallo tuyo, es un mérito del otro.
-- Antes de commitear en `dots-webapp`: `npm run lint` y `npx next build` tienen que pasar. En `dots-backend`: `npm run lint` y `npm test`.
+- Antes de commitear en `dots-webapp`: `npm run lint` y `npx next build` tienen que pasar.
+- En `dots-backend` el gate es **`npm test`**, no el lint. **NO corras `npm run lint` en el backend**: su script es el de NestJS por defecto y lleva `--fix`, así que reformatea archivos de todo el repo que tu tarea no ha tocado y ensucia el árbol. Si necesitas comprobar el lint de lo tuyo, acótalo: `npx eslint <tus archivos>` **sin** `--fix`. El lint del backend no está limpio en `main` y esta fase no lo arregla.
 
 ---
 
