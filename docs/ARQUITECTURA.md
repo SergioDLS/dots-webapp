@@ -60,11 +60,16 @@ el layout del hub reacciona a la ruta y consulta `GET /me/rival` al entrar a
 la Tienda se va con una intención concreta y el aviso la interrumpiría.
 
 La detección es una comparación de puestos contra un snapshot en `localStorage`
-(`dots.rival.rank.<userId>`, `{ rank, weekStart }`): un puesto solo empeora si
-alguien te cruzó, así que quien quede justo encima ES alguien que te pasó. El
-`weekStart` está para que no se compare entre semanas: al reiniciarse el ranking
-los puestos se barajan sin que nadie te haya pasado. Un snapshot con el formato
-viejo (`{ rank }` a secas) se lee como semana desconocida y solo migra.
+(`dots.rival.rank.<userId>`, `{ rank, weekStart }`). Nombrar al vecino como quien
+te cruzó solo vale cuando el puesto se mueve **un** escalón; con más, el
+movimiento pudo venir de gente que ni estaba —entran dos cuentas por encima de
+todos y bajas dos puestos sin que tu vecino se moviera—, así que la decisión
+devuelve `saltos` y la tarjeta dice cuántos puestos bajaste (o subiste) sin
+atribuirle el adelantamiento a nadie. El vecino se sigue nombrando y su gesto se
+sigue viendo en los cuatro casos: ese es el punto de la fase. El `weekStart` está
+para que no se compare entre semanas: al reiniciarse el ranking los puestos se
+barajan sin que nadie te haya pasado. Un snapshot con el formato viejo
+(`{ rank }` a secas) se lee como semana desconocida y solo migra.
 
 La decisión es pura y está probada (`lib/rival-alert.ts`, bajo `node --test`);
 pintar es `components/rival/rival-alert.tsx`. Sin gesto equipado —hoy, todos— el
@@ -72,6 +77,17 @@ rival presume con la pose `flexeando`. Cuando subes de puesto sale Doty
 aplaudiendo y **nunca** el gesto del otro: esa exclusividad es lo que convierte
 al gesto en un flex. La tarjeta no es un modal: no bloquea el scroll, no se come
 los toques y se va sola a los 6 s.
+
+Dos detalles que no son adorno, porque el aviso se descarta solo y solo hay una
+oportunidad de verlo. El estado guarda `{ ruta, aviso }` y se trata como
+inexistente si la ruta ya no es la actual: el layout del hub no se remonta al
+cambiar de pestaña, así que sin eso la tarjeta se iría contigo a Repaso, al
+Perfil o a la Tienda, que son justo las tres pantallas donde no se avisa. Y la
+emisión espera a que la pantalla esté destapada —la animación de entrada de Doty
+(`[data-doty-entrada]`) y cualquier diálogo con el scroll tomado
+(`hayScrollBloqueado`), los mismos dos tapones que mira `use-tip-anchor`—, con un
+techo de 20 s tras el cual se descarta sin pintarse. El snapshot, en cambio, se
+guarda siempre: no depende de que el aviso llegue a verse.
 
 ### Pistas contextuales
 
@@ -222,7 +238,7 @@ porque cambiar este comportamiento sería incorrecto para el resto.
 
 - **Torneo semanal** (`tournament-card.tsx`): juego de la semana por rotación, top-10, countdown, CTA con `?tournament=1&seed=`.
 - **Retos 1v1** (`challenges-panel.tsx` + ⚔️ en `top-students.tsx`): retar desde el leaderboard, mismo mazo por seed, panel entrantes/salientes/historial, badge en nav.
-- **Rival** (`rival-banner.tsx` + `use-rival-watch`): el de arriba/abajo tuyo en XP semanal; toast al subir de puesto (snapshot de rank en localStorage por usuario).
+- **Rival** (`rival-banner.tsx`): el de arriba/abajo tuyo en XP semanal, con avatar, nombre y diferencia. El mismo `GET /me/rival` alimenta el aviso "te pasó" del hub (ver «Aviso "te pasó"» arriba), que sustituyó al toast imperativo de `use-rival-watch` — ese hook ya no existe.
 - **Trono**: récord global por juego; robarlo = +10 gemas (server).
 
 ## Auth y datos

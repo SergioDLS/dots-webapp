@@ -403,10 +403,23 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   volver de una lección incluida: ese es el momento con más dramatismo, porque acabas de sumar XP y
   aun así te adelantaron.
 - **Cómo se detecta.** Se compara tu puesto actual con el guardado de la última comprobación. Si
-  **empeoró**, te pasaron; si **mejoró**, pasaste tú. No hace falta más: tu puesto en un ranking solo
-  empeora si alguien te cruzó, así que quien quede justo encima ES alguien que te pasó. Se nombra a
-  ese vecino (`above` cuando bajaste, `below` cuando subiste). Un puesto guardado nulo —primera vez en
-  ese dispositivo— nunca avisa, solo guarda.
+  **empeoró**, perdiste puestos; si **mejoró**, los ganaste. Se nombra al vecino de ese lado
+  (`above` cuando bajaste, `below` cuando subiste) y se enseña su gesto, que es el punto de la fase.
+  Un puesto guardado nulo —primera vez en ese dispositivo— nunca avisa, solo guarda.
+  - **Corregido el 2026-09-17.** La premisa original decía que un puesto solo empeora si alguien te
+    cruzó, y de ahí que el vecino de arriba ES quien te pasó. Eso solo es verdad si el puesto se mueve
+    **exactamente un** escalón: ahí el de al lado es forzosamente quien cambió de lado contigo. Con
+    más de uno, el movimiento puede no ser cosa suya — estabas 3.º, no abres la app en tres días,
+    entran dos cuentas nuevas por encima de todos y acabas 5.º: `above` es quien ya era 2.º, que
+    llevaba toda la semana por delante y no te adelantó nunca. La tarjeta diría "Te pasó Beto" y
+    sería falso, señalando además a una persona con nombre y cara.
+  - **Cómo queda.** No se recorta la función: se hace que toda afirmación sea verdadera. La decisión
+    devuelve `saltos` —la diferencia absoluta de puestos— y el copy se elige con él. Con `saltos === 1`
+    se atribuye ("Te pasó Beto"); con más, el título cuenta los puestos y el nombre baja a la frase
+    como lo único comprobable, quién va delante ahora y por cuánto ("Bajaste 2 puestos · Beto va
+    40 XP por delante"). La rama de subida tiene el mismo agujero —subes porque bloquearon a alguien
+    de arriba, sin haber pasado a nadie—, así que el tratamiento es simétrico. **Lo que no cambia en
+    ninguno de los cuatro casos**: se nombra al vecino y se ve su gesto.
 - **El reinicio semanal.** El ranking es semanal y al cambiar de semana los puestos se barajan sin que
   nadie te haya pasado, lo que dispararía un aviso falso señalando a una persona concreta. El payload
   del rival pasa a incluir `weekStart` —el lunes de la semana del ranking, como cadena `YYYY-MM-DD`,
@@ -438,6 +451,11 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   **No es un modal**: no bloquea el scroll, no se come los toques de lo que hay debajo y no usa
   `lib/scroll-lock.ts`. La pista contextual de §7.3 sí puede interrumpir porque se ve una vez en la
   vida; esto puede pasar varias veces por semana.
+  - **Añadido el 2026-09-17.** Como se descarta solo y el snapshot ya quedó guardado, solo hay una
+    oportunidad de verlo: por eso no se emite mientras algo tape la pantalla —la animación de entrada
+    de Doty, que corre en todo login con formulario, o un diálogo con el scroll tomado— y no se emite
+    fuera de la pantalla que lo pidió, porque el layout del hub no se remonta al cambiar de pestaña.
+    Si el tapón no se levanta en 20 s el aviso se descarta sin pintarse; el snapshot se guarda igual.
 - **Reglas duras.** Solo `transform`/`opacity` (regla 2), solo tap, cero emoji (regla 11), Doty solo
   desde el registro generado (regla 10). El aviso es `role="status"` con `aria-live="polite"`: informa,
   no exige atención.
