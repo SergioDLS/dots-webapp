@@ -177,9 +177,16 @@ export default function ShopPage() {
                   <span className="text-sm font-extrabold leading-tight text-foreground">
                     {label}
                   </span>
+                  {/* Solo los tres personajes la traen: su nombre propio no dice
+                      qué son, y el prefijo "Doty:" del resto ya lo dice solo. */}
+                  {item.description && (
+                    <span className="text-[11px] font-semibold leading-tight text-(--muted)">
+                      {item.description}
+                    </span>
+                  )}
                   {equipped ? (
                     <span
-                      className="mt-1 inline-flex items-center gap-1 text-xs font-black"
+                      className="mt-auto inline-flex items-center gap-1 text-xs font-black"
                       style={{ color: "var(--accent)" }}
                     >
                       <Icon name="check" size={16} /> Lo tienes
@@ -188,7 +195,7 @@ export default function ShopPage() {
                     <button
                       disabled={busy === item.key}
                       onClick={() => equipAvatar(item)}
-                      className="dots-pressable mt-1 w-full rounded-xl px-3 py-2 text-xs font-black disabled:opacity-55"
+                      className="dots-pressable mt-auto w-full rounded-xl px-3 py-2 text-xs font-black disabled:opacity-55"
                       style={{
                         background: "var(--accent)",
                         color: "var(--accent-contrast)",
@@ -201,7 +208,7 @@ export default function ShopPage() {
                     <button
                       disabled={busy === item.key || !affordable}
                       onClick={() => buy(item)}
-                      className="dots-pressable mt-1 w-full rounded-xl px-3 py-2 text-xs font-black disabled:opacity-55"
+                      className="dots-pressable mt-auto w-full rounded-xl px-3 py-2 text-xs font-black disabled:opacity-55"
                       style={{
                         background: "var(--accent)",
                         color: "var(--accent-contrast)",
