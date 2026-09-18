@@ -604,10 +604,12 @@ def test_render_report_sections():
     # que un orden de desempaquetado cambiado en render_report debe romper esto.
     txt = mjlib.render_report({"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": ["wow"],
                                "ambiguous": ["triste"], "halo": [("feliz", 2.5)],
+                               "soft": [("cientifica", 0.51)],
                                "failed": [("bailando", "RuntimeError: modelo caído")],
                                "duplicates": [("dot-bombs", "sergio_archivo.png", "wordle")]})
     assert "# fase-1 — REPORT" in txt and "## Hechas (1)" in txt and "- wow" in txt
     assert "feliz (2.50 px)" in txt
+    assert "cientifica (51% del interior traslúcido)" in txt
     assert "bailando: RuntimeError: modelo caído" in txt
     assert "dot-bombs y wordle -> sergio_archivo.png" in txt
 
@@ -645,6 +647,83 @@ def test_halo_thickness_no_depende_del_tamano():
     a = mjlib.halo_thickness_px(circulo(512))
     b = mjlib.halo_thickness_px(circulo(1024))
     assert abs(a - b) < 0.15 and a < mjlib.HALO_THRESHOLD
+
+
+def disco(size=256, alfa=255, comido=0.0):
+    """Disco rosa con antialiasing real: se dibuja a 4x y se reduce.
+
+    `alfa` es el relleno; `comido` es la fracción de ALTURA a la que se le baja
+    el alfa, para imitar el fallo real — a `cientifica` le quedaron opacos el
+    pelo y las gafas y se le fue la cara, no la figura entera.
+    """
+    from PIL import ImageDraw
+
+    s = size * 4
+    im = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    off = s * 0.07
+    d.ellipse([off, off, s - off, s - off], fill=(255, 31, 143, alfa))
+    if comido:
+        d.rectangle([0, s * (1 - comido), s, s], fill=None)
+        px = im.load()
+        for y in range(int(s * (1 - comido)), s):
+            for x in range(s):
+                r, g, b, a = px[x, y]
+                if a:
+                    px[x, y] = (r, g, b, 90)
+    return im.resize((size, size), Image.LANCZOS)
+
+
+def test_soft_interior_fraction_calla_en_un_sprite_limpio():
+    v = mjlib.soft_interior_fraction(disco())
+    assert v < 0.01 and v < mjlib.SOFT_INTERIOR_THRESHOLD
+
+
+def test_soft_interior_fraction_caza_un_relleno_traslucido():
+    assert mjlib.soft_interior_fraction(disco(alfa=120)) > 0.99
+
+
+def test_soft_interior_fraction_caza_media_figura_comida():
+    # El fallo de `cientifica` no vació la figura entera: medio interior blando
+    # ya tiene que sonar, que es justo lo que el umbral debe dejar pasar.
+    v = mjlib.soft_interior_fraction(disco(comido=0.5))
+    assert v > mjlib.SOFT_INTERIOR_THRESHOLD
+
+
+def test_soft_interior_fraction_no_depende_del_tamano():
+    a = mjlib.soft_interior_fraction(disco(256))
+    b = mjlib.soft_interior_fraction(disco(512))
+    assert abs(a - b) < 0.01 and a < mjlib.SOFT_INTERIOR_THRESHOLD
+
+
+def test_soft_interior_fraction_no_castiga_una_silueta_recortada():
+    """Una estrella de picos finos es casi todo contorno. Sobre el sprite entero
+    su orla de antialiasing pesaría como un relleno roto; medida tras erosionar,
+    no. Es la razón de ser de `INTERIOR_EROSION_PX`."""
+    import math
+
+    from PIL import ImageDraw
+
+    s = 1024
+    im = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    puntos = []
+    for i in range(24):
+        ang = math.pi * i / 12
+        r = s * 0.46 if i % 2 == 0 else s * 0.16
+        puntos.append((s / 2 + r * math.cos(ang), s / 2 + r * math.sin(ang)))
+    ImageDraw.Draw(im).polygon(puntos, fill=(255, 31, 143, 255))
+    estrella = im.resize((256, 256), Image.LANCZOS)
+    assert mjlib.soft_interior_fraction(estrella) < mjlib.SOFT_INTERIOR_THRESHOLD
+
+
+def test_soft_interior_fraction_calla_si_la_erosion_se_come_la_figura():
+    """Una línea más fina que la erosión no deja interior que juzgar: devuelve 0
+    en vez de una alarma calculada sobre cuatro píxeles."""
+    im = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
+    for x in range(10, 90):
+        for y in range(48, 52):
+            im.putpixel((x, y), (255, 31, 143, 200))
+    assert mjlib.soft_interior_fraction(im) == 0.0
 
 
 def test_apply_force_reprocesa_una_pieza_done(tmp_path):
@@ -736,6 +815,101 @@ def test_apply_marca_halo_cuando_el_remover_deja_banda(tmp_path):
     assert rep["done"] == ["feliz"]
     assert [s for s, _ in rep["halo"]] == ["feliz"]
     assert rep["halo"][0][1] > mjlib.HALO_THRESHOLD
+
+def remover_que_derrite(im):
+    """Recorta el fondo pero deja el CUERPO a medio alfa: el fallo de
+    `cientifica`, donde rembg leyó la bata blanca y la cara violeta clara como
+    fondo y devolvió una figura traslúcida en vez de un agujero cerrado."""
+    im = im.convert("RGBA")
+    out = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    for x in range(100, 200):
+        for y in range(120, 180):
+            out.putpixel((x, y), (255, 31, 143, 90))
+    return out
+
+
+def test_apply_no_marca_relleno_en_un_sprite_limpio(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"] and rep["soft"] == []
+
+
+def test_apply_marca_relleno_cuando_el_remover_derrite_el_cuerpo(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_que_derrite)
+    assert rep["done"] == ["feliz"]
+    assert [s for s, _ in rep["soft"]] == ["feliz"]
+    assert rep["soft"][0][1] > mjlib.SOFT_INTERIOR_THRESHOLD
+
+
+def test_apply_indulta_el_relleno_de_una_pieza_translucent(tmp_path):
+    # `ghost-race` es un fantasma a propósito y el casco de `astronauta` es
+    # cristal: ahí el interior blando es el dibujo, no un recorte roto.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, translucent=True)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_que_derrite)
+    assert rep["done"] == ["feliz"] and rep["soft"] == []
+
+
+def test_apply_pide_el_modelo_que_declara_la_pieza(tmp_path):
+    """`cientifica` necesita `isnet-anime` porque el modelo por defecto le comía
+    la bata blanca. El catálogo lo dice y `apply_batch` tiene que hacerle caso."""
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, model="isnet-anime")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+
+    pedidos = []
+
+    def remover_que_apunta(im, model=None):
+        pedidos.append(model)
+        return fake_remover(im)
+
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_que_apunta)
+    assert rep["done"] == ["feliz"] and pedidos == ["isnet-anime"]
+
+
+def test_apply_no_le_pasa_model_a_un_remover_de_un_argumento(tmp_path):
+    """Sin `model` en la pieza, el `remover` se llama con un solo argumento. Es
+    la garantía que deja vivo el contrato viejo: si `apply_batch` pasara siempre
+    el modelo, cualquier remover existente reventaría con un TypeError."""
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+
+    def remover_de_un_argumento(im):
+        return fake_remover(im)
+
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_de_un_argumento)
+    assert rep["done"] == ["feliz"]
+
+
+def test_apply_no_marca_relleno_por_un_agujero_que_el_pipeline_cose(tmp_path):
+    """El canario va DESPUÉS de `fill_internal_holes`. Si midiera antes, el ojo
+    blanco que rembg se come sonaría como cuerpo derretido y la alerta saltaría
+    en una pieza que sale perfecta."""
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png_con_ojo(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64)]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"] and rep["soft"] == []
+
 
 def test_build_prompt_quita_glasses_del_negativo_si_la_pieza_los_lleva():
     # el opt-out de glasses solo tiene efecto en el camino de icono: una pieza de

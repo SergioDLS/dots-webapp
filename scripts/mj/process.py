@@ -24,6 +24,13 @@ sys.path.insert(0, str(HERE))
 import mjlib  # noqa: E402
 
 
+# Modelo de recorte por defecto. Una pieza puede pedir otro con "model" en el
+# catálogo: `isnet-anime` lee mucho mejor el dibujo plano y salva los blancos
+# grandes (la bata de `cientifica`), pero cambiarlo para todas obligaría a
+# recortar de nuevo las 102 piezas ya publicadas, y sus raws no están aquí.
+DEFAULT_MODEL = "isnet-general-use"
+
+
 def batch_path(fase: str) -> Path:
     return HERE / "batches" / f"{fase}.json"
 
@@ -75,10 +82,17 @@ def parse_picks(picks: list[str]) -> dict[str, str]:
 
 def cmd_apply(fase: str, raw: Path, picks: list[str], force: bool) -> int:
     from rembg import new_session, remove  # perezoso: pesa y solo hace falta aquí
-    session = new_session("isnet-general-use")
+    sesiones: dict[str, object] = {}
 
-    def remover(im):
-        return remove(im, session=session, alpha_matting=True,
+    def sesion(nombre: str):
+        # Una sesión por modelo y cacheada: `new_session` carga la red entera
+        # (176 MB) y un lote que mezcle modelos la pediría en cada pieza.
+        if nombre not in sesiones:
+            sesiones[nombre] = new_session(nombre)
+        return sesiones[nombre]
+
+    def remover(im, model: str = DEFAULT_MODEL):
+        return remove(im, session=sesion(model), alpha_matting=True,
                       alpha_matting_foreground_threshold=240, alpha_matting_background_threshold=10,
                       alpha_matting_erode_size=10)
 

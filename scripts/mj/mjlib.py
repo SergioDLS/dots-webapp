@@ -558,6 +558,63 @@ def halo_thickness_px(img: "Image.Image") -> float:
 HALO_THRESHOLD = 2.0
 
 
+# Cuántos píxeles se erosiona la silueta antes de mirar el relleno. La orla de
+# antialiasing mide ~1.4 px en cualquier silueta y resolución: a 6 px ya está
+# fuera de la cuenta hasta en un contorno muy curvo.
+INTERIOR_EROSION_PX = 6
+
+
+def soft_interior_fraction(img: "Image.Image") -> float:
+    """Fracción del INTERIOR de la figura que no es del todo opaca.
+
+    `halo_thickness_px` vigila el borde; esta vigila el relleno. Son los dos
+    fallos opuestos de `rembg`: el halo deja de más por fuera, y esto caza cuando
+    deja de menos por dentro — la máscara se deshilacha sobre una zona clara y el
+    cuerpo sale traslúcido. Le pasó a `cientifica`: su bata blanca y su cara
+    violeta clara se fueron con el fondo y la mitad de su interior acabó en alfa
+    parcial, contra el 0.3 % de la mediana de los avatares.
+
+    `fill_internal_holes` no lo cubre porque su criterio es topológico: rescata
+    lo que queda ENCERRADO por figura, y aquel interior desaguaba hasta el borde
+    de la imagen por el hueco entre las solapas de la bata. Para el relleno era
+    fondo, no agujero — y sobre el blanco del raw no se veía.
+
+    Se mide el interior y no el sprite entero por la misma razón por la que el
+    halo se mide en píxeles y no en fracción: la orla semitransparente del
+    contorno crece con el perímetro, así que una fracción global castiga a las
+    siluetas recortadas — el pelo en picos, los brazos de `corriendo` — y a los
+    tamaños pequeños. Erosionando `INTERIOR_EROSION_PX` px esa orla sale de la
+    cuenta y las 102 piezas ya publicadas caen todas por debajo del 6 %.
+
+    Si la figura es tan fina que la erosión se la come entera no hay interior que
+    juzgar y devuelve 0. Es un canario: callar es mejor que inventarse una alarma
+    sobre cuatro píxeles.
+
+    Va sobre la salida de `remover` y DESPUÉS de `fill_internal_holes`: medir
+    antes contaría como deshilachado un agujero que el pipeline ya sabe coser, y
+    una alerta que suena cuando no hay nada que arreglar se acaba ignorando.
+    """
+    img = img.convert("RGBA")
+    a = img.getchannel("A")
+    visible = a.point(lambda v: 255 if v > 0 else 0, mode="L")
+    # Erosionar 1 px seis veces equivale a un MinFilter de 13 y es mucho más
+    # barato: el filtro de rango de PIL ordena la ventana entera en cada píxel.
+    interior = visible
+    for _ in range(INTERIOR_EROSION_PX):
+        interior = interior.filter(ImageFilter.MinFilter(3))
+    opaco = a.point(lambda v: 255 if v == 255 else 0, mode="L")
+    blando = ImageChops.subtract(interior, opaco)
+    n_interior = sum(1 for v in interior.get_flattened_data() if v)
+    n_blando = sum(1 for v in blando.get_flattened_data() if v)
+    return n_blando / n_interior if n_interior else 0.0
+
+
+# Fracción de interior blando por encima de la cual el recorte se da por roto.
+# Las 102 piezas publicadas no pasan del 6 % — la peor es `bandera-uk` — y
+# `cientifica` recién rota marcaba 51 %: hay margen por los dos lados.
+SOFT_INTERIOR_THRESHOLD = 0.10
+
+
 def save_catalog(cat: dict, path: Path) -> None:
     Path(path).write_text(json.dumps(cat, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -570,7 +627,7 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
     raw_dir = Path(raw_root) / fase
     files = [f.name for f in raw_dir.iterdir() if f.is_file()] if raw_dir.exists() else []
     matches = match_downloads(cat, files)
-    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": [], "duplicates": [], "failed": []}
+    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": [], "soft": [], "duplicates": [], "failed": []}
 
     # Validar picks: todos los archivos deben existir
     missing_picks = [f"{s}={f}" for s, f in picks.items() if not (raw_dir / f).is_file()]
@@ -609,7 +666,12 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             rep["duplicates"].append((slug, chosen, consumed[chosen]))
         try:
             src = Image.open(raw_dir / chosen).convert("RGBA")
-            cut = remover(src)
+            # `model` deja que una pieza pida otro modelo de recorte. `cientifica`
+            # necesita `isnet-anime`: el modelo por defecto le leía la bata blanca
+            # como fondo y se la comía a medias — 218/255 de alfa medio en los
+            # faldones contra 253 con el de dibujo. Se pasa por nombre para no
+            # romper los `remover` de un solo argumento.
+            cut = remover(src, model=p["model"]) if p.get("model") else remover(src)
             if not p.get("keep_holes"):
                 cut = fill_internal_holes(cut, src)
             out = trim_square_resize(cut, p["size"])
@@ -626,6 +688,11 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
         # deja una alerta permanente, y una alerta que siempre suena se ignora.
         if grosor > HALO_THRESHOLD and not p.get("translucent"):
             rep["halo"].append((slug, grosor))
+        # Mismo indulto que el halo, y por el mismo motivo: en `ghost-race` el
+        # interior traslúcido es el dibujo, no un recorte que se pasó de listo.
+        blando = soft_interior_fraction(cut)
+        if blando > SOFT_INTERIOR_THRESHOLD and not p.get("translucent"):
+            rep["soft"].append((slug, blando))
         p["done"] = True
         p.pop("regen", None)
         p["source_file"] = chosen
@@ -645,4 +712,5 @@ def render_report(rep: dict) -> str:
     lines += section("Falló el procesado", [f"{s}: {e}" for s, e in rep["failed"]])
     lines += section("Mismo archivo usado por dos piezas", [f"{s} y {otro} -> {f}" for s, f, otro in rep["duplicates"]])
     lines += section("Alerta de halo: banda gruesa, regenerar o retocar", [f"{s} ({r:.2f} px)" for s, r in rep["halo"]])
+    lines += section("Alerta de relleno: el recorte se comió el cuerpo, regenerar", [f"{s} ({f:.0%} del interior traslúcido)" for s, f in rep["soft"]])
     return "\n".join(lines)
