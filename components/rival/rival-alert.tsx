@@ -27,10 +27,27 @@ export default function RivalAlert({ aviso, onCerrar, onAbrirRetos }: Props) {
   }, [aviso, onCerrar]);
 
   const perdiste = aviso.tipo === "perdiste";
-  const titulo = perdiste ? `Te pasó ${aviso.nombre}` : `Le pasaste a ${aviso.nombre}`;
-  const frase = perdiste
-    ? `Por ${aviso.delta} XP. ¿Lo vas a dejar así?`
-    : `Vas ${aviso.delta} XP arriba. Que no te alcance.`;
+  // Un solo puesto de diferencia: el vecino ES quien cambió de lado contigo y
+  // se le puede nombrar en el título. Con más, el título cuenta los puestos y
+  // el nombre baja a la frase como dato —quién va delante o detrás ahora—, que
+  // es verdad aunque el adelantamiento no haya sido suyo (ver `decidirAviso`).
+  const unico = aviso.saltos === 1;
+  // `toLocaleString` como en `components/quests/rival-banner.tsx`: en /quests
+  // los dos se ven a la vez y un XP con separador y otro sin él canta.
+  const delta = aviso.delta.toLocaleString();
+  let titulo: string;
+  let frase: string;
+  if (perdiste) {
+    titulo = unico ? `Te pasó ${aviso.nombre}` : `Bajaste ${aviso.saltos} puestos`;
+    frase = unico
+      ? `Por ${delta} XP. ¿Lo vas a dejar así?`
+      : `${aviso.nombre} va ${delta} XP por delante. ¿Lo vas a dejar así?`;
+  } else {
+    titulo = unico ? `Le pasaste a ${aviso.nombre}` : `Subiste ${aviso.saltos} puestos`;
+    frase = unico
+      ? `Vas ${delta} XP arriba. Que no te alcance.`
+      : `${aviso.nombre} va ${delta} XP detrás. Que no te alcance.`;
+  }
 
   return (
     <div
@@ -57,11 +74,17 @@ export default function RivalAlert({ aviso, onCerrar, onAbrirRetos }: Props) {
           className="flex min-w-0 flex-1 items-center gap-3 text-left transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
         >
           <Doty pose={aviso.pose} size="smaller" animation={aviso.animacion} />
-          <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate font-display text-base font-extrabold text-foreground">
               {titulo}
             </span>
             <span className="text-xs font-semibold text-(--muted)">{frase}</span>
+          </span>
+          {/* En reposo nada decía que la tarjeta lleva a algún sitio: el
+              chevron es la única señal de que se puede tocar, porque el hover
+              no cuenta como señal (regla 2) y el copy no lo insinúa. */}
+          <span className="shrink-0 text-(--muted)">
+            <Icon name="derecha" size={16} mono />
           </span>
         </button>
         <button
