@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter } from "next/navigation";
 
 import UIButton from "@/components/ui/button/button";
@@ -132,9 +133,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
           </div>
         </PanelWrapper>
         <div className="flex gap-3 w-full">
-          <UIButton tone="neutral" onClick={goToPath}>
-            ← Salir
-          </UIButton>
+          <ExitFlow onExit={goToPath} aviso="Perderás las palabras de este pack." />
           <UIButton
             tone="accent"
             onClick={() => setStage(canListen ? "listen" : "quiz")}
@@ -166,9 +165,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
             }}
           />
         </PanelWrapper>
-        <UIButton tone="neutral" onClick={goToPath}>
-          ← Salir
-        </UIButton>
+        <ExitFlow onExit={goToPath} aviso="Perderás las palabras de este pack." />
       </div>
     );
   }
@@ -191,9 +188,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
             }}
           />
         </PanelWrapper>
-        <UIButton tone="neutral" onClick={goToPath}>
-          ← Salir
-        </UIButton>
+        <ExitFlow onExit={goToPath} aviso="Perderás las palabras de este pack." />
       </div>
     );
   }
@@ -211,9 +206,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
             onComplete={() => setStage("summary")}
           />
         </PanelWrapper>
-        <UIButton tone="neutral" onClick={goToPath}>
-          ← Salir
-        </UIButton>
+        <ExitFlow onExit={goToPath} aviso="Perderás las palabras de este pack." />
       </div>
     );
   }

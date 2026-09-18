@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter } from "next/navigation";
 
 import Doty from "@/components/ui/doty/doty";
@@ -203,9 +204,7 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
         )}
       </PanelWrapper>
       {series.answerState !== "wrong" && (
-        <UIButton tone="neutral" onClick={goToPath}>
-          ← Salir
-        </UIButton>
+        <ExitFlow onExit={goToPath} aviso="Perderás lo practicado en esta ronda." />
       )}
     </div>
   );

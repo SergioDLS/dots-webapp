@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useParams, useRouter } from "next/navigation";
 import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
@@ -93,7 +94,7 @@ export default function ReadingPage() {
           We couldn&apos;t open this reading. Please try again later.
         </p>
         <UIButton tone="neutral" onClick={goToLevels}>
-          ← Back to levels
+          ← Volver al camino
         </UIButton>
       </div>
     );
@@ -110,12 +111,8 @@ export default function ReadingPage() {
 
       {/* Top bar */}
       <div className="dots-card z-10 flex w-full max-w-2xl items-center justify-between gap-3 px-4 py-3">
-        <button
-          onClick={goToLevels}
-          className="text-sm font-bold text-(--muted) hover:text-(--accent) transition-colors"
-        >
-          ← Exit
-        </button>
+        {/* compacto: misma barra estrecha que el HUD de los juegos. */}
+        <ExitFlow onExit={goToLevels} aviso="Perderás tu avance en esta lectura." compacto />
         <span className="font-display text-lg font-extrabold text-(--accent) truncate">
           {reading.title}
         </span>
@@ -154,9 +151,7 @@ export default function ReadingPage() {
                 I&apos;m ready for the quiz! →
               </UIButton>
             ) : (
-              <UIButton tone="neutral" onClick={goToLevels}>
-                ← Back to levels
-              </UIButton>
+              <ExitFlow onExit={goToLevels} aviso="Perderás tu avance en esta lectura." />
             )}
           </div>
         )}

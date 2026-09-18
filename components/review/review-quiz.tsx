@@ -142,6 +142,7 @@ export default function ReviewQuiz({ items }: { items: ReviewQuestion[] }) {
         confirmLabel={answered ? "Continuar" : "Confirmar"}
         confirmDisabled={!answered && selectedWord === null}
         onExit={goToPath}
+        avisoSalida={"Perderás lo repasado en esta sesión."}
         onConfirm={confirmHandler}
       />
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -314,9 +315,7 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
         >
           Practicar
         </UIButton>
-        <UIButton tone="ghost" onClick={goToPath}>
-          ← Salir
-        </UIButton>
+        <ExitFlow onExit={goToPath} aviso="Perderás las letras de esta ronda." />
       </div>
     );
   }
@@ -342,9 +341,7 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
             onComplete={() => finishSession(results)}
           />
         </div>
-        <UIButton tone="ghost" onClick={goToPath}>
-          ← Salir
-        </UIButton>
+        <ExitFlow onExit={goToPath} aviso="Perderás las letras de esta ronda." />
       </div>
     );
   }
@@ -430,9 +427,7 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
         <p className="text-center text-sm font-bold text-(--accent)">¡Bien!</p>
       )}
 
-      <UIButton tone="ghost" onClick={goToPath}>
-        ← Salir
-      </UIButton>
+      <ExitFlow onExit={goToPath} aviso="Perderás las letras de esta ronda." />
     </div>
   );
 }

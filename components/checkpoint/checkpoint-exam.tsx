@@ -30,10 +30,6 @@ export default function CheckpointExam({ exam, onSubmit, onExit }: Props) {
   const question = exam.questions[index];
   const total = exam.questions.length;
 
-  const confirmExit = () => {
-    if (window.confirm("¿Salir del examen? Este intento se perderá.")) onExit();
-  };
-
   const confirm = () => {
     if (!question || selected === null) return;
     const nextAnswers = [
@@ -93,7 +89,8 @@ export default function CheckpointExam({ exam, onSubmit, onExit }: Props) {
       <LessonFooter
         confirmLabel={index + 1 < total ? "Siguiente" : "Enviar examen"}
         confirmDisabled={selected === null}
-        onExit={confirmExit}
+        onExit={onExit}
+        avisoSalida={"Este intento se perderá, y solo tienes 3 al día."}
         onConfirm={confirm}
       />
     </div>

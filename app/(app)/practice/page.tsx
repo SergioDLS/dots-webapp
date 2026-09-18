@@ -231,6 +231,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
           confirmLabel={confirmLabel}
           confirmDisabled={!confirmReady && answerState === ""}
           onExit={goToLevels}
+          avisoSalida={"Perderás lo respondido en esta práctica."}
           onConfirm={confirmSelectedHandler}
         />
       </>
@@ -258,7 +259,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
             Reintentar
           </UIButton>
           <UIButton tone="neutral" onClick={goToLevels}>
-            ← Back to levels
+            ← Volver al camino
           </UIButton>
         </div>
       </div>
@@ -276,7 +277,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
           Something went wrong, please try again later.
         </p>
         <UIButton tone="neutral" onClick={goToLevels}>
-          ← Back to levels
+          ← Volver al camino
         </UIButton>
       </div>
     );

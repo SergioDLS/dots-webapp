@@ -101,9 +101,11 @@ export default function GrammarPill({ nodeId, content }: Props) {
             ))}
           </div>
         </PanelWrapper>
+        {/* avisoSalida null: es la portada, todavia no ha respondido nada. */}
         <LessonFooter
           confirmLabel={content.items.length > 0 ? "Practicar" : "Volver al camino"}
           onExit={goToPath}
+          avisoSalida={null}
           onConfirm={() =>
             content.items.length > 0 ? setStage("practice") : goToPath()
           }
@@ -201,6 +203,7 @@ export default function GrammarPill({ nodeId, content }: Props) {
         confirmLabel={answered ? "Continuar" : "Confirmar"}
         confirmDisabled={!answered && selectedWord === null}
         onExit={goToPath}
+        avisoSalida="Perderás lo practicado de esta regla."
         onConfirm={confirmHandler}
       />
     </div>

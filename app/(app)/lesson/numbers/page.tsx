@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -289,9 +290,7 @@ function NumbersDrill({
             onComplete={() => setPhase("match")}
           />
         </div>
-        <button className="text-sm text-(--muted)" onClick={goToPath}>
-          ← Salir
-        </button>
+        <ExitFlow onExit={goToPath} aviso="Perderás los números de esta ronda." />
       </div>
     );
   }
@@ -315,9 +314,7 @@ function NumbersDrill({
           }
           onComplete={finishSession}
         />
-        <button className="text-sm text-(--muted)" onClick={goToPath}>
-          ← Salir
-        </button>
+        <ExitFlow onExit={goToPath} aviso="Perderás los números de esta ronda." />
       </div>
     );
   }
@@ -440,9 +437,7 @@ function NumbersDrill({
         </p>
       )}
 
-      <button className="text-sm text-(--muted)" onClick={goToPath}>
-        ← Salir
-      </button>
+      <ExitFlow onExit={goToPath} aviso="Perderás los números de esta ronda." />
     </div>
   );
 }

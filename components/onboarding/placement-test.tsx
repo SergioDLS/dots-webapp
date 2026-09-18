@@ -98,6 +98,7 @@ export default function PlacementTest({ test, onFinished }: Props) {
         confirmLabel={sending ? "Enviando..." : "Confirmar"}
         confirmDisabled={selected === null || sending}
         onExit={() => window.history.back()}
+        avisoSalida={"Perderás tus respuestas y la nivelación empezará de cero."}
         onConfirm={confirm}
       />
     </div>
