@@ -122,7 +122,7 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   `public/images/Doty/`.
 - **Tandas**: 1 = las 4 expresiones diarias (`en-llamas`, `gamer`, `reojo`, `llanto-dramatico`) +
   3 narradores + 6 avatares gratis (13 piezas); 2 = 10 expresiones restantes + 3 personajes;
-  3 = 16 avatares de pago. Sergio genera en Midjourney a partir de `--emit-lote`; el código de B–F
+  3 = **19** avatares de pago (el catálogo `scripts/mj/batches/fase-4.json` tiene 25 avatares y 6 hechos; la cifra de 16 que decía aquí nunca cuadró con §6.2, que ya decía 19). Sergio genera en Midjourney a partir de `--emit-lote`; el código de B–F
   no espera al arte: cada punto de cableado tiene un fallback del registro actual.
 
 | Pieza | Dónde se cablea | Fallback hasta que llegue |
