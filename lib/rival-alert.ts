@@ -95,8 +95,25 @@ function animacionValida(gesture: string | null): DotyAnimation | null {
     : null;
 }
 
-function nombreVisible(name: string): string {
+/**
+ * `actual` llega de `api.get<RivalData>(...)` (services/engagement.service.ts):
+ * una aserción de tipo en compilación, sin ninguna validación en runtime. Por
+ * eso `name` se recibe como `unknown` en vez de fiarse del `string` que
+ * promete `VecinoRival` — cualquier cosa que no sea string cuenta como
+ * ausente, no solo el string vacío.
+ */
+function nombreVisible(name: unknown): string {
+  if (typeof name !== "string") return SIN_NOMBRE;
   return name.trim() === "" ? SIN_NOMBRE : name;
+}
+
+/**
+ * Mismo límite sin validar que `nombreVisible`. `Math.abs(undefined)` da
+ * `NaN` sin lanzar, y la tarjeta lo interpola tal cual en la frase — un delta
+ * que no llegó como número finito se trata como si no hubiera diferencia.
+ */
+function deltaVisible(delta: unknown): number {
+  return typeof delta === "number" && Number.isFinite(delta) ? Math.abs(delta) : 0;
 }
 
 /**
@@ -117,12 +134,15 @@ export function decidirAviso(
 
   if (actual.rank > anterior.rank) {
     const vecino = actual.above;
-    if (vecino === null) return null;
+    // `== null`, no `===`: `actual` no se valida en runtime (ver
+    // nombreVisible/deltaVisible), así que un `undefined` real es tan
+    // esperable como el `null` que promete el tipo.
+    if (vecino == null) return null;
     const animacion = animacionValida(vecino.gesture);
     return {
       tipo: "perdiste",
       nombre: nombreVisible(vecino.name),
-      delta: Math.abs(vecino.delta),
+      delta: deltaVisible(vecino.delta),
       // El sujeto del gesto es el rival presumiendo, nunca Doty burlándose de
       // ti: que te adelanten no es un fallo tuyo, es un mérito del otro.
       pose: animacion === null ? "flexeando" : gesturePose(animacion),
@@ -132,11 +152,13 @@ export function decidirAviso(
 
   if (actual.rank < anterior.rank) {
     const vecino = actual.below;
-    if (vecino === null) return null;
+    // Mismo motivo que en la rama de arriba: `== null` atrapa también un
+    // `undefined` real, que el tipo no promete pero el servidor sí puede dar.
+    if (vecino == null) return null;
     return {
       tipo: "ganaste",
       nombre: nombreVisible(vecino.name),
-      delta: Math.abs(vecino.delta),
+      delta: deltaVisible(vecino.delta),
       // Aquí NUNCA el gesto del otro: el gesto es exclusivamente la carga del
       // aviso de derrota, y esa exclusividad es lo que lo convierte en un flex.
       pose: "aplaudiendo",
