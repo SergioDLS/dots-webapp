@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -290,13 +291,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">
-            <button
-              onPointerUp={() => router.push("/play")}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
             emoji="🎧"
@@ -322,13 +317,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
             className="dots-card z-10 flex w-full max-w-sm items-center justify-between gap-3 px-4 py-3"
             style={{ marginBottom: "0.75rem" }}
           >
-            <button
-              onPointerUp={() => { stopTimer(); setPhase("result"); }}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => { stopTimer(); setPhase("result"); }} aviso="Se acaba la partida, pero tu puntaje cuenta igual." compacto />
             <div className="flex flex-col items-center">
               <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
                 {questionIndex + 1} / {items.length}

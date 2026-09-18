@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Sound from "@/components/ui/sound/sound";
@@ -501,13 +502,7 @@ function GhostRaceInner() {
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">
-            <button
-              onPointerUp={() => router.push("/play")}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
             emoji="👻"
@@ -535,20 +530,14 @@ function GhostRaceInner() {
             className="dots-card z-10 flex w-full max-w-sm items-center justify-between gap-3 px-4 py-3"
             style={{ marginBottom: "0.75rem" }}
           >
-            <button
-              onPointerUp={() => {
+            <ExitFlow onExit={() => {
                 // Abandonar NO envía la carrera: el efecto de "result" postea
                 // a /ghost/run, así que salir a mitad registraba una carrera
                 // con score y timeline truncados
                 stopTimer();
                 if (elapsedIntervalRef.current) clearInterval(elapsedIntervalRef.current);
                 router.push("/play");
-              }}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+              }} aviso="Perderás esta partida y su puntaje." compacto />
             <div className="flex flex-col items-center">
               <span
                 className="text-xs font-black uppercase tracking-widest"

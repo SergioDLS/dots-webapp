@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -322,13 +323,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
         <>
           {/* Exit button floats above GameIntro */}
           <div className="z-10 flex w-full max-w-sm justify-start">
-            <button
-              onPointerUp={() => router.push("/play")}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
             emoji="🃏"
@@ -354,17 +349,11 @@ function TrueFalseInner({ seed }: { seed?: number }) {
             className="dots-card z-10 flex w-full max-w-sm items-center justify-between gap-3 px-4 py-3"
             style={{ marginBottom: "1rem" }}
           >
-            <button
-              onPointerUp={() => {
+            <ExitFlow onExit={() => {
                 // el reloj seguía vivo sobre la pantalla de resultado
                 stopCountdown();
                 setPhase("result");
-              }}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+              }} aviso="Se acaba la partida, pero tu puntaje cuenta igual." compacto />
             <div className="flex flex-col items-center">
               <span
                 className="font-display text-2xl font-extrabold tabular-nums inline-block"

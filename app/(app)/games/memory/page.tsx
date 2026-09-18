@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -337,13 +338,7 @@ function MemoryInner({ seed }: { seed?: number }) {
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">
-            <button
-              onClick={() => router.push("/play")}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
             emoji="🧠"
@@ -370,19 +365,13 @@ function MemoryInner({ seed }: { seed?: number }) {
             className="dots-card z-10 flex w-full max-w-sm items-center justify-between gap-3 px-4 py-3"
             style={{ marginBottom: "1rem" }}
           >
-            <button
-              onClick={() => {
+            <ExitFlow onExit={() => {
                 // Abandonar NO envía score: la fórmula parte de 1000 y baja,
                 // así que un "resultado parcial" al salir temprano valdría más
                 // que cualquier partida completa (exploit de torneo)
                 stopTimer();
                 router.push("/play");
-              }}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+              }} aviso="Perderás esta partida y su puntaje." compacto />
 
             {/* Timer */}
             <div className="flex flex-col items-center">

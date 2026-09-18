@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -461,13 +462,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">
-            <button
-              onPointerUp={() => router.push("/play")}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
             emoji="🚕"
@@ -490,19 +485,13 @@ function DotaxiInner({ seed }: { seed?: number }) {
         <div data-testid="road" className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3">
           {/* HUD */}
           <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
-            <button
-              onPointerUp={() => {
+            <ExitFlow onExit={() => {
                 // Abandonar: el parcial cuenta para el récord, no para el reto
                 if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
                 if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
                 setFinalScore(scoreRef.current);
                 setPhase("result");
-              }}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+              }} aviso="Se acaba la partida, pero tu puntaje cuenta igual." compacto />
             <span className="flex items-center gap-0.5" aria-label={`${hearts} corazones`}>
               {Array.from({ length: START_HEARTS }).map((_, i) => (
                 <UiIcon key={i} name="vidas" size={16} apagado={i >= hearts} />

@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -383,13 +384,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">
-            <button
-              onPointerUp={() => router.push("/play")}
-              className="text-sm font-bold transition-colors"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
             emoji="🗼"
@@ -412,13 +407,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
         <>
           {/* HUD */}
           <div className="dots-card z-10 flex w-full max-w-sm items-center justify-between gap-2 px-4 py-3 mb-3">
-            <button
-              onPointerUp={() => setPhase("result")}
-              className="text-sm font-bold"
-              style={{ color: "var(--muted)" }}
-            >
-              ← Salir
-            </button>
+            <ExitFlow onExit={() => setPhase("result")} aviso="Se acaba la partida, pero tu puntaje cuenta igual." compacto />
 
             {/* Lives */}
             <div className="flex gap-0.5">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter } from "next/navigation";
 import DailyKeyboard from "@/components/games/shared/daily-keyboard";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -554,19 +555,7 @@ export default function CrosswordPage() {
             justifyContent: "space-between",
           }}
         >
-          <button
-            onPointerUp={() => router.push("/play")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--muted)",
-              fontWeight: 700,
-              fontSize: "0.875rem",
-              cursor: "pointer",
-            }}
-          >
-            ← Salir
-          </button>
+          <ExitFlow onExit={() => router.push("/play")} aviso={null} compacto />
           <div style={{ textAlign: "center" }}>
             <p
               style={{
