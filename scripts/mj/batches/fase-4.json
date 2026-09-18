@@ -247,8 +247,9 @@
       "prompt": "a cyan domino mask across the eyes, a royal blue cape rising from the shoulders and attached to them, never detached and never floating, a wide confident grin, chin slightly raised, both eyes wide open and locked on the viewer, every fill in the bright brand palette",
       "size": 512,
       "mascot": true,
-      "done": false,
-      "framing": "head and shoulders only, centered with margin, plain white background, no shadow"
+      "done": true,
+      "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
+      "source_file": "Mandrakin_Avatar_Doty_superhero_with_a_mask_and_cape_a_cyan_d_d5372a94-04ec-47c4-8f61-cefdfcaf3e44_3.png"
     },
     {
       "slug": "campeon",
@@ -419,11 +420,11 @@
       "slug": "fem",
       "group": "avatars",
       "prefix": "Avatar Doty Fem the orchid narrator",
-      "prompt": "same Doty face but an orchid purple body #E30BE3 clearly more purple than Doty's hot pink, a cyan sports visor with no crown sitting low on the forehead, the tuft gathered into a thick braided ponytail that rises behind the visor and falls to one side tied with a small cyan band, long curled eyelashes, a bright open smile showing the teeth, athletic youthful and upbeat, no headphones, no earrings, no bow, no blushing cheeks",
+      "prompt": "same Doty face but an orchid purple body #B424BC clearly more purple than Doty's hot pink, a cyan sports visor with no crown sitting low on the forehead, the tuft gathered into a thick braided ponytail that rises behind the visor and falls to one side tied with a small cyan band, long curled eyelashes, a bright open smile showing the teeth, athletic youthful and upbeat, no headphones, no earrings, no bow, no blushing cheeks",
       "size": 512,
       "mascot": true,
       "done": true,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid purple body #E30BE3 — clearly purple, not hot pink",
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and an orchid purple body #B424BC — clearly purple, not hot pink",
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
       "source_file": "Mandrakin_Avatar_Doty_Fem_the_orchid_narrator_same_Doty_face__bf1e3736-2fea-4219-b128-f1838da70fdf_1.png"
     },
@@ -431,27 +432,26 @@
       "slug": "marinero",
       "group": "avatars",
       "prefix": "Avatar Doty Sailor the old crimson narrator",
-      "prompt": "same Doty head shape but with a crimson red body #FF0010, a white sailor cap with a cyan visor flattening the tuft, cyan neckerchief, thick furrowed brow, one eye squinting, mouth open to one side mid-grumble, the endearing grumpy attitude of an old sea captain, comic and never menacing",
+      "prompt": "same Doty head shape but with a crimson red body #EC043C, a white sailor cap with a cyan visor flattening the tuft, cyan neckerchief, thick furrowed brow, one eye squinting, mouth open to one side mid-grumble, the endearing grumpy attitude of an old sea captain, comic and never menacing",
       "size": 512,
       "mascot": true,
       "done": true,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a crimson red body #FF0010 — not pink, not orange",
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a crimson red body #EC043C — not pink, not orange",
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
-      "source_file": "Mandrakin_Avatar_Doty_Sailor_the_old_crimson_narrator_same_Do_96641d55-732a-441a-8fdf-50ca16197e51_2.png",
-      "regen": true
+      "source_file": "Mandrakin_Avatar_portrait_of_this_exact_character_the_crimson_10e02809-1029-4d2e-8d30-5947f9c0af95_1.png"
     },
     {
       "slug": "cientifica",
       "group": "avatars",
       "prefix": "Avatar Doty Scientist the poised violet narrator",
-      "prompt": "same Doty face but a soft violet body #B432FF wearing her white lab coat, the tuft neatly swept back, round glasses, long curled eyelashes, chin slightly raised, calm confident smile with the mouth open mid-sentence",
+      "prompt": "same Doty face but a soft violet body #9C84DC wearing her white lab coat, the tuft neatly swept back, round glasses, long curled eyelashes, chin slightly raised, calm confident smile with the mouth open mid-sentence",
       "size": 512,
       "mascot": true,
       "done": true,
       "glasses": true,
-      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft violet body #B432FF — muted and refined, not pink",
+      "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft periwinkle violet body #9C84DC — the exact violet of the attached character, never grey and never washed out",
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
-      "source_file": "Mandrakin_Avatar_Doty_Scientist_the_poised_violet_narrator_sa_96e60e6b-74e8-439e-94d2-54e49a4df18b_3.png",
+      "source_file": "Mandrakin_complete_the_clothes_--ar_11_--edit_httpss.mj.runRN_990a7951-4d7c-4820-b3d6-7dceee6052b4_2.png",
       "regen": true
     }
   ]
