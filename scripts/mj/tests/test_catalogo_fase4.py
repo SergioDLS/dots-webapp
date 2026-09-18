@@ -14,7 +14,7 @@ EXPRESIONES = {"en-llamas", "aura", "cocinado", "llanto-dramatico", "cerebro-gal
                "meditando", "bostezo"}
 NARRADORES = {"narrador-beginner", "narrador-intermediate", "narrador-advanced"}
 AVATARES_GRATIS = {"clasico", "nerd", "crack", "hype", "buena-onda", "techie"}
-AVATARES_PAGO = {"genio", "campeon", "jugador", "veloz", "capitan", "astronauta", "chef", "rockstar",
+AVATARES_PAGO = {"superheroe", "campeon", "jugador", "veloz", "capitan", "astronauta", "chef", "rockstar",
                  "detective", "pirata", "mago", "surfista", "ninja", "artista", "dj", "explorador"}
 PERSONAJES = {"fem", "marinero", "cientifica"}
 FRANQUICIAS = re.compile(r"dragon ?ball|saiyan|sayayin|goku|pokemon|mario|sonic|naruto|marvel|disney", re.I)
@@ -79,12 +79,30 @@ def test_solo_las_piezas_con_lentes_llevan_glasses():
     assert con == {"aura", "lentes-deal", "nerd", "cientifica"}
 
 
-def test_los_personajes_conservan_el_brand_lock_de_fase1():
+def test_los_personajes_conservan_el_color_de_fase1():
+    """El mismo personaje no puede cambiar de cuerpo entre fases.
+
+    Se compara el HEX y no el `brand_lock` entero porque la redaccion difiere a
+    proposito: en fase-4 las tres piezas se generan adjuntando su render
+    canonico de fase-1, asi que su lock dice "the exact violet of the attached
+    character" — una frase que en fase-1, donde no hay nada adjunto, hablaria de
+    si misma. Lo que hay que blindar es el color, que es lo que se fue: los tres
+    hex de fase-1 estaban inventados y ninguno coincidia con el personaje (ver
+    docs/brand/doty-identity.md, lecciones de la tanda 3). Medido sobre el arte
+    publicado, el cuerpo de fem da #A830B8, el de marinero #D80030 y el de
+    cientifica #A088D0 — los de fase-4, no los viejos.
+    """
     f1 = {p["slug"]: p for p in json.loads((BATCHES / "fase-1.json").read_text(encoding="utf-8"))["pieces"]}
     f4 = {p["slug"]: p for p in _cat()["pieces"]}
-    assert f4["fem"]["brand_lock"] == f1["doty-fem"]["brand_lock"]
-    assert f4["marinero"]["brand_lock"] == f1["doty-sailor"]["brand_lock"]
-    assert f4["cientifica"]["brand_lock"] == f1["doty-scientist"]["brand_lock"]
+
+    def hexes(pieza):
+        encontrados = re.findall(r"#[0-9A-Fa-f]{6}", pieza["brand_lock"])
+        assert len(encontrados) == 1, f"{pieza['slug']}: se espera un solo hex, hay {encontrados}"
+        return encontrados[0].upper()
+
+    for viejo_slug, nuevo_slug in [("doty-fem", "fem"), ("doty-sailor", "marinero"),
+                                   ("doty-scientist", "cientifica")]:
+        assert hexes(f4[nuevo_slug]) == hexes(f1[viejo_slug]), nuevo_slug
 
 
 def test_el_registro_unido_con_fase1_no_repite_claves_y_suma_las_expresiones():
