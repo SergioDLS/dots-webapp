@@ -241,10 +241,10 @@
       "source_file": "Mandrakin_Avatar_Doty_techie_with_a_visor_a_sleek_cyan_visor__184f3e11-acee-423b-bb68-fd4f6c225184_0.png"
     },
     {
-      "slug": "genio",
+      "slug": "superheroe",
       "group": "avatars",
-      "prefix": "Avatar Doty genius with a lightbulb",
-      "prompt": "a small glowing cyan lightbulb resting on top of the tuft and touching it, wide delighted eyes, an open smile of sudden inspiration",
+      "prefix": "Avatar Doty superhero with a mask and cape",
+      "prompt": "a cyan domino mask across the eyes, a royal blue cape rising from the shoulders and attached to them, never detached and never floating, a wide confident grin, chin slightly raised, both eyes wide open and locked on the viewer, every fill in the bright brand palette",
       "size": 512,
       "mascot": true,
       "done": false,
