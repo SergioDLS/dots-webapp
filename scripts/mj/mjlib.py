@@ -666,12 +666,20 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             rep["duplicates"].append((slug, chosen, consumed[chosen]))
         try:
             src = Image.open(raw_dir / chosen).convert("RGBA")
-            # `model` deja que una pieza pida otro modelo de recorte. `cientifica`
-            # necesita `isnet-anime`: el modelo por defecto le leía la bata blanca
-            # como fondo y se la comía a medias — 218/255 de alfa medio en los
-            # faldones contra 253 con el de dibujo. Se pasa por nombre para no
-            # romper los `remover` de un solo argumento.
-            cut = remover(src, model=p["model"]) if p.get("model") else remover(src)
+            # `cutout_model` deja que una pieza pida un recortador distinto del
+            # defecto (`DEFAULT_MODEL` en process.py). Hoy no lo usa ninguna:
+            # nació para que `cientifica`, `astronauta` y `dj` saltaran a
+            # `isnet-anime` sin arrastrar a las 102 publicadas, y al pasar ese a
+            # ser el defecto las tres se quedaron sin nada especial que pedir.
+            #
+            # NO se llama `model` porque esa clave ya existe en fase-0 con otro
+            # significado — la versión de Midjourney ("7") — y sus quince piezas
+            # siguen en `done: false`, asi que un `--apply fase-0` le habria
+            # pasado "7" a rembg como si fuera un modelo de recorte.
+            #
+            # Se pasa por nombre para no romper los `remover` de un argumento.
+            cut = (remover(src, model=p["cutout_model"]) if p.get("cutout_model")
+                   else remover(src))
             if not p.get("keep_holes"):
                 cut = fill_internal_holes(cut, src)
             out = trim_square_resize(cut, p["size"])

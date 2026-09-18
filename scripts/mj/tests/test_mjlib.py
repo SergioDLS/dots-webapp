@@ -850,6 +850,29 @@ def test_apply_marca_relleno_cuando_el_remover_derrite_el_cuerpo(tmp_path):
     assert rep["soft"][0][1] > mjlib.SOFT_INTERIOR_THRESHOLD
 
 
+def test_apply_ignora_la_clave_model_de_fase0(tmp_path):
+    """`model` en el catalogo es la version de MIDJOURNEY, no el recortador.
+
+    fase-0 la usa asi en seis de sus quince piezas (`model: "7"`) y todas siguen
+    en `done: false`, o sea que `--apply fase-0` las procesaria. Si el recortador
+    se leyera de `model`, a rembg le llegaria "7" como nombre de modelo. Por eso
+    el override vive en `cutout_model`.
+    """
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, model="7")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+
+    def remover_de_un_argumento(im):
+        # Si `model` se colara como recortador, esto reventaria con un TypeError
+        # y la pieza acabaria en rep["failed"] en vez de en rep["done"].
+        return fake_remover(im)
+
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, remover_de_un_argumento)
+    assert rep["done"] == ["feliz"] and rep["failed"] == []
+
+
 def test_apply_indulta_el_relleno_de_una_pieza_translucent(tmp_path):
     # `ghost-race` es un fantasma a propósito y el casco de `astronauta` es
     # cristal: ahí el interior blando es el dibujo, no un recorte roto.
@@ -862,13 +885,13 @@ def test_apply_indulta_el_relleno_de_una_pieza_translucent(tmp_path):
     assert rep["done"] == ["feliz"] and rep["soft"] == []
 
 
-def test_apply_pide_el_modelo_que_declara_la_pieza(tmp_path):
-    """`cientifica` necesita `isnet-anime` porque el modelo por defecto le comía
-    la bata blanca. El catálogo lo dice y `apply_batch` tiene que hacerle caso."""
+def test_apply_pide_el_recortador_que_declara_la_pieza(tmp_path):
+    """Una pieza puede apartarse del recortador por defecto con `cutout_model`,
+    y `apply_batch` tiene que hacerle caso."""
     raw, repo = tmp_path / "raw", tmp_path / "repo"
     (raw / "fase-1").mkdir(parents=True)
     raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
-    cat = {"fase": "fase-1", "pieces": [piece(size=64, model="isnet-anime")]}
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, cutout_model="isnet-anime")]}
     cpath = write(tmp_path, "fase-1.json", cat)
 
     pedidos = []
@@ -882,7 +905,7 @@ def test_apply_pide_el_modelo_que_declara_la_pieza(tmp_path):
 
 
 def test_apply_no_le_pasa_model_a_un_remover_de_un_argumento(tmp_path):
-    """Sin `model` en la pieza, el `remover` se llama con un solo argumento. Es
+    """Sin `cutout_model` en la pieza, el `remover` se llama con un argumento. Es
     la garantía que deja vivo el contrato viejo: si `apply_batch` pasara siempre
     el modelo, cualquier remover existente reventaría con un TypeError."""
     raw, repo = tmp_path / "raw", tmp_path / "repo"

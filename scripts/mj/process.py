@@ -25,10 +25,17 @@ import mjlib  # noqa: E402
 
 
 # Modelo de recorte por defecto. Una pieza puede pedir otro con "model" en el
-# catálogo: `isnet-anime` lee mucho mejor el dibujo plano y salva los blancos
-# grandes (la bata de `cientifica`), pero cambiarlo para todas obligaría a
-# recortar de nuevo las 102 piezas ya publicadas, y sus raws no están aquí.
-DEFAULT_MODEL = "isnet-general-use"
+# catálogo, pero ya casi ninguna lo necesita: todo el arte de Doty es dibujo
+# plano de contorno grueso, que es justo para lo que `isnet-anime` está
+# entrenado. `isnet-general-use` lee los blancos grandes como fondo y se los
+# come — la bata de `cientifica` (218/255 de alfa medio contra 253), la cúpula
+# y el traje de `astronauta` (98/255 en la cúpula), la mesa de `dj` (150/255) —
+# y las tres se arreglaron solo cambiándole el modelo.
+#
+# Cambiarlo NO retoca nada publicado: las 102 piezas siguen `done` y el pipeline
+# las salta. Solo manda sobre lo que se procese a partir de ahora. Recortar el
+# catálogo entero con el modelo nuevo sigue pendiente y necesita los 102 raws.
+DEFAULT_MODEL = "isnet-anime"
 
 
 def batch_path(fase: str) -> Path:

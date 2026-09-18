@@ -304,8 +304,7 @@
       "mascot": true,
       "done": true,
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
-      "source_file": "Mandrakin_Avatar_Doty_astronaut_in_a_helmet_the_head_inside_a_a2bce9c1-357d-48d9-ba88-37ddc3cb9348_0.png",
-      "model": "isnet-anime"
+      "source_file": "Mandrakin_Avatar_Doty_astronaut_in_a_helmet_the_head_inside_a_a2bce9c1-357d-48d9-ba88-37ddc3cb9348_0.png"
     },
     {
       "slug": "chef",
@@ -404,8 +403,7 @@
       "mascot": true,
       "done": true,
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
-      "source_file": "Mandrakin_Avatar_Doty_dj_with_one_headphone_big_cyan_headphon_05107fb5-cff7-4f00-809b-f665e6a98ab9_3.png",
-      "model": "isnet-anime"
+      "source_file": "Mandrakin_Avatar_Doty_dj_with_one_headphone_big_cyan_headphon_05107fb5-cff7-4f00-809b-f665e6a98ab9_3.png"
     },
     {
       "slug": "explorador",
@@ -453,8 +451,7 @@
       "glasses": true,
       "brand_lock": "keep the dark navy outline and the navy eyes with white highlights, and a soft periwinkle violet body #9C84DC — the exact violet of the attached character, never grey and never washed out",
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
-      "source_file": "Mandrakin_Avatar_Doty_Scientist_the_poised_violet_narrator_sa_5dfd3eba-850c-497d-949c-879b5d8516dd_0.png",
-      "model": "isnet-anime"
+      "source_file": "Mandrakin_Avatar_Doty_Scientist_the_poised_violet_narrator_sa_5dfd3eba-850c-497d-949c-879b5d8516dd_0.png"
     }
   ]
 }
