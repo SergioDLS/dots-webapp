@@ -101,8 +101,12 @@ export default function AvatarPicker({ open, onClose, items, currentKey, onPick 
                     }}
                   >
                     <Avatar avatar={avatar} size={96} alt="" />
+                    {/* Dos lineas, no una: los 22 disfraces llevan el prefijo
+                        "Doty: " y a 11 px en una celda de un tercio de pantalla
+                        "Doty: Astronauta" no cabe de una. Con line-clamp-1 se
+                        cortaba justo en el tema, que es la parte que informa. */}
                     <span
-                      className="line-clamp-1 text-[11px] font-extrabold"
+                      className="line-clamp-2 text-[11px] font-extrabold"
                       style={{ color: on ? "var(--accent)" : "var(--foreground)" }}
                     >
                       {(item.meta?.label as string) ?? item.name}
