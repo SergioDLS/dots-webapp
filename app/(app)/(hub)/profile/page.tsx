@@ -28,7 +28,9 @@ import {
 } from "@/services/shop.service";
 import { ADMIN_PROFILE } from "@/constants";
 import { useAuth } from "@/context/auth-context";
+import { useAvatarMirror } from "@/hooks/use-avatar-mirror";
 import { useStoredUser } from "@/hooks/use-stored-user";
+import { writeAvatarMirror } from "@/lib/avatar-mirror";
 
 /**
  * Perfil (spec §5, variante A "identidad abierta"). Los ajustes viven en una
@@ -50,9 +52,16 @@ export default function ProfilePage() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [avatar, setAvatar] = useState<PublicAvatar | null>(null);
+  // Lo que este dispositivo recuerda, solo para el primer pintado: sin esto la
+  // cara es el clásico hasta que responde /me/settings, que es una petición de
+  // red entera. El servidor sigue mandando en cuanto llega.
+  const avatarEspejado = useAvatarMirror();
   const [avatarKey, setAvatarKey] = useState<string | null>(null);
   const [avatarItems, setAvatarItems] = useState<ShopItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // El POST lo dispara esta página, así que el "ocupado" del botón de confirmar
+  // vive aquí y baja al selector — mismo patrón que el `busy` de la tienda.
+  const [guardandoAvatar, setGuardandoAvatar] = useState(false);
   // El giro de entrada de la carta espera a que respondan ajustes (avatar) e
   // inventario (gesto): si girara con el clásico y luego llegara el retrato
   // real, cambiaría de cara a media vuelta.
@@ -78,6 +87,8 @@ export default function ProfilePage() {
       .then((s) => {
         if (active && s) {
           setAvatar(s.avatar);
+          // Refresca el espejo con la verdad recién llegada, para la próxima vez.
+          writeAvatarMirror(s.avatar);
           // Sin key equipada el backend igual resuelve "clasico" en perfil, ranking
           // y aviso de rival: mismo fallback aquí para que selector y tienda coincidan.
           setAvatarKey(s.avatar_key ?? "clasico");
@@ -103,15 +114,18 @@ export default function ProfilePage() {
   // Si falla (avatar de pago no comprado, por ejemplo) cierra igual y no
   // cambia nada: comprarlo es cosa de la tienda, no de este selector.
   const pick = (key: string) => {
+    setGuardandoAvatar(true);
     postMyAvatarService(key)
       .then((a) => {
         setAvatar(a);
+        writeAvatarMirror(a);
         setAvatarKey(key);
         setPickerOpen(false);
       })
       .catch(() => {
         setPickerOpen(false);
-      });
+      })
+      .finally(() => setGuardandoAvatar(false));
   };
 
   const name = [user.name, user.last_name].filter(Boolean).join(" ") || "Aprendiz";
@@ -125,7 +139,7 @@ export default function ProfilePage() {
           <ProfileIdentity
             name={name}
             stats={stats}
-            avatar={avatar}
+            avatar={avatar ?? avatarEspejado}
             gesture={gesture}
             ready={ready}
             onChangeAvatar={() => setPickerOpen(true)}
@@ -149,13 +163,20 @@ export default function ProfilePage() {
         onChangeAvatar={() => setPickerOpen(true)}
       />
 
-      <AvatarPicker
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        items={avatarItems}
-        currentKey={avatarKey}
-        onPick={pick}
-      />
+      {/* Montada solo mientras esta abierta, y no siempre con `open={false}`:
+          asi su eleccion a medias no sobrevive al cierre. Importa cuando el POST
+          falla — la pagina cierra igual y `avatarKey` no cambia, y una seleccion
+          superviviente marcaria al reabrir un avatar que el usuario no lleva. */}
+      {pickerOpen && (
+        <AvatarPicker
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          items={avatarItems}
+          currentKey={avatarKey}
+          onPick={pick}
+          guardando={guardandoAvatar}
+        />
+      )}
     </>
   );
 }

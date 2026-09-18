@@ -12,6 +12,7 @@ import api, {
   refreshAccessToken,
   setAccessToken as setApiAccessToken,
 } from "@/lib/api-client";
+import { clearAvatarMirror } from "@/lib/avatar-mirror";
 import { borrarEspejo } from "@/lib/first-run";
 import { SOUND_KEY } from "@/lib/sound-prefs";
 import { DIRTY_KEY, MODE_KEY, PALETTE_KEY } from "@/lib/theme-prefs";
@@ -83,6 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           window.localStorage.removeItem(MODE_KEY);
           window.localStorage.removeItem(SOUND_KEY);
           window.localStorage.removeItem(DIRTY_KEY);
+          // La cara tambien es del usuario: sin esto el siguiente en entrar ve
+          // un instante el avatar del anterior antes de que responda el suyo.
+          clearAvatarMirror();
           // El primer inicio también es del usuario: en un equipo compartido, el
           // siguiente en entrar tiene que pasar por su propia bienvenida.
           borrarEspejo();
