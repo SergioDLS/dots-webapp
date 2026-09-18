@@ -270,6 +270,20 @@ porque cambiar este comportamiento sería incorrecto para el resto.
   devolviera vacío, el merge partiría de los valores por defecto y borraría
   los ajustes del usuario —, así que queda anotado y sin cambiar.
 - `GameResult` traga errores del submit sin estado de error (patrón aceptado batch-wide).
+- Aviso "te pasó" (§6.5): la tarjeta puede quedar **enterrada bajo una pista
+  contextual que sube DESPUÉS de emitirla**, y el orden juega a favor de que
+  pase — `RivalWatch` emite en cuanto resuelve su fetch y `TipsController` va por
+  detrás por construcción (pide settings, busca el ancla, espera animaciones
+  hasta 800 ms y solo entonces toma el scroll). Como el snapshot ya se consumió,
+  ese adelantamiento se pierde para siempre. El caso inverso —el tapón que ya
+  estaba puesto— sí está cubierto. Cerrarlo pide recomprobar `pantallaTapada()`
+  al pintar, o suscribirse a `lib/scroll-lock.ts`.
+- Aviso "te pasó": el aviso **fantasma no dura 6 s, dura mientras el hub siga
+  montado**. El estado viaja con su ruta, así que salir del Camino a los 2 s,
+  navegar diez minutos y volver repinta la tarjeta entera con 6 s nuevos, y ese
+  repintado además no pasa por la comprobación de tapones. No es información
+  falsa, es vieja. La vía limpia es pasarle a `RivalAlert` el instante de emisión
+  para que descuente, en vez de reiniciar el temporizador al montarse.
 - Countdown del torneo muestra "0h" en la última hora.
 - Rival: LIMIT 200 en backend → usuarios 201+ se ven como sin rank.
 - crossword y wordle replican la fórmula de score del backend en cliente solo
