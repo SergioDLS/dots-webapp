@@ -85,8 +85,8 @@ cambiar de pestaña, así que sin eso la tarjeta se iría contigo a Repaso, al
 Perfil o a la Tienda, que son justo las tres pantallas donde no se avisa. Y la
 emisión espera a que la pantalla esté destapada —la animación de entrada de Doty
 (`[data-doty-entrada]`) y cualquier diálogo con el scroll tomado
-(`hayScrollBloqueado`), los mismos dos tapones que mira `use-tip-anchor`, más un
-tercero propio, la pestaña en segundo plano (`document.visibilityState`)—, con un
+(`hayScrollBloqueado`) y la pestaña en segundo plano (`document.visibilityState`),
+los mismos tres tapones que mira `use-tip-anchor` y por los mismos motivos—, con un
 techo de 20 s tras el cual se descarta sin pintarse. El snapshot, en cambio, se
 guarda siempre: no depende de que el aviso llegue a verse.
 
