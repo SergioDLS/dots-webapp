@@ -235,7 +235,7 @@ eso es una regresión silenciosa en producción.
 
 ### Lo que aprendimos escribiendo los prompts
 
-Cinco cosas que costaron intentos y ahorran los siguientes:
+Nueve cosas que costaron intentos y ahorran los siguientes:
 
 - **El prefijo dirige la generación, no solo nombra el archivo.** "Doty Sailor
   the **old** crimson narrator" dio el cuerpo bajo y cuadrado del marinero;
@@ -265,6 +265,31 @@ Cinco cosas que costaron intentos y ahorran los siguientes:
   se come el blanco de un ojo o de un pergamino; el pipeline lo repara
   (`fill_internal_holes`), pero si el hueco da al fondo en vez de estar
   encerrado, no lo alcanza y hay que regenerar.
+- **La referencia manda sobre el texto, y el encuadre viaja con ella.** Los tres
+  personajes de color propio existen desde fase-1 como renders de CUERPO ENTERO
+  (`doty-sailor`, `doty-scientist`, `doty-fem`). Adjuntarlos para sacar su
+  versión avatar devolvía cuerpo entero por mucho que el prompt dijera "head and
+  shoulders only" — las tres piezas llevaban esa instrucción y ninguna la
+  obedeció. Lo que lo arregló no fue reescribir el prompt sino **recortar la
+  referencia** al encuadre que se quiere: con la imagen y el texto pidiendo lo
+  mismo, salió al primer intento. El corolario: antes de pelear con el texto,
+  mira si la referencia está pidiendo lo contrario.
+- **El hex escrito en el catálogo no es el color del personaje.** Los tres
+  personajes pedían `#FF0010`, `#E30BE3` y `#B432FF`; el arte canónico mide
+  `#EC043C`, `#B424BC` y `#9C84DC`. Nadie lo notó porque la referencia mandaba
+  más que el número, hasta que una pieza se torció y el número equivocado no
+  tenía con qué corregirla. Mide el color del arte aprobado antes de escribirlo
+  en un prompt — y antes de usarlo como `meta.color`, que es lo que tiñe la
+  sombra del avatar en la app.
+- **Un avatar es una cara a 34 px.** Es el tamaño del ranking y de los vecinos
+  del Camino, y ahí se decide si la pieza sirve. Todo lo que le roba espacio a la
+  cabeza se paga a ese tamaño y no a 96: la mesa de mezclas del `dj`, la tabla
+  del `surfista`, el gorro del `chef`, el cuerpo entero del `marinero`. Y los
+  ojos cerrados son lo peor de todo, porque los ojos son lo único que identifica
+  a Doty cuando la silueta ya no se distingue — cuatro piezas de la tanda 3
+  salieron así y hubo que rehacerlas. **Pide siempre los dos ojos abiertos**
+  salvo que el guiño sea la pieza. La prueba no es mirar el PNG de 512: es
+  montar una hoja de contacto a 34 y mirarla.
 
 ## Iconografía
 
