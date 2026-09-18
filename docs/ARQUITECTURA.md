@@ -65,8 +65,8 @@ te cruzó solo vale cuando el puesto se mueve **un** escalón; con más, el
 movimiento pudo venir de gente que ni estaba —entran dos cuentas por encima de
 todos y bajas dos puestos sin que tu vecino se moviera—, así que la decisión
 devuelve `saltos` y la tarjeta dice cuántos puestos bajaste (o subiste) sin
-atribuirle el adelantamiento a nadie. El vecino se sigue nombrando y su gesto se
-sigue viendo en los cuatro casos: ese es el punto de la fase. El `weekStart` está
+atribuirle el adelantamiento a nadie. El vecino se sigue nombrando y la tarjeta
+conserva su Doty en los cuatro casos. El `weekStart` está
 para que no se compare entre semanas: al reiniciarse el ranking los puestos se
 barajan sin que nadie te haya pasado. Un snapshot con el formato viejo
 (`{ rank }` a secas) se lee como semana desconocida y solo migra.
@@ -85,7 +85,8 @@ cambiar de pestaña, así que sin eso la tarjeta se iría contigo a Repaso, al
 Perfil o a la Tienda, que son justo las tres pantallas donde no se avisa. Y la
 emisión espera a que la pantalla esté destapada —la animación de entrada de Doty
 (`[data-doty-entrada]`) y cualquier diálogo con el scroll tomado
-(`hayScrollBloqueado`), los mismos dos tapones que mira `use-tip-anchor`—, con un
+(`hayScrollBloqueado`), los mismos dos tapones que mira `use-tip-anchor`, más un
+tercero propio, la pestaña en segundo plano (`document.visibilityState`)—, con un
 techo de 20 s tras el cual se descarta sin pintarse. El snapshot, en cambio, se
 guarda siempre: no depende de que el aviso llegue a verse.
 

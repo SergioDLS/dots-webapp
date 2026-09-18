@@ -138,7 +138,7 @@ function deltaVisible(delta: unknown): number {
  * La rama de subida tiene exactamente el mismo agujero —subes porque
  * bloquearon a alguien de arriba, sin haber pasado a nadie—, así que el
  * tratamiento es simétrico. Lo que NO cambia en ningún caso es que se sigue
- * nombrando al vecino y enseñando su gesto: ese es el punto de la fase.
+ * nombrando al vecino y mostrando un Doty en la tarjeta.
  */
 export function decidirAviso(
   anterior: SnapshotRival | null,

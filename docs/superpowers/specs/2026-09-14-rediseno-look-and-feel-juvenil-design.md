@@ -136,7 +136,7 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
 | `cerebro-galaxia` | maestría al 100 % (popover de nodo) | `orgulloso` |
 | `mente-volada` | nivel desbloqueado (celebración de lección) | `wow` |
 | `lentes-deal` | checkpoint aprobado | `lo-lograste` |
-| `chismoso` | aviso de rival (`use-rival-watch`) | `senalando` |
+| `chismoso` | sin cablear — el aviso de rival (§6.5) usa `flexeando` y el gesto del rival, no `chismoso` | `senalando` |
 | `facepalm` | errores de carga | `oh-no` |
 | `flexeando` | boost de XP activo (HUD) | `pulgar-arriba` |
 | `meditando` | repaso al día (`/review`) | `excelente` |
@@ -419,7 +419,7 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
     como lo único comprobable, quién va delante ahora y por cuánto ("Bajaste 2 puestos · Beto va
     40 XP por delante"). La rama de subida tiene el mismo agujero —subes porque bloquearon a alguien
     de arriba, sin haber pasado a nadie—, así que el tratamiento es simétrico. **Lo que no cambia en
-    ninguno de los cuatro casos**: se nombra al vecino y se ve su gesto.
+    ninguno de los cuatro casos**: se nombra al vecino y la tarjeta conserva su Doty.
 - **El reinicio semanal.** El ranking es semanal y al cambiar de semana los puestos se barajan sin que
   nadie te haya pasado, lo que dispararía un aviso falso señalando a una persona concreta. El payload
   del rival pasa a incluir `weekStart` —el lunes de la semana del ranking, como cadena `YYYY-MM-DD`,
@@ -453,9 +453,10 @@ Nueva sección **"Humor e irreverencia"** en `docs/brand/doty-identity.md`, con:
   vida; esto puede pasar varias veces por semana.
   - **Añadido el 2026-09-17.** Como se descarta solo y el snapshot ya quedó guardado, solo hay una
     oportunidad de verlo: por eso no se emite mientras algo tape la pantalla —la animación de entrada
-    de Doty, que corre en todo login con formulario, o un diálogo con el scroll tomado— y no se emite
-    fuera de la pantalla que lo pidió, porque el layout del hub no se remonta al cambiar de pestaña.
-    Si el tapón no se levanta en 20 s el aviso se descarta sin pintarse; el snapshot se guarda igual.
+    de Doty, que corre en todo login con formulario; un diálogo con el scroll tomado, o la pestaña en
+    segundo plano— y no se emite fuera de la pantalla que lo pidió, porque el layout del hub no se
+    remonta al cambiar de pestaña. Si el tapón no se levanta en 20 s el aviso se descarta sin pintarse;
+    el snapshot se guarda igual.
 - **Reglas duras.** Solo `transform`/`opacity` (regla 2), solo tap, cero emoji (regla 11), Doty solo
   desde el registro generado (regla 10). El aviso es `role="status"` con `aria-live="polite"`: informa,
   no exige atención.
