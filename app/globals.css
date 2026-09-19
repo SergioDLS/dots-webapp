@@ -48,6 +48,30 @@ body {
   transition: background-color 200ms ease, color 200ms ease;
 }
 
+/* Sin barras de scroll en móvil: se scrollea igual, pero no se ve la barra.
+   Es lo que hace que la PWA instalada se sienta app y no página.
+
+   El corte es 767 px porque es el que ya usa la app para decidir qué es
+   móvil: justo debajo del `md` de Tailwind, donde el riel de iconos deja
+   paso a la barra inferior (app-nav.tsx). Por encima se dejan como están,
+   que ahí hay ratón y la barra es el control, no un adorno.
+
+   `scrollbar-width` NO se hereda, así que va en `*` y no en `html`: si no,
+   las cajas con scroll propio —la hoja de ajustes, el selector de avatar,
+   las tablas de admin— conservarían la suya.
+
+   El precio, asumido: sin barra no queda ninguna pista de cuánto falta. En
+   el Camino, que mide casi 20.000 px, es donde más se nota. Si algún día
+   estorba, esto se revierte borrando este bloque y nada más. */
+@media (max-width: 767px) {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 h1, h2, h3, .font-display {
   font-family: var(--font-baloo), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
 }
