@@ -23,14 +23,21 @@ interface GameIntroProps {
  * Pantalla de inicio de juego: muestra reglas, récord personal y trono.
  * También actúa como gesto de usuario para desbloquear el autoplay de audio.
  *
- * `flex-1` y NO `min-h-svh`: esto se pinta DENTRO del caparazón de la página
- * del juego, que ya es `min-h-svh` y encima añade `py-6` y la fila de "Salir".
- * Con un alto de pantalla propio, la suma daba 100svh + 68 px y toda intro (y
- * todo resultado) arrancaba con un scroll que no llevaba a ninguna parte.
- * Creciendo hasta llenar el hueco que le deja el caparazón, la tarjeta sigue
- * centrada y la pantalla no scrollea. Si el contenido no cupiera —pantalla
- * muy baja con récord y trono—, `min-height: auto` del ítem flex deja que
- * crezca y la página scrollea lo justo.
+ * Esto se pinta DENTRO del caparazón de la página del juego, y de ahí las dos
+ * cosas que esta pantalla NO hace:
+ *
+ * - No mide una pantalla propia (`flex-1`, no `min-h-svh`). El caparazón ya es
+ *   `min-h-svh` y encima añade su padding y la fila de "Salir", así que con un
+ *   alto propio la suma daba 100svh + 68 px y toda intro —y todo resultado—
+ *   arrancaba con un scroll que no llevaba a ninguna parte. Creciendo hasta
+ *   llenar el hueco que le deja el caparazón, la tarjeta sigue centrada y la
+ *   pantalla no scrollea. Si el contenido no cupiera —pantalla muy baja con
+ *   récord y trono—, `min-height: auto` del ítem flex deja que crezca y la
+ *   página scrollea lo justo.
+ *
+ * - No pone aire vertical propio. El caparazón ya lo pone, y el suyo incluye
+ *   el inset del home indicator; duplicarlo eran 24 px de más en vertical que
+ *   bastaban para que las intros más largas scrollearan sin necesidad.
  */
 export default function GameIntro({
   emoji,
@@ -41,7 +48,7 @@ export default function GameIntro({
   onStart,
 }: GameIntroProps) {
   return (
-    <div className="dots-compact-shell flex w-full flex-1 flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <div className="flex w-full flex-1 flex-col items-center justify-center px-4">
       {/* Fondo decorativo */}
       <div
         aria-hidden

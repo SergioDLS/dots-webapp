@@ -326,7 +326,7 @@ function MemoryInner({ seed }: { seed?: number }) {
   }
 
   return (
-    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="dots-compact-shell relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden

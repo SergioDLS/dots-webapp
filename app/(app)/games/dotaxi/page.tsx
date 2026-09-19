@@ -458,7 +458,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
 
   return (
-    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="dots-compact-shell relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">

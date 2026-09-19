@@ -24,8 +24,9 @@ interface GameResultProps {
  * montar (guarda contra el doble efecto de StrictMode con un ref), muestra
  * +XP, nuevo récord y (cuando el backend lo incluya) trono robado.
  *
- * `flex-1` y no `min-h-svh`, por lo mismo que GameIntro: va dentro del
- * caparazón de la página del juego, que ya ocupa la pantalla entera.
+ * Ni alto propio (`flex-1`, no `min-h-svh`) ni aire vertical propio, por lo
+ * mismo que GameIntro: va dentro del caparazón de la página del juego, que ya
+ * ocupa la pantalla entera y ya pone su padding con el inset incluido.
  */
 export default function GameResult({
   gameKey,
@@ -60,7 +61,7 @@ export default function GameResult({
   const dotyPose = isNewRecord ? "trofeo-celebracion" : "muy-feliz";
 
   return (
-    <div className="dots-compact-shell flex w-full flex-1 flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <div className="flex w-full flex-1 flex-col items-center justify-center px-4">
       {/* Fondo decorativo */}
       <div
         aria-hidden
