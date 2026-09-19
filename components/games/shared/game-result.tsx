@@ -23,6 +23,9 @@ interface GameResultProps {
  * Pantalla de fin de partida: llama submitGameScoreService una sola vez al
  * montar (guarda contra el doble efecto de StrictMode con un ref), muestra
  * +XP, nuevo récord y (cuando el backend lo incluya) trono robado.
+ *
+ * `flex-1` y no `min-h-svh`, por lo mismo que GameIntro: va dentro del
+ * caparazón de la página del juego, que ya ocupa la pantalla entera.
  */
 export default function GameResult({
   gameKey,
@@ -57,7 +60,7 @@ export default function GameResult({
   const dotyPose = isNewRecord ? "trofeo-celebracion" : "muy-feliz";
 
   return (
-    <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <div className="dots-compact-shell flex w-full flex-1 flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
       {/* Fondo decorativo */}
       <div
         aria-hidden

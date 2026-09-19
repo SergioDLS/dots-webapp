@@ -85,7 +85,7 @@ function ResultCard({
   onExit,
 }: ResultCardProps) {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-8">
+    <div className="flex w-full flex-1 flex-col items-center justify-center px-4 py-8">
       <div
         aria-hidden
         className="pointer-events-none fixed -bottom-32 -right-24 h-80 w-80 rounded-full opacity-20 blur-3xl"
@@ -463,7 +463,7 @@ function GhostRaceInner() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando carrera…" />
       </div>
     );
@@ -471,7 +471,7 @@ function GhostRaceInner() {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
           No se pudo cargar la carrera.
         </p>
@@ -490,7 +490,7 @@ function GhostRaceInner() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden
@@ -806,7 +806,7 @@ export default function GhostRacePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

@@ -343,7 +343,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Preparando las frases…" />
       </div>
     );
@@ -351,7 +351,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
         <span className="text-4xl">😬</span>
         <p
           className="text-base font-bold"
@@ -384,7 +384,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden
@@ -720,7 +720,7 @@ export default function SentenceBuilderPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

@@ -278,7 +278,7 @@ export default function Login() {
   return (
     <AuthShell>
       <div
-        className="flex w-full max-w-sm flex-col gap-7"
+        className="dots-compact-stack flex w-full max-w-sm flex-col gap-5 sm:gap-7"
         style={
           saliendo
             ? { animation: `dots-salida-login ${SALIDA_MS}ms ease-in both` }
@@ -369,7 +369,7 @@ export default function Login() {
           >
             ¿Olvidaste tu contraseña?
           </button>
-          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
+          <div className="dots-compact-list flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
             <Doty pose="senalando" size="micro" />
             <p className="text-xs font-bold text-(--muted)">
               ¿No tienes cuenta? La app es parte de los beneficios de{" "}
@@ -378,7 +378,7 @@ export default function Login() {
               </span>
               . Escríbenos y te contamos cómo entrar.
             </p>
-            <div className="flex w-full flex-col gap-2 sm:flex-row">
+            <div className="flex w-full flex-row gap-2">
               <a
                 href={WHATSAPP_URL}
                 target="_blank"

@@ -80,7 +80,7 @@ export default function ReadingPage() {
 
   if (loading || isBootstrapping) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Abriendo el libro..." />
       </div>
     );
@@ -88,7 +88,7 @@ export default function ReadingPage() {
 
   if (failed || !reading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-5 px-4">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-5 px-4">
         <Doty pose="oh-no" size="small" animation="sad" />
         <p className="text-sm font-semibold text-(--muted)">
           No pudimos abrir esta lectura. Inténtalo de nuevo más tarde.
@@ -101,7 +101,7 @@ export default function ReadingPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* ambient blob */}
       <div
         aria-hidden

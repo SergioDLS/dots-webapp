@@ -452,7 +452,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando parejas…" />
       </div>
     );
@@ -460,7 +460,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
           No se pudieron cargar las parejas.
         </p>
@@ -489,7 +489,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden
@@ -521,7 +521,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
 
       {/* ── Banner entre rondas ── */}
       {phase === "banner" && (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center">
+        <div className="flex w-full flex-1 flex-col items-center justify-center">
           <div
             className="font-display text-5xl font-extrabold text-center"
             style={{
@@ -726,7 +726,7 @@ export default function DotMatchPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

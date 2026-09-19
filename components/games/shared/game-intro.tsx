@@ -22,6 +22,15 @@ interface GameIntroProps {
 /**
  * Pantalla de inicio de juego: muestra reglas, récord personal y trono.
  * También actúa como gesto de usuario para desbloquear el autoplay de audio.
+ *
+ * `flex-1` y NO `min-h-svh`: esto se pinta DENTRO del caparazón de la página
+ * del juego, que ya es `min-h-svh` y encima añade `py-6` y la fila de "Salir".
+ * Con un alto de pantalla propio, la suma daba 100svh + 68 px y toda intro (y
+ * todo resultado) arrancaba con un scroll que no llevaba a ninguna parte.
+ * Creciendo hasta llenar el hueco que le deja el caparazón, la tarjeta sigue
+ * centrada y la pantalla no scrollea. Si el contenido no cupiera —pantalla
+ * muy baja con récord y trono—, `min-height: auto` del ítem flex deja que
+ * crezca y la página scrollea lo justo.
  */
 export default function GameIntro({
   emoji,
@@ -32,7 +41,7 @@ export default function GameIntro({
   onStart,
 }: GameIntroProps) {
   return (
-    <div className="dots-compact-shell flex min-h-screen w-full flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <div className="dots-compact-shell flex w-full flex-1 flex-col items-center justify-center px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
       {/* Fondo decorativo */}
       <div
         aria-hidden

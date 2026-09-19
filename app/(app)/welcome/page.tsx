@@ -177,14 +177,14 @@ export default function WelcomePage() {
 
   if (isBootstrapping) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando…" />
       </div>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center gap-6 px-5 py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col items-center justify-center gap-6 px-5 py-10">
       {paso === 1 && <WelcomeHello onNext={() => setPaso(2)} />}
 
       {paso === 2 && (

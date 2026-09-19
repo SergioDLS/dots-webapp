@@ -337,7 +337,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Preparando la torre…" />
       </div>
     );
@@ -345,7 +345,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6">
         <span className="text-4xl">😬</span>
         <p
           className="text-center text-base font-bold"
@@ -372,7 +372,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden
@@ -610,7 +610,7 @@ export default function WordTowerPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

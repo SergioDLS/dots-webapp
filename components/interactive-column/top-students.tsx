@@ -96,8 +96,12 @@ export default function TopStudents() {
     });
   };
 
+  // Sin `overflow-auto`: el ranking crece con la página y es la página la que
+  // scrollea. Con su propio scroll, en móvil quedaba una caja que había que
+  // recorrer por dentro —dos scrolls anidados en una sola columna— y el gesto
+  // se lo comía la caja en vez de mover la pantalla.
   return (
-    <div className="w-full h-full overflow-auto flex flex-col gap-4 p-5">
+    <div className="flex w-full flex-col gap-4 p-5">
       {/* Header */}
       <div className="flex items-center gap-2 shrink-0">
         <Doty pose="medalla" size="mini" />

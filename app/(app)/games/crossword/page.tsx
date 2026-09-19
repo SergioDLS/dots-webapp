@@ -483,7 +483,7 @@ export default function CrosswordPage() {
     // Spinner compartido: el de aquí era una rueda a mano con su propio
     // @keyframes spin duplicado
     return (
-      <div className="flex min-h-[100svh] items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando crucigrama de hoy…" />
       </div>
     );

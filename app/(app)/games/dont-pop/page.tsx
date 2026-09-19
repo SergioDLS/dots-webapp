@@ -242,7 +242,7 @@ function DontPopGame() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Inflando el globo…" />
       </div>
     );
@@ -250,7 +250,7 @@ function DontPopGame() {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
           No se pudo preparar el vuelo.
         </p>
@@ -275,7 +275,7 @@ function DontPopGame() {
   const danger = pressure / PRESSURE_MAX;
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {phase === "intro" && (
         <>
           <div className="z-10 flex w-full max-w-sm justify-start">
@@ -411,7 +411,7 @@ export default function DontPopPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

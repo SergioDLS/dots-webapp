@@ -249,7 +249,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando audio…" />
       </div>
     );
@@ -257,7 +257,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
           No se pudo cargar el juego.
         </p>
@@ -279,7 +279,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden
@@ -506,7 +506,7 @@ export default function AudioBlitzPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

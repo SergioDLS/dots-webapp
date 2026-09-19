@@ -272,7 +272,7 @@ export default function WordlePage() {
     // — que con `loading` en true nunca llega a montarse. O sea: la rueda no
     // giraba, era un anillo quieto.
     return (
-      <div className="flex min-h-[100svh] items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando palabra del día…" />
       </div>
     );

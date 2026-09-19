@@ -18,7 +18,7 @@ export default function HubLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="min-h-screen md:pl-[84px]">
+    <div className="min-h-svh md:pl-[84px]">
       {/* Reconcilia paleta/modo con /me/settings tras el primer paint. */}
       <ThemeSync />
       {/* Primer inicio (spec §7.1): manda a /welcome a quien no tiene
@@ -38,7 +38,12 @@ export default function HubLayout({
       <RivalWatch />
       <AppNav />
       <AppHeader />
-      <main className="mx-auto w-full max-w-5xl px-4 pb-24 pt-4 md:px-8 md:pb-12">
+      {/* El hueco inferior es la barra de nav (58 px) más un respiro, y suma
+          el inset del home indicator porque la barra también lo suma: con el
+          `pb-24` plano de antes, un iPhone con notch dejaba 4 px de holgura
+          —el contenido casi pisaba la nav— y un Android sin inset se comía
+          38 px de vacío que obligaban a scrollear para ver el último bloque. */}
+      <main className="mx-auto w-full max-w-5xl px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-4 md:px-8 md:pb-12">
         {children}
       </main>
     </div>

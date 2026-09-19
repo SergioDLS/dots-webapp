@@ -40,8 +40,11 @@ export function PendingLabel({ text }: { text: string }) {
 
 /** Fondo con blobs a la deriva + tarjeta central. Compartido por login y /forgot. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
+  // El aire del móvil es la mitad que el de escritorio: con `py-12` fuera y
+  // `py-10` dentro, la tarjeta del login se pasaba ~100 px de un iPhone y
+  // había que scrollear para llegar a los enlaces de contacto.
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-12 text-foreground">
+    <div className="dots-compact-shell relative flex min-h-svh w-full items-center justify-center overflow-hidden px-4 py-6 text-foreground sm:px-6 sm:py-12">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-30 blur-3xl"
@@ -58,7 +61,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           animation: "dots-blob-drift 18s ease-in-out infinite reverse",
         }}
       />
-      <div className="dots-card relative z-10 flex w-full max-w-3xl items-center justify-center px-6 py-10 md:px-12 md:py-12">
+      <div className="dots-card dots-compact-card relative z-10 flex w-full max-w-3xl items-center justify-center px-5 py-7 sm:px-6 sm:py-10 md:px-12 md:py-12">
         {children}
       </div>
     </div>

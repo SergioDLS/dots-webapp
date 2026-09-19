@@ -260,7 +260,7 @@ function MemoryInner({ seed }: { seed?: number }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando cartas…" />
       </div>
     );
@@ -268,7 +268,7 @@ function MemoryInner({ seed }: { seed?: number }) {
 
   if (loadError) {
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden px-4 py-6">
+      <div className="relative flex min-h-svh w-full flex-col items-center justify-center overflow-hidden px-4 py-6">
         <div
           aria-hidden
           className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full opacity-20 blur-3xl"
@@ -326,7 +326,7 @@ function MemoryInner({ seed }: { seed?: number }) {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Background glow */}
       <div
         aria-hidden
@@ -569,7 +569,7 @@ export default function MemoryPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

@@ -321,7 +321,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Cargando palabras…" />
       </div>
     );
@@ -329,7 +329,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
           No se pudieron cargar las palabras.
         </p>
@@ -352,7 +352,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center overflow-hidden px-4 py-6">
+    <div className="relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
       {/* Glow de fondo */}
       <div
         aria-hidden
@@ -384,7 +384,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
       {/* ── Selector de modo ── */}
       {phase === "modes" && (
-        <div className="z-10 flex min-h-screen w-full max-w-sm flex-col items-center justify-center gap-3">
+        <div className="z-10 flex w-full max-w-sm flex-1 flex-col items-center justify-center gap-3">
           <h2 className="font-display text-2xl font-extrabold mb-2">¿Cómo lo quieres?</h2>
           {(Object.keys(MODE_LABEL) as GameMode[]).map((m) => (
             <button
@@ -578,7 +578,7 @@ export default function DotBombsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-svh items-center justify-center">
           <Spinner title="Cargando…" />
         </div>
       }

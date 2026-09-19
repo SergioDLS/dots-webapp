@@ -52,6 +52,23 @@ h1, h2, h3, .font-display {
   font-family: var(--font-baloo), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* ─── Alto de pantalla: svh, nunca vh ──────────────────────────
+   Toda pantalla que quiera ocupar el alto completo usa `min-h-svh`
+   (100svh), jamás `min-h-screen` (100vh). En un móvil, `100vh` es el viewport
+   GRANDE —el de la barra de direcciones escondida—, así que con la barra a la
+   vista el elemento mide entre 60 y 115 px más que lo que se ve y la página
+   scrollea aunque el contenido quepa de sobra: el scroll fantasma que tenían
+   login, bienvenida, lecturas, el chrome del hub y los 12 juegos.
+
+   `svh` y no `dvh` porque `dvh` se re-mide cuando la barra se pliega y
+   arrastra el layout con ella; `svh` es el viewport PEQUEÑO, constante, y por
+   definición nunca desborda. Es lo que ya usaban Palabra del Día y el
+   crucigrama, que fueron los primeros en toparse con esto.
+
+   Lo mismo vale para los `max-h` de las hojas (ajustes, avatares, modales de
+   admin): con `vh` el alto máximo se pasa de lo visible y el botón de cerrar
+   se va debajo del borde de la pantalla. */
+
 /* ─── Reusable surfaces & controls ────────────────────────── */
 .dots-card {
   background: var(--surface);
@@ -62,10 +79,10 @@ h1, h2, h3, .font-display {
 
 /* ─── Pantallas bajas ──────────────────────────────────────────
    Las pantallas compartidas de inicio y resultado (GameIntro y GameResult,
-   que ven los 12 juegos) aprietan su aire cuando la pantalla es baja, para
-   que el botón principal entre en el primer pantallazo. Medido a 320×568 con
-   el peor caso —4 reglas, récord y trono—: de los 954 px de contenido, 264
-   eran paddings y huecos, o sea casi media pantalla de aire.
+   que ven los 12 juegos) y la de login aprietan su aire cuando la pantalla es
+   baja, para que el botón principal entre en el primer pantallazo. Medido a
+   320×568 con el peor caso —4 reglas, récord y trono—: de los 954 px de
+   contenido, 264 eran paddings y huecos, o sea casi media pantalla de aire.
 
    Solo se recorta AIRE: no se oculta ni se encoge ningún contenido, así que
    no hay nada que el jugador pueda perderse.
@@ -74,8 +91,19 @@ h1, h2, h3, .font-display {
    un móvil apaisado (375 px de alto) lo sufre más que uno vertical estrecho.
    En apaisado no se pretende que entre todo —no cabe sin ocultar contenido—;
    ahí la página scrollea, que es aceptable porque los juegos están pensados
-   en vertical. Decisión del 2026-08-20. */
-@media (max-height: 700px) {
+   en vertical. Decisión del 2026-08-20.
+
+   El `max-width` se añadió después, y es la mitad que faltaba: una media query
+   de altura NO mide lo que se ve. Mide el viewport GRANDE, el de la barra de
+   direcciones plegada, así que un iPhone 14 reporta 844 px de alto aunque solo
+   enseñe ~745. Con el umbral solo en 700 px, el modo compacto no se activaba
+   en ningún teléfono que la gente tenga hoy —solo en un SE de 2016 y en
+   apaisado—, que es justo donde hacía falta: medido en la intro de Memoria
+   Relámpago a 390×844, el botón "¡Empezar!" caía 145 px por debajo de lo
+   visible y había que scrollear para empezar a jugar. Por ancho sí se
+   distinguen: 540 px no lo alcanza ningún tablet ni ventana de escritorio en
+   uso normal, y lo cumple cualquier móvil en vertical. */
+@media (max-height: 700px), (max-width: 540px) {
   .dots-compact-shell {
     padding-top: 0.75rem;
     /* max(): en iOS standalone el CTA no pisa el home indicator;
@@ -90,6 +118,11 @@ h1, h2, h3, .font-display {
   .dots-compact-list {
     padding-top: 0.6rem;
     padding-bottom: 0.6rem;
+  }
+  /* Para columnas que solo aportan hueco entre bloques (la del login), donde
+     `dots-compact-card` no sirve: metería también su padding vertical. */
+  .dots-compact-stack {
+    gap: 0.75rem;
   }
 }
 

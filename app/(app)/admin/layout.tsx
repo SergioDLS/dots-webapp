@@ -55,7 +55,7 @@ export default function AdminLayout({
 
   if (access === "checking") {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center">
         <Spinner title="Checking access…" />
       </div>
     );
@@ -63,7 +63,7 @@ export default function AdminLayout({
 
   if (access === "denied") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-5 px-6 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-5 px-6 text-center">
         <Doty pose="oh-no" size="small" animation="sad" />
         <h1 className="font-display text-3xl font-extrabold text-foreground">
           Admins only
@@ -83,7 +83,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-svh bg-background">
       {/* Admin top bar */}
       <header className="sticky top-0 z-20 border-b border-(--border) bg-(--surface)/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">

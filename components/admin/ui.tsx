@@ -156,7 +156,7 @@ export function AdminModal({
           </button>
         </div>
 
-        <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-6 py-5">
+        <div className="flex max-h-[70svh] flex-col gap-4 overflow-y-auto px-6 py-5">
           {children}
         </div>
 
