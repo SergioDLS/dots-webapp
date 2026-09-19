@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { Icon } from "@/components/ui/icon";
 import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useParams, useRouter } from "next/navigation";
 import Doty from "@/components/ui/doty/doty";
@@ -116,7 +117,11 @@ export default function ReadingPage() {
         <span className="font-display text-lg font-extrabold text-(--accent) truncate">
           {reading.title}
         </span>
-        <span className="text-2xl leading-none">📖</span>
+        {/* El mismo icono con el que el Camino marca un nodo de lectura
+            (lib/path-node-meta.ts). Un emoji aqui lo dibujaba el sistema
+            operativo: distinto en Safari de iPhone que en escritorio, y sin
+            poder teñirlo (regla 11). */}
+        <Icon name="lectura" size={24} />
       </div>
 
       <div className="relative z-10 mt-4 flex w-full max-w-2xl flex-1 flex-col items-center gap-5">
