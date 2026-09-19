@@ -26,7 +26,7 @@
       "runtimeExecutable": "/bin/sh",
       "runtimeArgs": [
         "-c",
-        "cd ../dots-backend && PATH=$(ls -d \"$HOME\"/.nvm/versions/node/v24*/bin | tail -1):$PATH exec npm run start:dev"
+        "cd \"$(git rev-parse --path-format=absolute --git-common-dir)/../../dots-backend\" && PATH=$(ls -d \"$HOME\"/.nvm/versions/node/v24*/bin | tail -1):$PATH exec npm run start:dev"
       ],
       "port": 4000
     }
