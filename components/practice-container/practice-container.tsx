@@ -121,8 +121,8 @@ export default function PracticeContainer({
     return (
       <PanelWrapper>
         <Confetti burstKey={streak} count={34} />
-        <SectionLabel emoji={<UiIcon name="racha" size={20} />}>Streak</SectionLabel>
-        <Doty pose="emocionado" size="small" animation="cheer" say="You're on fire!" />
+        <SectionLabel emoji={<UiIcon name="racha" size={20} />}>Racha</SectionLabel>
+        <Doty pose="emocionado" size="small" animation="cheer" say="¡Vas imparable!" />
         <p
           className="font-display text-5xl font-extrabold"
           style={{
@@ -182,7 +182,7 @@ export default function PracticeContainer({
   if (mode === "buildUp") {
     return (
       <PanelWrapper>
-        <SectionLabel emoji={<Icon name="armar" size={20} />}>Build up the sentence!</SectionLabel>
+        <SectionLabel emoji={<Icon name="armar" size={20} />}>¡Arma la oración!</SectionLabel>
         <div className="flex items-end gap-4">
           <Doty pose={doty} size="small" animation="bob" />
           <div className="flex flex-col items-center gap-2">
@@ -217,7 +217,7 @@ export default function PracticeContainer({
         >
           {buildUpSentence.length === 0 && (
             <span className="text-xs self-center" style={{ color: "var(--muted)" }}>
-              Tap words below to build the sentence…
+              Toca las palabras de abajo para armar la oración…
             </span>
           )}
           {buildUpSentence.map((word, i) => (

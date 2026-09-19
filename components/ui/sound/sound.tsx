@@ -136,7 +136,7 @@ export default function Sound({
     <div
       role="button"
       tabIndex={0}
-      aria-label="Play sound"
+      aria-label="Escuchar"
       onClick={handlePlay}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handlePlay()}
       className={[

@@ -274,7 +274,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
           <Doty pose="oh-no" size="small" />
         </div>
         <p className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
-          Something went wrong, please try again later.
+          Algo salió mal. Inténtalo de nuevo más tarde.
         </p>
         <UIButton tone="neutral" onClick={goToLevels}>
           ← Volver al camino
