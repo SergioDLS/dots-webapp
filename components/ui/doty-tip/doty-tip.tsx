@@ -5,6 +5,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import Doty from "@/components/ui/doty/doty";
 import type { Recorte } from "@/hooks/use-tip-anchor";
 import type { Tip } from "@/lib/tips";
+import OverlayPortal from "@/components/ui/overlay-portal";
 
 /**
  * Una pista contextual (spec §7.3): oscurece la pantalla menos el elemento del
@@ -82,53 +83,55 @@ export default function DotyTip({ tip, recorte, indice, total, onEntendido }: Pr
         : { bottom: alto - recorte.top + MARGEN };
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={tip.titulo}>
-      {/* El hueco: la sombra gigante pinta todo lo que queda fuera. */}
-      <div
-        aria-hidden
-        className="absolute"
-        style={{
-          top: recorte.top,
-          left: recorte.left,
-          width: recorte.width,
-          height: recorte.height,
-          borderRadius: recorte.radio,
-          boxShadow: "0 0 0 9999px var(--scrim)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <div
-        className="absolute inset-x-0 flex justify-center px-4"
-        style={{ ...posicion, animation: "dots-pop-in 0.35s ease-out both" }}
-      >
+    <OverlayPortal>
+      <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={tip.titulo}>
+        {/* El hueco: la sombra gigante pinta todo lo que queda fuera. */}
         <div
-          className="flex w-full max-w-sm flex-col items-center gap-2 rounded-2xl p-4 text-center"
+          aria-hidden
+          className="absolute"
           style={{
-            background: "var(--surface)",
-            border: "2px solid var(--border)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+            top: recorte.top,
+            left: recorte.left,
+            width: recorte.width,
+            height: recorte.height,
+            borderRadius: recorte.radio,
+            boxShadow: "0 0 0 9999px var(--scrim)",
+            pointerEvents: "none",
           }}
+        />
+
+        <div
+          className="absolute inset-x-0 flex justify-center px-4"
+          style={{ ...posicion, animation: "dots-pop-in 0.35s ease-out both" }}
         >
-          <Doty pose={tip.pose} size="pista" />
-          <h2 className="font-display text-lg font-extrabold text-foreground">{tip.titulo}</h2>
-          <p className="text-sm font-semibold text-(--muted)">{tip.frase}</p>
-          <button
-            ref={botonRef}
-            type="button"
-            onClick={onEntendido}
-            className="dots-pressable mt-1 w-full rounded-2xl px-6 py-3 text-base font-black transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-            style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+          <div
+            className="flex w-full max-w-sm flex-col items-center gap-2 rounded-2xl p-4 text-center"
+            style={{
+              background: "var(--surface)",
+              border: "2px solid var(--border)",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+            }}
           >
-            Entendido
-          </button>
-          {total > 1 && (
-            <span className="text-xs font-extrabold text-(--muted)">
-              Pista {indice} de {total}
-            </span>
-          )}
+            <Doty pose={tip.pose} size="pista" />
+            <h2 className="font-display text-lg font-extrabold text-foreground">{tip.titulo}</h2>
+            <p className="text-sm font-semibold text-(--muted)">{tip.frase}</p>
+            <button
+              ref={botonRef}
+              type="button"
+              onClick={onEntendido}
+              className="dots-pressable mt-1 w-full rounded-2xl px-6 py-3 text-base font-black transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+              style={{ background: "var(--accent)", color: "var(--accent-contrast)" }}
+            >
+              Entendido
+            </button>
+            {total > 1 && (
+              <span className="text-xs font-extrabold text-(--muted)">
+                Pista {indice} de {total}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </OverlayPortal>
   );
 }

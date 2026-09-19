@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BASE_URL_IMAGES, BASE_URL_SOUNDS } from "@/constants";
+import OverlayPortal from "@/components/ui/overlay-portal";
 
 // Absolute URLs (Cloudinary uploads) are used as-is; legacy relative paths
 // resolve against the backend's static folders, same as the learner UI.
@@ -134,37 +135,39 @@ export function AdminModal({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div
-        className={`pop-in relative z-10 w-full ${wide ? "max-w-2xl" : "max-w-lg"} overflow-hidden rounded-3xl border-2 border-(--border) bg-(--surface) shadow-2xl`}
-      >
-        <div className="flex items-center justify-between border-b border-(--border) px-6 py-4">
-          <h3 className="font-display text-xl font-extrabold text-foreground">
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-2xl leading-none text-(--muted) hover:text-(--accent)"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
+    <OverlayPortal>
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden
+        />
+        <div
+          className={`pop-in relative z-10 w-full ${wide ? "max-w-2xl" : "max-w-lg"} overflow-hidden rounded-3xl border-2 border-(--border) bg-(--surface) shadow-2xl`}
+        >
+          <div className="flex items-center justify-between border-b border-(--border) px-6 py-4">
+            <h3 className="font-display text-xl font-extrabold text-foreground">
+              {title}
+            </h3>
+            <button
+              onClick={onClose}
+              className="text-2xl leading-none text-(--muted) hover:text-(--accent)"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
 
-        <div className="flex max-h-[70svh] flex-col gap-4 overflow-y-auto px-6 py-5">
-          {children}
-        </div>
+          <div className="flex max-h-[70svh] flex-col gap-4 overflow-y-auto px-6 py-5">
+            {children}
+          </div>
 
-        <div className="flex justify-end gap-3 border-t border-(--border) px-6 py-4">
-          {footer}
+          <div className="flex justify-end gap-3 border-t border-(--border) px-6 py-4">
+            {footer}
+          </div>
         </div>
       </div>
-    </div>
+    </OverlayPortal>
   );
 }
 

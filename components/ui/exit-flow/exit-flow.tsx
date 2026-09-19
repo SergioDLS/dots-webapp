@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import UIButton from "@/components/ui/button/button";
 import Doty from "@/components/ui/doty/doty";
 import type { DotyPose } from "@/components/ui/doty/doty";
+import OverlayPortal from "@/components/ui/overlay-portal";
 import { bloquearScroll } from "@/lib/scroll-lock";
 
 /**
@@ -96,36 +97,38 @@ export default function ExitFlow({ onExit, aviso, label = "Salir", compacto = fa
       </UIButton>
 
       {abierto && (
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-label="Confirmar salida"
-          className="fixed inset-0 z-50 flex items-center justify-center px-5"
-        >
+        <OverlayPortal>
           <div
-            aria-hidden
-            onClick={() => setPose(null)}
-            className="absolute inset-0"
-            style={{ background: "var(--scrim)" }}
-          />
-          <div className="dots-card relative z-10 flex w-full max-w-sm flex-col items-center gap-3 p-6 text-center [animation:dots-pop-in_.25s_ease-out_both]">
-            <Doty pose={pose} size="small" />
-            <h2 className="font-display text-xl font-extrabold text-foreground">
-              ¿Seguro que quieres salir?
-            </h2>
-            <p className="text-sm font-semibold text-(--muted)">{aviso}</p>
-            {/* Seguir primero y en acento: el camino que no destruye nada es el
-                que debe quedar bajo el pulgar y pesar más a la vista. */}
-            <div className="mt-2 flex w-full flex-col gap-2">
-              <UIButton tone="accent" onClick={() => setPose(null)} fullWidth>
-                Sigo aquí
-              </UIButton>
-              <UIButton tone="ghost" onClick={onExit} fullWidth>
-                Salir de todos modos
-              </UIButton>
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Confirmar salida"
+            className="fixed inset-0 z-50 flex items-center justify-center px-5"
+          >
+            <div
+              aria-hidden
+              onClick={() => setPose(null)}
+              className="absolute inset-0"
+              style={{ background: "var(--scrim)" }}
+            />
+            <div className="dots-card relative z-10 flex w-full max-w-sm flex-col items-center gap-3 p-6 text-center [animation:dots-pop-in_.25s_ease-out_both]">
+              <Doty pose={pose} size="small" />
+              <h2 className="font-display text-xl font-extrabold text-foreground">
+                ¿Seguro que quieres salir?
+              </h2>
+              <p className="text-sm font-semibold text-(--muted)">{aviso}</p>
+              {/* Seguir primero y en acento: el camino que no destruye nada es
+                  el que debe quedar bajo el pulgar y pesar más a la vista. */}
+              <div className="mt-2 flex w-full flex-col gap-2">
+                <UIButton tone="accent" onClick={() => setPose(null)} fullWidth>
+                  Sigo aquí
+                </UIButton>
+                <UIButton tone="ghost" onClick={onExit} fullWidth>
+                  Salir de todos modos
+                </UIButton>
+              </div>
             </div>
           </div>
-        </div>
+        </OverlayPortal>
       )}
     </>
   );

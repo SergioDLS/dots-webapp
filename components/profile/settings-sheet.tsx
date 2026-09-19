@@ -17,6 +17,7 @@ import {
 } from "@/lib/theme-prefs";
 import { patchMySettingsService } from "@/services/settings.service";
 import { bloquearScroll } from "@/lib/scroll-lock";
+import OverlayPortal from "@/components/ui/overlay-portal";
 
 /**
  * Hoja de ajustes del perfil (spec §5): inferior en móvil, lateral en
@@ -153,145 +154,147 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center md:items-stretch md:justify-end">
-      <div
-        aria-hidden
-        onClick={onClose}
-        className="absolute inset-0"
-        style={{ background: "var(--scrim)" }}
-      />
+    <OverlayPortal>
+      <div className="fixed inset-0 z-50 flex items-end justify-center md:items-stretch md:justify-end">
+        <div
+          aria-hidden
+          onClick={onClose}
+          className="absolute inset-0"
+          style={{ background: "var(--scrim)" }}
+        />
 
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Ajustes"
-        tabIndex={-1}
-        className="relative z-10 flex max-h-[85svh] w-full flex-col overflow-y-auto rounded-t-3xl bg-(--surface) px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 [animation:dots-slide-up_.25s_ease-out_both] md:max-h-none md:w-[380px] md:rounded-none md:rounded-l-3xl md:pb-5 md:[animation:dots-slide-right_.25s_ease-out_both]"
-      >
-        <div className="flex items-center justify-between gap-2 pb-2">
-          <h2 className="font-display text-xl font-extrabold text-foreground">Ajustes</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar ajustes"
-            className="rounded-full p-2 text-(--muted) transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-          >
-            <Icon name="cruz" size={20} mono />
-          </button>
-        </div>
-
-        {/* Tema */}
-        <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Tema</span>
-          <div className="grid grid-cols-2 gap-2">
-            {PALETTES.map((p) => {
-              const on = p === palette;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setTheme({ palette: p })}
-                  aria-pressed={on}
-                  className="flex items-center gap-2 rounded-2xl px-3 py-2.5 transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-                  style={{
-                    background: on ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "var(--surface-2)",
-                    border: on ? "2px solid var(--accent)" : "2px solid transparent",
-                  }}
-                >
-                  <span
-                    aria-hidden
-                    className="h-5 w-5 shrink-0 rounded-full"
-                    style={{ background: PALETTE_ACCENTS[p][resolved] }}
-                  />
-                  <span className="text-sm font-extrabold text-foreground">{PALETTE_LABELS[p]}</span>
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-xs font-semibold text-(--muted)">Doty siempre es rosa, el resto cambia</p>
-        </section>
-
-        {/* Modo */}
-        <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Modo</span>
-          <div className="grid grid-cols-3 gap-2">
-            {MODE_LABELS.map((m) => {
-              const on = m.value === mode;
-              return (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => setTheme({ mode: m.value })}
-                  aria-pressed={on}
-                  className="rounded-2xl px-2 py-2 text-sm font-extrabold transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-                  style={{
-                    background: on ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "var(--surface-2)",
-                    border: on ? "2px solid var(--accent)" : "2px solid transparent",
-                    color: on ? "var(--accent)" : "var(--foreground)",
-                  }}
-                >
-                  {m.label}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Sonidos */}
-        <section className="border-t border-(--border)">
-          <Row title="Sonidos" subtitle="Aciertos, fallos y celebraciones">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ajustes"
+          tabIndex={-1}
+          className="relative z-10 flex max-h-[85svh] w-full flex-col overflow-y-auto rounded-t-3xl bg-(--surface) px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 [animation:dots-slide-up_.25s_ease-out_both] md:max-h-none md:w-[380px] md:rounded-none md:rounded-l-3xl md:pb-5 md:[animation:dots-slide-right_.25s_ease-out_both]"
+        >
+          <div className="flex items-center justify-between gap-2 pb-2">
+            <h2 className="font-display text-xl font-extrabold text-foreground">Ajustes</h2>
             <button
               type="button"
-              role="switch"
-              aria-checked={sound}
-              aria-label="Sonidos"
-              onClick={() => setSound(!sound)}
-              className="relative h-7 w-12 shrink-0 rounded-full transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-              style={{ background: sound ? "var(--accent)" : "var(--border)" }}
-            >
-              <span
-                aria-hidden
-                className="absolute top-1 left-1 h-5 w-5 rounded-full bg-white transition-transform duration-200"
-                style={{ transform: sound ? "translateX(20px)" : "none" }}
-              />
-            </button>
-          </Row>
-        </section>
-
-        {/* Acciones */}
-        <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onChangeAvatar();
-            }}
-            className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
-          >
-            Cambiar avatar
-            <Icon name="derecha" size={16} mono />
-          </button>
-          {isAdmin && (
-            <Link
-              href="/admin"
               onClick={onClose}
+              aria-label="Cerrar ajustes"
+              className="rounded-full p-2 text-(--muted) transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+            >
+              <Icon name="cruz" size={20} mono />
+            </button>
+          </div>
+
+          {/* Tema */}
+          <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
+            <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Tema</span>
+            <div className="grid grid-cols-2 gap-2">
+              {PALETTES.map((p) => {
+                const on = p === palette;
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setTheme({ palette: p })}
+                    aria-pressed={on}
+                    className="flex items-center gap-2 rounded-2xl px-3 py-2.5 transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+                    style={{
+                      background: on ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "var(--surface-2)",
+                      border: on ? "2px solid var(--accent)" : "2px solid transparent",
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      className="h-5 w-5 shrink-0 rounded-full"
+                      style={{ background: PALETTE_ACCENTS[p][resolved] }}
+                    />
+                    <span className="text-sm font-extrabold text-foreground">{PALETTE_LABELS[p]}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs font-semibold text-(--muted)">Doty siempre es rosa, el resto cambia</p>
+          </section>
+
+          {/* Modo */}
+          <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
+            <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Modo</span>
+            <div className="grid grid-cols-3 gap-2">
+              {MODE_LABELS.map((m) => {
+                const on = m.value === mode;
+                return (
+                  <button
+                    key={m.value}
+                    type="button"
+                    onClick={() => setTheme({ mode: m.value })}
+                    aria-pressed={on}
+                    className="rounded-2xl px-2 py-2 text-sm font-extrabold transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+                    style={{
+                      background: on ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "var(--surface-2)",
+                      border: on ? "2px solid var(--accent)" : "2px solid transparent",
+                      color: on ? "var(--accent)" : "var(--foreground)",
+                    }}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Sonidos */}
+          <section className="border-t border-(--border)">
+            <Row title="Sonidos" subtitle="Aciertos, fallos y celebraciones">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={sound}
+                aria-label="Sonidos"
+                onClick={() => setSound(!sound)}
+                className="relative h-7 w-12 shrink-0 rounded-full transition-transform duration-150 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+                style={{ background: sound ? "var(--accent)" : "var(--border)" }}
+              >
+                <span
+                  aria-hidden
+                  className="absolute top-1 left-1 h-5 w-5 rounded-full bg-white transition-transform duration-200"
+                  style={{ transform: sound ? "translateX(20px)" : "none" }}
+                />
+              </button>
+            </Row>
+          </section>
+
+          {/* Acciones */}
+          <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onChangeAvatar();
+              }}
               className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
             >
-              Panel de admin
+              Cambiar avatar
               <Icon name="derecha" size={16} mono />
-            </Link>
-          )}
-          <button
-            type="button"
-            onClick={onLogout}
-            className="rounded-2xl px-4 py-3 text-sm font-extrabold transition-transform duration-150 active:scale-95"
-            style={{ background: "color-mix(in srgb, var(--danger) 12%, transparent)", color: "var(--danger)" }}
-          >
-            Cerrar sesión
-          </button>
-        </section>
+            </button>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={onClose}
+                className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
+              >
+                Panel de admin
+                <Icon name="derecha" size={16} mono />
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded-2xl px-4 py-3 text-sm font-extrabold transition-transform duration-150 active:scale-95"
+              style={{ background: "color-mix(in srgb, var(--danger) 12%, transparent)", color: "var(--danger)" }}
+            >
+              Cerrar sesión
+            </button>
+          </section>
+        </div>
       </div>
-    </div>
+    </OverlayPortal>
   );
 }
