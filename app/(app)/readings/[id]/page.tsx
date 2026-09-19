@@ -81,7 +81,7 @@ export default function ReadingPage() {
   if (loading || isBootstrapping) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Spinner title="Opening the book..." />
+        <Spinner title="Abriendo el libro..." />
       </div>
     );
   }
@@ -91,7 +91,7 @@ export default function ReadingPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 px-4">
         <Doty pose="oh-no" size="small" animation="sad" />
         <p className="text-sm font-semibold text-(--muted)">
-          We couldn&apos;t open this reading. Please try again later.
+          No pudimos abrir esta lectura. Inténtalo de nuevo más tarde.
         </p>
         <UIButton tone="neutral" onClick={goToLevels}>
           ← Volver al camino
@@ -127,7 +127,7 @@ export default function ReadingPage() {
             style={{ animation: "dots-slide-up 0.4s ease-out both" }}
           >
             <div className="flex items-end gap-3">
-              <Doty pose="leyendo" size="tiny" animation="bob" say="Read with me!" />
+              <Doty pose="leyendo" size="tiny" animation="bob" say="¡Lee conmigo!" />
             </div>
             <h1 className="font-display text-2xl font-extrabold text-foreground text-center">
               {reading.title}
@@ -148,7 +148,7 @@ export default function ReadingPage() {
 
             {quiz.length > 0 ? (
               <UIButton tone="accent" onClick={() => setStage("quiz")}>
-                I&apos;m ready for the quiz! →
+                ¡Listo para las preguntas! →
               </UIButton>
             ) : (
               <ExitFlow onExit={goToLevels} aviso="Perderás tu avance en esta lectura." />
@@ -213,7 +213,7 @@ export default function ReadingPage() {
 
             <div className="flex gap-3 w-full">
               <UIButton tone="neutral" onClick={() => setStage("read")}>
-                ← Read again
+                ← Leer otra vez
               </UIButton>
               <UIButton
                 tone="accent"
@@ -221,7 +221,7 @@ export default function ReadingPage() {
                 disabled={!allAnswered || submitting}
                 onClick={submit}
               >
-                {submitting ? "Checking..." : "Check my answers!"}
+                {submitting ? "Revisando..." : "¡Revisar mis respuestas!"}
               </UIButton>
             </div>
           </div>
@@ -238,13 +238,13 @@ export default function ReadingPage() {
               pose={result.passed ? "lo-lograste" : "triste"}
               size="small"
               animation={result.passed ? "cheer" : "sad"}
-              say={result.passed ? "You're a super reader!" : "Let's read it once more!"}
+              say={result.passed ? "¡Lees de maravilla!" : "¡Vamos a leerlo otra vez!"}
             />
             <h2 className="font-display text-3xl font-extrabold text-foreground">
-              {result.passed ? "You did it! 🌟" : "Almost there! 💪"}
+              {result.passed ? "¡Lo lograste! 🌟" : "¡Casi! 💪"}
             </h2>
             <p className="text-sm font-bold text-(--muted)">
-              You got {result.correct} out of {result.total} right
+              Acertaste {result.correct} de {result.total}
             </p>
             {result.passed && result.xpGained > 0 && (
               <span
@@ -262,7 +262,7 @@ export default function ReadingPage() {
             <div className="flex w-full max-w-xs flex-col gap-3">
               {!result.passed && (
                 <UIButton tone="accent" fullWidth onClick={retry}>
-                  Try again
+                  Intentar de nuevo
                 </UIButton>
               )}
               <UIButton
@@ -270,7 +270,7 @@ export default function ReadingPage() {
                 fullWidth
                 onClick={goToLevels}
               >
-                Back to levels
+                Volver al camino
               </UIButton>
             </div>
           </div>
