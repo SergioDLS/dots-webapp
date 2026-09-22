@@ -858,26 +858,57 @@
       "slug": "dotaxi",
       "group": "games",
       "prefix": "Doty riding in a yellow taxi",
-      "prompt": "a small round pink Doty character leaning out of the side window of a yellow taxi cab seen from the side, checkered stripe along the door, taxi roof sign, cheerful wave",
+      "prompt": "a small round pink Doty character wearing a yellow taxi driver cap with a cyan visor, leaning out of the side window of a yellow taxi cab seen from the side, checkered stripe along the door, taxi roof sign, cheerful wave",
       "size": 512,
       "mascot": false,
       "done": true,
-      "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png"
+      "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png",
+      "regen": true
     },
     {
       "slug": "dotaxi-taxi",
       "group": "games",
-      "prefix": "Top-down view of a yellow taxi",
-      "prompt": "a yellow taxi cab seen straight from above, bird's eye view, roof sign and checkered stripe visible on the roof, a small round pink Doty character looking up through the open sunroof, four wheels peeking out at the sides, thick navy outline",
+      "prefix": "Yellow taxi from behind",
+      "prompt": "a yellow taxi cab seen from directly behind and slightly above, roof sign on top, two round red taillights, the rear window showing a small round pink Doty character in a yellow taxi driver cap at the wheel, a wide checkered stripe along the rear bumper, rear wheels peeking out at the sides, thick navy outline",
       "size": 512,
       "mascot": false,
       "done": false
     },
     {
-      "slug": "dotaxi-taxi-dented",
+      "slug": "dotaxi-taxi-d1",
       "group": "games",
-      "prefix": "Dented yellow taxi from above",
-      "prompt": "the same yellow taxi seen from above with two round dents on the hood and one on the rear, a thin crack across the windshield, Doty inside looking worried",
+      "prefix": "Taxi with one dent",
+      "prompt": "the same taxi from behind with a single round dent on the trunk lid, Doty at the wheel glancing back",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "edit_from": "dotaxi-taxi"
+    },
+    {
+      "slug": "dotaxi-taxi-d2",
+      "group": "games",
+      "prefix": "Taxi with two dents",
+      "prompt": "the same taxi from behind with two round dents on the trunk and a thin crack across the rear window, Doty at the wheel looking worried",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "edit_from": "dotaxi-taxi"
+    },
+    {
+      "slug": "dotaxi-taxi-d3",
+      "group": "games",
+      "prefix": "Taxi with three dents",
+      "prompt": "the same taxi from behind with three dents, the left taillight broken and unlit, a longer crack across the rear window, a small puff of light grey smoke rising past the roof",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "edit_from": "dotaxi-taxi"
+    },
+    {
+      "slug": "dotaxi-taxi-d4",
+      "group": "games",
+      "prefix": "Taxi with four dents",
+      "prompt": "the same taxi from behind badly dented in four places, the roof sign knocked askew, the rear window cracked in a web, two puffs of light grey smoke rising past the roof, Doty at the wheel wide-eyed",
       "size": 512,
       "mascot": false,
       "done": false,
@@ -886,27 +917,65 @@
     {
       "slug": "dotaxi-taxi-wrecked",
       "group": "games",
-      "prefix": "Wrecked smoking yellow taxi from above",
-      "prompt": "the same yellow taxi seen from above badly dented all over, the roof sign knocked askew, one headlight broken, the windshield cracked in a web, a small puff of light grey smoke rising from the hood, Doty inside dizzy",
+      "prefix": "Wrecked smoking taxi",
+      "prompt": "the same taxi from behind wrecked: dents everywhere, the roof sign hanging sideways and unlit, both taillights broken, the rear window shattered in a web, the bumper drooping on one side, a thick plume of light grey smoke rising past the roof, Doty at the wheel dizzy",
       "size": 512,
       "mascot": false,
       "done": false,
       "edit_from": "dotaxi-taxi"
     },
     {
-      "slug": "dotaxi-pothole",
+      "slug": "dotaxi-puerto",
       "group": "games",
-      "prefix": "Cracked pothole with a puddle",
-      "prompt": "a round pothole in a road seen straight from above, jagged cracked rim, a cyan-blue puddle of water inside with a small white reflection, a few loose pebbles around it",
+      "prefix": "Harbor pier with a lighthouse",
+      "prompt": "a small harbor seen straight from the front, a short pier over cyan-blue water, a white lighthouse with red bands and a glowing yellow lamp, a tiny pink boat moored beside it, a completely blank white rectangular signboard on a post with nothing written on it",
       "size": 512,
       "mascot": false,
       "done": false
     },
     {
-      "slug": "dotaxi-house",
+      "slug": "dotaxi-laboratorio",
       "group": "games",
-      "prefix": "Cozy little house with a blank sign",
-      "prompt": "a small cozy house seen straight from the front, pink walls, blue roof, a cyan door and two cyan windows, a completely blank white rectangular signboard above the door with nothing written on it, a tiny pink flower by the door",
+      "prefix": "Science laboratory building",
+      "prompt": "a small science laboratory building seen straight from the front, cream walls, a violet roof strip, a big round cyan window, a pink flask-shaped sign on the roof, two blue doors, a completely blank white rectangular signboard above the entrance with nothing written on it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "dotaxi-estadio",
+      "group": "games",
+      "prefix": "Football stadium with floodlights",
+      "prompt": "a small football stadium seen straight from the front, a pink rounded bowl with a white ring of seats, a cyan entrance arch, two tall white floodlight poles with glowing yellow lamps, a completely blank white rectangular signboard above the entrance with nothing written on it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "dotaxi-skyline-dia",
+      "group": "games",
+      "prefix": "City skyline by day",
+      "prompt": "a wide flat city skyline strip seen straight from the front, a row of simple buildings of different heights with rounded tops, pale lavender-blue walls, small cyan windows, a few pink rooftop water tanks and antennas, plain white background",
+      "size": 1536,
+      "aspect": "3:1",
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "dotaxi-skyline-noche",
+      "group": "games",
+      "prefix": "City skyline at night",
+      "prompt": "a wide flat city skyline strip seen straight from the front, a row of simple buildings of different heights with rounded tops, deep blue-violet walls, glowing yellow lit windows, a few pink rooftop signs with no letters, plain white background",
+      "size": 1536,
+      "aspect": "3:1",
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "dotaxi-pothole",
+      "group": "games",
+      "prefix": "Cracked pothole with a puddle",
+      "prompt": "a round pothole in a road seen straight from above, jagged cracked rim, a cyan-blue puddle of water inside with a small white reflection, a few loose pebbles around it",
       "size": 512,
       "mascot": false,
       "done": false
@@ -975,6 +1044,15 @@
       "done": true,
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
       "source_file": "Mandrakin_Doty_face_close_up_icon_head_and_shoulders_close-up_6ff961d7-72e7-4479-a520-945e35ef563b_2.png"
+    },
+    {
+      "slug": "taxista",
+      "group": "poses",
+      "prefix": "Doty the taxi driver",
+      "prompt": "standing upright wearing a yellow taxi driver cap with a cyan visor and a small round pink badge, one hand resting on a small steering wheel held in front, proud confident smile",
+      "size": 1024,
+      "mascot": true,
+      "done": false
     }
   ]
 }

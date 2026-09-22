@@ -100,6 +100,8 @@ def validate_catalog(cat: dict) -> None:
             raise CatalogError(f"{slug}: invalid group {group!r}")
         if not isinstance(p.get("size"), int) or p["size"] <= 0:
             raise CatalogError(f"{slug}: size must be a positive int")
+        if p.get("aspect") is not None and not (isinstance(p["aspect"], str) and re.fullmatch(r"\d+:\d+", p["aspect"])):
+            raise CatalogError(f"{slug}: aspect must look like '3:1' (got {p['aspect']!r})")
         if not isinstance(p.get("done"), bool):
             raise CatalogError(f"{slug}: done must be bool")
         if not p.get("mascot"):
@@ -204,7 +206,11 @@ def build_prompt(piece: dict, style: dict) -> str:
     if piece.get("glasses"):
         negativos = [n for n in negativos if n != "glasses"]
     body = ", ".join([piece["prefix"], piece["prompt"], style["icon_block"]])
-    flags = " ".join([f"--ar {style['aspect']}", f"--stylize {style['stylize']}",
+    # `aspect` por pieza: un skyline es una franja 3:1, no un cuadrado. La
+    # salida sigue pasando por trim_square_resize (lienzo cuadrado con aire
+    # transparente), así que `size` debe ser el lado largo para no perder resolución.
+    ar = piece.get("aspect") or style["aspect"]
+    flags = " ".join([f"--ar {ar}", f"--stylize {style['stylize']}",
                        "--no " + ", ".join(negativos)])
     return f"{body} {flags}"
 

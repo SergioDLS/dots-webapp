@@ -17,7 +17,7 @@ SLUGS = {
                     "enamorado", "cansado", "dormido"},
     "poses": {"saludando", "pulgar-arriba", "senalando", "ven-aqui", "bienvenido", "aplaudiendo", "caminando",
               "corriendo", "saltando", "bailando", "sentado", "leyendo", "escribiendo",
-              "en-laptop", "escuchando", "en-celular", "hablando"},
+              "en-laptop", "escuchando", "en-celular", "hablando", "taxista"},
     "states": {"wow", "oh-no", "ups", "excelente", "perfecto", "sigue-asi"},
     "celebrations": {"lo-lograste", "confeti", "trofeo-celebracion", "medalla",
                      "diploma-celebracion", "fuegos-artificiales"},
@@ -32,7 +32,9 @@ SLUGS = {
               "word-tower", "sentence-builder", "ghost-race", "dotaxi", "dont-pop", "dot-bombs",
               # arte de dentro de dotaxi (no tiles): el taxi cenital, sus dos estados
               # de daño editados a partir de él, el bache y la casa de llegada
-              "dotaxi-taxi", "dotaxi-taxi-dented", "dotaxi-taxi-wrecked", "dotaxi-pothole", "dotaxi-house"},
+              "dotaxi-taxi", "dotaxi-taxi-d1", "dotaxi-taxi-d2", "dotaxi-taxi-d3", "dotaxi-taxi-d4",
+              "dotaxi-taxi-wrecked", "dotaxi-pothole", "dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio",
+              "dotaxi-skyline-dia", "dotaxi-skyline-noche"},
     "characters": {"doty-fem", "doty-sailor", "doty-scientist"},
     "app-icon": {"app-icon"},
 }
@@ -44,20 +46,23 @@ GAMES = SLUGS["games"]
 def test_fase1_counts_and_rules():
     cat = mjlib.load_catalog(BATCH)
     counts = Counter(p["group"] for p in cat["pieces"])
-    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 97
+    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 105
     for p in cat["pieces"]:
         # "games" es ahora el unico grupo no-mascota: "icons" (correcto,
         # incorrecto, atencion, cargando, racha, nivel-completado) se retiro
         # entero, ver test_fase1_slugs_exactos_por_grupo.
         expect_mascot = p["group"] != "games"
         assert p["mascot"] is expect_mascot, p["slug"]
-        assert p["size"] == (512 if p["group"] == "games" else 1024), p["slug"]
+        if p.get("aspect"):
+            assert p["size"] == 1536, p["slug"]  # franjas 3:1: el lado largo
+        else:
+            assert p["size"] == (512 if p["group"] == "games" else 1024), p["slug"]
         assert "," not in p["prefix"], p["slug"]
         assert "glasses" not in p["prompt"].lower() or p["slug"] in ("lentes", "doty-scientist"), p["slug"]
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "games"} == GAMES
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
-    assert len({p["prefix"] for p in cat["pieces"]}) == 97
+    assert len({p["prefix"] for p in cat["pieces"]}) == 105
 
 def test_solo_lentes_y_scientist_llevan_glasses():
     cat = mjlib.load_catalog(BATCH)
@@ -214,8 +219,26 @@ def test_emit_lote_warns_when_source_not_generated_yet():
 def test_fase1_dotaxi_variants_are_edits_of_the_intact_taxi():
     cat = mjlib.load_catalog(BATCH)
     by = {p["slug"]: p for p in cat["pieces"]}
-    for slug in ("dotaxi-taxi-dented", "dotaxi-taxi-wrecked"):
+    for slug in ("dotaxi-taxi-d1", "dotaxi-taxi-d2", "dotaxi-taxi-d3", "dotaxi-taxi-d4", "dotaxi-taxi-wrecked"):
         assert by[slug]["edit_from"] == "dotaxi-taxi"
-    for slug in ("dotaxi-pothole", "dotaxi-house"):
+    for slug in ("dotaxi-pothole", "dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio"):
         assert "edit_from" not in by[slug]
+
+
+# ── aspect: formato por pieza (franjas de skyline) ─────────────────────────────
+
+def test_aspect_overrides_style_ar():
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    strip = {"slug": "skyline", "group": "games", "prefix": "Skyline strip", "prompt": "buildings",
+             "size": 1536, "mascot": False, "done": False, "aspect": "3:1"}
+    assert "--ar 3:1" in mjlib.build_prompt(strip, style)
+    plain = dict(strip, aspect=None)
+    assert f"--ar {style['aspect']}" in mjlib.build_prompt(plain, style)
+
+
+def test_aspect_must_be_w_colon_h():
+    cat = _cat_games({"slug": "skyline", "group": "games", "prefix": "Skyline strip", "prompt": "buildings",
+                      "size": 1536, "mascot": False, "done": False, "aspect": "wide"})
+    with pytest.raises(mjlib.CatalogError, match="aspect must look like"):
+        mjlib.validate_catalog(cat)
 
