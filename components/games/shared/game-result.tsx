@@ -58,6 +58,12 @@ export default function GameResult({
   const shownScore = useCountUp(score);
 
   const isNewRecord = result?.isNewHighScore ?? false;
+
+  // Partida por debajo del mínimo: se dice cuánto falta en vez de callar. Sin
+  // el chip, no ganar XP se lee como un fallo de la app, no como una regla.
+  const xpMinScore = result?.xpMinScore ?? 0;
+  const belowXpFloor =
+    result !== null && result.xpGained === 0 && xpMinScore > 0 && score < xpMinScore;
   const dotyPose = isNewRecord ? "trofeo-celebracion" : "muy-feliz";
 
   return (
@@ -106,6 +112,19 @@ export default function GameResult({
 
         {/* Chips de recompensa */}
         <div className="flex flex-wrap items-center justify-center gap-2">
+          {belowXpFloor && (
+            <span
+              className="rounded-full px-4 py-1.5 text-sm font-black"
+              style={{
+                background: "color-mix(in srgb, var(--muted) 14%, transparent)",
+                border: "2px solid color-mix(in srgb, var(--muted) 35%, transparent)",
+                color: "var(--muted)",
+                animation: "dots-pop-in 0.4s ease-out 0.1s both",
+              }}
+            >
+              Llega a {xpMinScore} puntos para ganar XP
+            </span>
+          )}
           {result && result.xpGained > 0 && (
             <span
               className="rounded-full px-4 py-1.5 text-sm font-black"

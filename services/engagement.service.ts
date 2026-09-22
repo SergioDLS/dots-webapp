@@ -45,6 +45,9 @@ export type ScoreResult = {
   tookThrone: boolean;
   /** Name of the player who was dethroned, or null if no prior holder. */
   dethronedName: string | null;
+  /** Puntos necesarios para que la partida pague XP. 0 = este juego no
+   *  puntúa por esta ruta. Puede faltar si el backend aún no lo manda. */
+  xpMinScore?: number;
 };
 
 export type GameScore = {
