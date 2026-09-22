@@ -39,6 +39,13 @@ const TIMER_STEP = 280; // se recorta por ronda jugada
 const TIMER_MIN = 2500;
 const TICKER_FPS = 30;
 const RESOLVE_MS = 1300; // pausa tras resolver la ronda
+// Fallar es un bache: baja por el carril y se mete bajo el taxi. El golpe
+// (sonido, corazón, abolladura) llega cuando pasa por debajo, no al pulsar.
+// 450 + los 500 del temblor caben en RESOLVE_MS con margen.
+const POTHOLE_MS = 450;
+// Llegada: la casa baja desde el fondo y la carretera frena hasta parar.
+const ARRIVAL_BRAKE_MS = 1400;
+const ARRIVAL_MS = 2400; // un toque en la calzada la salta
 const TIER_ZOOM_MS = 450; // cámara alejándose al abrirse un carril
 // El aviso congela la cuenta atrás; tiene que durar al menos lo que el zoom,
 // o el jugador ve moverse la carretera con el reloj ya corriendo.
@@ -57,7 +64,19 @@ const EDGE_PAINT = "#ffd21e"; // amarillo: arcenes continuos
 const SIGN_FACE = "#f7f4ea";
 const SIGN_INK = "#1e1b5c";
 
-type Phase = "intro" | "playing" | "result";
+type Phase = "intro" | "playing" | "arrival" | "result";
+
+/**
+ * Estado visual del taxi: 5-4 corazones intacto, 3-2 abollado, 1 destrozado.
+ * Cinco estados serían cinco piezas de arte que apenas se distinguen entre
+ * sí; tres se leen de un vistazo y aguantan la consistencia entre variantes.
+ */
+type Damage = 0 | 1 | 2;
+function damageFor(hearts: number): Damage {
+  if (hearts >= 4) return 0;
+  if (hearts >= 2) return 1;
+  return 2;
+}
 
 /** PRNG determinista para derivar el mazo del seed (mismo mazo entre rivales). */
 function mulberry32(seed: number): () => number {
@@ -85,10 +104,12 @@ function Taxi({
   tilt,
   crashing,
   pose,
+  damage,
 }: {
   tilt: number;
   crashing: boolean;
   pose: DotyPose;
+  damage: Damage;
 }) {
   return (
     <div
@@ -129,21 +150,60 @@ function Taxi({
           boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
         }}
       >
-        {/* roof sign */}
+        {/* roof sign: torcido en el taxi destrozado */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 rounded-md px-1.5 py-0.5 text-[8px] font-black tracking-widest"
+          className="absolute left-1/2 rounded-md px-1.5 py-0.5 text-[8px] font-black tracking-widest"
           style={{
             top: 2,
             background: "#1b1340",
             color: "#ffd21e",
+            transform: `translateX(-50%) rotate(${damage >= 2 ? -12 : 0}deg)`,
+            transition: "transform 0.3s var(--ease-out-strong)",
           }}
         >
           TAXI
         </div>
 
-        {/* headlights */}
-        <div className="absolute top-2 left-2 h-2 w-3 rounded-full bg-white/90" />
+        {/* headlights: el izquierdo se apaga en el taxi destrozado */}
+        <div
+          className="absolute top-2 left-2 h-2 w-3 rounded-full bg-white/90"
+          style={{ opacity: damage >= 2 ? 0.25 : 1 }}
+        />
         <div className="absolute top-2 right-2 h-2 w-3 rounded-full bg-white/90" />
+
+        {/* abolladuras: sombras sobre la chapa, dos en el abollado y cuatro en
+            el destrozado. Cuando llegue el arte (dotaxi-taxi-dented/-wrecked)
+            este bloque y el humo se van con el resto del taxi CSS. */}
+        {damage >= 1 &&
+          [
+            { top: 10, left: 8, w: 14, h: 9 },
+            { top: 84, left: 46, w: 16, h: 10 },
+          ].map((d) => (
+            <div
+              key={`${d.top}-${d.left}`}
+              className="absolute rounded-full"
+              style={{
+                top: d.top, left: d.left, width: d.w, height: d.h,
+                background: "rgba(27,19,64,0.45)",
+                boxShadow: "inset 1px 1px 0 rgba(255,255,255,0.35)",
+              }}
+            />
+          ))}
+        {damage >= 2 &&
+          [
+            { top: 62, left: 4, w: 12, h: 12 },
+            { top: 14, left: 52, w: 18, h: 9 },
+          ].map((d) => (
+            <div
+              key={`${d.top}-${d.left}`}
+              className="absolute rounded-full"
+              style={{
+                top: d.top, left: d.left, width: d.w, height: d.h,
+                background: "rgba(27,19,64,0.5)",
+                boxShadow: "inset 1px 1px 0 rgba(255,255,255,0.35)",
+              }}
+            />
+          ))}
 
         {/* cabin window with Doty */}
         <div
@@ -159,6 +219,31 @@ function Taxi({
           <div className="absolute left-1/2 -translate-x-1/2" style={{ top: 2 }}>
             <Doty pose={pose} size="mini" />
           </div>
+          {/* grieta del parabrisas */}
+          {damage >= 1 && (
+            <div
+              aria-hidden
+              className="absolute"
+              style={{
+                top: 6, left: 30, width: 2, height: 34,
+                background: "#1b1340",
+                transform: "rotate(28deg)",
+                opacity: 0.8,
+              }}
+            />
+          )}
+          {damage >= 2 && (
+            <div
+              aria-hidden
+              className="absolute"
+              style={{
+                top: 20, left: 12, width: 2, height: 22,
+                background: "#1b1340",
+                transform: "rotate(-40deg)",
+                opacity: 0.8,
+              }}
+            />
+          )}
         </div>
 
         {/* checker stripe */}
@@ -175,6 +260,104 @@ function Taxi({
         {/* taillights */}
         <div className="absolute bottom-2 left-2 h-2 w-3 rounded-full bg-red-500" />
         <div className="absolute bottom-2 right-2 h-2 w-3 rounded-full bg-red-500" />
+      </div>
+
+      {/* humo del capó, solo destrozado: tres bocanadas escalonadas */}
+      {damage >= 2 &&
+        [0, 1, 2].map((i) => (
+          <div
+            key={i}
+            aria-hidden
+            className="absolute rounded-full"
+            style={{
+              top: -4,
+              left: 22 + i * 12,
+              width: 14,
+              height: 14,
+              background: "rgba(200,200,215,0.85)",
+              animation: `dotaxi-smoke 1.1s ease-out ${i * 0.35}s infinite`,
+            }}
+          />
+        ))}
+    </div>
+  );
+}
+
+// ── Bache: baja por el carril y se mete bajo el taxi ────────────────────────
+function Pothole({ fall }: { fall: number }) {
+  return (
+    <div
+      data-testid="pothole"
+      aria-hidden
+      className="pointer-events-none absolute bottom-4"
+      style={{
+        left: -30,
+        width: 60,
+        height: 42,
+        ["--fall" as string]: `${fall}px`,
+        animation: `dotaxi-pothole-pass ${POTHOLE_MS}ms linear both`,
+      }}
+    >
+      {/* borde agrietado + charco. Placeholder hasta el arte dotaxi-pothole. */}
+      <div
+        className="absolute inset-0 rounded-[50%]"
+        style={{ background: "#151329", border: `3px solid ${ASPHALT_EDGE}` }}
+      />
+      <div
+        className="absolute rounded-[50%]"
+        style={{
+          top: 10, left: 12, width: 34, height: 20,
+          background: "linear-gradient(180deg,#35d8f5,#3768ff)",
+          opacity: 0.85,
+        }}
+      />
+    </div>
+  );
+}
+
+// ── Casa de llegada: baja desde el fondo hasta plantarse delante del taxi ────
+function House({ fall, bottom }: { fall: number; bottom: number }) {
+  return (
+    <div
+      data-testid="house"
+      aria-hidden
+      className="pointer-events-none absolute"
+      style={{
+        left: "50%",
+        bottom,
+        width: 150,
+        ["--fall" as string]: `${fall}px`,
+        animation: `dotaxi-house-arrive ${ARRIVAL_BRAKE_MS}ms var(--ease-out-strong) both`,
+      }}
+    >
+      {/* Placeholder hasta el arte dotaxi-house. El letrero dice "dots" como
+          TEXTO con la fuente de marca encima de un cartel en blanco: el arte
+          se genera con el cartel vacío porque Midjourney escribe mal y
+          style.json prohíbe texto; así además se tiñe con la paleta. */}
+      <div
+        className="mx-auto rounded-t-[22px]"
+        style={{ width: 150, height: 46, background: "#3768ff", border: `3px solid ${SIGN_INK}`, borderBottom: "none" }}
+      />
+      <div
+        className="relative mx-auto"
+        style={{ width: 132, height: 78, background: SIGN_FACE, border: `3px solid ${SIGN_INK}`, borderTop: "none" }}
+      >
+        <div className="absolute rounded-md" style={{ top: 12, left: 14, width: 26, height: 22, background: "#35d8f5", border: `2px solid ${SIGN_INK}` }} />
+        <div className="absolute rounded-md" style={{ top: 12, right: 14, width: 26, height: 22, background: "#35d8f5", border: `2px solid ${SIGN_INK}` }} />
+        <div className="absolute rounded-t-xl" style={{ bottom: 0, left: 50, width: 32, height: 40, background: "#ff1f8f", border: `2px solid ${SIGN_INK}`, borderBottom: "none" }} />
+      </div>
+      <div
+        className="absolute left-1/2 flex items-center justify-center rounded-xl font-display text-2xl font-extrabold"
+        style={{
+          top: 14, width: 96, height: 36,
+          transform: "translateX(-50%)",
+          background: SIGN_FACE,
+          border: `3px solid ${SIGN_INK}`,
+          color: "var(--accent)",
+          boxShadow: `0 3px 0 ${SIGN_INK}`,
+        }}
+      >
+        dots
       </div>
     </div>
   );
@@ -233,6 +416,13 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const roadYRef = useRef(0); // desplazamiento de la carretera (px, cíclico)
   const roadRef = useRef<HTMLDivElement | null>(null);
   const roadWRef = useRef(0);
+  const roadHRef = useRef(0); // alto de la calzada: recorrido del bache y de la casa
+  // El golpe del bache llega POTHOLE_MS después de pulsar (ver resolve).
+  const impactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Llegada: cuándo empezó (para frenar la carretera) y cuándo acaba.
+  const arrivingRef = useRef(false);
+  const arrivalElapsedRef = useRef(0);
+  const arrivalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [lane, setLane] = useState(0);
   const [lanes, setLanes] = useState(2);
@@ -243,6 +433,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [tierNotice, setTierNotice] = useState(false);
   const [roadY, setRoadY] = useState(0);
   const [roadW, setRoadW] = useState(0);
+  const [roadH, setRoadH] = useState(0);
+  // true desde que el bache pasa bajo el taxi hasta la ronda siguiente
+  const [impact, setImpact] = useState(false);
 
   // Fetch con patrón fetchAttempt (regla 5)
   const [fetchAttempt, setFetchAttempt] = useState(0);
@@ -278,6 +471,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
     return () => {
       if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
       if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+      if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
+      if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
     };
   }, []);
 
@@ -327,6 +522,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       );
       setRemaining(remainingRef.current);
       setOutcome("none");
+      setImpact(false);
       resolvingRef.current = false;
     },
     [seed],
@@ -348,6 +544,10 @@ function DotaxiInner({ seed }: { seed?: number }) {
     comboRef.current = 0;
     resolvingRef.current = false;
     roadYRef.current = 0;
+    arrivingRef.current = false;
+    if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
+    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
+    setImpact(false);
     setLane(0);
     setLanes(2);
     setOutcome("none");
@@ -361,9 +561,27 @@ function DotaxiInner({ seed }: { seed?: number }) {
 
   const finishGame = useCallback(() => {
     completedRef.current = true;
+    arrivingRef.current = false;
+    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
     setFinalScore(scoreRef.current);
     setPhase("result");
   }, []);
+
+  /** Décimo acierto: antes de la pantalla de resultado, el taxi llega a casa.
+   *  La carretera frena, la casa baja desde el fondo y el taxi se centra.
+   *  Termina sola a los ARRIVAL_MS o con un toque en la calzada. */
+  const startArrival = useCallback(() => {
+    if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+    setTierNotice(false);
+    noticeRef.current = false;
+    setOutcome("none");
+    setImpact(false);
+    arrivalElapsedRef.current = 0;
+    arrivingRef.current = true;
+    setPhase("arrival");
+    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
+    arrivalTimerRef.current = setTimeout(finishGame, ARRIVAL_MS);
+  }, [finishGame]);
 
   const resolve = useCallback(() => {
     if (resolvingRef.current || !question) return;
@@ -382,24 +600,36 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setCombo(comboRef.current);
       setOutcome("clear");
     } else {
-      playSound("wrong");
       comboRef.current = 0;
-      heartsRef.current = Math.max(0, heartsRef.current - 1);
-      setHearts(heartsRef.current);
       setCombo(0);
-      setOutcome("crash");
+      setOutcome("crash"); // el bache arranca a bajar por el carril
+      // El golpe llega cuando el bache pasa bajo el taxi, no al pulsar: el
+      // sonido, el corazón y la abolladura esperan a coincidir con lo que se
+      // ve. El temporizador de la ronda (RESOLVE_MS) va después, así que el
+      // chequeo de corazones de abajo ya lee el valor restado.
+      if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
+      impactTimerRef.current = setTimeout(() => {
+        playSound("wrong");
+        heartsRef.current = Math.max(0, heartsRef.current - 1);
+        setHearts(heartsRef.current);
+        setImpact(true);
+      }, POTHOLE_MS);
     }
 
     if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
     resolveTimerRef.current = setTimeout(() => {
-      if (correctCountRef.current >= WIN_CORRECT || heartsRef.current <= 0) {
+      if (heartsRef.current <= 0) {
         finishGame();
+        return;
+      }
+      if (correctCountRef.current >= WIN_CORRECT) {
+        startArrival();
         return;
       }
       roundRef.current += 1;
       setupRound(roundRef.current);
     }, RESOLVE_MS);
-  }, [question, laneOptions, setupRound, finishGame]);
+  }, [question, laneOptions, setupRound, finishGame, startArrival]);
 
   // Torneo/reto: solo partidas completas. El score personal conserva el
   // parcial al salir (sube desde 0, como dot-match).
@@ -423,11 +653,24 @@ function DotaxiInner({ seed }: { seed?: number }) {
         roadWRef.current = roadEl.clientWidth;
         setRoadW(roadEl.clientWidth);
       }
+      if (roadEl && roadEl.clientHeight !== roadHRef.current) {
+        roadHRef.current = roadEl.clientHeight;
+        setRoadH(roadEl.clientHeight);
+      }
+
+      // Llegada: la carretera frena hasta detenerse en ARRIVAL_BRAKE_MS, que
+      // es lo que tarda la casa en bajar. Sin cuenta atrás.
+      let speed = 1;
+      if (arrivingRef.current) {
+        arrivalElapsedRef.current += dtMs;
+        speed = Math.max(0, 1 - arrivalElapsedRef.current / ARRIVAL_BRAKE_MS);
+      }
 
       // carretera en movimiento: translateY cíclico (nunca background-position)
-      roadYRef.current = (roadYRef.current + dtMs * 0.12) % 64;
+      roadYRef.current = (roadYRef.current + dtMs * 0.12 * speed) % 64;
       setRoadY(roadYRef.current);
 
+      if (arrivingRef.current) return;
       if (resolvingRef.current) return;
       if (noticeRef.current) return; // el aviso congela la cuenta atrás
       remainingRef.current = Math.max(0, remainingRef.current - dtMs);
@@ -437,7 +680,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
     [resolve],
   );
 
-  useTicker(TICKER_FPS, onTick, phase === "playing");
+  useTicker(TICKER_FPS, onTick, phase === "playing" || phase === "arrival");
 
   if (loading) {
     return (
@@ -475,6 +718,15 @@ function DotaxiInner({ seed }: { seed?: number }) {
   // devolvió menos opciones que carriles, se recorta al último carril CON
   // cartel real para posicionar y recolocar el taxi.
   const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
+  const damage = damageFor(hearts);
+  // Centro del taxi en px: su carril mientras se juega, el centro de la
+  // calzada en la llegada. El bache usa el mismo número para caer bajo él.
+  const taxiCenterPx =
+    ((phase === "arrival"
+      ? 50
+      : laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)]) /
+      100) *
+    roadW;
 
   return (
     <div className="dots-compact-shell relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
@@ -491,7 +743,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
               "Toca el carril de esa palabra para mover el taxi.",
               "Pulsa «¡Vamos!» para confirmar antes de que se acabe el tiempo.",
               "Empiezas con 2 carriles; según aciertas se abren más (¡hasta 4!).",
-              `${WIN_CORRECT} aciertos para llegar. Tienes ${START_HEARTS} corazones.`,
+              `${WIN_CORRECT} aciertos para llegar a casa. Cada fallo es un bache: tienes ${START_HEARTS} corazones y el taxi lo nota.`,
             ]}
             record={record}
             throne={throne}
@@ -500,17 +752,24 @@ function DotaxiInner({ seed }: { seed?: number }) {
         </>
       )}
 
-      {phase === "playing" && (
+      {(phase === "playing" || phase === "arrival") && (
         <div data-testid="road" className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3">
           {/* HUD */}
           <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
             <ExitFlow onExit={() => {
-                // Abandonar: el parcial cuenta para el récord, no para el reto
                 if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
                 if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+                if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
+                // En la llegada la partida YA está completa: salir es saltar
+                // la animación, y cuenta para torneo y reto.
+                if (phase === "arrival") {
+                  finishGame();
+                  return;
+                }
+                // Abandonar: el parcial cuenta para el récord, no para el reto
                 setFinalScore(scoreRef.current);
                 setPhase("result");
-              }} aviso="Se acaba la partida, pero tu puntaje cuenta igual." compacto />
+              }} aviso={phase === "arrival" ? null : "Se acaba la partida, pero tu puntaje cuenta igual."} compacto />
             <span className="flex items-center gap-0.5" aria-label={`${hearts} corazones`}>
               {Array.from({ length: START_HEARTS }).map((_, i) => (
                 <UiIcon key={i} name="vidas" size={16} apagado={i >= hearts} />
@@ -540,18 +799,24 @@ function DotaxiInner({ seed }: { seed?: number }) {
             </div>
           </div>
 
-          {/* Frase con el hueco */}
+          {/* Frase con el hueco; en la llegada, el mensaje */}
           <div className="dots-card px-4 py-3 text-center">
-            <p className="text-base font-extrabold">
-              {question?.text.split("__")[0]}
-              <span
-                className="mx-1 inline-block min-w-12 rounded-md border-b-4 px-2"
-                style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
-              >
-                ?
-              </span>
-              {question?.text.split("__")[1] ?? ""}
-            </p>
+            {phase === "arrival" ? (
+              <p className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
+                ¡Llegaste a casa!
+              </p>
+            ) : (
+              <p className="text-base font-extrabold">
+                {question?.text.split("__")[0]}
+                <span
+                  className="mx-1 inline-block min-w-12 rounded-md border-b-4 px-2"
+                  style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+                >
+                  ?
+                </span>
+                {question?.text.split("__")[1] ?? ""}
+              </p>
+            )}
           </div>
 
           {/* Barra de tiempo (scaleX, nunca width) */}
@@ -559,8 +824,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
             <div
               className="h-full w-full origin-left rounded-full"
               style={{
-                transform: `scaleX(${Math.max(0, remaining) / TIMER_START})`,
-                background: remaining > TIMER_START * 0.3 ? "var(--success)" : "var(--danger)",
+                transform: `scaleX(${phase === "arrival" ? 1 : Math.max(0, remaining) / TIMER_START})`,
+                background: phase === "arrival" || remaining > TIMER_START * 0.3 ? "var(--success)" : "var(--danger)",
               }}
             />
           </div>
@@ -568,6 +833,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
           {/* Carretera */}
           <div
             ref={roadRef}
+            data-testid="asphalt"
             className="relative w-full flex-1 overflow-hidden rounded-2xl border-2"
             style={{
               borderColor: ASPHALT_EDGE,
@@ -575,6 +841,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
               // el tap del carril no compite con el pan de scroll de la página
               touchAction: "manipulation",
             }}
+            // un toque en la calzada salta la llegada
+            onPointerUp={phase === "arrival" ? finishGame : undefined}
           >
             {/* Divisorias de carril. Se pintan SIEMPRE las 3 (el máximo, con 4
                 carriles) y las que sobran se van al borde derecho con opacidad
@@ -643,7 +911,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
                   left: `${12 + i * 19}%`,
                   height: "18%",
                   background: LANE_PAINT,
-                  opacity: 0.2,
+                  opacity: phase === "arrival" ? 0 : 0.2,
+                  transition: `opacity ${ARRIVAL_BRAKE_MS}ms linear`,
                   animation: `dotaxi-speedline ${0.7 + (i % 3) * 0.15}s linear ${i * 0.13}s infinite`,
                 }}
               />
@@ -653,7 +922,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
                 cartel de arriba movía el taxi (~40 px de alto): en el móvil
                 instalado era casi imposible acertarle. Va DEBAJO de los
                 carteles en el orden del DOM para no robarles el tap. */}
-            {Array.from({ length: effectiveLanes }).map((_, i) => (
+            {phase === "playing" && Array.from({ length: effectiveLanes }).map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -674,7 +943,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
             ))}
 
             {/* carteles de opción, uno por carril */}
-            {laneOptions.map((opt, i) => {
+            {phase === "playing" && laneOptions.map((opt, i) => {
               const { widthPct, centersPct } = laneGeometry(lanes);
               const isClear = outcome !== "none" && opt === question?.correct;
               const isBlocked = outcome !== "none" && !isClear;
@@ -725,22 +994,35 @@ function DotaxiInner({ seed }: { seed?: number }) {
                 toque del carril en el que está parado. Capa de fuera =
                 carril (0.28 s), capa de dentro = zoom de cámara (450 ms):
                 dos duraciones distintas no caben en un solo transform. */}
+            {/* Bache: mismo carril y misma escala que el taxi, por debajo de
+                él en el DOM para pasarle por debajo también en pantalla */}
+            {outcome === "crash" && phase === "playing" && (
+              <div
+                className="pointer-events-none absolute inset-y-0"
+                style={{
+                  left: 0,
+                  width: 0,
+                  transform: `translateX(${taxiCenterPx}px) scale(${MIN_LANES / lanes})`,
+                  transformOrigin: "bottom center",
+                }}
+              >
+                <Pothole fall={roadH} />
+              </div>
+            )}
+
             <div
               data-testid="taxi"
               className="pointer-events-none absolute bottom-4"
               style={{
                 left: 0,
-                transform: `translateX(${
-                  (laneGeometry(effectiveLanes).centersPct[
-                    Math.min(lane, effectiveLanes - 1)
-                  ] /
-                    100) *
-                  roadW
-                }px) translateX(-50%)`,
+                transform: `translateX(${taxiCenterPx}px) translateX(-50%)`,
                 // sin transición hasta medir la carretera: si no, el taxi se
-                // desliza desde el borde izquierdo al empezar cada partida
+                // desliza desde el borde izquierdo al empezar cada partida.
+                // En la llegada se centra despacio, al ritmo del frenazo.
                 transition:
-                  roadW > 0 ? "transform 0.28s var(--ease-out-strong)" : "none",
+                  roadW > 0
+                    ? `transform ${phase === "arrival" ? ARRIVAL_BRAKE_MS : 280}ms var(--ease-out-strong)`
+                    : "none",
               }}
             >
               <div
@@ -754,11 +1036,25 @@ function DotaxiInner({ seed }: { seed?: number }) {
               >
                 <Taxi
                   tilt={0}
-                  crashing={outcome === "crash"}
-                  pose={outcome === "clear" ? "excelente" : outcome === "crash" ? "oh-no" : "feliz"}
+                  crashing={impact}
+                  damage={damage}
+                  pose={
+                    impact
+                      ? "oh-no"
+                      : phase === "arrival"
+                        ? "lo-lograste"
+                        : outcome === "clear"
+                          ? "excelente"
+                          : "feliz"
+                  }
                 />
               </div>
             </div>
+
+            {/* Casa de llegada, plantada justo por delante del taxi */}
+            {phase === "arrival" && roadH > 0 && (
+              <House fall={roadH} bottom={16 + 116 * (MIN_LANES / lanes) + 14} />
+            )}
 
             {/* aviso de carril nuevo */}
             {tierNotice && (
@@ -780,7 +1076,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
           <button
             data-testid="go"
             onPointerUp={resolve}
-            disabled={outcome !== "none"}
+            disabled={outcome !== "none" || phase === "arrival"}
             className="dots-pressable w-full rounded-2xl py-4 text-base font-extrabold disabled:opacity-40"
             style={{
               background: "var(--accent)",
@@ -788,7 +1084,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
               ["--press-color" as string]: "var(--accent-edge)",
             }}
           >
-            ¡Vamos!
+            {phase === "arrival" ? "Llegando a casa…" : "¡Vamos!"}
           </button>
         </div>
       )}

@@ -355,6 +355,26 @@ h1, h2, h3, .font-display {
   10%  { opacity: 0.9; }
   100% { transform: translateY(120vh); opacity: 0; }
 }
+/* Bache: baja por el carril desde el fondo de la calzada (--fall = su alto,
+   lo mide el ticker) y se mete bajo la cabina del taxi. var() dentro de
+   @keyframes se resuelve contra el elemento animado, así que el recorrido
+   puede depender del alto real sin generar un keyframe por pantalla. */
+@keyframes dotaxi-pothole-pass {
+  from { transform: translateY(calc(-1 * var(--fall, 480px))); }
+  to   { transform: translateY(-40px); }
+}
+/* Humo del taxi destrozado: tres bocanadas que suben y se disipan */
+@keyframes dotaxi-smoke {
+  0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+  20%  { opacity: 0.75; }
+  100% { transform: translateY(-26px) scale(1.4); opacity: 0; }
+}
+/* Casa de llegada: baja desde el fondo hasta plantarse delante del taxi.
+   Lleva su propio translateX(-50%) porque el keyframe pisa el transform. */
+@keyframes dotaxi-house-arrive {
+  from { transform: translateX(-50%) translateY(calc(-1 * var(--fall, 480px))); }
+  to   { transform: translateX(-50%) translateY(0); }
+}
 
 /* ─── DOTY: movimiento y sombra ───────────────────────────────
    Solo transform (portable a RN); la sombra va por CSS porque los sprites
