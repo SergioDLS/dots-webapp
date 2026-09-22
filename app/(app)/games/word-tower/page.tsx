@@ -387,7 +387,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🗼"
+            gameKey="word-tower"
             title="Torre de Palabras"
             howTo={[
               "Una palabra cae desde arriba hacia los carriles.",

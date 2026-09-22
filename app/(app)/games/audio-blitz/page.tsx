@@ -294,7 +294,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🎧"
+            gameKey="audio-blitz"
             title="Escucha Rápida"
             howTo={[
               "Escucha la narración en inglés.",

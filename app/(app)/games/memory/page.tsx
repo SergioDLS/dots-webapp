@@ -341,7 +341,7 @@ function MemoryInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🧠"
+            gameKey="memory"
             title="Memoria Relámpago"
             howTo={[
               "Se esconden 16 cartas: 8 palabras y 8 imágenes.",

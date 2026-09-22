@@ -12,7 +12,6 @@ import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
-import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { getMatchPairsService, type MatchPair } from "@/services/games.service";
 import { useCountdown } from "@/hooks/use-countdown";
@@ -73,6 +72,62 @@ function buildColumn(
     stagger: idx,
     shaken: false,
   }));
+}
+
+// ── Celda del tablero ─────────────────────────────────────────────────────────
+
+/** Una carta del tablero. Extraída porque las dos columnas pintaban el mismo
+ *  bloque de 40 líneas de estilo duplicado. */
+function MatchSlot({
+  slot,
+  side,
+  selected,
+  shaking,
+  onTap,
+}: {
+  slot: Slot;
+  side: "en" | "es";
+  selected: boolean;
+  shaking: boolean;
+  onTap: () => void;
+}) {
+  return (
+    <button
+      onPointerUp={onTap}
+      className="dots-pressable h-full w-full rounded-2xl border-2 px-3 py-3 text-center text-sm font-bold select-none"
+      style={{
+        borderColor: slot.leaving
+          ? "var(--success)"
+          : selected
+            ? "var(--accent)"
+            : "var(--border)",
+        background: slot.leaving
+          ? "color-mix(in srgb, var(--success) 18%, transparent)"
+          : selected
+            ? "color-mix(in srgb, var(--accent) 12%, transparent)"
+            : "var(--surface)",
+        color: "var(--foreground)",
+        opacity: slot.leaving ? 0 : 1,
+        // no base transform: an inline one would always override
+        // the :active translateY(4px) press from dots-pressable
+        transform: slot.leaving ? "scale(0.8)" : undefined,
+        animation: slot.leaving
+          ? "none"
+          : shaking
+            ? "dots-shake-x 0.4s var(--ease-out-strong)"
+            : slot.shaken
+              ? "none"
+              : `dots-slot-in 0.22s var(--ease-out-strong) ${slot.stagger * 45}ms backwards`,
+        transition: slot.leaving
+          ? "opacity 0.16s var(--ease-out-strong), transform 0.16s var(--ease-out-strong), border-color 0.1s, background 0.1s"
+          : "border-color 0.15s, background 0.15s, transform 120ms ease",
+        ["--press-color" as string]: "var(--accent-soft)",
+      }}
+      aria-label={`${side === "en" ? "EN" : "ES"}: ${slot.text}`}
+    >
+      {slot.text}
+    </button>
+  );
 }
 
 // ── Seed reader (inside Suspense boundary) ────────────────────────────────────
@@ -504,7 +559,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji={<Icon name="enlace" size={36} />}
+            gameKey="dot-match"
             title="Dot Match"
             howTo={[
               "Toca una palabra en inglés (izquierda) y su traducción en español (derecha).",
@@ -608,101 +663,45 @@ function DotMatchInner({ seed }: { seed?: number }) {
             )}
           </div>
 
-          {/* Board */}
-          <div className="z-10 flex w-full max-w-sm gap-3">
-            {/* Left column — EN */}
-            <div className="flex flex-1 flex-col gap-2">
-              {leftCol.map((slot, idx) => {
-                const selected = selLeft === idx;
-                const shaking = shake !== null && shake.left === idx;
+          {/* Board — una sola rejilla, no dos columnas independientes: así las
+              dos celdas de una fila comparten alto y una palabra que envuelve
+              a dos líneas no descuadra a su vecina (se veía en móvil). */}
+          <div
+            className="z-10 grid w-full max-w-sm grid-cols-2 gap-x-3 gap-y-2"
+            style={{ gridAutoRows: "minmax(3rem, auto)" }}
+          >
+            {Array.from({ length: Math.max(leftCol.length, rightCol.length) }).map(
+              (_, idx) => {
+                const left = leftCol[idx];
+                const right = rightCol[idx];
                 return (
-                  <button
-                    key={`left-${idx}-${slot.pairId}`}
-                    onPointerUp={() => tapLeft(idx)}
-                    className="dots-pressable w-full rounded-2xl border-2 px-3 py-3 text-center text-sm font-bold select-none"
-                    style={{
-                      borderColor: slot.leaving
-                        ? "var(--success)"
-                        : selected
-                          ? "var(--accent)"
-                          : "var(--border)",
-                      background: slot.leaving
-                        ? "color-mix(in srgb, var(--success) 18%, transparent)"
-                        : selected
-                          ? "color-mix(in srgb, var(--accent) 12%, transparent)"
-                          : "var(--surface)",
-                      color: "var(--foreground)",
-                      opacity: slot.leaving ? 0 : 1,
-                      // no base transform: an inline one would always override
-                      // the :active translateY(4px) press from dots-pressable
-                      transform: slot.leaving ? "scale(0.8)" : undefined,
-                      animation: slot.leaving
-                        ? "none"
-                        : shaking
-                          ? "dots-shake-x 0.4s var(--ease-out-strong)"
-                          : slot.shaken
-                            ? "none"
-                            : `dots-slot-in 0.22s var(--ease-out-strong) ${slot.stagger * 45}ms backwards`,
-                      transition: slot.leaving
-                        ? "opacity 0.16s var(--ease-out-strong), transform 0.16s var(--ease-out-strong), border-color 0.1s, background 0.1s"
-                        : "border-color 0.15s, background 0.15s, transform 120ms ease",
-                      minHeight: "3rem",
-                      ["--press-color" as string]: "var(--accent-soft)",
-                    }}
-                    aria-label={`EN: ${slot.text}`}
-                  >
-                    {slot.text}
-                  </button>
+                  <React.Fragment key={`row-${idx}`}>
+                    {left ? (
+                      <MatchSlot
+                        slot={left}
+                        side="en"
+                        selected={selLeft === idx}
+                        shaking={shake !== null && shake.left === idx}
+                        onTap={() => tapLeft(idx)}
+                      />
+                    ) : (
+                      <span aria-hidden />
+                    )}
+                    {right ? (
+                      <MatchSlot
+                        slot={right}
+                        side="es"
+                        selected={selRight === idx}
+                        shaking={shake !== null && shake.right === idx}
+                        onTap={() => tapRight(idx)}
+                      />
+                    ) : (
+                      <span aria-hidden />
+                    )}
+                  </React.Fragment>
                 );
-              })}
-            </div>
-
-            {/* Right column — ES */}
-            <div className="flex flex-1 flex-col gap-2">
-              {rightCol.map((slot, idx) => {
-                const selected = selRight === idx;
-                const shaking = shake !== null && shake.right === idx;
-                return (
-                  <button
-                    key={`right-${idx}-${slot.pairId}`}
-                    onPointerUp={() => tapRight(idx)}
-                    className="dots-pressable w-full rounded-2xl border-2 px-3 py-3 text-center text-sm font-bold select-none"
-                    style={{
-                      borderColor: slot.leaving
-                        ? "var(--success)"
-                        : selected
-                          ? "var(--accent)"
-                          : "var(--border)",
-                      background: slot.leaving
-                        ? "color-mix(in srgb, var(--success) 18%, transparent)"
-                        : selected
-                          ? "color-mix(in srgb, var(--accent) 12%, transparent)"
-                          : "var(--surface)",
-                      color: "var(--foreground)",
-                      opacity: slot.leaving ? 0 : 1,
-                      // no base transform: an inline one would always override
-                      // the :active translateY(4px) press from dots-pressable
-                      transform: slot.leaving ? "scale(0.8)" : undefined,
-                      animation: slot.leaving
-                        ? "none"
-                        : shaking
-                          ? "dots-shake-x 0.4s var(--ease-out-strong)"
-                          : slot.shaken
-                            ? "none"
-                            : `dots-slot-in 0.22s var(--ease-out-strong) ${slot.stagger * 45}ms backwards`,
-                      transition: slot.leaving
-                        ? "opacity 0.16s var(--ease-out-strong), transform 0.16s var(--ease-out-strong), border-color 0.1s, background 0.1s"
-                        : "border-color 0.15s, background 0.15s, transform 120ms ease",
-                      minHeight: "3rem",
-                      ["--press-color" as string]: "var(--accent-soft)",
-                    }}
-                    aria-label={`ES: ${slot.text}`}
-                  >
-                    {slot.text}
-                  </button>
-                );
-              })}
-            </div>
+              },
+            )}
           </div>
         </>
       )}

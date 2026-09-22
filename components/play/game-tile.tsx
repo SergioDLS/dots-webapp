@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 import { UiIcon } from "@/components/ui/ui-icon";
-import type { TileBadges } from "@/lib/arcade";
+import { gameArt, type TileBadges } from "@/lib/arcade";
 import type { Game } from "@/services/games.service";
 
 /**
@@ -17,11 +17,6 @@ export const TILE_ART_BOX = 96;
 export const TILE_LABEL_H = 32;
 export const TILE_H = TILE_ART_BOX + 6 + TILE_LABEL_H;
 export const BADGE = 28;
-
-/** El arte de cada juego, por su ruta: /images/games/dot-match.png */
-export function gameArt(path: string): string {
-  return `/images/games/${path.startsWith("/") ? path.slice(1) : path}.png`;
-}
 
 interface Props {
   game: Game;

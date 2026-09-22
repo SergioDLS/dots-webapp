@@ -505,7 +505,7 @@ function GhostRaceInner() {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="👻"
+            gameKey="ghost-race"
             title="Carrera Fantasma"
             howTo={[
               ghost

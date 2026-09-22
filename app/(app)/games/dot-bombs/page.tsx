@@ -367,7 +367,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="💣"
+            gameKey="dot-bombs"
             title="Dot Bombs"
             howTo={[
               "Caen bombas con una imagen y su palabra en inglés.",

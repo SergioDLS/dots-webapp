@@ -1,17 +1,24 @@
 "use client";
 
 import React from "react";
-import Doty from "@/components/ui/doty/doty";
+import Image from "next/image";
 import UIButton from "@/components/ui/button/button";
 import { UiIcon } from "@/components/ui/ui-icon";
+import { gameArt } from "@/lib/arcade";
+import type { GameKey } from "@/services/engagement.service";
 
 interface ThroneInfo {
   name: string;
   score: number;
 }
 
+/** Tamaño del arte: el mismo 82 px del tile del arcade, para que la pieza no
+ *  cambie de tamaño entre la grilla y esta pantalla. */
+const ART = 82;
+
 interface GameIntroProps {
-  emoji: React.ReactNode;
+  /** Clave del juego: de ella sale el MISMO arte que enseña la grilla. */
+  gameKey: GameKey;
   title: string;
   howTo: string[];
   record: number | null;
@@ -40,7 +47,7 @@ interface GameIntroProps {
  *   bastaban para que las intros más largas scrollearan sin necesidad.
  */
 export default function GameIntro({
-  emoji,
+  gameKey,
   title,
   howTo,
   record,
@@ -60,16 +67,25 @@ export default function GameIntro({
         className="dots-card dots-compact-card flex w-full max-w-sm flex-col items-center gap-6 px-8 py-10 text-center"
         style={{ animation: "dots-pop-in 0.4s ease-out both" }}
       >
-        {/* Doty con pose de bienvenida */}
+        {/* El arte del propio juego, no Doty: es el icono con el que el
+            jugador lo eligió en la grilla y así la pantalla lo confirma. */}
         <div style={{ animation: "dots-float 3s ease-in-out infinite" }}>
-          <Doty pose="bienvenido" size="small" />
+          <Image
+            src={gameArt(gameKey)}
+            alt=""
+            aria-hidden
+            width={512}
+            height={512}
+            sizes={`${ART}px`}
+            priority
+            className="dots-floor-shadow h-auto select-none object-contain"
+            style={{ width: ART }}
+            draggable={false}
+          />
         </div>
 
         {/* Título del juego */}
         <div className="flex flex-col items-center gap-1">
-          <span className="text-4xl" role="img" aria-label={title}>
-            {emoji}
-          </span>
           <h1 className="font-display text-2xl font-extrabold text-foreground">
             {title}
           </h1>

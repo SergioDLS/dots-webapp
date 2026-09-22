@@ -326,7 +326,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🃏"
+            gameKey="true-false"
             title="¿Verdad o Trampa?"
             howTo={[
               "Aparece una palabra en inglés con su traducción al español.",

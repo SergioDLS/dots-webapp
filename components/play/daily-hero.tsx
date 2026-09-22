@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Icon } from "@/components/ui/icon";
 import { dailyStatus, type DailyState } from "@/lib/arcade";
 import type { Game } from "@/services/games.service";
-import { gameArt } from "./game-tile";
+import { gameArt } from "@/lib/arcade";
 
 /**
  * Héroe de un juego diario (spec §4): arte más grande, eyebrow "Nuevo cada

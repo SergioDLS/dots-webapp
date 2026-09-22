@@ -399,7 +399,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🧱"
+            gameKey="sentence-builder"
             title="Constructor"
             howTo={[
               "Escucha la narración en inglés.",

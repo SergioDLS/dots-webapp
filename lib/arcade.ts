@@ -22,6 +22,15 @@ export function gameKey(path: string): string {
   return path.startsWith("/") ? path.slice(1) : path;
 }
 
+/**
+ * El arte de un juego por su clave o su ruta: "dot-match" →
+ * "/images/games/dot-match.png". Lo comparten la grilla del arcade y la
+ * pantalla de inicio de cada juego, que enseñan el MISMO icono.
+ */
+export function gameArt(pathOrKey: string): string {
+  return `/images/games/${gameKey(pathOrKey)}.png`;
+}
+
 export interface SplitGames {
   daily: Game[];
   arcade: Game[];

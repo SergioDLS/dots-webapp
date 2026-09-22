@@ -282,7 +282,7 @@ function DontPopGame() {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🎈"
+            gameKey="dont-pop"
             title="¡No lo revientes!"
             howTo={[
               "No hay reloj: el globo es el reloj. Se infla solo.",

@@ -3,9 +3,9 @@
 import Image from "next/image";
 
 import { Icon } from "@/components/ui/icon";
-import { lockedLabel } from "@/lib/arcade";
+import { gameArt, lockedLabel } from "@/lib/arcade";
 import type { Game } from "@/services/games.service";
-import { TILE_ART, TILE_ART_BOX, TILE_H, TILE_LABEL_H, gameArt } from "./game-tile";
+import { TILE_ART, TILE_ART_BOX, TILE_H, TILE_LABEL_H } from "./game-tile";
 
 /**
  * Juego aún cerrado (spec §4): el mismo arte en gris al 35 %, candado encima y
