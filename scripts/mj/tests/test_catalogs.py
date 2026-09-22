@@ -242,3 +242,30 @@ def test_aspect_must_be_w_colon_h():
     with pytest.raises(mjlib.CatalogError, match="aspect must look like"):
         mjlib.validate_catalog(cat)
 
+
+# ── lote: orden de trabajo y slots por pieza ──────────────────────────────────
+
+def test_emit_lote_orders_icons_before_edits_and_states_slots():
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    cat = _cat_games(
+        _variant(),  # edición, aparece antes en el catálogo…
+        {"slug": "pothole", "group": "games", "prefix": "Pothole icon", "prompt": "hole",
+         "size": 512, "mascot": False, "done": False},
+    )
+    out = mjlib.emit_lote(cat, style, ["games"], pendientes_solo=True)
+    # …pero el lote pone el icono primero y la edición después
+    assert out.index("`pothole`") < out.index("`taxi-dented`")
+    # icono: sref del ancla, nada adjunto
+    assert "Attach to prompt:** nada · 🎨 **Style reference:** `fase-t/Mandrakin_Anchor_tile_x_0.png` (ancla `ancla`)" in out
+    # edición: la descarga de la fuente adjunta, sref vacío
+    assert "Attach to prompt:** `fase-t/Mandrakin_Yellow_taxi_from_above_x_2.png` · 🎨 **Style reference:** VACÍO" in out
+
+
+def test_emit_lote_mascot_slots_line():
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    cat = {"fase": "fase-t", "pieces": [
+        {"slug": "gorra", "group": "poses", "prefix": "Doty in a cap", "prompt": "cap",
+         "size": 1024, "mascot": True, "done": False}]}
+    out = mjlib.emit_lote(cat, style, ["poses"], pendientes_solo=True)
+    assert f"Attach to prompt:** `{style['edit_source']}`" in out and "Style reference:** VACÍO" in out
+

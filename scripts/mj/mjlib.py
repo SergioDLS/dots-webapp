@@ -274,6 +274,25 @@ SEPARADOR_SREF_VACIO = (
 )
 
 
+def _slots_line(cat: dict, piece: dict, style: dict) -> str:
+    """Qué va en cada slot de Midjourney para ESTA pieza, sin tener que deducirlo
+    de la cabecera: la confusión entre *Attach to prompt* (Edit Model) y *Style
+    reference* (--sref) fue lo que produjo un Doty genérico en la fase 1-bis."""
+    if piece.get("mascot"):
+        return (f"> 📎 **Attach to prompt:** `{style['edit_source']}` · "
+                "🎨 **Style reference:** VACÍO (sácalo si quedó el ancla de un grupo anterior)")
+    if piece.get("edit_from"):
+        fuente = next(q for q in cat["pieces"] if q["slug"] == piece["edit_from"])
+        origen = (f"`{cat['fase']}/{fuente['source_file']}`" if fuente.get("source_file")
+                  else f"la descarga que elijas de `{fuente['slug']}` (misma carpeta)")
+        return f"> 📎 **Attach to prompt:** {origen} · 🎨 **Style reference:** VACÍO"
+    ancla = next((q for q in cat["pieces"] if q.get("group") == piece["group"] and q.get("anchor")), None)
+    if ancla is None or ancla["slug"] == piece["slug"]:
+        return "> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO (esta pieza ES el ancla del grupo)"
+    ref = f"`{cat['fase']}/{ancla['source_file']}`" if ancla.get("source_file") else f"la descarga elegida de `{ancla['slug']}`"
+    return f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** {ref} (ancla `{ancla['slug']}`)"
+
+
 def emit_lote(cat: dict, style: dict, grupos: list[str],
               pendientes_solo: bool = False) -> str:
     """Markdown de un lote de trabajo para uno o más grupos (spec §6): lo que Claude
@@ -294,6 +313,10 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
     por_grupo: dict[str, list[dict]] = {}
     for g in grupos:
         piezas_g = [p for p in cat["pieces"] if p["group"] == g]
+        # Orden de trabajo: primero las de texto a imagen (sref del ancla puesto),
+        # después las ediciones (sref vacío, fuente adjunta). Así el operador
+        # cambia los slots una vez por bloque y no en cada pieza.
+        piezas_g = sorted(piezas_g, key=lambda p: 1 if p.get("edit_from") else 0)
         if not piezas_g:
             raise CatalogError(f"grupo {g!r} no tiene piezas en el catálogo")
         if pendientes_solo:
@@ -388,6 +411,7 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
             else:
                 ancla = " · ⚓ **ANCLA de este grupo — generar primero, sin nada adjunto**"
             lines += [f"### {n}. `{p['slug']}` · {marcador} → `{destino}`{status}{ancla}", ""]
+            lines += [_slots_line(cat, p, style), ""]
             if p.get("edit_from"):
                 fuente = next(q for q in cat["pieces"] if q["slug"] == p["edit_from"])
                 if fuente.get("source_file"):
