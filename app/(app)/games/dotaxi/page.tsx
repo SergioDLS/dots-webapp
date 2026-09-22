@@ -34,6 +34,7 @@ import {
   Gantry,
   GantryApproach,
   TaxiRear,
+  ReactionBubble,
   Pothole,
   DestinationApproach,
   DestinationArt,
@@ -42,8 +43,10 @@ import {
   Dust,
   ASPHALT_EDGE,
   TAXI_H,
+  TAXI_W,
   type Damage,
 } from "./scene";
+import type { DotyPose } from "@/components/ui/doty/doty";
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 
@@ -591,6 +594,16 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const braking = impact || stopped;
   const won = correctCount >= WIN_CORRECT;
   const lost = hearts <= 0;
+  // La cara de Doty salta en burbuja cuando pasa algo; en marcha normal no hay.
+  const reaction: DotyPose | null = impact
+    ? "oh-no"
+    : phase === "arrival"
+      ? "lo-lograste"
+      : phase === "breakdown"
+        ? "llanto-dramatico"
+        : outcome === "clear"
+          ? "excelente"
+          : null;
 
   return (
     <div className="dots-compact-shell relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
@@ -822,25 +835,17 @@ function DotaxiInner({ seed }: { seed?: number }) {
                         transition: `transform ${TAXI_TILT_MS}ms var(--ease-out-strong)`,
                       }}
                     >
-                      <TaxiRear
-                        damage={damage}
-                        braking={braking}
-                        crashing={impact}
-                        pose={
-                          impact
-                            ? "oh-no"
-                            : phase === "arrival"
-                              ? "lo-lograste"
-                              : phase === "breakdown"
-                                ? "llanto-dramatico"
-                                : outcome === "clear"
-                                  ? "excelente"
-                                  : "feliz"
-                        }
-                      />
+                      <TaxiRear damage={damage} braking={braking} crashing={impact} />
                       {dustKey > 0 && <Dust key={dustKey} />}
                     </div>
                   </div>
+                  {reaction && (
+                    <ReactionBubble
+                      key={reaction}
+                      pose={reaction}
+                      style={{ left: TAXI_W / 2 + 10 * laneScale, bottom: TAXI_H * laneScale + 8 }}
+                    />
+                  )}
                 </div>
 
                 {/* Llegada: el pasajero baja junto al taxi */}

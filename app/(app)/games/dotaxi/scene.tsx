@@ -309,14 +309,12 @@ export function TaxiRear({
   damage,
   braking,
   crashing,
-  pose,
 }: {
   damage: Damage;
   /** pilotos encendidos + hundimiento del morro */
   braking: boolean;
   /** temblor del golpe */
   crashing: boolean;
-  pose: DotyPose;
 }) {
   const wrecked = damage >= 5;
   return (
@@ -377,17 +375,20 @@ export function TaxiRear({
             >
               TAXI
             </div>
-            {/* luneta con Doty al volante, gorra de taxista */}
+            {/* luneta: se ve la NUCA de Doty al volante, con la gorra. Su cara
+                va en la burbuja de reacción (ReactionBubble), que es donde
+                una expresión se lee desde atrás. */}
             <div
               className="absolute overflow-hidden"
               style={{ left: 18, right: 18, top: 8, height: 38, background: "#bfe9ff", border: `2px solid ${INK}`, borderRadius: 12 }}
             >
-              <div className="absolute" style={{ left: 8, top: 6, transform: "scale(1.15)", transformOrigin: "top left" }}>
-                <Doty pose={pose} size="micro" />
-              </div>
-              {/* gorra: visera + copa */}
-              <div className="absolute rounded-t-full" style={{ left: 9, top: 2, width: 28, height: 10, background: INK }} />
-              <div className="absolute rounded-full" style={{ left: 6, top: 10, width: 34, height: 4, background: TAXI_YELLOW, border: `1px solid ${INK}` }} />
+              {/* reposacabezas */}
+              <div className="absolute rounded-md" style={{ left: 12, top: 18, width: 30, height: 22, background: "#2a2750", border: `2px solid ${INK}` }} />
+              {/* cabeza por detrás */}
+              <div className="absolute rounded-full" style={{ left: 14, top: 6, width: 26, height: 26, background: "#ff1f8f", border: `2px solid ${INK}` }} />
+              {/* gorra: copa y banda */}
+              <div className="absolute rounded-t-full" style={{ left: 12, top: 1, width: 30, height: 12, background: INK }} />
+              <div className="absolute rounded-full" style={{ left: 10, top: 10, width: 34, height: 4, background: TAXI_YELLOW, border: `1px solid ${INK}` }} />
               {/* grietas */}
               {damage >= 2 && (
                 <div aria-hidden className="absolute" style={{ top: -4, left: 52, width: 2, height: 46, background: INK, transform: "rotate(24deg)", opacity: 0.8 }} />
@@ -578,6 +579,42 @@ export function DestinationApproach({ m, trip, progress }: { m: PlaneMetrics; tr
         {trip.destination.sign}
       </div>
       <DestinationArt trip={trip} width={w} />
+    </div>
+  );
+}
+
+// ── Burbuja de reacción de Doty ──────────────────────────────────────────────
+
+/**
+ * La cara de Doty cuando pasa algo: acierto, bache, llegada, avería. Sale del
+ * techo del taxi como un bocadillo; se remonta por key para volver a saltar.
+ * Tamaño constante: va fuera del wrapper de escala del taxi.
+ */
+export function ReactionBubble({ pose, style }: { pose: DotyPose; style?: React.CSSProperties }) {
+  return (
+    <div
+      data-testid="reaction"
+      aria-hidden
+      className="pointer-events-none absolute flex items-center justify-center rounded-2xl"
+      style={{
+        width: 58,
+        height: 58,
+        background: SIGN_FACE,
+        border: `2.5px solid ${INK}`,
+        boxShadow: `0 3px 0 ${INK}`,
+        animation: "dotaxi-bubble-in 0.25s var(--ease-out-strong) both",
+        ...style,
+      }}
+    >
+      <div style={{ transform: "scale(1.4)" }}>
+        <Doty pose={pose} size="micro" />
+      </div>
+      {/* cola hacia el techo */}
+      <div
+        aria-hidden
+        className="absolute"
+        style={{ left: 8, bottom: -8, width: 12, height: 12, background: SIGN_FACE, borderLeft: `2.5px solid ${INK}`, borderBottom: `2.5px solid ${INK}`, transform: "rotate(-45deg)" }}
+      />
     </div>
   );
 }
