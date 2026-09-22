@@ -104,6 +104,23 @@ def validate_catalog(cat: dict) -> None:
             raise CatalogError(f"{slug}: done must be bool")
         if not p.get("mascot"):
             non_mascot_groups.add(group)
+        if p.get("edit_from"):
+            # Variante editada a partir de OTRA pieza del catálogo (p. ej. el
+            # taxi abollado a partir del intacto): la única forma de que las
+            # dos sean el mismo objeto. La fuente tiene que ser una pieza real,
+            # no mascota (esas ya editan desde ref-patron) y no un ancla.
+            src = p["edit_from"]
+            if p.get("mascot"):
+                raise CatalogError(f"{slug}: edit_from requires mascot: false (mascot pieces edit from the fixed source)")
+            if p.get("anchor"):
+                raise CatalogError(f"{slug}: an anchor cannot be an edit_from variant — it would inherit instead of define the group's look")
+            fuente = next((q for q in cat["pieces"] if q.get("slug") == src), None)
+            if fuente is None:
+                raise CatalogError(f"{slug}: edit_from {src!r} is not a slug in this catalog")
+            if fuente.get("mascot"):
+                raise CatalogError(f"{slug}: edit_from {src!r} is a mascot piece; variants of Doty go through the fixed edit source")
+            if fuente.get("group") != group:
+                raise CatalogError(f"{slug}: edit_from {src!r} is in group {fuente.get('group')!r}, not {group!r}")
         if p.get("anchor"):
             if p.get("mascot"):
                 raise CatalogError(
@@ -164,6 +181,15 @@ def build_prompt(piece: dict, style: dict) -> str:
     y el filtro de `glasses` por pieza. Sin cambios respecto al comportamiento previo
     a la fase 0-bis.
     """
+    if piece.get("edit_from"):
+        # Variante de otra pieza: instrucción para el Edit Model, sin flags, con
+        # la descarga original de la fuente adjunta (ver emit_lote). Se pide
+        # conservar todo lo demás para que las variantes sean el mismo objeto.
+        return ", ".join([
+            piece["prefix"], piece["prompt"],
+            "keep everything else exactly as in the source image: same object, same colors, "
+            "same thick navy outline, same framing, plain white background",
+        ])
     if piece.get("mascot"):
         # El brand_lock por defecto fija el cuerpo rosa. Los narradores derivados
         # (doty-fem, doty-sailor, doty-scientist) llevan otro color de cuerpo para
@@ -335,7 +361,8 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
                 lines += [SEPARADOR_SREF_VACIO, ""]
                 cruzo_a_mascota = True
             n += 1
-            marcador = "🎨 mascota" if p.get("mascot") else "🔤 icono"
+            marcador = ("🎨 mascota" if p.get("mascot")
+                        else "🖌️ edición" if p.get("edit_from") else "🔤 icono")
             destino = _relative_output(p, cat["fase"])
             status = (" ♻️ **REGENERAR** — el arte actual se publica, pero esta pieza "
                       "espera una mejor" if p.get("regen")
@@ -354,8 +381,17 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
                           "sí lleva algo adjunto, a diferencia de las demás)")
             else:
                 ancla = " · ⚓ **ANCLA de este grupo — generar primero, sin nada adjunto**"
-            lines += [f"### {n}. `{p['slug']}` · {marcador} → `{destino}`{status}{ancla}",
-                      "", "```", build_prompt(p, style), "```", ""]
+            lines += [f"### {n}. `{p['slug']}` · {marcador} → `{destino}`{status}{ancla}", ""]
+            if p.get("edit_from"):
+                fuente = next(q for q in cat["pieces"] if q["slug"] == p["edit_from"])
+                if fuente.get("source_file"):
+                    lines += [f"> 🖌️ Edit Model: adjunta **`{cat['fase']}/{fuente['source_file']}`** en "
+                              f"*Attach to prompt* — la descarga ORIGINAL de `{fuente['slug']}`, no el "
+                              "recorte publicado. El slot *Style reference* va vacío.", ""]
+                else:
+                    lines += [f"> 🖌️ Edit Model a partir de `{fuente['slug']}`, que **aún no está generada**: "
+                              "genera y aplica esa primero; después esta se edita desde su descarga.", ""]
+            lines += ["```", build_prompt(p, style), "```", ""]
     return "\n".join(lines)
 
 

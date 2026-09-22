@@ -29,7 +29,10 @@ SLUGS = {
     "stickers": {"good-job", "amazing", "keep-going", "you-can-do-it", "lets-practice", "oops",
                  "almost", "nice", "excellent", "see-you"},
     "games": {"wordle", "crossword", "dot-match", "true-false", "memory", "audio-blitz",
-              "word-tower", "sentence-builder", "ghost-race", "dotaxi", "dont-pop", "dot-bombs"},
+              "word-tower", "sentence-builder", "ghost-race", "dotaxi", "dont-pop", "dot-bombs",
+              # arte de dentro de dotaxi (no tiles): el taxi cenital, sus dos estados
+              # de daño editados a partir de él, el bache y la casa de llegada
+              "dotaxi-taxi", "dotaxi-taxi-dented", "dotaxi-taxi-wrecked", "dotaxi-pothole", "dotaxi-house"},
     "characters": {"doty-fem", "doty-sailor", "doty-scientist"},
     "app-icon": {"app-icon"},
 }
@@ -41,7 +44,7 @@ GAMES = SLUGS["games"]
 def test_fase1_counts_and_rules():
     cat = mjlib.load_catalog(BATCH)
     counts = Counter(p["group"] for p in cat["pieces"])
-    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 92
+    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 97
     for p in cat["pieces"]:
         # "games" es ahora el unico grupo no-mascota: "icons" (correcto,
         # incorrecto, atencion, cargando, racha, nivel-completado) se retiro
@@ -54,7 +57,7 @@ def test_fase1_counts_and_rules():
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "games"} == GAMES
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
-    assert len({p["prefix"] for p in cat["pieces"]}) == 92
+    assert len({p["prefix"] for p in cat["pieces"]}) == 97
 
 def test_solo_lentes_y_scientist_llevan_glasses():
     cat = mjlib.load_catalog(BATCH)
@@ -138,3 +141,81 @@ def test_prefijos_no_colisionan_truncados_al_nombre_de_archivo_mj(n):
                     f"truncados a {n} caracteres ({clave!r})"
                 )
             vistos[clave] = p["slug"]
+
+
+# ── edit_from: variantes editadas a partir de otra pieza ──────────────────────
+
+def _cat_games(*extra):
+    """Catálogo mínimo válido del grupo games (necesita su ancla) más piezas extra."""
+    base = [
+        {"slug": "ancla", "group": "games", "prefix": "Anchor tile", "prompt": "a tile",
+         "size": 512, "mascot": False, "anchor": True, "done": True, "source_file": "Mandrakin_Anchor_tile_x_0.png"},
+        {"slug": "taxi", "group": "games", "prefix": "Yellow taxi from above", "prompt": "a taxi",
+         "size": 512, "mascot": False, "done": True, "source_file": "Mandrakin_Yellow_taxi_from_above_x_2.png"},
+    ]
+    return {"fase": "fase-t", "pieces": base + list(extra)}
+
+
+def _variant(**over):
+    p = {"slug": "taxi-dented", "group": "games", "prefix": "Dented yellow taxi", "prompt": "two dents",
+         "size": 512, "mascot": False, "done": False, "edit_from": "taxi"}
+    p.update(over)
+    return p
+
+
+def test_edit_from_valid_passes():
+    mjlib.validate_catalog(_cat_games(_variant()))
+
+
+def test_edit_from_unknown_slug_fails():
+    with pytest.raises(mjlib.CatalogError, match="not a slug"):
+        mjlib.validate_catalog(_cat_games(_variant(edit_from="nope")))
+
+
+def test_edit_from_cannot_be_anchor():
+    cat = _cat_games(_variant(anchor=True))
+    cat["pieces"][0]["anchor"] = False  # deja a la variante como única ancla
+    with pytest.raises(mjlib.CatalogError, match="anchor cannot be an edit_from"):
+        mjlib.validate_catalog(cat)
+
+
+def test_edit_from_must_share_group():
+    cat = _cat_games(_variant(group="ui"))
+    cat["pieces"].append({"slug": "ui-ancla", "group": "ui", "prefix": "Ui anchor", "prompt": "x",
+                          "size": 256, "mascot": False, "anchor": True, "done": True})
+    with pytest.raises(mjlib.CatalogError, match="not 'ui'"):
+        mjlib.validate_catalog(cat)
+
+
+def test_edit_from_prompt_is_an_edit_instruction_without_flags():
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    prompt = mjlib.build_prompt(_variant(), style)
+    assert "--ar" not in prompt and "--no" not in prompt
+    assert "exactly as in the source image" in prompt
+
+
+def test_emit_lote_tells_operator_which_download_to_attach():
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    out = mjlib.emit_lote(_cat_games(_variant()), style, ["games"], pendientes_solo=True)
+    assert "🖌️ edición" in out
+    assert "fase-t/Mandrakin_Yellow_taxi_from_above_x_2.png" in out
+    assert "Style reference* va vacío" in out
+
+
+def test_emit_lote_warns_when_source_not_generated_yet():
+    style = mjlib.load_style(Path(__file__).resolve().parents[1] / "style.json")
+    cat = _cat_games(_variant())
+    cat["pieces"][1]["done"] = False
+    del cat["pieces"][1]["source_file"]
+    out = mjlib.emit_lote(cat, style, ["games"], pendientes_solo=True)
+    assert "aún no está generada" in out
+
+
+def test_fase1_dotaxi_variants_are_edits_of_the_intact_taxi():
+    cat = mjlib.load_catalog(BATCH)
+    by = {p["slug"]: p for p in cat["pieces"]}
+    for slug in ("dotaxi-taxi-dented", "dotaxi-taxi-wrecked"):
+        assert by[slug]["edit_from"] == "dotaxi-taxi"
+    for slug in ("dotaxi-pothole", "dotaxi-house"):
+        assert "edit_from" not in by[slug]
+

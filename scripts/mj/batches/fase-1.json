@@ -874,6 +874,44 @@
       "done": false
     },
     {
+      "slug": "dotaxi-taxi-dented",
+      "group": "games",
+      "prefix": "Dented yellow taxi from above",
+      "prompt": "the same yellow taxi seen from above with two round dents on the hood and one on the rear, a thin crack across the windshield, Doty inside looking worried",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "edit_from": "dotaxi-taxi"
+    },
+    {
+      "slug": "dotaxi-taxi-wrecked",
+      "group": "games",
+      "prefix": "Wrecked smoking yellow taxi from above",
+      "prompt": "the same yellow taxi seen from above badly dented all over, the roof sign knocked askew, one headlight broken, the windshield cracked in a web, a small puff of light grey smoke rising from the hood, Doty inside dizzy",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "edit_from": "dotaxi-taxi"
+    },
+    {
+      "slug": "dotaxi-pothole",
+      "group": "games",
+      "prefix": "Cracked pothole with a puddle",
+      "prompt": "a round pothole in a road seen straight from above, jagged cracked rim, a cyan-blue puddle of water inside with a small white reflection, a few loose pebbles around it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "dotaxi-house",
+      "group": "games",
+      "prefix": "Cozy little house with a blank sign",
+      "prompt": "a small cozy house seen straight from the front, pink walls, blue roof, a cyan door and two cyan windows, a completely blank white rectangular signboard above the door with nothing written on it, a tiny pink flower by the door",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
       "slug": "dont-pop",
       "group": "games",
       "prefix": "Doty riding a hot air balloon",
