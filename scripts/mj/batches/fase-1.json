@@ -865,6 +865,15 @@
       "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png"
     },
     {
+      "slug": "dotaxi-taxi",
+      "group": "games",
+      "prefix": "Top-down view of a yellow taxi",
+      "prompt": "a yellow taxi cab seen straight from above, bird's eye view, roof sign and checkered stripe visible on the roof, a small round pink Doty character looking up through the open sunroof, four wheels peeking out at the sides, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
       "slug": "dont-pop",
       "group": "games",
       "prefix": "Doty riding a hot air balloon",

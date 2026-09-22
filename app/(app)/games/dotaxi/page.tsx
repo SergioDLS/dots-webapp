@@ -13,6 +13,7 @@ import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
+import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { getDotaxiService, type DotaxiQuestion } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
@@ -25,6 +26,8 @@ import {
   laneGeometry,
   nearestLane,
   buildLaneOptions,
+  MIN_LANES,
+  MAX_LANES,
 } from "./lanes";
 
 // ── Constantes (heredadas del juego original) ────────────────────────────────
@@ -36,7 +39,23 @@ const TIMER_STEP = 280; // se recorta por ronda jugada
 const TIMER_MIN = 2500;
 const TICKER_FPS = 30;
 const RESOLVE_MS = 1300; // pausa tras resolver la ronda
-const TIER_NOTICE_MS = 600; // aviso "¡Carril nuevo!" al abrirse un carril
+const TIER_ZOOM_MS = 450; // cámara alejándose al abrirse un carril
+// El aviso congela la cuenta atrás; tiene que durar al menos lo que el zoom,
+// o el jugador ve moverse la carretera con el reloj ya corriendo.
+const TIER_NOTICE_MS = 900; // aviso "¡Carril nuevo!" al abrirse un carril
+
+// Paleta de la carretera: FIJA en los dos temas, no sale de --surface. Un
+// asfalto teñido con el fondo de la app se vuelve casi blanco en tema claro y
+// ahí las rayas desaparecían (que es justo lo que se veía).
+const ASPHALT = "#2f2c47";
+const ASPHALT_EDGE = "#1b1a2c";
+const LANE_PAINT = "#f4f1e4"; // blanco roto: divisorias discontinuas
+const EDGE_PAINT = "#ffd21e"; // amarillo: arcenes continuos
+// Los carteles son placas de señal, no tarjetas de la app: crema fija con
+// texto navy. Con `dots-card` heredaban --surface, que en tema oscuro (#201a4d)
+// queda casi al mismo tono que el asfalto y el cartel se desdibujaba.
+const SIGN_FACE = "#f7f4ea";
+const SIGN_INK = "#1e1b5c";
 
 type Phase = "intro" | "playing" | "result";
 
@@ -465,7 +484,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
             <ExitFlow onExit={() => router.push("/play")} aviso={null} />
           </div>
           <GameIntro
-            emoji="🚕"
+            gameKey="dotaxi"
             title="Dotaxi"
             howTo={[
               "Lee la frase con el hueco y busca la palabra que encaja.",
@@ -550,36 +569,106 @@ function DotaxiInner({ seed }: { seed?: number }) {
           <div
             ref={roadRef}
             className="relative w-full flex-1 overflow-hidden rounded-2xl border-2"
-            style={{ borderColor: "var(--border)", background: "color-mix(in srgb, var(--foreground) 8%, var(--surface))" }}
+            style={{
+              borderColor: ASPHALT_EDGE,
+              background: ASPHALT,
+              // el tap del carril no compite con el pan de scroll de la página
+              touchAction: "manipulation",
+            }}
           >
-            {/* rayas de carril desplazándose con translateY */}
-            <div
-              aria-hidden
-              className="absolute inset-x-0 top-0"
-              style={{
-                height: "200%",
-                transform: `translateY(${roadY - 64}px)`,
-                backgroundImage:
-                  "repeating-linear-gradient(to bottom, var(--border) 0 24px, transparent 24px 64px)",
-                backgroundSize: "2px 100%",
-                backgroundRepeat: "repeat-y",
-                backgroundPosition: "center",
-                opacity: 0.5,
-              }}
-            />
+            {/* Divisorias de carril. Se pintan SIEMPRE las 3 (el máximo, con 4
+                carriles) y las que sobran se van al borde derecho con opacidad
+                0: así, al abrirse un carril, la nueva entra deslizándose desde
+                fuera en vez de aparecer de golpe — es el gesto de "la calle se
+                hace más grande". Dos capas anidadas porque el desplazamiento
+                vertical se reescribe cada frame y no puede llevar transición;
+                la horizontal sí. */}
+            {Array.from({ length: MAX_LANES - 1 }).map((_, i) => {
+              const live = i < lanes - 1;
+              return (
+                <div
+                  key={i}
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0"
+                  style={{
+                    left: 0,
+                    width: 4,
+                    transform: `translateX(${
+                      (live ? ((i + 1) / lanes) * 100 : 100) * 0.01 * roadW
+                    }px) translateX(-50%)`,
+                    opacity: live ? 1 : 0,
+                    // mismo guard que el taxi: roadW vale 0 hasta que el
+                    // ticker mide la calzada, y sin esto la divisoria se
+                    // desliza desde el borde izquierdo al empezar la partida
+                    transition:
+                      roadW > 0
+                        ? `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong), opacity ${TIER_ZOOM_MS}ms linear`
+                        : "none",
+                  }}
+                >
+                  <div
+                    className="absolute inset-x-0 top-0"
+                    style={{
+                      height: "200%",
+                      transform: `translateY(${roadY - 64}px)`,
+                      backgroundImage: `repeating-linear-gradient(to bottom, ${LANE_PAINT} 0 28px, transparent 28px 64px)`,
+                    }}
+                  />
+                </div>
+              );
+            })}
+
+            {/* Arcenes: línea continua a cada lado, como una carretera de verdad */}
+            {[0, 1].map((side) => (
+              <div
+                key={side}
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0"
+                style={{
+                  [side === 0 ? "left" : "right"]: 6,
+                  width: 3,
+                  background: EDGE_PAINT,
+                  opacity: 0.8,
+                }}
+              />
+            ))}
 
             {/* líneas de velocidad: sensación de marcha (solo transform/opacity) */}
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
                 aria-hidden
-                className="absolute w-0.5 rounded-full"
+                className="pointer-events-none absolute w-0.5 rounded-full"
                 style={{
                   left: `${12 + i * 19}%`,
                   height: "18%",
-                  background: "var(--border)",
-                  opacity: 0.55,
+                  background: LANE_PAINT,
+                  opacity: 0.2,
                   animation: `dotaxi-speedline ${0.7 + (i % 3) * 0.15}s linear ${i * 0.13}s infinite`,
+                }}
+              />
+            ))}
+
+            {/* Zona de toque de cada carril, a todo lo alto. Antes solo el
+                cartel de arriba movía el taxi (~40 px de alto): en el móvil
+                instalado era casi imposible acertarle. Va DEBAJO de los
+                carteles en el orden del DOM para no robarles el tap. */}
+            {Array.from({ length: effectiveLanes }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                data-testid={`lane-zone-${i}`}
+                aria-label={`Ir al carril ${i + 1}: ${laneOptions[i] ?? ""}`}
+                onPointerUp={() => {
+                  if (resolvingRef.current) return;
+                  laneRef.current = i;
+                  setLane(i);
+                }}
+                className="absolute inset-y-0"
+                style={{
+                  left: `${laneGeometry(effectiveLanes).widthPct * i}%`,
+                  width: `${laneGeometry(effectiveLanes).widthPct}%`,
+                  touchAction: "manipulation",
                 }}
               />
             ))}
@@ -598,32 +687,47 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     laneRef.current = i;
                     setLane(i);
                   }}
-                  className={`absolute top-3 dots-card px-1 py-2 font-extrabold break-words leading-tight ${
+                  className={`absolute top-3 flex items-center justify-center rounded-xl border-2 px-1 py-2 font-extrabold break-words leading-tight ${
                     lanes >= 4 ? "text-[10px]" : "text-xs"
                   }`}
                   style={{
                     left: `${centersPct[i]}%`,
                     width: `${widthPct * 0.94}%`,
                     transform: "translateX(-50%)",
+                    touchAction: "manipulation",
+                    background: SIGN_FACE,
+                    boxShadow: `0 3px 0 ${ASPHALT_EDGE}, 0 6px 12px rgba(0,0,0,0.35)`,
+                    color: isClear
+                      ? "var(--success)"
+                      : isBlocked
+                        ? "var(--danger)"
+                        : SIGN_INK,
                     borderColor: isClear
                       ? "var(--success)"
                       : isBlocked
                         ? "var(--danger)"
                         : lane === i
                           ? "var(--accent)"
-                          : "var(--border)",
-                    transition: "border-color 0.2s",
+                          : SIGN_INK,
+                    transition: "border-color 0.2s, color 0.2s",
                   }}
                 >
-                  {outcome === "none" ? opt : isClear ? "✓" : "🚧"}
+                  {outcome === "none" ? (
+                    opt
+                  ) : (
+                    <Icon name={isClear ? "check" : "cruz"} size={20} mono />
+                  )}
                 </button>
               );
             })}
 
-            {/* Taxi: translateX (nunca left) */}
+            {/* Taxi. Decorativo: pointer-events none, o taparía la zona de
+                toque del carril en el que está parado. Capa de fuera =
+                carril (0.28 s), capa de dentro = zoom de cámara (450 ms):
+                dos duraciones distintas no caben en un solo transform. */}
             <div
               data-testid="taxi"
-              className="absolute bottom-4"
+              className="pointer-events-none absolute bottom-4"
               style={{
                 left: 0,
                 transform: `translateX(${
@@ -639,20 +743,31 @@ function DotaxiInner({ seed }: { seed?: number }) {
                   roadW > 0 ? "transform 0.28s var(--ease-out-strong)" : "none",
               }}
             >
-              <Taxi
-                tilt={0}
-                crashing={outcome === "crash"}
-                pose={outcome === "clear" ? "excelente" : outcome === "crash" ? "oh-no" : "feliz"}
-              />
+              <div
+                style={{
+                  // al abrirse un carril la cámara se aleja: el taxi encoge en
+                  // la misma proporción en que se estrecha su carril
+                  transform: `scale(${MIN_LANES / lanes})`,
+                  transformOrigin: "bottom center",
+                  transition: `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong)`,
+                }}
+              >
+                <Taxi
+                  tilt={0}
+                  crashing={outcome === "crash"}
+                  pose={outcome === "clear" ? "excelente" : outcome === "crash" ? "oh-no" : "feliz"}
+                />
+              </div>
             </div>
 
             {/* aviso de carril nuevo */}
             {tierNotice && (
               <div
                 data-testid="tier-notice"
-                className="absolute inset-x-0 top-1/2 text-center font-display text-xl font-extrabold"
+                className="pointer-events-none absolute inset-x-0 top-1/2 text-center font-display text-xl font-extrabold"
                 style={{
                   color: "var(--accent)",
+                  textShadow: `0 2px 8px ${ASPHALT_EDGE}`,
                   animation: "dots-pop-in 0.3s var(--ease-out-strong) both",
                 }}
               >

@@ -14,6 +14,10 @@ export const LANE_TIERS = [
   { minCorrect: 0, lanes: 2 },
 ] as const;
 
+/** Extremos del escalón, para que la vista no repita los números a mano. */
+export const MIN_LANES = Math.min(...LANE_TIERS.map((t) => t.lanes));
+export const MAX_LANES = Math.max(...LANE_TIERS.map((t) => t.lanes));
+
 export function lanesForCorrect(correctCount: number): number {
   for (const tier of LANE_TIERS) {
     if (correctCount >= tier.minCorrect) return tier.lanes;
