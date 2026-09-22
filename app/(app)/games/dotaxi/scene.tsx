@@ -606,8 +606,17 @@ export function ReactionBubble({ pose, style }: { pose: DotyPose; style?: React.
         ...style,
       }}
     >
-      <div style={{ transform: "scale(1.4)" }}>
-        <Doty pose={pose} size="micro" />
+      {/* Recorte a la cara: el sprite es de cuerpo entero y aquí interesa la
+          expresión, así que se amplía anclado arriba y las piernas quedan
+          fuera del marco. El marco es un hijo con overflow hidden para que la
+          cola de abajo no se recorte. */}
+      <div className="absolute overflow-hidden rounded-xl" style={{ inset: 3 }}>
+        <div
+          className="absolute"
+          style={{ left: "50%", top: -3, transform: "translateX(-50%) scale(2.35)", transformOrigin: "top center" }}
+        >
+          <Doty pose={pose} size="micro" />
+        </div>
       </div>
       {/* cola hacia el techo */}
       <div

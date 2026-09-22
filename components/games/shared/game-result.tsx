@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Doty from "@/components/ui/doty/doty";
+import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { useCountUp } from "@/hooks/use-count-up";
@@ -17,6 +17,13 @@ interface GameResultProps {
   onReplay: () => void;
   onExit: () => void;
   extra?: React.ReactNode;
+  /**
+   * Pose de Doty cuando la partida NO se ganó (el taxi se rompió, te bajaste
+   * a medio camino…). Sin ella, celebra: es lo que quieren los juegos de
+   * puntuación abierta, donde acabar ya es el logro. Manda sobre el récord:
+   * batir tu marca sin llegar a la meta no es motivo de trofeo.
+   */
+  dotyPose?: DotyPose;
 }
 
 /**
@@ -34,6 +41,7 @@ export default function GameResult({
   onReplay,
   onExit,
   extra,
+  dotyPose,
 }: GameResultProps) {
   const [result, setResult] = useState<ScoreResult | null>(null);
   const submittedRef = useRef(false);
@@ -64,7 +72,8 @@ export default function GameResult({
   const xpMinScore = result?.xpMinScore ?? 0;
   const belowXpFloor =
     result !== null && result.xpGained === 0 && xpMinScore > 0 && score < xpMinScore;
-  const dotyPose = isNewRecord ? "trofeo-celebracion" : "muy-feliz";
+  const pose: DotyPose = dotyPose ?? (isNewRecord ? "trofeo-celebracion" : "muy-feliz");
+  const cheers = dotyPose === undefined && isNewRecord;
 
   return (
     <div className="flex w-full flex-1 flex-col items-center justify-center px-4">
@@ -82,9 +91,9 @@ export default function GameResult({
         {/* Doty celebrando o contenta */}
         <div style={{ animation: "dots-float 3s ease-in-out infinite" }}>
           <Doty
-            pose={dotyPose}
+            pose={pose}
             size="small"
-            animation={isNewRecord ? "cheer" : "bob"}
+            animation={cheers ? "cheer" : "bob"}
           />
         </div>
 

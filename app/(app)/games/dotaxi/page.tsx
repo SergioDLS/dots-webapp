@@ -912,6 +912,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
           score={finalScore}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          // sin llegar a la meta Doty no celebra: decepcionado si el taxi se
+          // rompió, triste si el jugador se bajó a medio camino
+          dotyPose={won ? undefined : lost ? "decepcionado" : "triste"}
           extra={
             trip ? (
               <div className="flex w-full flex-col items-center gap-3">
