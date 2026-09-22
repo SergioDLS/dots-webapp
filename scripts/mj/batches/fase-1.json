@@ -858,12 +858,11 @@
       "slug": "dotaxi",
       "group": "games",
       "prefix": "Doty riding in a yellow taxi",
-      "prompt": "a small round pink Doty character wearing a yellow taxi driver cap with a cyan visor, leaning out of the side window of a yellow taxi cab seen from the side, checkered stripe along the door, taxi roof sign, cheerful wave",
+      "prompt": "a small round pink Doty character leaning out of the side window of a yellow taxi cab seen from the side, checkered stripe along the door, taxi roof sign, cheerful wave",
       "size": 512,
       "mascot": false,
       "done": true,
-      "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png",
-      "regen": true
+      "source_file": "Mandrakin_Doty_riding_in_a_yellow_taxi_a_small_round_pink_Dot_83a8f389-311c-4cd0-bd5e-754c6765259a_2.png"
     },
     {
       "slug": "dotaxi-taxi",
