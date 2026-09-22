@@ -396,7 +396,9 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
                               "recorte publicado. El slot *Style reference* va vacío.", ""]
                 else:
                     lines += [f"> 🖌️ Edit Model a partir de `{fuente['slug']}`, que **aún no está generada**: "
-                              "genera y aplica esa primero; después esta se edita desde su descarga.", ""]
+                              "genérala primero y adjunta aquí, en *Attach to prompt*, la MISMA descarga que "
+                              "elijas para ella (basta con que esté en esta carpeta; no hace falta aplicarla). "
+                              "El slot *Style reference* va vacío.", ""]
             lines += ["```", build_prompt(p, style), "```", ""]
     return "\n".join(lines)
 
