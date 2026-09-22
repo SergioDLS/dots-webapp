@@ -349,31 +349,55 @@ h1, h2, h3, .font-display {
   60%      { transform: translateX(-5px) rotate(-3deg); }
   80%      { transform: translateX(4px) rotate(2deg); }
 }
-/* speed lines streaking down */
-@keyframes dotaxi-speedline {
-  0%   { transform: translateY(-20vh); opacity: 0; }
-  10%  { opacity: 0.9; }
-  100% { transform: translateY(120vh); opacity: 0; }
+/* Tema: 1 de noche, 0 de día. Enciende ventanas, luna y estrellas del
+   skyline sin JS ni matchMedia (regla 12): Auto sigue a prefers-color-scheme
+   igual que los tokens generados. */
+:root { --dotaxi-night: 0; }
+[data-theme="dark"] { --dotaxi-night: 1; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --dotaxi-night: 1; }
 }
-/* Bache: baja por el carril desde el fondo de la calzada (--fall = su alto,
-   lo mide el ticker) y se mete bajo la cabina del taxi. var() dentro de
-   @keyframes se resuelve contra el elemento animado, así que el recorrido
-   puede depender del alto real sin generar un keyframe por pantalla. */
-@keyframes dotaxi-pothole-pass {
-  from { transform: translateY(calc(-1 * var(--fall, 480px))); }
-  to   { transform: translateY(-40px); }
+/* Algo que viaja SOBRE el plano inclinado desde el horizonte (--to en
+   unidades de plano): la perspectiva del padre lo hace crecer y acelerar. */
+@keyframes dotaxi-approach {
+  from { transform: translateY(0); }
+  to   { transform: translateY(var(--to, 200px)); }
 }
-/* Humo del taxi destrozado: tres bocanadas que suben y se disipan */
+/* Igual, pero de pie: contrarrotado para quedar vertical como un cartel. */
+@keyframes dotaxi-approach-upright {
+  from { transform: translateY(0) rotateX(calc(-1 * var(--theta, 58deg))); }
+  to   { transform: translateY(var(--to, 200px)) rotateX(calc(-1 * var(--theta, 58deg))); }
+}
+/* Frenada: el morro se hunde y vuelve casi a su sitio */
+@keyframes dotaxi-brake-dip {
+  0%   { transform: translateY(0) scaleY(1); }
+  45%  { transform: translateY(5px) scaleY(0.955); }
+  100% { transform: translateY(2px) scaleY(0.985); }
+}
+/* Polvo del bache */
+@keyframes dotaxi-dust {
+  0%   { transform: translate(0, 0) scale(0.6); opacity: 0.9; }
+  100% { transform: translate(var(--dx, 0px), -24px) scale(1.5); opacity: 0; }
+}
+/* Humo del taxi dañado: bocanadas que suben y se disipan */
 @keyframes dotaxi-smoke {
   0%   { transform: translateY(0) scale(0.6); opacity: 0; }
   20%  { opacity: 0.75; }
-  100% { transform: translateY(-26px) scale(1.4); opacity: 0; }
+  100% { transform: translateY(-28px) scale(1.5); opacity: 0; }
 }
-/* Casa de llegada: baja desde el fondo hasta plantarse delante del taxi.
-   Lleva su propio translateX(-50%) porque el keyframe pisa el transform. */
-@keyframes dotaxi-house-arrive {
-  from { transform: translateX(-50%) translateY(calc(-1 * var(--fall, 480px))); }
-  to   { transform: translateX(-50%) translateY(0); }
+/* Bocadillo del pasajero */
+@keyframes dotaxi-bubble-in {
+  0%   { transform: scale(0.6) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+/* Taxi destrozado: se vence de lado */
+@keyframes dotaxi-sag {
+  0%   { transform: rotate(0deg) translateY(0); }
+  100% { transform: rotate(2.5deg) translateY(4px); }
+}
+@keyframes dotaxi-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ─── DOTY: movimiento y sombra ───────────────────────────────

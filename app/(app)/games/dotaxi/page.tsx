@@ -12,8 +12,6 @@ import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
 import GameResult from "@/components/games/shared/game-result";
 import Spinner from "@/components/ui/Spinner/Spinner";
-import Doty, { type DotyPose } from "@/components/ui/doty/doty";
-import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { getDotaxiService, type DotaxiQuestion } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
@@ -27,10 +25,27 @@ import {
   nearestLane,
   buildLaneOptions,
   MIN_LANES,
-  MAX_LANES,
 } from "./lanes";
+import { planeMetrics, laneXBottom, CURB_BOTTOM_PX } from "./perspective";
+import { pickTrip, type Trip } from "./trip";
+import {
+  Backdrop,
+  GroundPlane,
+  Gantry,
+  GantryApproach,
+  TaxiRear,
+  Pothole,
+  DestinationApproach,
+  DestinationArt,
+  Passenger,
+  SpeechBubble,
+  Dust,
+  ASPHALT_EDGE,
+  TAXI_H,
+  type Damage,
+} from "./scene";
 
-// ── Constantes (heredadas del juego original) ────────────────────────────────
+// ── Constantes ───────────────────────────────────────────────────────────────
 
 const START_HEARTS = 5;
 const WIN_CORRECT = 10;
@@ -39,43 +54,39 @@ const TIMER_STEP = 280; // se recorta por ronda jugada
 const TIMER_MIN = 2500;
 const TICKER_FPS = 30;
 const RESOLVE_MS = 1300; // pausa tras resolver la ronda
-// Fallar es un bache: baja por el carril y se mete bajo el taxi. El golpe
-// (sonido, corazón, abolladura) llega cuando pasa por debajo, no al pulsar.
-// 450 + los 500 del temblor caben en RESOLVE_MS con margen.
+// Fallar es un bache: nace en el horizonte, en tu carril, y baja por el plano
+// hasta el morro. El golpe (sonido, corazón, abolladura) llega cuando pasa
+// por debajo, no al pulsar. 450 + los 500 del temblor caben en RESOLVE_MS.
 const POTHOLE_MS = 450;
-// Llegada: la casa baja desde el fondo y la carretera frena hasta parar.
+// Recogida: el pasajero pide destino y sube. Un toque la salta.
+const PICKUP_MS = 2000;
+// Llegada: el destino crece desde el punto de fuga y la carretera frena.
 const ARRIVAL_BRAKE_MS = 1400;
-const ARRIVAL_MS = 2400; // un toque en la calzada la salta
+const ARRIVAL_MS = 2400;
+// Avería: al perder el último corazón el taxi se detiene humeando.
+const BREAKDOWN_MS = 2200;
 const TIER_ZOOM_MS = 450; // cámara alejándose al abrirse un carril
-// El aviso congela la cuenta atrás; tiene que durar al menos lo que el zoom,
-// o el jugador ve moverse la carretera con el reloj ya corriendo.
-const TIER_NOTICE_MS = 900; // aviso "¡Carril nuevo!" al abrirse un carril
+// El aviso congela la cuenta atrás; tiene que durar al menos lo que el zoom.
+const TIER_NOTICE_MS = 900;
+const TAXI_TILT_MS = 260; // inclinación al cambiar de carril
+// El pórtico nace en el punto de fuga y se acerca hasta ser legible; el reloj
+// no arranca hasta entonces. Leer no puede costar tiempo de respuesta.
+const SIGN_APPROACH_MS = 900;
+// Velocidad de las rayas en unidades de plano por ms: la perspectiva la
+// multiplica ×3 en el borde cercano y la deja tal cual en el horizonte.
+const ROAD_SPEED = 0.09;
+const DASH_CYCLE = 64;
 
-// Paleta de la carretera: FIJA en los dos temas, no sale de --surface. Un
-// asfalto teñido con el fondo de la app se vuelve casi blanco en tema claro y
-// ahí las rayas desaparecían (que es justo lo que se veía).
-const ASPHALT = "#2f2c47";
-const ASPHALT_EDGE = "#1b1a2c";
-const LANE_PAINT = "#f4f1e4"; // blanco roto: divisorias discontinuas
-const EDGE_PAINT = "#ffd21e"; // amarillo: arcenes continuos
-// Los carteles son placas de señal, no tarjetas de la app: crema fija con
-// texto navy. Con `dots-card` heredaban --surface, que en tema oscuro (#201a4d)
-// queda casi al mismo tono que el asfalto y el cartel se desdibujaba.
-const SIGN_FACE = "#f7f4ea";
-const SIGN_INK = "#1e1b5c";
+type Phase = "intro" | "pickup" | "playing" | "arrival" | "breakdown" | "result";
 
-type Phase = "intro" | "playing" | "arrival" | "result";
+/** Fases con la escena en pantalla (y el ticker midiéndola). */
+function inGamePhase(phase: Phase): boolean {
+  return phase === "pickup" || phase === "playing" || phase === "arrival" || phase === "breakdown";
+}
 
-/**
- * Estado visual del taxi: 5-4 corazones intacto, 3-2 abollado, 1 destrozado.
- * Cinco estados serían cinco piezas de arte que apenas se distinguen entre
- * sí; tres se leen de un vistazo y aguantan la consistencia entre variantes.
- */
-type Damage = 0 | 1 | 2;
+/** Un escalón de daño por corazón perdido: 0 intacto … 5 destruido. */
 function damageFor(hearts: number): Damage {
-  if (hearts >= 4) return 0;
-  if (hearts >= 2) return 1;
-  return 2;
+  return Math.max(0, Math.min(5, START_HEARTS - hearts)) as Damage;
 }
 
 /** PRNG determinista para derivar el mazo del seed (mismo mazo entre rivales). */
@@ -99,270 +110,6 @@ function shuffleWith<T>(arr: readonly T[], rng: () => number): T[] {
   return copy;
 }
 
-// ── Taxi (top-down, Doty in the cabin) ──────────────────────────────────────────
-function Taxi({
-  tilt,
-  crashing,
-  pose,
-  damage,
-}: {
-  tilt: number;
-  crashing: boolean;
-  pose: DotyPose;
-  damage: Damage;
-}) {
-  return (
-    <div
-      className="relative"
-      style={{
-        width: 78,
-        height: 116,
-        ["--tilt" as string]: `${tilt}deg`,
-        animation: crashing
-          ? "dotaxi-shake 0.5s ease-in-out"
-          : "dotaxi-bob 0.8s ease-in-out infinite",
-        transition: "transform 0.25s ease",
-      }}
-    >
-      {/* wheels */}
-      {[18, 74].map((top) =>
-        [-4, 70].map((left) => (
-          <div
-            key={`${top}-${left}`}
-            className="absolute rounded-md"
-            style={{
-              top,
-              left,
-              width: 12,
-              height: 26,
-              background: "#1b1340",
-            }}
-          />
-        )),
-      )}
-
-      {/* body */}
-      <div
-        className="absolute inset-0 rounded-[28px]"
-        style={{
-          background: "linear-gradient(180deg,#ffd21e,#f7b500)",
-          border: "3px solid #1b1340",
-          boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
-        }}
-      >
-        {/* roof sign: torcido en el taxi destrozado */}
-        <div
-          className="absolute left-1/2 rounded-md px-1.5 py-0.5 text-[8px] font-black tracking-widest"
-          style={{
-            top: 2,
-            background: "#1b1340",
-            color: "#ffd21e",
-            transform: `translateX(-50%) rotate(${damage >= 2 ? -12 : 0}deg)`,
-            transition: "transform 0.3s var(--ease-out-strong)",
-          }}
-        >
-          TAXI
-        </div>
-
-        {/* headlights: el izquierdo se apaga en el taxi destrozado */}
-        <div
-          className="absolute top-2 left-2 h-2 w-3 rounded-full bg-white/90"
-          style={{ opacity: damage >= 2 ? 0.25 : 1 }}
-        />
-        <div className="absolute top-2 right-2 h-2 w-3 rounded-full bg-white/90" />
-
-        {/* abolladuras: sombras sobre la chapa, dos en el abollado y cuatro en
-            el destrozado. Cuando llegue el arte (dotaxi-taxi-dented/-wrecked)
-            este bloque y el humo se van con el resto del taxi CSS. */}
-        {damage >= 1 &&
-          [
-            { top: 10, left: 8, w: 14, h: 9 },
-            { top: 84, left: 46, w: 16, h: 10 },
-          ].map((d) => (
-            <div
-              key={`${d.top}-${d.left}`}
-              className="absolute rounded-full"
-              style={{
-                top: d.top, left: d.left, width: d.w, height: d.h,
-                background: "rgba(27,19,64,0.45)",
-                boxShadow: "inset 1px 1px 0 rgba(255,255,255,0.35)",
-              }}
-            />
-          ))}
-        {damage >= 2 &&
-          [
-            { top: 62, left: 4, w: 12, h: 12 },
-            { top: 14, left: 52, w: 18, h: 9 },
-          ].map((d) => (
-            <div
-              key={`${d.top}-${d.left}`}
-              className="absolute rounded-full"
-              style={{
-                top: d.top, left: d.left, width: d.w, height: d.h,
-                background: "rgba(27,19,64,0.5)",
-                boxShadow: "inset 1px 1px 0 rgba(255,255,255,0.35)",
-              }}
-            />
-          ))}
-
-        {/* cabin window with Doty */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 overflow-hidden rounded-2xl"
-          style={{
-            top: 24,
-            width: 56,
-            height: 52,
-            background: "#bfe9ff",
-            border: "2px solid #1b1340",
-          }}
-        >
-          <div className="absolute left-1/2 -translate-x-1/2" style={{ top: 2 }}>
-            <Doty pose={pose} size="mini" />
-          </div>
-          {/* grieta del parabrisas */}
-          {damage >= 1 && (
-            <div
-              aria-hidden
-              className="absolute"
-              style={{
-                top: 6, left: 30, width: 2, height: 34,
-                background: "#1b1340",
-                transform: "rotate(28deg)",
-                opacity: 0.8,
-              }}
-            />
-          )}
-          {damage >= 2 && (
-            <div
-              aria-hidden
-              className="absolute"
-              style={{
-                top: 20, left: 12, width: 2, height: 22,
-                background: "#1b1340",
-                transform: "rotate(-40deg)",
-                opacity: 0.8,
-              }}
-            />
-          )}
-        </div>
-
-        {/* checker stripe */}
-        <div
-          className="absolute left-0 right-0"
-          style={{
-            bottom: 16,
-            height: 8,
-            background:
-              "repeating-linear-gradient(90deg,#1b1340 0 8px,#fff 8px 16px)",
-          }}
-        />
-
-        {/* taillights */}
-        <div className="absolute bottom-2 left-2 h-2 w-3 rounded-full bg-red-500" />
-        <div className="absolute bottom-2 right-2 h-2 w-3 rounded-full bg-red-500" />
-      </div>
-
-      {/* humo del capó, solo destrozado: tres bocanadas escalonadas */}
-      {damage >= 2 &&
-        [0, 1, 2].map((i) => (
-          <div
-            key={i}
-            aria-hidden
-            className="absolute rounded-full"
-            style={{
-              top: -4,
-              left: 22 + i * 12,
-              width: 14,
-              height: 14,
-              background: "rgba(200,200,215,0.85)",
-              animation: `dotaxi-smoke 1.1s ease-out ${i * 0.35}s infinite`,
-            }}
-          />
-        ))}
-    </div>
-  );
-}
-
-// ── Bache: baja por el carril y se mete bajo el taxi ────────────────────────
-function Pothole({ fall }: { fall: number }) {
-  return (
-    <div
-      data-testid="pothole"
-      aria-hidden
-      className="pointer-events-none absolute bottom-4"
-      style={{
-        left: -30,
-        width: 60,
-        height: 42,
-        ["--fall" as string]: `${fall}px`,
-        animation: `dotaxi-pothole-pass ${POTHOLE_MS}ms linear both`,
-      }}
-    >
-      {/* borde agrietado + charco. Placeholder hasta el arte dotaxi-pothole. */}
-      <div
-        className="absolute inset-0 rounded-[50%]"
-        style={{ background: "#151329", border: `3px solid ${ASPHALT_EDGE}` }}
-      />
-      <div
-        className="absolute rounded-[50%]"
-        style={{
-          top: 10, left: 12, width: 34, height: 20,
-          background: "linear-gradient(180deg,#35d8f5,#3768ff)",
-          opacity: 0.85,
-        }}
-      />
-    </div>
-  );
-}
-
-// ── Casa de llegada: baja desde el fondo hasta plantarse delante del taxi ────
-function House({ fall, bottom }: { fall: number; bottom: number }) {
-  return (
-    <div
-      data-testid="house"
-      aria-hidden
-      className="pointer-events-none absolute"
-      style={{
-        left: "50%",
-        bottom,
-        width: 150,
-        ["--fall" as string]: `${fall}px`,
-        animation: `dotaxi-house-arrive ${ARRIVAL_BRAKE_MS}ms var(--ease-out-strong) both`,
-      }}
-    >
-      {/* Placeholder hasta el arte dotaxi-house. El letrero dice "dots" como
-          TEXTO con la fuente de marca encima de un cartel en blanco: el arte
-          se genera con el cartel vacío porque Midjourney escribe mal y
-          style.json prohíbe texto; así además se tiñe con la paleta. */}
-      <div
-        className="mx-auto rounded-t-[22px]"
-        style={{ width: 150, height: 46, background: "#3768ff", border: `3px solid ${SIGN_INK}`, borderBottom: "none" }}
-      />
-      <div
-        className="relative mx-auto"
-        style={{ width: 132, height: 78, background: SIGN_FACE, border: `3px solid ${SIGN_INK}`, borderTop: "none" }}
-      >
-        <div className="absolute rounded-md" style={{ top: 12, left: 14, width: 26, height: 22, background: "#35d8f5", border: `2px solid ${SIGN_INK}` }} />
-        <div className="absolute rounded-md" style={{ top: 12, right: 14, width: 26, height: 22, background: "#35d8f5", border: `2px solid ${SIGN_INK}` }} />
-        <div className="absolute rounded-t-xl" style={{ bottom: 0, left: 50, width: 32, height: 40, background: "#ff1f8f", border: `2px solid ${SIGN_INK}`, borderBottom: "none" }} />
-      </div>
-      <div
-        className="absolute left-1/2 flex items-center justify-center rounded-xl font-display text-2xl font-extrabold"
-        style={{
-          top: 14, width: 96, height: 36,
-          transform: "translateX(-50%)",
-          background: SIGN_FACE,
-          border: `3px solid ${SIGN_INK}`,
-          color: "var(--accent)",
-          boxShadow: `0 3px 0 ${SIGN_INK}`,
-        }}
-      >
-        dots
-      </div>
-    </div>
-  );
-}
-
 // ── Lector de seed (dentro del boundary de Suspense) ────────────────────────
 
 function DotaxiGame() {
@@ -374,6 +121,9 @@ function DotaxiGame() {
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
+
+type TimerName =
+  | "resolve" | "notice" | "impact" | "tilt" | "board" | "pickup" | "arrival" | "out" | "breakdown";
 
 function DotaxiInner({ seed }: { seed?: number }) {
   const router = useRouter();
@@ -391,38 +141,57 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
+  const [trip, setTrip] = useState<Trip | null>(null);
 
-  /** La partida llegó a su fin natural (ganó o se quedó sin corazones). */
+  /** La partida llegó a su fin natural (llegó o se rompió el taxi). */
   const completedRef = useRef(false);
 
   // Motor en refs; el estado es snapshot para render (regla 3)
-  const playDeckRef = useRef<DotaxiQuestion[]>([]); // mazo de ESTA partida (revancha rebaraja)
-  const roundRef = useRef(0); // rondas jugadas (para el timer decreciente)
-  const laneRef = useRef(0); // carril actual del taxi
-  const lanesRef = useRef(2); // carriles del tramo actual
+  const playDeckRef = useRef<DotaxiQuestion[]>([]);
+  const roundRef = useRef(0);
+  const laneRef = useRef(0);
+  const lanesRef = useRef(2);
   const remainingRef = useRef(TIMER_START);
   const resolvingRef = useRef(false);
   const correctCountRef = useRef(0);
   const heartsRef = useRef(START_HEARTS);
   const scoreRef = useRef(0);
   const comboRef = useRef(0);
-  const resolveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Timer propio (no está en el brief original): sin él, TIER_NOTICE_MS quedaba
-  // sin usar y el aviso de carril nuevo se quedaba en pantalla toda la ronda.
-  const tierNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // true mientras se ve "¡Carril nuevo!": el tick de abajo lo usa para
-  // congelar la cuenta atrás y que el aviso no se coma tiempo de lectura.
-  const noticeRef = useRef(false);
-  const roadYRef = useRef(0); // desplazamiento de la carretera (px, cíclico)
-  const roadRef = useRef<HTMLDivElement | null>(null);
-  const roadWRef = useRef(0);
-  const roadHRef = useRef(0); // alto de la calzada: recorrido del bache y de la casa
-  // El golpe del bache llega POTHOLE_MS después de pulsar (ver resolve).
-  const impactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Llegada: cuándo empezó (para frenar la carretera) y cuándo acaba.
-  const arrivingRef = useRef(false);
-  const arrivalElapsedRef = useRef(0);
-  const arrivalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const noticeRef = useRef(false); // el aviso de carril congela la cuenta atrás
+  const roadYRef = useRef(0); // desplazamiento cíclico de las rayas (unidades de plano)
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const sceneWRef = useRef(0);
+  const sceneHRef = useRef(0);
+  // Frenada de la carretera (llegada y avería): cuánto lleva frenando.
+  const brakingRef = useRef(false);
+  const brakeElapsedRef = useRef(0);
+  // El pórtico acercándose: mientras dura, la cuenta atrás no corre.
+  const approachingRef = useRef(false);
+  const signElapsedRef = useRef(0);
+  // Recogida: el taxi está parado en el arcén. El ticker sigue vivo porque es
+  // quien mide la escena (sin medida no se pinta nada), pero no mueve la
+  // carretera ni descuenta tiempo.
+  const parkedRef = useRef(false);
+
+  // Todos los temporizadores por nombre: uno solo de cada, y un clearAll al
+  // salir. Antes eran cinco refs sueltas y cada salida tenía que recordarlas.
+  const timers = useRef(new Map<TimerName, ReturnType<typeof setTimeout>>());
+  const clearT = useCallback((name: TimerName) => {
+    const t = timers.current.get(name);
+    if (t) clearTimeout(t);
+    timers.current.delete(name);
+  }, []);
+  const setT = useCallback(
+    (name: TimerName, fn: () => void, ms: number) => {
+      clearT(name);
+      timers.current.set(name, setTimeout(fn, ms));
+    },
+    [clearT],
+  );
+  const clearAll = useCallback(() => {
+    for (const t of timers.current.values()) clearTimeout(t);
+    timers.current.clear();
+  }, []);
 
   const [lane, setLane] = useState(0);
   const [lanes, setLanes] = useState(2);
@@ -432,10 +201,20 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [outcome, setOutcome] = useState<"none" | "clear" | "crash">("none");
   const [tierNotice, setTierNotice] = useState(false);
   const [roadY, setRoadY] = useState(0);
-  const [roadW, setRoadW] = useState(0);
-  const [roadH, setRoadH] = useState(0);
+  const [sceneW, setSceneW] = useState(0);
+  const [sceneH, setSceneH] = useState(0);
   // true desde que el bache pasa bajo el taxi hasta la ronda siguiente
   const [impact, setImpact] = useState(false);
+  // >0 remonta las motas de polvo del golpe
+  const [dustKey, setDustKey] = useState(0);
+  // 0..1 mientras frena: mueve el destino por la calzada
+  const [brakeProgress, setBrakeProgress] = useState(0);
+  // 0..1 mientras el pórtico se acerca desde el horizonte
+  const [signProgress, setSignProgress] = useState(0);
+  const [tilt, setTilt] = useState(0);
+  // recogida: el pasajero está subiendo; llegada: ya bajó
+  const [boarding, setBoarding] = useState(false);
+  const [passengerOut, setPassengerOut] = useState(false);
 
   // Fetch con patrón fetchAttempt (regla 5)
   const [fetchAttempt, setFetchAttempt] = useState(0);
@@ -467,14 +246,33 @@ function DotaxiInner({ seed }: { seed?: number }) {
     };
   }, [seed, fetchAttempt]);
 
+  useEffect(() => clearAll, [clearAll]);
+
+  // La escena solo pinta sus hijos cuando conoce su tamaño. Medirla desde el
+  // ticker tardaba más de medio segundo al empezar cada partida y la escena
+  // aparecía vacía y luego de golpe: el ResizeObserver avisa en el primer
+  // frame tras montarse y en cada cambio de tamaño (rotación, teclado).
+  const inGame = inGamePhase(phase);
   useEffect(() => {
-    return () => {
-      if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
-      if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
-      if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
-      if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
-    };
-  }, []);
+    const el = sceneRef.current;
+    if (!inGame || !el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => {
+      const box = entries[0]?.contentRect;
+      if (!box) return;
+      const w = Math.round(box.width);
+      const h = Math.round(box.height);
+      if (w !== sceneWRef.current) {
+        sceneWRef.current = w;
+        setSceneW(w);
+      }
+      if (h !== sceneHRef.current) {
+        sceneHRef.current = h;
+        setSceneH(h);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [inGame]);
 
   /** Prepara la ronda `idx`: calcula el tramo, recoloca el taxi si cambió el
    *  número de carriles y reparte las opciones por los carriles. */
@@ -485,9 +283,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
 
       const nextLanes = lanesForCorrect(correctCountRef.current);
       const prevLanes = lanesRef.current;
-      // Cancela cualquier aviso pendiente de la ronda anterior antes de
-      // decidir si esta ronda dispara uno nuevo.
-      if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
+      clearT("notice");
       if (nextLanes !== prevLanes) {
         laneRef.current = nearestLane(laneRef.current, prevLanes, nextLanes);
         lanesRef.current = nextLanes;
@@ -495,10 +291,14 @@ function DotaxiInner({ seed }: { seed?: number }) {
         setLanes(nextLanes);
         setTierNotice(true);
         noticeRef.current = true;
-        tierNoticeTimerRef.current = setTimeout(() => {
-          setTierNotice(false);
-          noticeRef.current = false;
-        }, TIER_NOTICE_MS);
+        setT(
+          "notice",
+          () => {
+            setTierNotice(false);
+            noticeRef.current = false;
+          },
+          TIER_NOTICE_MS,
+        );
       } else {
         setTierNotice(false);
         noticeRef.current = false;
@@ -511,25 +311,75 @@ function DotaxiInner({ seed }: { seed?: number }) {
             i % playDeckRef.current.length !== idx % playDeckRef.current.length,
         )
         .map((other) => other.correct);
-      const rng =
-        seed !== undefined ? mulberry32(seed + idx) : Math.random;
+      const rng = seed !== undefined ? mulberry32(seed + idx) : Math.random;
 
       setQuestion(q);
       setLaneOptions(buildLaneOptions(q.correct, q.options, cross, nextLanes, rng));
-      remainingRef.current = Math.max(
-        TIMER_MIN,
-        TIMER_START - TIMER_STEP * idx,
-      );
+      signElapsedRef.current = 0;
+      approachingRef.current = true;
+      setSignProgress(0);
+      remainingRef.current = Math.max(TIMER_MIN, TIMER_START - TIMER_STEP * idx);
       setRemaining(remainingRef.current);
       setOutcome("none");
       setImpact(false);
+      setDustKey(0);
       resolvingRef.current = false;
     },
-    [seed],
+    [seed, clearT, setT],
   );
 
+  const finishGame = useCallback(() => {
+    completedRef.current = true;
+    brakingRef.current = false;
+    clearAll();
+    setFinalScore(scoreRef.current);
+    setPhase("result");
+  }, [clearAll]);
+
+  /** Décimo acierto: el destino crece desde el punto de fuga, el taxi frena
+   *  y el pasajero baja. Termina sola o con un toque en la escena. */
+  const startArrival = useCallback(() => {
+    clearT("notice");
+    setTierNotice(false);
+    noticeRef.current = false;
+    setOutcome("none");
+    setImpact(false);
+    brakeElapsedRef.current = 0;
+    brakingRef.current = true;
+    setBrakeProgress(0);
+    setPassengerOut(false);
+    setPhase("arrival");
+    setT("out", () => setPassengerOut(true), ARRIVAL_BRAKE_MS);
+    setT("arrival", finishGame, ARRIVAL_MS);
+  }, [clearT, setT, finishGame]);
+
+  /** Último corazón: el taxi se detiene destrozado y se pierde el nivel. */
+  const startBreakdown = useCallback(() => {
+    clearT("notice");
+    setTierNotice(false);
+    noticeRef.current = false;
+    setOutcome("none");
+    brakeElapsedRef.current = 0;
+    brakingRef.current = true;
+    setBrakeProgress(0);
+    setPhase("breakdown");
+    setT("breakdown", finishGame, BREAKDOWN_MS);
+  }, [clearT, setT, finishGame]);
+
+  /** Fin de la recogida: arranca la primera ronda. */
+  const beginDriving = useCallback(() => {
+    clearT("pickup");
+    clearT("board");
+    parkedRef.current = false;
+    setBoarding(false);
+    setPhase("playing");
+    setupRound(0);
+  }, [clearT, setupRound]);
+
   const startGame = useCallback(() => {
+    clearAll();
     completedRef.current = false;
+    brakingRef.current = false;
     setHearts(START_HEARTS);
     setCorrectCount(0);
     setScore(0);
@@ -544,44 +394,27 @@ function DotaxiInner({ seed }: { seed?: number }) {
     comboRef.current = 0;
     resolvingRef.current = false;
     roadYRef.current = 0;
-    arrivingRef.current = false;
-    if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
-    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
     setImpact(false);
+    setDustKey(0);
+    setTilt(0);
     setLane(0);
     setLanes(2);
+    setLaneOptions([]);
     setOutcome("none");
-    setPhase("playing");
+    setPassengerOut(false);
+    setBoarding(false);
     // Revancha con mazo fresco: sin esto las 15 preguntas se repiten en el
     // mismo orden y basta memorizarlas. Con seed se conserva el determinismo.
     playDeckRef.current =
       seed !== undefined ? deck : shuffleWith(deck, Math.random);
-    setupRound(0);
-  }, [setupRound, deck, seed]);
-
-  const finishGame = useCallback(() => {
-    completedRef.current = true;
-    arrivingRef.current = false;
-    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
-    setFinalScore(scoreRef.current);
-    setPhase("result");
-  }, []);
-
-  /** Décimo acierto: antes de la pantalla de resultado, el taxi llega a casa.
-   *  La carretera frena, la casa baja desde el fondo y el taxi se centra.
-   *  Termina sola a los ARRIVAL_MS o con un toque en la calzada. */
-  const startArrival = useCallback(() => {
-    if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
-    setTierNotice(false);
-    noticeRef.current = false;
-    setOutcome("none");
-    setImpact(false);
-    arrivalElapsedRef.current = 0;
-    arrivingRef.current = true;
-    setPhase("arrival");
-    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
-    arrivalTimerRef.current = setTimeout(finishGame, ARRIVAL_MS);
-  }, [finishGame]);
+    // El pasajero sale de un rng aparte del mazo: con seed, los rivales
+    // llevan al mismo; sin seed, azar.
+    setTrip(pickTrip(seed !== undefined ? mulberry32(seed * 31 + 7) : Math.random));
+    parkedRef.current = true;
+    setPhase("pickup");
+    setT("board", () => setBoarding(true), PICKUP_MS * 0.6);
+    setT("pickup", beginDriving, PICKUP_MS);
+  }, [clearAll, deck, seed, setT, beginDriving]);
 
   const resolve = useCallback(() => {
     if (resolvingRef.current || !question) return;
@@ -603,33 +436,54 @@ function DotaxiInner({ seed }: { seed?: number }) {
       comboRef.current = 0;
       setCombo(0);
       setOutcome("crash"); // el bache arranca a bajar por el carril
-      // El golpe llega cuando el bache pasa bajo el taxi, no al pulsar: el
-      // sonido, el corazón y la abolladura esperan a coincidir con lo que se
-      // ve. El temporizador de la ronda (RESOLVE_MS) va después, así que el
-      // chequeo de corazones de abajo ya lee el valor restado.
-      if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
-      impactTimerRef.current = setTimeout(() => {
-        playSound("wrong");
-        heartsRef.current = Math.max(0, heartsRef.current - 1);
-        setHearts(heartsRef.current);
-        setImpact(true);
-      }, POTHOLE_MS);
+      // El golpe llega cuando el bache pasa bajo el taxi, no al pulsar. El
+      // temporizador de ronda (RESOLVE_MS) va después, así que el chequeo de
+      // corazones de abajo ya lee el valor restado.
+      setT(
+        "impact",
+        () => {
+          playSound("wrong");
+          heartsRef.current = Math.max(0, heartsRef.current - 1);
+          setHearts(heartsRef.current);
+          setImpact(true);
+          setDustKey((k) => k + 1);
+        },
+        POTHOLE_MS,
+      );
     }
 
-    if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
-    resolveTimerRef.current = setTimeout(() => {
-      if (heartsRef.current <= 0) {
-        finishGame();
-        return;
+    setT(
+      "resolve",
+      () => {
+        if (heartsRef.current <= 0) {
+          startBreakdown();
+          return;
+        }
+        if (correctCountRef.current >= WIN_CORRECT) {
+          startArrival();
+          return;
+        }
+        roundRef.current += 1;
+        setupRound(roundRef.current);
+      },
+      RESOLVE_MS,
+    );
+  }, [question, laneOptions, setupRound, startArrival, startBreakdown, setT]);
+
+  /** Mover el taxi a un carril: se inclina hacia el lado del giro y vuelve. */
+  const pickLane = useCallback(
+    (i: number) => {
+      if (resolvingRef.current) return;
+      const dir = Math.sign(i - laneRef.current);
+      laneRef.current = i;
+      setLane(i);
+      if (dir !== 0) {
+        setTilt(dir * 4);
+        setT("tilt", () => setTilt(0), TAXI_TILT_MS);
       }
-      if (correctCountRef.current >= WIN_CORRECT) {
-        startArrival();
-        return;
-      }
-      roundRef.current += 1;
-      setupRound(roundRef.current);
-    }, RESOLVE_MS);
-  }, [question, laneOptions, setupRound, finishGame, startArrival]);
+    },
+    [setT],
+  );
 
   // Torneo/reto: solo partidas completas. El score personal conserva el
   // parcial al salir (sube desde 0, como dot-match).
@@ -646,41 +500,49 @@ function DotaxiInner({ seed }: { seed?: number }) {
 
   const onTick = useCallback(
     (dtMs: number) => {
-      // ancho de la carretera en px: translateX(%) sería relativo al propio
-      // elemento, así que el centro del carril hay que calcularlo en píxeles
-      const roadEl = roadRef.current;
-      if (roadEl && roadEl.clientWidth !== roadWRef.current) {
-        roadWRef.current = roadEl.clientWidth;
-        setRoadW(roadEl.clientWidth);
+      const el = sceneRef.current;
+      if (el && el.clientWidth !== sceneWRef.current) {
+        sceneWRef.current = el.clientWidth;
+        setSceneW(el.clientWidth);
       }
-      if (roadEl && roadEl.clientHeight !== roadHRef.current) {
-        roadHRef.current = roadEl.clientHeight;
-        setRoadH(roadEl.clientHeight);
+      if (el && el.clientHeight !== sceneHRef.current) {
+        sceneHRef.current = el.clientHeight;
+        setSceneH(el.clientHeight);
       }
 
-      // Llegada: la carretera frena hasta detenerse en ARRIVAL_BRAKE_MS, que
-      // es lo que tarda la casa en bajar. Sin cuenta atrás.
+      if (parkedRef.current) return; // recogida: todo quieto, solo se mide
+
+      // Llegada y avería: la carretera frena hasta detenerse. Sin cuenta atrás.
       let speed = 1;
-      if (arrivingRef.current) {
-        arrivalElapsedRef.current += dtMs;
-        speed = Math.max(0, 1 - arrivalElapsedRef.current / ARRIVAL_BRAKE_MS);
+      if (brakingRef.current) {
+        brakeElapsedRef.current += dtMs;
+        const progress = Math.min(1, brakeElapsedRef.current / ARRIVAL_BRAKE_MS);
+        speed = 1 - progress;
+        setBrakeProgress(progress);
       }
 
-      // carretera en movimiento: translateY cíclico (nunca background-position)
-      roadYRef.current = (roadYRef.current + dtMs * 0.12 * speed) % 64;
+      // rayas en movimiento: translateY cíclico en unidades de plano
+      roadYRef.current = (roadYRef.current + dtMs * ROAD_SPEED * speed) % DASH_CYCLE;
       setRoadY(roadYRef.current);
 
-      if (arrivingRef.current) return;
+      if (brakingRef.current) return;
+      if (approachingRef.current) {
+        signElapsedRef.current += dtMs;
+        const p = Math.min(1, signElapsedRef.current / SIGN_APPROACH_MS);
+        setSignProgress(p);
+        if (p >= 1) approachingRef.current = false;
+        return; // hasta que la señal se lee, el reloj no corre
+      }
       if (resolvingRef.current) return;
       if (noticeRef.current) return; // el aviso congela la cuenta atrás
       remainingRef.current = Math.max(0, remainingRef.current - dtMs);
       setRemaining(remainingRef.current);
-      if (remainingRef.current <= 0) resolve(); // se acabó el tiempo = fallo
+      if (remainingRef.current <= 0) resolve(); // se acabó el tiempo: se resuelve con el carril actual
     },
     [resolve],
   );
 
-  useTicker(TICKER_FPS, onTick, phase === "playing" || phase === "arrival");
+  useTicker(TICKER_FPS, onTick, inGamePhase(phase));
 
   if (loading) {
     return (
@@ -714,19 +576,21 @@ function DotaxiInner({ seed }: { seed?: number }) {
     );
   }
 
+  // ── Derivados de render ────────────────────────────────────────────────────
   // El taxi nunca debe caer en un carril sin cartel: si buildLaneOptions
-  // devolvió menos opciones que carriles, se recorta al último carril CON
-  // cartel real para posicionar y recolocar el taxi.
+  // devolvió menos opciones que carriles, se recorta al último con cartel.
   const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
   const damage = damageFor(hearts);
-  // Centro del taxi en px: su carril mientras se juega, el centro de la
-  // calzada en la llegada. El bache usa el mismo número para caer bajo él.
-  const taxiCenterPx =
-    ((phase === "arrival"
-      ? 50
-      : laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)]) /
-      100) *
-    roadW;
+  const m = planeMetrics(sceneW, sceneH);
+  const laneScale = MIN_LANES / lanes;
+  const stopped = phase === "arrival" || phase === "breakdown";
+  // Centro del taxi en px de pantalla: su carril mientras se juega, el centro
+  // de la calzada en la llegada. El bache usa el mismo carril para caer bajo él.
+  const lanePct = laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)] ?? 50;
+  const taxiX = laneXBottom(m, phase === "arrival" ? 50 : lanePct);
+  const braking = impact || stopped;
+  const won = correctCount >= WIN_CORRECT;
+  const lost = hearts <= 0;
 
   return (
     <div className="dots-compact-shell relative flex min-h-svh w-full flex-col items-center overflow-hidden px-4 py-6">
@@ -739,11 +603,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
             gameKey="dotaxi"
             title="Dotaxi"
             howTo={[
+              "Doty es taxista: sube un pasajero y llévalo a su destino.",
               "Lee la frase con el hueco y busca la palabra que encaja.",
-              "Toca el carril de esa palabra para mover el taxi.",
-              "Pulsa «¡Vamos!» para confirmar antes de que se acabe el tiempo.",
+              "Toca el cartel del pórtico —o su carril— para mover el taxi, y pulsa «¡Vamos!» antes de que se acabe el tiempo.",
               "Empiezas con 2 carriles; según aciertas se abren más (¡hasta 4!).",
-              `${WIN_CORRECT} aciertos para llegar a casa. Cada fallo es un bache: tienes ${START_HEARTS} corazones y el taxi lo nota.`,
+              `${WIN_CORRECT} aciertos para llegar. Cada fallo es un bache que abolla el taxi: al quinto se rompe y pierdes.`,
             ]}
             record={record}
             throne={throne}
@@ -752,24 +616,28 @@ function DotaxiInner({ seed }: { seed?: number }) {
         </>
       )}
 
-      {(phase === "playing" || phase === "arrival") && (
+      {inGame && (
         <div data-testid="road" className="z-10 flex w-full max-w-sm flex-1 flex-col gap-3">
           {/* HUD */}
           <div className="dots-card flex w-full items-center justify-between gap-3 px-4 py-3">
-            <ExitFlow onExit={() => {
-                if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
-                if (tierNoticeTimerRef.current) clearTimeout(tierNoticeTimerRef.current);
-                if (impactTimerRef.current) clearTimeout(impactTimerRef.current);
-                // En la llegada la partida YA está completa: salir es saltar
-                // la animación, y cuenta para torneo y reto.
-                if (phase === "arrival") {
+            <ExitFlow
+              onExit={() => {
+                clearAll();
+                // Llegada o avería: la partida YA terminó; salir es saltar la
+                // escena, y cuenta para torneo y reto.
+                if (stopped) {
                   finishGame();
                   return;
                 }
                 // Abandonar: el parcial cuenta para el récord, no para el reto
+                brakingRef.current = false;
+                parkedRef.current = false;
                 setFinalScore(scoreRef.current);
                 setPhase("result");
-              }} aviso={phase === "arrival" ? null : "Se acaba la partida, pero tu puntaje cuenta igual."} compacto />
+              }}
+              aviso={phase === "playing" ? "Se acaba la partida, pero tu puntaje cuenta igual." : null}
+              compacto
+            />
             <span className="flex items-center gap-0.5" aria-label={`${hearts} corazones`}>
               {Array.from({ length: START_HEARTS }).map((_, i) => (
                 <UiIcon key={i} name="vidas" size={16} apagado={i >= hearts} />
@@ -799,13 +667,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
             </div>
           </div>
 
-          {/* Frase con el hueco; en la llegada, el mensaje */}
+          {/* Frase con el hueco; en las otras fases, el mensaje del viaje */}
           <div className="dots-card px-4 py-3 text-center">
-            {phase === "arrival" ? (
-              <p className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
-                ¡Llegaste a casa!
-              </p>
-            ) : (
+            {phase === "playing" ? (
               <p className="text-base font-extrabold">
                 {question?.text.split("__")[0]}
                 <span
@@ -816,6 +680,12 @@ function DotaxiInner({ seed }: { seed?: number }) {
                 </span>
                 {question?.text.split("__")[1] ?? ""}
               </p>
+            ) : (
+              <p className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
+                {phase === "pickup" && trip && `${trip.name} sube al taxi`}
+                {phase === "arrival" && trip && trip.arrive}
+                {phase === "breakdown" && "¡El taxi no da más!"}
+              </p>
             )}
           </div>
 
@@ -824,259 +694,193 @@ function DotaxiInner({ seed }: { seed?: number }) {
             <div
               className="h-full w-full origin-left rounded-full"
               style={{
-                transform: `scaleX(${phase === "arrival" ? 1 : Math.max(0, remaining) / TIMER_START})`,
-                background: phase === "arrival" || remaining > TIMER_START * 0.3 ? "var(--success)" : "var(--danger)",
+                transform: `scaleX(${phase === "playing" ? Math.max(0, remaining) / TIMER_START : 1})`,
+                background:
+                  phase !== "playing" || remaining > TIMER_START * 0.3 ? "var(--success)" : "var(--danger)",
               }}
             />
           </div>
 
-          {/* Carretera */}
+          {/* Escena: cielo, plano de suelo, pórtico, taxi */}
           <div
-            ref={roadRef}
-            data-testid="asphalt"
+            ref={sceneRef}
+            data-testid="scene"
             className="relative w-full flex-1 overflow-hidden rounded-2xl border-2"
             style={{
               borderColor: ASPHALT_EDGE,
-              background: ASPHALT,
+              background: "var(--sky-bottom)",
               // el tap del carril no compite con el pan de scroll de la página
               touchAction: "manipulation",
             }}
-            // un toque en la calzada salta la llegada
-            onPointerUp={phase === "arrival" ? finishGame : undefined}
+            // un toque salta la recogida, la llegada y la avería
+            onPointerUp={
+              stopped ? finishGame : phase === "pickup" ? beginDriving : undefined
+            }
           >
-            {/* Divisorias de carril. Se pintan SIEMPRE las 3 (el máximo, con 4
-                carriles) y las que sobran se van al borde derecho con opacidad
-                0: así, al abrirse un carril, la nueva entra deslizándose desde
-                fuera en vez de aparecer de golpe — es el gesto de "la calle se
-                hace más grande". Dos capas anidadas porque el desplazamiento
-                vertical se reescribe cada frame y no puede llevar transición;
-                la horizontal sí. */}
-            {Array.from({ length: MAX_LANES - 1 }).map((_, i) => {
-              const live = i < lanes - 1;
-              return (
+            {sceneW > 0 && (
+              <>
+                <Backdrop m={m} />
+                <GroundPlane m={m} roadY={roadY} lanes={lanes}>
+                  {phase === "playing" && outcome === "crash" && (
+                    <Pothole m={m} pct={lanePct} to={m.planeH * 0.92} durationMs={POTHOLE_MS} />
+                  )}
+                </GroundPlane>
+
+                {/* Llegada: el destino se acerca por el centro de la calzada */}
+                {phase === "arrival" && trip && (
+                  <DestinationApproach m={m} trip={trip} progress={brakeProgress} />
+                )}
+
+                {/* Zona de toque de cada carril, a todo lo alto; las de los
+                    extremos se estiran hasta el borde. Va DEBAJO del pórtico
+                    en el DOM para no robarle el tap. */}
+                {phase === "playing" &&
+                  Array.from({ length: effectiveLanes }).map((_, i) => {
+                    const laneW = m.roadBottomW / effectiveLanes;
+                    const first = i === 0;
+                    const last = i === effectiveLanes - 1;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        data-testid={`lane-zone-${i}`}
+                        aria-label={`Ir al carril ${i + 1}: ${laneOptions[i] ?? ""}`}
+                        onPointerUp={() => pickLane(i)}
+                        className="absolute inset-y-0"
+                        style={{
+                          left: first ? 0 : CURB_BOTTOM_PX + i * laneW,
+                          width: laneW + (first ? CURB_BOTTOM_PX : 0) + (last ? CURB_BOTTOM_PX : 0),
+                          touchAction: "manipulation",
+                        }}
+                      />
+                    );
+                  })}
+
+                {phase === "playing" && (
+                  <GantryApproach m={m} progress={signProgress}>
+                    <Gantry
+                      m={m}
+                      lanes={lanes}
+                      options={laneOptions}
+                      lane={lane}
+                      outcome={outcome}
+                      correct={question?.correct}
+                      onPick={pickLane}
+                    />
+                  </GantryApproach>
+                )}
+
+                {/* Recogida: el pasajero espera en la acera y sube */}
+                {phase === "pickup" && trip && (
+                  <>
+                    <div
+                      className="pointer-events-none absolute"
+                      style={{
+                        left: -2,
+                        bottom: 22,
+                        transform: boarding ? "translateX(44px) scale(0.8)" : "none",
+                        opacity: boarding ? 0 : 1,
+                        transition: "transform 420ms var(--ease-out-strong), opacity 380ms",
+                        animation: "dotaxi-fade-in 0.3s var(--ease-out-strong) both",
+                      }}
+                    >
+                      <Passenger trip={trip} size={64} eager />
+                    </div>
+                    {!boarding && (
+                      <SpeechBubble text={trip.ask} style={{ left: 8, bottom: TAXI_H + 4, maxWidth: m.sceneW * 0.62 }} />
+                    )}
+                  </>
+                )}
+
+                {/* Taxi. Decorativo (pointer-events none), o taparía la zona
+                    del carril donde está parado. Capas: carril (280 ms, o el
+                    frenazo entero al centrarse), zoom de cámara (450 ms) e
+                    inclinación del giro (260 ms): tres duraciones distintas
+                    no caben en un solo transform. */}
                 <div
-                  key={i}
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0"
+                  data-testid="taxi"
+                  className="pointer-events-none absolute"
                   style={{
                     left: 0,
-                    width: 4,
-                    transform: `translateX(${
-                      (live ? ((i + 1) / lanes) * 100 : 100) * 0.01 * roadW
-                    }px) translateX(-50%)`,
-                    opacity: live ? 1 : 0,
-                    // mismo guard que el taxi: roadW vale 0 hasta que el
-                    // ticker mide la calzada, y sin esto la divisoria se
-                    // desliza desde el borde izquierdo al empezar la partida
-                    transition:
-                      roadW > 0
-                        ? `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong), opacity ${TIER_ZOOM_MS}ms linear`
-                        : "none",
+                    bottom: 10,
+                    transform: `translateX(${taxiX}px) translateX(-50%)`,
+                    transition: `transform ${phase === "arrival" ? ARRIVAL_BRAKE_MS : 280}ms var(--ease-out-strong)`,
                   }}
                 >
                   <div
-                    className="absolute inset-x-0 top-0"
                     style={{
-                      height: "200%",
-                      transform: `translateY(${roadY - 64}px)`,
-                      backgroundImage: `repeating-linear-gradient(to bottom, ${LANE_PAINT} 0 28px, transparent 28px 64px)`,
+                      transform: `scale(${laneScale})`,
+                      transformOrigin: "bottom center",
+                      transition: `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong)`,
                     }}
-                  />
+                  >
+                    <div
+                      className="relative"
+                      style={{
+                        transform: `rotate(${tilt}deg)`,
+                        transformOrigin: "bottom center",
+                        transition: `transform ${TAXI_TILT_MS}ms var(--ease-out-strong)`,
+                      }}
+                    >
+                      <TaxiRear
+                        damage={damage}
+                        braking={braking}
+                        crashing={impact}
+                        pose={
+                          impact
+                            ? "oh-no"
+                            : phase === "arrival"
+                              ? "lo-lograste"
+                              : phase === "breakdown"
+                                ? "llanto-dramatico"
+                                : outcome === "clear"
+                                  ? "excelente"
+                                  : "feliz"
+                        }
+                      />
+                      {dustKey > 0 && <Dust key={dustKey} />}
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
 
-            {/* Arcenes: línea continua a cada lado, como una carretera de verdad */}
-            {[0, 1].map((side) => (
-              <div
-                key={side}
-                aria-hidden
-                className="pointer-events-none absolute inset-y-0"
-                style={{
-                  [side === 0 ? "left" : "right"]: 6,
-                  width: 3,
-                  background: EDGE_PAINT,
-                  opacity: 0.8,
-                }}
-              />
-            ))}
+                {/* Llegada: el pasajero baja junto al taxi */}
+                {phase === "arrival" && trip && passengerOut && (
+                  <div
+                    className="pointer-events-none absolute"
+                    style={{
+                      left: taxiX + (TAXI_H * laneScale) / 2 + 6,
+                      bottom: 18,
+                      animation: "dotaxi-fade-in 0.35s var(--ease-out-strong) both",
+                    }}
+                  >
+                    <Passenger trip={trip} size={56} />
+                  </div>
+                )}
 
-            {/* líneas de velocidad: sensación de marcha (solo transform/opacity) */}
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                aria-hidden
-                className="pointer-events-none absolute w-0.5 rounded-full"
-                style={{
-                  left: `${12 + i * 19}%`,
-                  height: "18%",
-                  background: LANE_PAINT,
-                  opacity: phase === "arrival" ? 0 : 0.2,
-                  transition: `opacity ${ARRIVAL_BRAKE_MS}ms linear`,
-                  animation: `dotaxi-speedline ${0.7 + (i % 3) * 0.15}s linear ${i * 0.13}s infinite`,
-                }}
-              />
-            ))}
-
-            {/* Zona de toque de cada carril, a todo lo alto. Antes solo el
-                cartel de arriba movía el taxi (~40 px de alto): en el móvil
-                instalado era casi imposible acertarle. Va DEBAJO de los
-                carteles en el orden del DOM para no robarles el tap. */}
-            {phase === "playing" && Array.from({ length: effectiveLanes }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                data-testid={`lane-zone-${i}`}
-                aria-label={`Ir al carril ${i + 1}: ${laneOptions[i] ?? ""}`}
-                onPointerUp={() => {
-                  if (resolvingRef.current) return;
-                  laneRef.current = i;
-                  setLane(i);
-                }}
-                className="absolute inset-y-0"
-                style={{
-                  left: `${laneGeometry(effectiveLanes).widthPct * i}%`,
-                  width: `${laneGeometry(effectiveLanes).widthPct}%`,
-                  touchAction: "manipulation",
-                }}
-              />
-            ))}
-
-            {/* carteles de opción, uno por carril */}
-            {phase === "playing" && laneOptions.map((opt, i) => {
-              const { widthPct, centersPct } = laneGeometry(lanes);
-              const isClear = outcome !== "none" && opt === question?.correct;
-              const isBlocked = outcome !== "none" && !isClear;
-              return (
-                <button
-                  key={`${i}-${opt}`}
-                  data-testid={`lane-${i}`}
-                  onPointerUp={() => {
-                    if (resolvingRef.current) return;
-                    laneRef.current = i;
-                    setLane(i);
-                  }}
-                  className={`absolute top-3 flex items-center justify-center rounded-xl border-2 px-1 py-2 font-extrabold break-words leading-tight ${
-                    lanes >= 4 ? "text-[10px]" : "text-xs"
-                  }`}
-                  style={{
-                    left: `${centersPct[i]}%`,
-                    width: `${widthPct * 0.94}%`,
-                    transform: "translateX(-50%)",
-                    touchAction: "manipulation",
-                    background: SIGN_FACE,
-                    boxShadow: `0 3px 0 ${ASPHALT_EDGE}, 0 6px 12px rgba(0,0,0,0.35)`,
-                    color: isClear
-                      ? "var(--success)"
-                      : isBlocked
-                        ? "var(--danger)"
-                        : SIGN_INK,
-                    borderColor: isClear
-                      ? "var(--success)"
-                      : isBlocked
-                        ? "var(--danger)"
-                        : lane === i
-                          ? "var(--accent)"
-                          : SIGN_INK,
-                    transition: "border-color 0.2s, color 0.2s",
-                  }}
-                >
-                  {outcome === "none" ? (
-                    opt
-                  ) : (
-                    <Icon name={isClear ? "check" : "cruz"} size={20} mono />
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Taxi. Decorativo: pointer-events none, o taparía la zona de
-                toque del carril en el que está parado. Capa de fuera =
-                carril (0.28 s), capa de dentro = zoom de cámara (450 ms):
-                dos duraciones distintas no caben en un solo transform. */}
-            {/* Bache: mismo carril y misma escala que el taxi, por debajo de
-                él en el DOM para pasarle por debajo también en pantalla */}
-            {outcome === "crash" && phase === "playing" && (
-              <div
-                className="pointer-events-none absolute inset-y-0"
-                style={{
-                  left: 0,
-                  width: 0,
-                  transform: `translateX(${taxiCenterPx}px) scale(${MIN_LANES / lanes})`,
-                  transformOrigin: "bottom center",
-                }}
-              >
-                <Pothole fall={roadH} />
-              </div>
-            )}
-
-            <div
-              data-testid="taxi"
-              className="pointer-events-none absolute bottom-4"
-              style={{
-                left: 0,
-                transform: `translateX(${taxiCenterPx}px) translateX(-50%)`,
-                // sin transición hasta medir la carretera: si no, el taxi se
-                // desliza desde el borde izquierdo al empezar cada partida.
-                // En la llegada se centra despacio, al ritmo del frenazo.
-                transition:
-                  roadW > 0
-                    ? `transform ${phase === "arrival" ? ARRIVAL_BRAKE_MS : 280}ms var(--ease-out-strong)`
-                    : "none",
-              }}
-            >
-              <div
-                style={{
-                  // al abrirse un carril la cámara se aleja: el taxi encoge en
-                  // la misma proporción en que se estrecha su carril
-                  transform: `scale(${MIN_LANES / lanes})`,
-                  transformOrigin: "bottom center",
-                  transition: `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong)`,
-                }}
-              >
-                <Taxi
-                  tilt={0}
-                  crashing={impact}
-                  damage={damage}
-                  pose={
-                    impact
-                      ? "oh-no"
-                      : phase === "arrival"
-                        ? "lo-lograste"
-                        : outcome === "clear"
-                          ? "excelente"
-                          : "feliz"
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Casa de llegada, plantada justo por delante del taxi */}
-            {phase === "arrival" && roadH > 0 && (
-              <House fall={roadH} bottom={16 + 116 * (MIN_LANES / lanes) + 14} />
-            )}
-
-            {/* aviso de carril nuevo */}
-            {tierNotice && (
-              <div
-                data-testid="tier-notice"
-                className="pointer-events-none absolute inset-x-0 top-1/2 text-center font-display text-xl font-extrabold"
-                style={{
-                  color: "var(--accent)",
-                  textShadow: `0 2px 8px ${ASPHALT_EDGE}`,
-                  animation: "dots-pop-in 0.3s var(--ease-out-strong) both",
-                }}
-              >
-                ¡Carril nuevo!
-              </div>
+                {/* aviso de carril nuevo */}
+                {tierNotice && (
+                  <div
+                    data-testid="tier-notice"
+                    className="pointer-events-none absolute inset-x-0 text-center font-display text-xl font-extrabold"
+                    style={{
+                      top: "52%",
+                      color: "var(--accent)",
+                      textShadow: `0 2px 8px ${ASPHALT_EDGE}`,
+                      animation: "dots-pop-in 0.3s var(--ease-out-strong) both",
+                    }}
+                  >
+                    ¡Carril nuevo!
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          {/* Confirmar: separado de moverse (antes tocar tu carril confirmaba) */}
+          {/* Confirmar: separado de moverse */}
           <button
             data-testid="go"
             onPointerUp={resolve}
-            disabled={outcome !== "none" || phase === "arrival"}
+            disabled={phase !== "playing" || outcome !== "none" || signProgress < 1}
             className="dots-pressable w-full rounded-2xl py-4 text-base font-extrabold disabled:opacity-40"
             style={{
               background: "var(--accent)",
@@ -1084,7 +888,15 @@ function DotaxiInner({ seed }: { seed?: number }) {
               ["--press-color" as string]: "var(--accent-edge)",
             }}
           >
-            {phase === "arrival" ? "Llegando a casa…" : "¡Vamos!"}
+            {phase === "pickup"
+              ? "Subiendo pasajero…"
+              : phase === "arrival"
+                ? "Llegando a destino…"
+                : phase === "breakdown"
+                  ? "Taxi averiado…"
+                  : signProgress < 1
+                    ? "Se acerca la señal…"
+                    : "¡Vamos!"}
           </button>
         </div>
       )}
@@ -1096,9 +908,27 @@ function DotaxiInner({ seed }: { seed?: number }) {
           onReplay={startGame}
           onExit={() => router.push("/play")}
           extra={
-            <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
-              {correctCount}/{WIN_CORRECT} aciertos
-            </p>
+            trip ? (
+              <div className="flex w-full flex-col items-center gap-3">
+                {/* Cómo acabó el viaje: quién iba y adónde */}
+                <div className="flex items-end justify-center gap-4">
+                  <Passenger trip={trip} size={56} style={{ opacity: lost ? 0.6 : 1 }} />
+                  <div style={{ opacity: won ? 1 : 0.4, filter: won ? "none" : "grayscale(0.6)" }}>
+                    <DestinationArt trip={trip} width={72} />
+                  </div>
+                </div>
+                <p className="text-center text-sm font-bold" style={{ color: "var(--muted)" }}>
+                  {won ? trip.arrived : lost ? trip.failed : trip.midway}
+                </p>
+                <p className="text-center text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                  {correctCount}/{WIN_CORRECT} aciertos
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
+                {correctCount}/{WIN_CORRECT} aciertos
+              </p>
+            )
           }
         />
       )}
