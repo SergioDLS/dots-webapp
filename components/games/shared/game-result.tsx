@@ -72,8 +72,20 @@ export default function GameResult({
   const xpMinScore = result?.xpMinScore ?? 0;
   const belowXpFloor =
     result !== null && result.xpGained === 0 && xpMinScore > 0 && score < xpMinScore;
-  const pose: DotyPose = dotyPose ?? (isNewRecord ? "trofeo-celebracion" : "muy-feliz");
-  const cheers = dotyPose === undefined && isNewRecord;
+  // Sin llegar a la meta mínima —el umbral de XP del juego— no hay fiesta:
+  // Doty sale decepcionado y el chip de abajo dice cuánto faltaba. Hasta que
+  // el servidor contesta no se sabe, así que mientras tanto una cara neutra
+  // en vez de una celebración que luego habría que retirar.
+  const pose: DotyPose =
+    dotyPose ??
+    (result === null
+      ? "feliz"
+      : belowXpFloor
+        ? "decepcionado"
+        : isNewRecord
+          ? "trofeo-celebracion"
+          : "muy-feliz");
+  const cheers = dotyPose === undefined && result !== null && !belowXpFloor && isNewRecord;
 
   return (
     <div className="flex w-full flex-1 flex-col items-center justify-center px-4">
