@@ -21,8 +21,11 @@ export const K_BOTTOM = 8;
 export const ROAD_BOTTOM_FACTOR = 1.2;
 /** Acera a cada lado en el borde cercano, en px de pantalla. */
 export const CURB_BOTTOM_PX = 14;
-/** Cuántas veces la calzada (con aceras) mide el terreno: cubre la escena entera. */
-export const GROUND_FACTOR = 3;
+/** Cuántas veces la calzada (con aceras) mide el terreno. Tiene que cubrir la
+ *  escena entera TAMBIÉN en el horizonte, donde la calzada mide 1/K_BOTTOM
+ *  del ancho de la escena: con 3 el césped acababa a media pantalla y a los
+ *  lados asomaba el cielo. */
+export const GROUND_FACTOR = 7.5;
 /** El plano se alarga estos px más allá del pie de la escena y ella lo recorta:
  *  si el alto cambia tras medirse (la barra del navegador móvil se esconde), el
  *  suelo no se corta antes del borde. */

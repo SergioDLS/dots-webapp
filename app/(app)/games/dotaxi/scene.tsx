@@ -180,6 +180,15 @@ function Birds({ skyH, sceneW, yFrac, scale, dur, delay }: {
 
 // ── El plano de suelo ────────────────────────────────────────────────────────
 
+/**
+ * El plano se dibuja PLANE_RASTER veces más grande y se encoge con
+ * scale(1/R) dentro del mismo transform: la geometría es la misma, pero la
+ * textura tiene R veces más píxeles. Con perspectiva el navegador rasteriza la
+ * capa a su tamaño CSS y luego la estira hasta kBottom (8) veces en el borde
+ * cercano: rayas, bordillos y el césped salían borrosos.
+ */
+const PLANE_RASTER = 4;
+
 export function GroundPlane({
   m,
   dist,
@@ -192,17 +201,20 @@ export function GroundPlane({
   lanes: number;
   children?: React.ReactNode;
 }) {
+  const R = PLANE_RASTER;
   const { centersPct, widthPct } = laneGeometry(lanes);
   const boundaries = centersPct.slice(1).map((c) => c - widthPct / 2);
   // Todo lo que corre con la carretera es una tira alta que se desplaza en
   // unidades de plano (translateY); la perspectiva del padre la acorta hacia
   // el horizonte. Nunca background-position. Los periodos son cortos porque en
-  // el borde cercano se multiplican por kBottom.
+  // el borde cercano se multiplican por kBottom. Todo en unidades de plano × R.
   const scroll = (period: number) => ({
-    top: -period,
-    height: `calc(100% + ${period * 2}px)`,
-    transform: `translateY(${dist % period}px)`,
+    top: -period * R,
+    height: `calc(100% + ${period * 2 * R}px)`,
+    transform: `translateY(${(dist % period) * R}px)`,
   });
+  const stripes = (a: string, b: string, on: number, period: number) =>
+    `repeating-linear-gradient(to bottom, ${a} 0 ${on * R}px, ${b} ${on * R}px ${period * R}px)`;
   return (
     <div
       data-testid="plane"
@@ -210,43 +222,34 @@ export function GroundPlane({
       className="absolute"
       style={{
         top: m.horizonY,
-        left: (m.sceneW - m.groundW) / 2,
-        width: m.groundW,
-        height: m.planeH,
+        left: (m.sceneW - m.groundW * R) / 2,
+        width: m.groundW * R,
+        height: m.planeH * R,
         transformOrigin: "top center",
-        transform: `perspective(${PERSPECTIVE}px) rotateX(${m.thetaDeg}deg)`,
+        transform: `perspective(${PERSPECTIVE}px) rotateX(${m.thetaDeg}deg) scale(${1 / R})`,
         // césped teñido por el cielo: de día verde, de noche verde oscuro
         background: "color-mix(in srgb, var(--sky-bottom) 28%, #2f7a4f)",
-        borderTop: "2px solid color-mix(in srgb, var(--sky-bottom) 20%, #1f4f36)",
+        borderTop: `${2 * R}px solid color-mix(in srgb, var(--sky-bottom) 20%, #1f4f36)`,
         overflow: "hidden",
       }}
     >
       {/* franjas de césped */}
       <div
         className="absolute inset-x-0"
-        style={{
-          ...scroll(60),
-          backgroundImage: "repeating-linear-gradient(to bottom, rgba(255,255,255,0.07) 0 26px, transparent 26px 60px)",
-        }}
+        style={{ ...scroll(60), backgroundImage: stripes("rgba(255,255,255,0.07)", "transparent", 26, 60) }}
       />
       {/* aceras: bordillo rojo-blanco tipo circuito, en movimiento */}
       {[m.groundMargin, m.groundMargin + m.curbW + m.roadW].map((left, i) => (
-        <div key={i} className="absolute inset-y-0 overflow-hidden" style={{ left, width: m.curbW, background: CURB }}>
-          <div
-            className="absolute inset-x-0"
-            style={{
-              ...scroll(24),
-              backgroundImage: `repeating-linear-gradient(to bottom, ${BRAKE_RED} 0 12px, ${SIGN_FACE} 12px 24px)`,
-            }}
-          />
+        <div key={i} className="absolute inset-y-0 overflow-hidden" style={{ left: left * R, width: m.curbW * R, background: CURB }}>
+          <div className="absolute inset-x-0" style={{ ...scroll(24), backgroundImage: stripes(BRAKE_RED, SIGN_FACE, 12, 24) }} />
         </div>
       ))}
       {/* calzada */}
       <div
         className="absolute inset-y-0 overflow-hidden"
         style={{
-          left: m.groundMargin + m.curbW,
-          width: m.roadW,
+          left: (m.groundMargin + m.curbW) * R,
+          width: m.roadW * R,
           // más oscuro hacia el horizonte: la distancia se lee también en el tono
           background: `linear-gradient(to top, ${ASPHALT} 0%, #2a2842 55%, #201e35 100%)`,
         }}
@@ -257,23 +260,17 @@ export function GroundPlane({
             className="absolute inset-y-0"
             style={{
               left: `${pct}%`,
-              width: 1.6,
+              width: 1.6 * R,
               transform: "translateX(-50%)",
               transition: "left 450ms var(--ease-out-strong)",
             }}
           >
-            <div
-              className="absolute inset-x-0"
-              style={{
-                ...scroll(28),
-                backgroundImage: `repeating-linear-gradient(to bottom, ${LANE_PAINT} 0 10px, transparent 10px 28px)`,
-              }}
-            />
+            <div className="absolute inset-x-0" style={{ ...scroll(28), backgroundImage: stripes(LANE_PAINT, "transparent", 10, 28) }} />
           </div>
         ))}
         {/* arcenes continuos */}
-        <div className="absolute inset-y-0" style={{ left: 1, width: 1.4, background: EDGE_PAINT }} />
-        <div className="absolute inset-y-0" style={{ right: 1, width: 1.4, background: EDGE_PAINT }} />
+        <div className="absolute inset-y-0" style={{ left: 1 * R, width: 1.4 * R, background: EDGE_PAINT }} />
+        <div className="absolute inset-y-0" style={{ right: 1 * R, width: 1.4 * R, background: EDGE_PAINT }} />
       </div>
       {children}
     </div>
@@ -417,7 +414,7 @@ export function FloatingWords({
 /**
  * El taxi visto por detrás, un sprite por escalón de daño. Encima van las
  * capas vivas: cono de faros de noche, intermitente al cambiar de carril,
- * pilotos al frenar, la gorra de Doty en la luneta y el humo del destrozado.
+ * pilotos al frenar y el humo del destrozado. La luneta va vacía.
  */
 export function TaxiRear({
   damage,
@@ -496,26 +493,8 @@ export function TaxiRear({
             className="absolute select-none"
             style={{ left: 0, bottom: -10, width: TAXI_W, height: TAXI_W }}
           />
-          {/* luneta: desde atrás, de Doty se ve la gorra y tres púas del penacho
-              que asoman por debajo. Su cara va en la burbuja de reacción, que es
-              donde una expresión se lee desde atrás. Ventana ≈ x 32-96, y 32-58. */}
-          <div className="absolute" style={{ left: 38, top: 33, width: 28, height: 22 }}>
-            {[-2, 8, 18].map((x, i) => (
-              <div
-                key={x}
-                className="absolute"
-                style={{
-                  left: x, top: 9 + (i === 1 ? -2 : 0), width: 8, height: 12,
-                  background: "#ff1f8f", border: `1.5px solid ${INK}`,
-                  borderRadius: "2px 2px 6px 6px",
-                  transform: `rotate(${(i - 1) * 22}deg)`,
-                  transformOrigin: "top center",
-                }}
-              />
-            ))}
-            <div className="absolute rounded-t-full" style={{ left: 0, top: 0, width: 28, height: 11, background: TAXI_YELLOW, border: `1.5px solid ${INK}` }} />
-            <div className="absolute rounded-full" style={{ left: -2, top: 9, width: 32, height: 4, background: "#35d8f5", border: `1px solid ${INK}` }} />
-          </div>
+          {/* La luneta va vacía: la nuca con gorra en CSS parecía una pelota
+              y Sergio la sacó. La cara de Doty vive en la burbuja de reacción. */}
           {/* pilotos encendidos al frenar: sobre los del sprite (x≈24 y 102, y≈74) */}
           {[24, 102].map((cx, i) => (
             <div
@@ -573,8 +552,8 @@ export function TaxiRear({
 
 /** Altura de cada sprite al llegar al borde cercano, en altos de escena: más
  *  que la escena, como en OutRun. Al pasar se salen por arriba y por los lados. */
-const LAMP_H_FRAC = 1.45;
-const TREE_H_FRAC = 1.25;
+const LAMP_H_FRAC = 1.23;
+const TREE_H_FRAC = 1.125;
 const ROADSIDE_SLOTS = 8;
 /** La farola planta el poste a esta distancia de la acera (px del borde cercano). */
 const LAMP_OFFSET_PX = 26;
