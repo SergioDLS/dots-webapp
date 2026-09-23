@@ -727,10 +727,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const lanePct = laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)] ?? 50;
   const laneScale = (MIN_LANES / lanes) * TAXI_ZOOM;
   // Con la calzada un 50 % más ancha que la escena, el carril del borde cae en
-  // buena parte fuera. El taxi puede asomar hasta un 35 % de su ancho por el
-  // marco: así sigue leyéndose en SU carril y no parece estar en el vecino.
+  // buena parte fuera. El taxi se queda ENTERO dentro del marco, sobre la
+  // parte visible de su carril: asomando un tercio por fuera (probado) se veía
+  // mal ubicado.
   const taxiHalf = (TAXI_W * laneScale) / 2;
-  const taxiMin = taxiHalf * 0.3;
+  const taxiMin = taxiHalf + 6;
   const rawTaxiX = laneXBottom(m, phase === "arrival" || phase === "pickup" ? 50 : lanePct);
   const taxiX = sceneW > 0 ? Math.min(Math.max(rawTaxiX, taxiMin), m.sceneW - taxiMin) : rawTaxiX;
   // Los bocadillos se abren hacia el centro de la escena: en el carril del
