@@ -354,13 +354,20 @@ export function FloatingWords({
   // Zigzag también con 2 carriles si alguna opción es una frase: «Like many
   // others» a 22 px mide más que su carril y pisaba a la vecina.
   const zigzag = lanes >= 3 || options.some((o) => o.length > 9);
+  // Una frase larga se parte en dos líneas antes de medir más de media escena;
+  // y como el carril del borde cae en parte fuera, el centro de cada palabra
+  // se acota para que no se corte contra el marco mientras flota.
+  const maxW = Math.min(Math.max(80, spacing * 2 - 6), m.sceneW * 0.55);
   return (
     <>
       {options.map((opt, i) => {
         const restX = laneXAtScale(m, centersPct[i] ?? 50, WORD_REST_R);
         const yFrac = !zigzag ? WORD_Y_SINGLE : i % 2 === 0 ? WORD_Y_LOW : WORD_Y_HIGH;
         const restY = m.sceneH * yFrac;
-        const cx = vpX + (restX - vpX) * g;
+        const size = opt.length >= 9 ? fontPx - 2 : fontPx;
+        const estW = Math.min(maxW, opt.length * size * 0.58 + 20);
+        const clampedRestX = Math.min(Math.max(restX, estW / 2 + 6), m.sceneW - estW / 2 - 6);
+        const cx = vpX + ((x > 0 ? restX : clampedRestX) - vpX) * g;
         const cy = vpY + (restY - vpY) * g;
         const isClear = outcome !== "none" && opt === correct;
         const isBlocked = outcome !== "none" && !isClear;
@@ -386,8 +393,8 @@ export function FloatingWords({
                 style={{
                   minWidth: 44,
                   minHeight: 36,
-                  maxWidth: Math.max(80, spacing * 2 - 6),
-                  fontSize: opt.length >= 9 ? fontPx - 2 : fontPx,
+                  maxWidth: maxW,
+                  fontSize: size,
                   color,
                   WebkitTextStroke: `${lanes >= 4 ? 4 : 5}px ${INK}`,
                   paintOrder: "stroke fill",
