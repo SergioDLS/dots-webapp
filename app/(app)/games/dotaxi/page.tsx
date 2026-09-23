@@ -59,9 +59,14 @@ import type { DotyPose } from "@/components/ui/doty/doty";
 
 const START_HEARTS = 5;
 const WIN_CORRECT = 10;
-const TIMER_START = 5000;
-const TIMER_STEP = 280; // se recorta por ronda jugada
-const TIMER_MIN = 2500;
+// Tiempo para responder, desde que las palabras son legibles: arranca en
+// TIMER_START, se recorta TIMER_STEP por ronda hasta TIMER_MIN y suma
+// LANE_BONUS_MS por cada carril más allá del mínimo (más opciones que leer).
+// Sergio lo sintió muy corto con 5 s / 2,5 s.
+const TIMER_START = 7000;
+const TIMER_STEP = 250;
+const TIMER_MIN = 4000;
+const LANE_BONUS_MS = 1200;
 const TICKER_FPS = 30;
 const RESOLVE_MS = 1300; // pausa tras resolver la ronda
 // Al confirmar, cada carril INCORRECTO suelta un obstáculo que baja desde el
@@ -242,6 +247,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [laneOptions, setLaneOptions] = useState<string[]>([]);
   const [question, setQuestion] = useState<DotaxiQuestion | null>(null);
   const [remaining, setRemaining] = useState(TIMER_START);
+  // Con cuánto arrancó la ronda: la barra se pinta contra esto, no contra
+  // TIMER_START (con eso salía a medias en las rondas cortas).
+  const [roundTime, setRoundTime] = useState(TIMER_START);
   const [outcome, setOutcome] = useState<"none" | "clear" | "crash">("none");
   const [tierNotice, setTierNotice] = useState(false);
   const [dist, setDist] = useState(0);
@@ -398,8 +406,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
       signElapsedRef.current = 0;
       approachingRef.current = true;
       setSignProgress(0);
-      remainingRef.current = Math.max(TIMER_MIN, TIMER_START - TIMER_STEP * idx);
-      setRemaining(remainingRef.current);
+      const total =
+        Math.max(TIMER_MIN, TIMER_START - TIMER_STEP * idx) + Math.max(0, nextLanes - MIN_LANES) * LANE_BONUS_MS;
+      setRoundTime(total);
+      remainingRef.current = total;
+      setRemaining(total);
       setOutcome("none");
       setImpact(false);
       setDustKey(0);
@@ -874,9 +885,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
             <div
               className="h-full w-full origin-left rounded-full"
               style={{
-                transform: `scaleX(${phase === "playing" ? Math.max(0, remaining) / TIMER_START : 1})`,
+                transform: `scaleX(${phase === "playing" ? Math.max(0, remaining) / roundTime : 1})`,
                 background:
-                  phase !== "playing" || remaining > TIMER_START * 0.3 ? "var(--success)" : "var(--danger)",
+                  phase !== "playing" || remaining > roundTime * 0.3 ? "var(--success)" : "var(--danger)",
               }}
             />
           </div>
