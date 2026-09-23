@@ -1121,8 +1121,9 @@
       "size": 1536,
       "aspect": "3:1",
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Small_propeller_plane_towing_a_banner_a_small_pink__d434ba91-7003-41d9-b907-05b95a466263_3.png"
     },
     {
       "slug": "dont-pop",

@@ -119,6 +119,7 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
       </div>
       <Birds skyH={skyH} sceneW={m.sceneW} yFrac={0.3} scale={1} dur={26} delay={4} />
       <Birds skyH={skyH} sceneW={m.sceneW} yFrac={0.18} scale={0.7} dur={37} delay={19} />
+      <Plane skyH={skyH} sceneW={m.sceneW} />
       {/* skyline: dos franjas 3:1 (dotaxi-skyline-dia / -noche) con fundido por
           --dotaxi-night. El pipeline las deja centradas en un lienzo cuadrado:
           la franja ocupa de 0,395 a 0,604 del alto, y se coloca para que su
@@ -180,6 +181,55 @@ function Birds({ skyH, sceneW, yFrac, scale, dur, delay }: {
             <div className="absolute" style={{ left: 7, top: 3, width: 8, height: 2, background: INK, borderRadius: 1, transform: "rotate(28deg)", transformOrigin: "left center" }} />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/** Ancho del lienzo de la avioneta en pantalla; la franja 3:1 ocupa de 0,44 a
+ *  0,56 del alto y el cartel va de 0,34 a 0,96 del ancho (medido en el PNG). */
+const PLANE_W = 230;
+
+/**
+ * La avioneta con cartel (dotaxi-avioneta) cruza el cielo de derecha a
+ * izquierda cada minuto y luego descansa fuera de escena. El cartel se genera
+ * vacío y el «DOTS» va como texto encima, igual que los letreros del destino.
+ */
+function Plane({ skyH, sceneW }: { skyH: number; sceneW: number }) {
+  const W = PLANE_W;
+  return (
+    <div
+      aria-hidden
+      data-testid="plane-banner"
+      className="pointer-events-none absolute left-0"
+      style={{
+        top: skyH * 0.12 - W * 0.44,
+        width: W,
+        height: W,
+        ["--from" as string]: `${sceneW + 30}px`,
+        ["--to" as string]: `${-W - 30}px`,
+        // arranca ya a la vista: la primera partida también tiene su avioneta
+        animation: "dotaxi-birds 60s linear -7s infinite",
+        opacity: "calc(1 - 0.35 * var(--dotaxi-night))",
+      }}
+    >
+      <div className="relative h-full w-full" style={{ animation: "dotaxi-float 3.2s ease-in-out infinite" }}>
+        <Image
+          src="/images/games/dotaxi-avioneta.png"
+          alt=""
+          aria-hidden
+          width={1536}
+          height={1536}
+          sizes={`${W * 2}px`}
+          draggable={false}
+          className="absolute inset-0 h-full w-full select-none"
+        />
+        <div
+          className="absolute flex items-center justify-center font-display font-extrabold tracking-[0.18em]"
+          style={{ left: W * 0.35, width: W * 0.6, top: W * 0.445, height: W * 0.115, fontSize: W * 0.075, color: INK }}
+        >
+          DOTS
+        </div>
       </div>
     </div>
   );
