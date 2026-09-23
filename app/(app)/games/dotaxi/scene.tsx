@@ -21,8 +21,7 @@ import type { Trip } from "./trip";
 // --surface el asfalto salía casi blanco en tema claro y las rayas morían.
 export const ASPHALT = "#34314f";
 export const ASPHALT_EDGE = "#1e1b5c";
-export const CURB = "#c9c4d8";
-export const CURB_EDGE = "#8f89a8";
+export const CURB = "#d9d4e6";
 export const LANE_PAINT = "#f4f1e4";
 export const EDGE_PAINT = "#ffd21e";
 export const TAXI_YELLOW = "#ffd21e";
@@ -138,6 +137,14 @@ export function GroundPlane({
 }) {
   const { centersPct, widthPct } = laneGeometry(lanes);
   const boundaries = centersPct.slice(1).map((c) => c - widthPct / 2);
+  // Todo lo que corre con la carretera es una tira alta que se desplaza en
+  // unidades de plano (translateY); la perspectiva del padre la acorta hacia
+  // el horizonte. Nunca background-position.
+  const scroll = (period: number) => ({
+    top: -period,
+    height: `calc(100% + ${period * 2}px)`,
+    transform: `translateY(${roadY % period}px)`,
+  });
   return (
     <div
       data-testid="plane"
@@ -145,29 +152,47 @@ export function GroundPlane({
       className="absolute"
       style={{
         top: m.horizonY,
-        left: (m.sceneW - m.planeW) / 2,
-        width: m.planeW,
+        left: (m.sceneW - m.groundW) / 2,
+        width: m.groundW,
         height: m.planeH,
         transformOrigin: "top center",
         transform: `perspective(${PERSPECTIVE}px) rotateX(${THETA_DEG}deg)`,
-        // los hijos contrarrotados (destino) necesitan el 3D real del padre
-        transformStyle: "preserve-3d",
-        background: CURB,
-        borderTop: `2px solid ${CURB_EDGE}`,
+        // césped teñido por el cielo: de día verde, de noche verde oscuro
+        background: "color-mix(in srgb, var(--sky-bottom) 28%, #2f7a4f)",
+        borderTop: "2px solid color-mix(in srgb, var(--sky-bottom) 20%, #1f4f36)",
+        overflow: "hidden",
       }}
     >
+      {/* franjas de césped: bandas apenas más claras que corren con la vía */}
+      <div
+        className="absolute inset-x-0"
+        style={{
+          ...scroll(96),
+          backgroundImage: "repeating-linear-gradient(to bottom, rgba(255,255,255,0.07) 0 40px, transparent 40px 96px)",
+        }}
+      />
+      {/* aceras: bordillo rojo-blanco tipo circuito, en movimiento */}
+      {[m.groundMargin, m.groundMargin + m.curbW + m.roadW].map((left, i) => (
+        <div key={i} className="absolute inset-y-0 overflow-hidden" style={{ left, width: m.curbW, background: CURB }}>
+          <div
+            className="absolute inset-x-0"
+            style={{
+              ...scroll(48),
+              backgroundImage: `repeating-linear-gradient(to bottom, ${BRAKE_RED} 0 24px, ${SIGN_FACE} 24px 48px)`,
+            }}
+          />
+        </div>
+      ))}
       {/* calzada */}
       <div
         className="absolute inset-y-0 overflow-hidden"
         style={{
-          left: m.curbW,
+          left: m.groundMargin + m.curbW,
           width: m.roadW,
           // más oscuro hacia el horizonte: la distancia se lee también en el tono
           background: `linear-gradient(to top, ${ASPHALT} 0%, #2a2842 55%, #201e35 100%)`,
         }}
       >
-        {/* divisorias discontinuas: una tira alta que se desplaza en unidades
-            de plano; la perspectiva del padre las acorta hacia el horizonte */}
         {boundaries.map((pct, i) => (
           <div
             key={i}
@@ -182,9 +207,7 @@ export function GroundPlane({
             <div
               className="absolute inset-x-0"
               style={{
-                top: -64,
-                height: "calc(100% + 128px)",
-                transform: `translateY(${roadY}px)`,
+                ...scroll(64),
                 backgroundImage: `repeating-linear-gradient(to bottom, ${LANE_PAINT} 0 22px, transparent 22px 64px)`,
               }}
             />
@@ -194,9 +217,6 @@ export function GroundPlane({
         <div className="absolute inset-y-0" style={{ left: 1.5, width: 2, background: EDGE_PAINT }} />
         <div className="absolute inset-y-0" style={{ right: 1.5, width: 2, background: EDGE_PAINT }} />
       </div>
-      {/* bordillos */}
-      <div className="absolute inset-y-0" style={{ left: m.curbW - 1.5, width: 1.5, background: CURB_EDGE }} />
-      <div className="absolute inset-y-0" style={{ left: m.curbW + m.roadW, width: 1.5, background: CURB_EDGE }} />
       {children}
     </div>
   );
@@ -551,11 +571,15 @@ export function ReactionBubble({ pose, style }: { pose: DotyPose; style?: React.
           fuera del marco. El marco es un hijo con overflow hidden para que la
           cola de abajo no se recorte. */}
       <div className="absolute overflow-hidden rounded-xl" style={{ inset: 3 }}>
+        {/* size="medium" (192 px servidos) en vez de micro (32) estirado: a
+            tres aumentos el micro salía borroso. Se encuadra a ojos y boca. */}
         <div
           className="absolute"
-          style={{ left: "50%", top: -24, transform: "translateX(-50%) scale(3.3)", transformOrigin: "top center" }}
+          // ancho explícito: la clase de tamaño de Doty es relativa y dentro de
+          // un absoluto sin ancho colapsaba a nada
+          style={{ left: "50%", top: -40, width: 192, transform: "translateX(-50%) scale(0.74)", transformOrigin: "top center" }}
         >
-          <Doty pose={pose} size="micro" />
+          <Doty pose={pose} size="medium" />
         </div>
       </div>
       {/* cola hacia el techo */}

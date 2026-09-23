@@ -12,8 +12,11 @@
 // punto: con 64° y 300 el borde cercano ocupa casi toda la escena y el fondo
 // llega al horizonte con un 30 % del ancho (3,3× de convergencia). Con 54° y
 // 320 se quedaba en el 40 % y la calzada parecía una cinta plana.
-export const THETA_DEG = 64;
-export const PERSPECTIVE = 300;
+export const THETA_DEG = 72;
+export const PERSPECTIVE = 280;
+/** Cuántas veces la calzada (con aceras) mide el terreno a cada lado: el
+ *  suelo tiene que cubrir la escena entera por debajo del horizonte. */
+export const GROUND_FACTOR = 3;
 /** El horizonte, a esta fracción del alto de la escena. */
 export const HORIZON_FRAC = 0.34;
 /** Acera visible a cada lado en el borde cercano, en px de pantalla. Fina a
@@ -36,6 +39,10 @@ export interface PlaneMetrics {
   kBottom: number;
   /** calzada en px de pantalla en el borde cercano */
   roadBottomW: number;
+  /** terreno completo (césped + aceras + calzada + aceras + césped), en unidades de plano */
+  groundW: number;
+  /** césped a cada lado, en unidades de plano: desplaza todo lo que va sobre la calzada */
+  groundMargin: number;
 }
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
@@ -50,7 +57,10 @@ export function planeMetrics(sceneW: number, sceneH: number): PlaneMetrics {
   const kBottom = P / (P - planeH * Math.sin(th));
   const planeW = sceneW / kBottom;
   const curbW = CURB_BOTTOM_PX / kBottom;
+  const groundW = planeW * GROUND_FACTOR;
   return {
+    groundW,
+    groundMargin: (groundW - planeW) / 2,
     sceneW,
     sceneH,
     horizonY,
@@ -77,5 +87,5 @@ export function laneXBottom(m: PlaneMetrics, pct: number): number {
 
 /** x de un punto de la calzada en unidades de plano (para hijos del plano). */
 export function lanePlaneX(m: PlaneMetrics, pct: number): number {
-  return m.curbW + (pct / 100) * m.roadW;
+  return m.groundMargin + m.curbW + (pct / 100) * m.roadW;
 }
