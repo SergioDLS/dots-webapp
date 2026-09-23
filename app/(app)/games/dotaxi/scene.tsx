@@ -351,11 +351,14 @@ export function FloatingWords({
   const g = x > 0 ? 1 + WORD_EXIT_GROWTH * ex : 0.12 + 0.88 * ea;
   const fontPx = lanes >= 4 ? 17 : lanes === 3 ? 19 : 22;
   const spacing = (m.roadBottomW / lanes) * WORD_REST_R;
+  // Zigzag también con 2 carriles si alguna opción es una frase: «Like many
+  // others» a 22 px mide más que su carril y pisaba a la vecina.
+  const zigzag = lanes >= 3 || options.some((o) => o.length > 9);
   return (
     <>
       {options.map((opt, i) => {
         const restX = laneXAtScale(m, centersPct[i] ?? 50, WORD_REST_R);
-        const yFrac = lanes <= 2 ? WORD_Y_SINGLE : i % 2 === 0 ? WORD_Y_LOW : WORD_Y_HIGH;
+        const yFrac = !zigzag ? WORD_Y_SINGLE : i % 2 === 0 ? WORD_Y_LOW : WORD_Y_HIGH;
         const restY = m.sceneH * yFrac;
         const cx = vpX + (restX - vpX) * g;
         const cy = vpY + (restY - vpY) * g;
@@ -413,8 +416,9 @@ export function FloatingWords({
 
 /**
  * El taxi visto por detrás, un sprite por escalón de daño. Encima van las
- * capas vivas: cono de faros de noche, intermitente al cambiar de carril,
- * pilotos al frenar y el humo del destrozado. La luneta va vacía.
+ * capas vivas: intermitente al cambiar de carril, pilotos al frenar y el humo
+ * del destrozado. La luneta va vacía y no hay cono de faros: probado, se veía
+ * mal (un trapecio pálido sobre el asfalto) y Sergio lo quitó.
  */
 export function TaxiRear({
   damage,
@@ -445,18 +449,6 @@ export function TaxiRear({
           : `dotaxi-bob ${(0.8 / Math.max(1, speed)).toFixed(2)}s ease-in-out infinite`,
       }}
     >
-      {/* faros de noche: un cono de luz sobre la calzada por delante del taxi,
-          que se estrecha hacia el horizonte. Debajo del sprite. */}
-      <div
-        aria-hidden
-        className="absolute"
-        style={{
-          left: -8, right: -8, bottom: TAXI_H - 34, height: 150,
-          background: "linear-gradient(to top, rgba(255, 236, 170, 0.45), rgba(255, 236, 170, 0.1) 65%, transparent)",
-          clipPath: "polygon(0 100%, 100% 100%, 64% 0, 36% 0)",
-          opacity: "var(--dotaxi-night)",
-        }}
-      />
       <div
         className="absolute inset-0"
         style={{ animation: braking ? "dotaxi-brake-dip 420ms var(--ease-out-strong) both" : "none", transformOrigin: "bottom center" }}

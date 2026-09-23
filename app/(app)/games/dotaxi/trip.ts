@@ -34,7 +34,8 @@ export interface Trip {
   /** resultado: el jugador salió a medio camino */
   midway: string;
   /** Lo que suelta desde el asiento de atrás según lo que pasa. Frases cortas:
-   *  se leen en un bocadillo pequeño junto al taxi, en marcha. */
+   *  se leen en un bocadillo pequeño junto al taxi, en marcha. No comenta
+   *  cada vez (ver REMARK_CHANCE_* en page.tsx) y no repite la última frase. */
   voice: {
     /** acierto (se elige una al azar) */
     cheer: readonly string[];
@@ -61,8 +62,8 @@ export const TRIPS: readonly Trip[] = [
     failed: "Gus no llegó al puerto… el taxi no aguantó.",
     midway: "Gus se quedó a medio camino del puerto.",
     voice: {
-      cheer: ["¡Viento en popa!", "¡Así se navega!", "¡Rumbo firme!"],
-      ouch: ["¡Uy, marejada!", "¡Mi gorra!", "¡Se me mueve el suelo!"],
+      cheer: ["¡Viento en popa!", "¡Así se navega!", "¡Rumbo firme!", "¡Buen timón, Doty!", "¡Esto sí es navegar!", "¡Mar en calma!"],
+      ouch: ["¡Uy, marejada!", "¡Mi gorra!", "¡Se me mueve el suelo!", "¡Hombre al agua!", "¡Ese bache era un iceberg!"],
       hurry: "¡Que zarpa el barco!",
       thanks: "¡Gracias, Doty! Nos vemos en el muelle.",
       groan: "Adiós barco… adiós mar…",
@@ -79,8 +80,8 @@ export const TRIPS: readonly Trip[] = [
     failed: "Diana no llegó al laboratorio… el taxi no aguantó.",
     midway: "Diana se quedó a medio camino del laboratorio.",
     voice: {
-      cheer: ["¡Hipótesis confirmada!", "¡Exacto!", "¡Eureka!"],
-      ouch: ["¡Mis probetas!", "¡Cuidado, Doty!", "¡Eso no estaba en el plan!"],
+      cheer: ["¡Hipótesis confirmada!", "¡Exacto!", "¡Eureka!", "¡Qué precisión!", "¡Anotado en la bitácora!", "¡Ciencia pura!"],
+      ouch: ["¡Mis probetas!", "¡Cuidado, Doty!", "¡Eso no estaba en el plan!", "¡Gravedad, siempre la gravedad!", "¡Se me cayó el microscopio!"],
       hurry: "¡El experimento no espera!",
       thanks: "¡Gracias, Doty! A la ciencia.",
       groan: "Mi experimento… arruinado.",
@@ -97,8 +98,8 @@ export const TRIPS: readonly Trip[] = [
     failed: "Andrea no llegó al estadio… el taxi no aguantó.",
     midway: "Andrea se quedó a medio camino del estadio.",
     voice: {
-      cheer: ["¡Golazo!", "¡Eso, Doty!", "¡Vamos que llegamos!"],
-      ouch: ["¡Uy!", "¡Mi bandera!", "¡Casi me caigo!"],
+      cheer: ["¡Golazo!", "¡Eso, Doty!", "¡Vamos que llegamos!", "¡Qué jugada!", "¡Así se conduce!", "¡Olé!"],
+      ouch: ["¡Uy!", "¡Mi bandera!", "¡Casi me caigo!", "¡Tarjeta amarilla al bache!", "¡Eso fue falta!"],
       hurry: "¡Ya va a empezar!",
       thanks: "¡Gracias, Doty! Te guardo un asiento.",
       groan: "Me perdí el partido…",

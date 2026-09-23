@@ -80,8 +80,12 @@ const BOARD_MS = 650;
 // Intermitente al cambiar de carril.
 const SIGNAL_MS = 900;
 // El pasajero comenta desde atrás: sale un poco después de Doty y se va solo.
+// No habla en cada suceso —cansaba— sino con estas probabilidades.
 const REMARK_DELAY_MS = 260;
 const REMARK_MS = 1500;
+const REMARK_CHANCE_CHEER = 0.4;
+const REMARK_CHANCE_OUCH = 0.7;
+const REMARK_CHANCE_HURRY = 0.35;
 // Con menos de esto en el reloj, el pasajero mete prisa (una vez por ronda).
 const HURRY_AT_MS = 1300;
 // Velocidad: cada acierto de racha suma un escalón (tope SPEED_MAX_COMBO) y al
@@ -209,6 +213,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const tripRef = useRef<Trip | null>(null);
   // Ya metió prisa en esta ronda.
   const hurriedRef = useRef(false);
+  // Última frase dicha: la siguiente se elige entre las demás.
+  const lastLineRef = useRef<string | null>(null);
 
   // Todos los temporizadores por nombre: uno solo de cada, y un clearAll al
   // salir. Antes eran cinco refs sueltas y cada salida tenía que recordarlas.
@@ -263,6 +269,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
   /** El pasajero comenta desde atrás, un poco después de la reacción de Doty. */
   const say = useCallback(
     (text: string) => {
+      lastLineRef.current = text;
       setT(
         "remark",
         () => {
@@ -274,6 +281,18 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setT("remarkHide", () => setRemark(null), REMARK_DELAY_MS + REMARK_MS);
     },
     [setT],
+  );
+
+  /** Comenta con probabilidad `chance`, sin repetir la última frase. Azar
+   *  cosmético: no toca el seed de torneo ni de reto. */
+  const maybeSay = useCallback(
+    (lines: readonly string[], chance: number) => {
+      if (lines.length === 0 || Math.random() >= chance) return;
+      const pool = lines.length > 1 ? lines.filter((l) => l !== lastLineRef.current) : lines;
+      const line = pool[Math.floor(Math.random() * pool.length)];
+      if (line) say(line);
+    },
+    [say],
   );
 
   // Fetch con patrón fetchAttempt (regla 5)
@@ -520,10 +539,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
     );
 
     const voice = tripRef.current?.voice;
-    const pickLine = (lines: readonly string[]) => lines[Math.floor(Math.random() * lines.length)] ?? lines[0];
     if (hit) {
       playSound("correct");
-      if (voice) say(pickLine(voice.cheer));
+      if (voice) maybeSay(voice.cheer, REMARK_CHANCE_CHEER);
       comboRef.current += 1;
       scoreRef.current += 100 * comboRef.current;
       correctCountRef.current += 1;
@@ -546,7 +564,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
           setHearts(heartsRef.current);
           setImpact(true);
           setDustKey((k) => k + 1);
-          if (voice) say(pickLine(voice.ouch));
+          if (voice) maybeSay(voice.ouch, REMARK_CHANCE_OUCH);
         },
         IMPACT_MS,
       );
@@ -568,7 +586,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       },
       RESOLVE_MS,
     );
-  }, [question, laneOptions, seed, setupRound, startArrival, startBreakdown, setT, say]);
+  }, [question, laneOptions, seed, setupRound, startArrival, startBreakdown, setT, maybeSay]);
 
   /** Mover el taxi a un carril: se inclina hacia el lado del giro y vuelve. */
   const pickLane = useCallback(
@@ -653,11 +671,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setRemaining(remainingRef.current);
       if (remainingRef.current <= HURRY_AT_MS && !hurriedRef.current && tripRef.current) {
         hurriedRef.current = true;
-        say(tripRef.current.voice.hurry);
+        maybeSay([tripRef.current.voice.hurry], REMARK_CHANCE_HURRY);
       }
       if (remainingRef.current <= 0) resolve(); // se acabó el tiempo: se resuelve con el carril actual
     },
-    [resolve, say],
+    [resolve, maybeSay],
   );
 
   useTicker(TICKER_FPS, onTick, inGamePhase(phase));
@@ -700,14 +718,19 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
   const damage = damageFor(hearts);
   const m = planeMetrics(sceneW, sceneH);
-  const laneScale = (MIN_LANES / lanes) * TAXI_ZOOM;
   const stopped = phase === "arrival" || phase === "breakdown";
   // Centro del taxi en px de pantalla: su carril mientras se juega, el centro
   // de la calzada en la recogida y la llegada. En la recogida el carril 0 cae
   // casi fuera de la escena (la calzada es más ancha que la pantalla) y el
   // taxi tapaba al pasajero que espera a su izquierda.
   const lanePct = laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)] ?? 50;
-  const taxiX = laneXBottom(m, phase === "arrival" || phase === "pickup" ? 50 : lanePct);
+  const laneScale = (MIN_LANES / lanes) * TAXI_ZOOM;
+  // Con la calzada un 30 % más ancha que la escena, el carril del borde cae en
+  // parte fuera: el taxi se queda entero en pantalla aunque se descentre unos
+  // píxeles de su carril.
+  const taxiHalf = (TAXI_W * laneScale) / 2 + 6;
+  const rawTaxiX = laneXBottom(m, phase === "arrival" || phase === "pickup" ? 50 : lanePct);
+  const taxiX = sceneW > 0 ? Math.min(Math.max(rawTaxiX, taxiHalf), m.sceneW - taxiHalf) : rawTaxiX;
   const braking = impact || stopped;
   // La velocidad que se ve: vaivén del motor y líneas en los bordes.
   const speedMul = 1 + Math.min(combo, SPEED_MAX_COMBO) * SPEED_PER_COMBO;

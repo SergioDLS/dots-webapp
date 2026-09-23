@@ -16,9 +16,10 @@ export const PERSPECTIVE = 260;
 export const HORIZON_FRAC = 0.52;
 /** Cuántas veces es más ancha la calzada en el borde cercano que en el horizonte. */
 export const K_BOTTOM = 8;
-/** Calzada en el borde cercano respecto al ancho de la escena: los bordillos
- *  salen por las esquinas y abajo casi todo es asfalto. */
-export const ROAD_BOTTOM_FACTOR = 1.2;
+/** Calzada en el borde cercano respecto al ancho de la escena: un 15 % se
+ *  pierde por cada lado, los bordillos salen por las esquinas y abajo casi
+ *  todo es asfalto (pedido de Sergio: que se vea espaciosa). */
+export const ROAD_BOTTOM_FACTOR = 1.3;
 /** Acera a cada lado en el borde cercano, en px de pantalla. */
 export const CURB_BOTTOM_PX = 14;
 /** Cuántas veces la calzada (con aceras) mide el terreno. Tiene que cubrir la
