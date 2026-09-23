@@ -571,7 +571,9 @@ const TREE_H_FRAC = 1.125;
 const ROADSIDE_SLOTS = 8;
 /** La farola planta el poste sobre la acera, a esta distancia del bordillo
  *  (px del borde cercano): separada de la calle, como pidió Sergio. */
-const LAMP_OFFSET_PX = 44;
+const LAMP_OFFSET_PX = 51;
+/** La farola se estrecha un poco (poste y cabeza): a tamaño natural pesaba. */
+const LAMP_SQUEEZE = 0.9;
 /** El árbol arranca en el césped, justo detrás de la acera. */
 const TREE_OFFSET_PX = SIDEWALK_BOTTOM_PX + 4;
 /** Aire transparente del lienzo del árbol a cada lado de la copa (fracción del lado). */
@@ -602,6 +604,7 @@ function RoadsideArt({ kind, size }: { kind: "farola" | "arbol"; size: number })
         sizes="min(100vw, 640px)"
         draggable={false}
         className="absolute inset-0 h-full w-full select-none"
+        style={kind === "farola" ? { transform: `scaleX(${LAMP_SQUEEZE})`, transformOrigin: "bottom center" } : undefined}
       />
     </div>
   );

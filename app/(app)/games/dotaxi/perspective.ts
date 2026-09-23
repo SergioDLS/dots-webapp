@@ -23,8 +23,9 @@ export const ROAD_BOTTOM_FACTOR = 1.3;
 /** Bordillo rojo-blanco a cada lado en el borde cercano, en px de pantalla. */
 export const CURB_BOTTOM_PX = 14;
 /** Acera pavimentada más allá del bordillo, en px de pantalla en el borde
- *  cercano: ahí van las farolas; los árboles, en el césped de detrás. */
-export const SIDEWALK_BOTTOM_PX = 56;
+ *  cercano: ahí van las farolas, con el pie entero dentro (poste a 51 px y
+ *  base de ~45 px de semiancho); los árboles, en el césped de detrás. */
+export const SIDEWALK_BOTTOM_PX = 100;
 /** Cuántas veces la calzada (con aceras) mide el terreno. Tiene que cubrir la
  *  escena entera TAMBIÉN en el horizonte, donde la calzada mide 1/K_BOTTOM
  *  del ancho de la escena: con 3 el césped acababa a media pantalla y a los
