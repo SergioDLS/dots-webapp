@@ -26,17 +26,21 @@ import {
   buildLaneOptions,
   MIN_LANES,
 } from "./lanes";
-import { planeMetrics, laneXBottom, CURB_BOTTOM_PX } from "./perspective";
+import { planeMetrics, laneXBottom } from "./perspective";
 import { pickTrip, type Trip } from "./trip";
 import {
   Backdrop,
   GroundPlane,
   HorizonHaze,
+  Roadside,
+  Clouds,
+  Obstacle,
+  OBSTACLE_KINDS,
+  type ObstacleKind,
   Gantry,
   GantryApproach,
   TaxiRear,
   ReactionBubble,
-  Pothole,
   DestinationApproach,
   DestinationArt,
   Passenger,
@@ -58,17 +62,16 @@ const TIMER_STEP = 280; // se recorta por ronda jugada
 const TIMER_MIN = 2500;
 const TICKER_FPS = 30;
 const RESOLVE_MS = 1300; // pausa tras resolver la ronda
-// Fallar es un bache: nace en el horizonte, en tu carril, y baja por el plano
-// hasta el morro. El golpe (sonido, corazón, abolladura) llega cuando pasa
-// por debajo, no al pulsar. 450 + los 500 del temblor caben en RESOLVE_MS.
-const POTHOLE_MS = 450;
-// El bache no frena bajo el taxi: pasa de largo y sale por abajo. A POTHOLE_MS
-// está en POTHOLE_HIT (bajo el morro) y sigue, lineal, hasta POTHOLE_EXIT.
-const POTHOLE_HIT = 0.92;
-// El pie del plano ya queda fuera de la escena (sobresale DEPTH_OVERSHOOT_PX),
-// así que basta con llegar a él. Más allá la profundidad se acerca a la
-// distancia de cámara, la escala explota y la proyección se invierte.
-const POTHOLE_EXIT = 1.0;
+// Al confirmar, cada carril INCORRECTO suelta un obstáculo que baja desde el
+// punto de fuga y pasa de largo: si acertaste ves lo que esquivaste; si no, el
+// de tu carril te golpea. El golpe (sonido, corazón, abolladura) llega cuando
+// el obstáculo pasa bajo el morro (avance IMPACT_P), no al pulsar.
+const IMPACT_MS = 450;
+const IMPACT_P = 0.92; // avance del obstáculo cuando golpea (1 = pie del plano)
+const OBSTACLE_MS = Math.round(IMPACT_MS / IMPACT_P); // lo que tarda en llegar al pie
+// El taxi, un poco más grande que su sprite: en una calzada más ancha que la
+// pantalla se perdía.
+const TAXI_ZOOM = 1.12;
 // Recogida: el pasajero pide destino y sube. Un toque la salta.
 const PICKUP_MS = 2000;
 // Llegada: el destino crece desde el punto de fuga y la carretera frena.
@@ -83,10 +86,9 @@ const TAXI_TILT_MS = 260; // inclinación al cambiar de carril
 // El pórtico nace en el punto de fuga y se acerca hasta ser legible; el reloj
 // no arranca hasta entonces. Leer no puede costar tiempo de respuesta.
 const SIGN_APPROACH_MS = 900;
-// Velocidad de las rayas en unidades de plano por ms: la perspectiva la
-// multiplica ×3 en el borde cercano y la deja tal cual en el horizonte.
-const ROAD_SPEED = 0.13;
-const DASH_CYCLE = 64;
+// Velocidad en unidades de plano por ms: la perspectiva la multiplica por
+// kBottom (8) en el borde cercano y la deja tal cual en el horizonte.
+const ROAD_SPEED = 0.1;
 
 type Phase = "intro" | "pickup" | "playing" | "arrival" | "breakdown" | "result";
 
@@ -169,7 +171,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const scoreRef = useRef(0);
   const comboRef = useRef(0);
   const noticeRef = useRef(false); // el aviso de carril congela la cuenta atrás
-  const roadYRef = useRef(0); // desplazamiento cíclico de las rayas (unidades de plano)
+  const distRef = useRef(0); // distancia recorrida en unidades de plano (no cíclica)
+  // Obstáculos de la ronda: nacen al confirmar y el ticker los hace avanzar.
+  const obstacleElapsedRef = useRef(0);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const sceneWRef = useRef(0);
   const sceneHRef = useRef(0);
@@ -211,7 +215,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [remaining, setRemaining] = useState(TIMER_START);
   const [outcome, setOutcome] = useState<"none" | "clear" | "crash">("none");
   const [tierNotice, setTierNotice] = useState(false);
-  const [roadY, setRoadY] = useState(0);
+  const [dist, setDist] = useState(0);
+  const [obstacles, setObstacles] = useState<{ id: number; pct: number; kind: ObstacleKind }[]>([]);
+  const [obstacleT, setObstacleT] = useState(0);
   const [sceneW, setSceneW] = useState(0);
   const [sceneH, setSceneH] = useState(0);
   // true desde que el bache pasa bajo el taxi hasta la ronda siguiente
@@ -334,6 +340,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setOutcome("none");
       setImpact(false);
       setDustKey(0);
+      setObstacles([]);
       resolvingRef.current = false;
     },
     [seed, clearT, setT],
@@ -355,6 +362,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
     noticeRef.current = false;
     setOutcome("none");
     setImpact(false);
+    setObstacles([]);
     brakeElapsedRef.current = 0;
     brakingRef.current = true;
     setBrakeProgress(0);
@@ -370,6 +378,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setTierNotice(false);
     noticeRef.current = false;
     setOutcome("none");
+    setObstacles([]);
     brakeElapsedRef.current = 0;
     brakingRef.current = true;
     setBrakeProgress(0);
@@ -404,7 +413,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
     scoreRef.current = 0;
     comboRef.current = 0;
     resolvingRef.current = false;
-    roadYRef.current = 0;
+    distRef.current = 0;
+    setObstacles([]);
     setImpact(false);
     setDustKey(0);
     setTilt(0);
@@ -434,6 +444,23 @@ function DotaxiInner({ seed }: { seed?: number }) {
     const chosen = laneOptions[laneRef.current];
     const hit = chosen === question.correct;
 
+    // Un obstáculo por carril incorrecto. Del seed en torneo y reto, para que
+    // los rivales vean lo mismo; al azar en partida libre.
+    const rng = seed !== undefined ? mulberry32(seed * 97 + roundRef.current * 13 + 5) : Math.random;
+    const { centersPct } = laneGeometry(Math.max(1, laneOptions.length));
+    obstacleElapsedRef.current = 0;
+    setObstacleT(0);
+    setObstacles(
+      laneOptions
+        .map((opt, i) => ({ opt, i }))
+        .filter(({ opt }) => opt !== question.correct)
+        .map(({ i }) => ({
+          id: roundRef.current * 10 + i,
+          pct: centersPct[i] ?? 50,
+          kind: OBSTACLE_KINDS[Math.floor(rng() * OBSTACLE_KINDS.length)] ?? "cerdito",
+        })),
+    );
+
     if (hit) {
       playSound("correct");
       comboRef.current += 1;
@@ -446,8 +473,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
     } else {
       comboRef.current = 0;
       setCombo(0);
-      setOutcome("crash"); // el bache arranca a bajar por el carril
-      // El golpe llega cuando el bache pasa bajo el taxi, no al pulsar. El
+      setOutcome("crash");
+      // El golpe llega cuando el obstáculo pasa bajo el taxi, no al pulsar. El
       // temporizador de ronda (RESOLVE_MS) va después, así que el chequeo de
       // corazones de abajo ya lee el valor restado.
       setT(
@@ -459,7 +486,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
           setImpact(true);
           setDustKey((k) => k + 1);
         },
-        POTHOLE_MS,
+        IMPACT_MS,
       );
     }
 
@@ -479,7 +506,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       },
       RESOLVE_MS,
     );
-  }, [question, laneOptions, setupRound, startArrival, startBreakdown, setT]);
+  }, [question, laneOptions, seed, setupRound, startArrival, startBreakdown, setT]);
 
   /** Mover el taxi a un carril: se inclina hacia el lado del giro y vuelve. */
   const pickLane = useCallback(
@@ -532,9 +559,16 @@ function DotaxiInner({ seed }: { seed?: number }) {
         setBrakeProgress(progress);
       }
 
-      // rayas en movimiento: translateY cíclico en unidades de plano
-      roadYRef.current = (roadYRef.current + dtMs * ROAD_SPEED * speed) % DASH_CYCLE;
-      setRoadY(roadYRef.current);
+      // distancia recorrida en unidades de plano: rayas, bordillos y laterales
+      // la comparten, cada uno con su periodo
+      distRef.current += dtMs * ROAD_SPEED * speed;
+      setDist(distRef.current);
+
+      // los obstáculos avanzan aunque la ronda esté resolviéndose
+      if (resolvingRef.current) {
+        obstacleElapsedRef.current += dtMs;
+        setObstacleT(obstacleElapsedRef.current);
+      }
 
       if (brakingRef.current) return;
       if (approachingRef.current) {
@@ -593,7 +627,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const effectiveLanes = Math.max(1, Math.min(lanes, laneOptions.length || lanes));
   const damage = damageFor(hearts);
   const m = planeMetrics(sceneW, sceneH);
-  const laneScale = MIN_LANES / lanes;
+  const laneScale = (MIN_LANES / lanes) * TAXI_ZOOM;
   const stopped = phase === "arrival" || phase === "breakdown";
   // Centro del taxi en px de pantalla: su carril mientras se juega, el centro
   // de la calzada en la llegada. El bache usa el mismo carril para caer bajo él.
@@ -741,17 +775,16 @@ function DotaxiInner({ seed }: { seed?: number }) {
             {sceneW > 0 && (
               <>
                 <Backdrop m={m} />
-                <GroundPlane m={m} roadY={roadY} lanes={lanes}>
-                  {phase === "playing" && outcome === "crash" && (
-                    <Pothole
-                      m={m}
-                      pct={lanePct}
-                      to={m.planeH * POTHOLE_EXIT}
-                      durationMs={Math.round((POTHOLE_MS * POTHOLE_EXIT) / POTHOLE_HIT)}
-                    />
-                  )}
-                </GroundPlane>
+                <Clouds m={m} />
+                <GroundPlane m={m} dist={dist} lanes={lanes} />
                 <HorizonHaze m={m} />
+                <Roadside m={m} dist={dist} />
+
+                {/* Obstáculos de la ronda, uno por carril incorrecto */}
+                {phase === "playing" &&
+                  obstacles.map((o) => (
+                    <Obstacle key={o.id} m={m} kind={o.kind} pct={o.pct} p={obstacleT / OBSTACLE_MS} />
+                  ))}
 
                 {/* Llegada: el destino se acerca por el centro de la calzada */}
                 {phase === "arrival" && trip && (
@@ -763,9 +796,12 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     en el DOM para no robarle el tap. */}
                 {phase === "playing" &&
                   Array.from({ length: effectiveLanes }).map((_, i) => {
+                    // la calzada sobresale de la escena: las zonas se recortan
+                    // al ancho visible y las de los extremos absorben el resto
                     const laneW = m.roadBottomW / effectiveLanes;
-                    const first = i === 0;
-                    const last = i === effectiveLanes - 1;
+                    const rawLeft = m.roadLeftBottom + i * laneW;
+                    const left = Math.max(0, rawLeft);
+                    const right = Math.min(m.sceneW, rawLeft + laneW);
                     return (
                       <button
                         key={i}
@@ -774,11 +810,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
                         aria-label={`Ir al carril ${i + 1}: ${laneOptions[i] ?? ""}`}
                         onPointerUp={() => pickLane(i)}
                         className="absolute inset-y-0"
-                        style={{
-                          left: first ? 0 : CURB_BOTTOM_PX + i * laneW,
-                          width: laneW + (first ? CURB_BOTTOM_PX : 0) + (last ? CURB_BOTTOM_PX : 0),
-                          touchAction: "manipulation",
-                        }}
+                        style={{ left, width: Math.max(0, right - left), touchAction: "manipulation" }}
                       />
                     );
                   })}

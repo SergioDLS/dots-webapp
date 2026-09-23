@@ -1,95 +1,127 @@
 // app/(app)/games/dotaxi/perspective.ts
-// Geometría del plano inclinado de Dotaxi. Sin React ni DOM: portable a RN.
+// Geometría de la cámara de Dotaxi. Sin React ni DOM: portable a RN.
 //
-// La calzada es un rectángulo girado con `perspective(P) rotateX(θ)` anclado en
-// su borde superior (el horizonte). Un punto a profundidad `s` unidades de plano
-// desde el horizonte queda a z = s·sinθ hacia la cámara y su escala proyectada
-// es k = P / (P − s·sinθ): lo cercano crece, lo lejano encoge, y todo lo que se
-// coloque SOBRE el plano (bache, destino) hereda la perspectiva sin cálculos.
-// Lo que va fuera del plano (taxi, pórtico) se sitúa con estas funciones.
+// Cámara de coche bajo, a la OutRun: horizonte a media pantalla, calzada más
+// ancha que la escena en el borde cercano y K_BOTTOM veces más estrecha en el
+// horizonte. La calzada es un plano girado con `perspective(P) rotateX(θ)`
+// anclado en el horizonte, y θ se DERIVA de esa relación cerca/lejos en vez
+// de fijarse a mano: así el aspecto es el mismo en cualquier alto de escena.
+//
+// Solo rayas y bordillos viven sobre el plano. Todo lo que se mueve —taxi,
+// farolas, obstáculos, destino— va en espacio de pantalla con project(): sobre
+// el plano 3D las cosas se estiran sin control cerca de la cámara.
 
-// Inclinación y distancia de cámara. Una carretera real converge hacia un
-// punto: con 64° y 300 el borde cercano ocupa casi toda la escena y el fondo
-// llega al horizonte con un 30 % del ancho (3,3× de convergencia). Con 54° y
-// 320 se quedaba en el 40 % y la calzada parecía una cinta plana.
-export const THETA_DEG = 76;
 export const PERSPECTIVE = 260;
-/** El plano se alarga estos px de pantalla más allá del pie de la escena y
- *  ella lo recorta: si el alto cambia tras medirse (la barra del navegador
- *  del móvil se esconde), el suelo no se corta antes del borde. */
-export const DEPTH_OVERSHOOT_PX = 32;
-/** Cuántas veces la calzada (con aceras) mide el terreno a cada lado: el
- *  suelo tiene que cubrir la escena entera por debajo del horizonte. */
+/** El horizonte, a esta fracción del alto de la escena. Mitad = mirar al frente. */
+export const HORIZON_FRAC = 0.52;
+/** Cuántas veces es más ancha la calzada en el borde cercano que en el horizonte. */
+export const K_BOTTOM = 8;
+/** Calzada en el borde cercano respecto al ancho de la escena: los bordillos
+ *  salen por las esquinas y abajo casi todo es asfalto. */
+export const ROAD_BOTTOM_FACTOR = 1.2;
+/** Acera a cada lado en el borde cercano, en px de pantalla. */
+export const CURB_BOTTOM_PX = 14;
+/** Cuántas veces la calzada (con aceras) mide el terreno: cubre la escena entera. */
 export const GROUND_FACTOR = 3;
-/** El horizonte, a esta fracción del alto de la escena. */
-export const HORIZON_FRAC = 0.34;
-/** Acera visible a cada lado en el borde cercano, en px de pantalla. Fina a
- *  propósito: la calzada es el escenario y cada px suyo es carril. */
-export const CURB_BOTTOM_PX = 8;
+/** El plano se alarga estos px más allá del pie de la escena y ella lo recorta:
+ *  si el alto cambia tras medirse (la barra del navegador móvil se esconde), el
+ *  suelo no se corta antes del borde. */
+export const DEPTH_OVERSHOOT_PX = 32;
 
 export interface PlaneMetrics {
   sceneW: number;
   sceneH: number;
   /** y del horizonte en px desde arriba de la escena */
   horizonY: number;
-  /** ancho del plano (acera + calzada + acera) en unidades de plano */
-  planeW: number;
-  /** alto del plano en unidades de plano: su borde inferior proyecta justo al pie de la escena */
+  /** inclinación del plano, derivada de K_BOTTOM y del alto disponible */
+  thetaDeg: number;
+  /** escala proyectada en el pie del plano (= K_BOTTOM) */
+  kBottom: number;
+  /** alto del plano en unidades de plano: su pie proyecta a sceneH + overshoot */
   planeH: number;
-  /** calzada y acera en unidades de plano */
+  /** calzada, acera y plano (acera+calzada+acera) en unidades de plano */
   roadW: number;
   curbW: number;
-  /** escala proyectada en el borde cercano */
-  kBottom: number;
-  /** calzada en px de pantalla en el borde cercano */
-  roadBottomW: number;
-  /** terreno completo (césped + aceras + calzada + aceras + césped), en unidades de plano */
+  planeW: number;
+  /** terreno completo en unidades de plano y el césped a cada lado */
   groundW: number;
-  /** césped a cada lado, en unidades de plano: desplaza todo lo que va sobre la calzada */
   groundMargin: number;
+  /** calzada en px de pantalla en el borde cercano, y su borde izquierdo (negativo: sobresale) */
+  roadBottomW: number;
+  roadLeftBottom: number;
 }
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
 export function planeMetrics(sceneW: number, sceneH: number): PlaneMetrics {
-  const th = rad(THETA_DEG);
   const P = PERSPECTIVE;
+  const K = K_BOTTOM;
   const horizonY = Math.round(sceneH * HORIZON_FRAC);
-  const depth = Math.max(0, sceneH - horizonY) + DEPTH_OVERSHOOT_PX;
-  // s cuya proyección vertical s·cosθ·k(s) vale exactamente `depth`
-  const planeH = (depth * P) / (P * Math.cos(th) + depth * Math.sin(th));
-  const kBottom = P / (P - planeH * Math.sin(th));
-  const planeW = sceneW / kBottom;
-  const curbW = CURB_BOTTOM_PX / kBottom;
+  const depth = Math.max(1, sceneH - horizonY) + DEPTH_OVERSHOOT_PX;
+  // k(s) = P / (P − s·sinθ) y y(s) = s·cosθ·k(s). Imponer k(planeH) = K y
+  // y(planeH) = depth da tanθ = P·(K−1)/depth y planeH = depth/(K·cosθ).
+  const theta = Math.atan((P * (K - 1)) / depth);
+  const planeH = depth / (K * Math.cos(theta));
+  const roadBottomW = sceneW * ROAD_BOTTOM_FACTOR;
+  const roadW = roadBottomW / K;
+  const curbW = CURB_BOTTOM_PX / K;
+  const planeW = roadW + 2 * curbW;
   const groundW = planeW * GROUND_FACTOR;
   return {
-    groundW,
-    groundMargin: (groundW - planeW) / 2,
     sceneW,
     sceneH,
     horizonY,
-    planeW,
+    thetaDeg: (theta * 180) / Math.PI,
+    kBottom: K,
     planeH,
-    roadW: Math.max(0, planeW - 2 * curbW),
+    roadW,
     curbW,
-    kBottom,
-    roadBottomW: Math.max(0, sceneW - 2 * CURB_BOTTOM_PX),
+    planeW,
+    groundW,
+    groundMargin: (groundW - planeW) / 2,
+    roadBottomW,
+    roadLeftBottom: (sceneW - roadBottomW) / 2,
   };
 }
 
 /** Escala y `y` de pantalla de un punto del plano a profundidad `s` (0 = horizonte). */
 export function project(m: PlaneMetrics, s: number): { k: number; y: number } {
-  const th = rad(THETA_DEG);
+  const th = rad(m.thetaDeg);
   const k = PERSPECTIVE / (PERSPECTIVE - s * Math.sin(th));
   return { k, y: m.horizonY + s * Math.cos(th) * k };
 }
 
 /** Centro del carril `pct` (0-100 sobre la calzada) en px de pantalla, borde cercano. */
 export function laneXBottom(m: PlaneMetrics, pct: number): number {
-  return CURB_BOTTOM_PX + (pct / 100) * m.roadBottomW;
+  return m.roadLeftBottom + (pct / 100) * m.roadBottomW;
 }
 
-/** x de un punto de la calzada en unidades de plano (para hijos del plano). */
-export function lanePlaneX(m: PlaneMetrics, pct: number): number {
-  return m.groundMargin + m.curbW + (pct / 100) * m.roadW;
+/** Centro del carril `pct` a profundidad `s`: converge hacia el punto de fuga. */
+export function laneXAt(m: PlaneMetrics, pct: number, s: number): number {
+  const { k } = project(m, s);
+  return m.sceneW / 2 + (pct / 100 - 0.5) * m.roadBottomW * (k / m.kBottom);
 }
+
+/** Un punto del arcén (`side` −1 izquierda, +1 derecha) a `offsetBottomPx` de la
+ *  acera medidos en el borde cercano, proyectado a profundidad `s`. */
+export function edgeXAt(m: PlaneMetrics, side: -1 | 1, offsetBottomPx: number, s: number): number {
+  const { k } = project(m, s);
+  return m.sceneW / 2 + side * (m.roadBottomW / 2 + CURB_BOTTOM_PX + offsetBottomPx) * (k / m.kBottom);
+}
+
+/**
+ * Algo que viaja por el suelo en espacio de pantalla: `p` es su avance, 0 en
+ * el horizonte y 1 en el pie del plano (ya fuera de la escena). Pasado 1 sigue
+ * deslizándose hacia abajo en línea recta hasta desaparecer del todo: no se
+ * proyecta más allá del pie porque ahí la profundidad se acerca a la cámara
+ * y la escala se dispara.
+ */
+export function travel(m: PlaneMetrics, p: number): { y: number; k: number; s: number } {
+  const s = Math.min(1, Math.max(0, p)) * m.planeH;
+  const { k, y } = project(m, s);
+  const extra = Math.max(0, p - 1) * (m.sceneH * 1.2);
+  return { y: y + extra, k, s };
+}
+
+/** Hasta qué avance vale la pena pintar algo que viaja: pasado esto ya salió. */
+export const TRAVEL_END = 1.3;

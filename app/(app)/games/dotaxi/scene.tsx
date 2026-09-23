@@ -6,11 +6,13 @@ import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
 import { laneGeometry } from "./lanes";
 import {
-  THETA_DEG,
   PERSPECTIVE,
-  lanePlaneX,
   laneXBottom,
+  laneXAt,
+  edgeXAt,
   project,
+  travel,
+  TRAVEL_END,
   type PlaneMetrics,
 } from "./perspective";
 import type { Trip } from "./trip";
@@ -125,13 +127,13 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
 
 export function GroundPlane({
   m,
-  roadY,
+  dist,
   lanes,
   children,
 }: {
   m: PlaneMetrics;
-  /** desplazamiento cíclico de las rayas, en unidades de plano */
-  roadY: number;
+  /** distancia recorrida en unidades de plano (no cíclica); cada capa toma su módulo */
+  dist: number;
   lanes: number;
   children?: React.ReactNode;
 }) {
@@ -139,11 +141,12 @@ export function GroundPlane({
   const boundaries = centersPct.slice(1).map((c) => c - widthPct / 2);
   // Todo lo que corre con la carretera es una tira alta que se desplaza en
   // unidades de plano (translateY); la perspectiva del padre la acorta hacia
-  // el horizonte. Nunca background-position.
+  // el horizonte. Nunca background-position. Los periodos son cortos porque en
+  // el borde cercano se multiplican por kBottom.
   const scroll = (period: number) => ({
     top: -period,
     height: `calc(100% + ${period * 2}px)`,
-    transform: `translateY(${roadY % period}px)`,
+    transform: `translateY(${dist % period}px)`,
   });
   return (
     <div
@@ -156,19 +159,19 @@ export function GroundPlane({
         width: m.groundW,
         height: m.planeH,
         transformOrigin: "top center",
-        transform: `perspective(${PERSPECTIVE}px) rotateX(${THETA_DEG}deg)`,
+        transform: `perspective(${PERSPECTIVE}px) rotateX(${m.thetaDeg}deg)`,
         // césped teñido por el cielo: de día verde, de noche verde oscuro
         background: "color-mix(in srgb, var(--sky-bottom) 28%, #2f7a4f)",
         borderTop: "2px solid color-mix(in srgb, var(--sky-bottom) 20%, #1f4f36)",
         overflow: "hidden",
       }}
     >
-      {/* franjas de césped: bandas apenas más claras que corren con la vía */}
+      {/* franjas de césped */}
       <div
         className="absolute inset-x-0"
         style={{
-          ...scroll(96),
-          backgroundImage: "repeating-linear-gradient(to bottom, rgba(255,255,255,0.07) 0 40px, transparent 40px 96px)",
+          ...scroll(60),
+          backgroundImage: "repeating-linear-gradient(to bottom, rgba(255,255,255,0.07) 0 26px, transparent 26px 60px)",
         }}
       />
       {/* aceras: bordillo rojo-blanco tipo circuito, en movimiento */}
@@ -177,8 +180,8 @@ export function GroundPlane({
           <div
             className="absolute inset-x-0"
             style={{
-              ...scroll(48),
-              backgroundImage: `repeating-linear-gradient(to bottom, ${BRAKE_RED} 0 24px, ${SIGN_FACE} 24px 48px)`,
+              ...scroll(24),
+              backgroundImage: `repeating-linear-gradient(to bottom, ${BRAKE_RED} 0 12px, ${SIGN_FACE} 12px 24px)`,
             }}
           />
         </div>
@@ -199,7 +202,7 @@ export function GroundPlane({
             className="absolute inset-y-0"
             style={{
               left: `${pct}%`,
-              width: 2.5,
+              width: 1.6,
               transform: "translateX(-50%)",
               transition: "left 450ms var(--ease-out-strong)",
             }}
@@ -207,15 +210,15 @@ export function GroundPlane({
             <div
               className="absolute inset-x-0"
               style={{
-                ...scroll(64),
-                backgroundImage: `repeating-linear-gradient(to bottom, ${LANE_PAINT} 0 22px, transparent 22px 64px)`,
+                ...scroll(28),
+                backgroundImage: `repeating-linear-gradient(to bottom, ${LANE_PAINT} 0 10px, transparent 10px 28px)`,
               }}
             />
           </div>
         ))}
         {/* arcenes continuos */}
-        <div className="absolute inset-y-0" style={{ left: 1.5, width: 2, background: EDGE_PAINT }} />
-        <div className="absolute inset-y-0" style={{ right: 1.5, width: 2, background: EDGE_PAINT }} />
+        <div className="absolute inset-y-0" style={{ left: 1, width: 1.4, background: EDGE_PAINT }} />
+        <div className="absolute inset-y-0" style={{ right: 1, width: 1.4, background: EDGE_PAINT }} />
       </div>
       {children}
     </div>
@@ -234,7 +237,7 @@ export function HorizonHaze({ m }: { m: PlaneMetrics }) {
       className="pointer-events-none absolute inset-x-0"
       style={{
         top: m.horizonY - 2,
-        height: Math.max(40, m.sceneH * 0.11),
+        height: Math.max(36, m.sceneH * 0.09),
         background: "linear-gradient(to bottom, var(--sky-bottom) 0%, color-mix(in srgb, var(--sky-bottom) 70%, transparent) 35%, transparent 100%)",
       }}
     />
@@ -260,8 +263,12 @@ export function Gantry({
   correct: string | undefined;
   onPick: (i: number) => void;
 }) {
-  const { centersPct } = laneGeometry(lanes);
-  const laneW = m.roadBottomW / lanes;
+  // Los paneles se reparten en el ancho VISIBLE, no en el de la calzada: esta
+  // sobresale de la escena y los paneles de los extremos se saldrían. Como el
+  // pórtico está lejos, la correspondencia con el carril es por orden, no por
+  // posición exacta.
+  const inner = m.sceneW - 24;
+  const laneW = inner / lanes;
   const panelW = laneW * 0.92;
   const postH = m.horizonY + 26 - 14;
   const fontPx = lanes >= 4 ? 10.5 : lanes === 3 ? 12 : 14;
@@ -277,7 +284,7 @@ export function Gantry({
         const isClear = outcome !== "none" && opt === correct;
         const isBlocked = outcome !== "none" && !isClear;
         const active = outcome === "none" && lane === i;
-        const cx = laneXBottom(m, centersPct[i] ?? 50);
+        const cx = 12 + (i + 0.5) * laneW;
         return (
           <React.Fragment key={`${i}-${opt}`}>
             <div aria-hidden className="pointer-events-none absolute" style={{ top: 22, left: cx - 4, width: 8, height: 8, background: INK }} />
@@ -464,57 +471,194 @@ export function TaxiRear({
   );
 }
 
-// ── Bache sobre el plano ─────────────────────────────────────────────────────
+// ── Laterales: farolas y árboles que se acercan ─────────────────────────────
+
+/** Tamaños en el borde cercano (escala kBottom); se dividen por kBottom al proyectar. */
+const LAMP_W = 28;
+const LAMP_H = 150;
+const TREE_W = 120;
+const TREE_H = 130;
+const ROADSIDE_SLOTS = 8;
+const ROADSIDE_OFFSET_PX = 30;
+
+/** Farola o árbol. Placeholder CSS hasta dotaxi-farola / dotaxi-arbol. */
+function RoadsideArt({ kind }: { kind: "farola" | "arbol" }) {
+  if (kind === "farola") {
+    return (
+      <div className="relative" style={{ width: LAMP_W, height: LAMP_H }}>
+        <div className="absolute rounded-full" style={{ left: LAMP_W / 2 - 3, top: 10, width: 6, height: LAMP_H - 10, background: "#b9b4c8", border: `1.5px solid ${INK}` }} />
+        <div className="absolute rounded-b-sm rounded-t-xl" style={{ left: 0, top: 0, width: LAMP_W, height: 18, background: TAXI_YELLOW, border: `1.5px solid ${INK}` }} />
+        <div className="absolute rounded-full" style={{ left: -LAMP_W, top: -LAMP_W * 0.8, width: LAMP_W * 3, height: LAMP_W * 3, background: `radial-gradient(circle, ${TAXI_YELLOW}66, transparent 70%)`, opacity: "var(--dotaxi-night)" }} />
+        <div className="absolute rounded-sm" style={{ left: LAMP_W / 2 - 8, bottom: 0, width: 16, height: 8, background: "#8f89a8", border: `1.5px solid ${INK}` }} />
+      </div>
+    );
+  }
+  return (
+    <div className="relative" style={{ width: TREE_W, height: TREE_H }}>
+      <div className="absolute rounded-sm" style={{ left: TREE_W / 2 - 9, bottom: 0, width: 18, height: TREE_H * 0.4, background: "#8a5a3c", border: `1.5px solid ${INK}` }} />
+      <div className="absolute rounded-full" style={{ left: 0, top: 0, width: TREE_W, height: TREE_H * 0.72, background: "#3f9a5c", border: `2px solid ${INK}` }} />
+      <div className="absolute rounded-full" style={{ left: TREE_W * 0.15, top: TREE_H * 0.08, width: TREE_W * 0.4, height: TREE_H * 0.3, background: "#5cb877" }} />
+    </div>
+  );
+}
 
 /**
- * Bache en vectores: sobre el plano se estira casi cinco veces al llegar al
- * morro y cualquier sprite se pixela. Un agujero oscuro de borde irregular con
- * tres grietas radiales aguanta cualquier escala. Tumbado sobre el asfalto: la
- * perspectiva del padre lo achata solo.
+ * Farolas y árboles alternando a ambos lados, en ciclo: nacen en el punto de
+ * fuga y crecen al acercarse, a la misma velocidad que las rayas (misma
+ * `dist`). Van en espacio de pantalla con travel(): son los que venden el
+ * avance, más que las rayas.
  */
-export function Pothole({ m, pct, to, durationMs }: { m: PlaneMetrics; pct: number; to: number; durationMs: number }) {
-  const x = lanePlaneX(m, pct);
-  const w = 34;
-  const h = 26;
+export function Roadside({ m, dist }: { m: PlaneMetrics; dist: number }) {
+  const cycle = m.planeH * TRAVEL_END;
+  return (
+    <>
+      {Array.from({ length: ROADSIDE_SLOTS }).map((_, i) => {
+        const side: -1 | 1 = i % 2 === 0 ? -1 : 1;
+        const kind = (i >> 1) % 2 === 0 ? "farola" : "arbol";
+        const p = (((dist + (i * cycle) / ROADSIDE_SLOTS) % cycle) + cycle) % cycle / m.planeH;
+        if (p > TRAVEL_END) return null;
+        const { y, k, s } = travel(m, p);
+        const x = edgeXAt(m, side, ROADSIDE_OFFSET_PX, s);
+        const scale = k / m.kBottom;
+        return (
+          <div
+            key={i}
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0"
+            style={{
+              transform: `translate(${x}px, ${y}px) translate(-50%, -100%) scale(${scale})`,
+              transformOrigin: "bottom center",
+              opacity: Math.min(1, 0.25 + p * 3),
+            }}
+          >
+            <RoadsideArt kind={kind} />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// ── Nubes ─────────────────────────────────────────────────────────────────────
+
+const CLOUDS: readonly { w: number; yFrac: number; dur: number; delay: number }[] = [
+  { w: 96, yFrac: 0.36, dur: 70, delay: -12 },
+  { w: 72, yFrac: 0.5, dur: 95, delay: -50 },
+  { w: 120, yFrac: 0.43, dur: 80, delay: -30 },
+];
+
+/** Nubes a la deriva por el cielo, con parallax por tamaño. Placeholder CSS hasta dotaxi-nube. */
+export function Clouds({ m }: { m: PlaneMetrics }) {
+  const skyH = m.horizonY;
+  return (
+    <>
+      {CLOUDS.map((cl, i) => (
+        <div
+          key={i}
+          aria-hidden
+          className="pointer-events-none absolute left-0"
+          style={{
+            top: skyH * cl.yFrac - cl.w * 0.25,
+            width: cl.w,
+            height: cl.w * 0.5,
+            ["--drift" as string]: `${m.sceneW + cl.w * 2}px`,
+            animation: `dotaxi-cloud-drift ${cl.dur}s linear ${cl.delay}s infinite`,
+            opacity: "calc(0.95 - 0.45 * var(--dotaxi-night))",
+          }}
+        >
+          <div className="absolute rounded-full" style={{ left: 0, bottom: 0, width: cl.w * 0.45, height: cl.w * 0.36, background: SIGN_FACE }} />
+          <div className="absolute rounded-full" style={{ left: cl.w * 0.25, top: 0, width: cl.w * 0.5, height: cl.w * 0.5, background: SIGN_FACE }} />
+          <div className="absolute rounded-full" style={{ right: 0, bottom: 0, width: cl.w * 0.42, height: cl.w * 0.34, background: SIGN_FACE }} />
+          <div className="absolute rounded-full" style={{ left: cl.w * 0.1, bottom: 0, width: cl.w * 0.8, height: cl.w * 0.22, background: SIGN_FACE }} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+// ── Obstáculos ────────────────────────────────────────────────────────────────
+
+export const OBSTACLE_KINDS = [
+  "cerdito", "tiburon", "banera", "sofa", "piano", "flamenco", "pinguino", "ovni",
+] as const;
+export type ObstacleKind = (typeof OBSTACLE_KINDS)[number];
+
+/** Ancho en el borde cercano; se divide por kBottom al proyectar. */
+const OBSTACLE_W = 120;
+
+/** Silueta de cada obstáculo. Placeholder CSS hasta dotaxi-obs-<kind>. */
+function ObstacleArt({ kind }: { kind: ObstacleKind }) {
+  const w = OBSTACLE_W;
+  const box = (extra: React.CSSProperties) => (
+    <div className="absolute" style={{ border: `2px solid ${INK}`, ...extra }} />
+  );
+  return (
+    <div className="relative" style={{ width: w, height: w * 0.8 }}>
+      {kind === "cerdito" && (<>
+        {box({ left: w * 0.3, bottom: 0, width: w * 0.4, height: w * 0.06, background: "#8a5a3c", borderRadius: 3 })}
+        {box({ left: w * 0.15, bottom: w * 0.05, width: w * 0.5, height: w * 0.45, background: "#ff8fc8", borderRadius: "50%" })}
+        {box({ left: w * 0.62, bottom: w * 0.25, width: w * 0.22, height: w * 0.2, background: SIGN_FACE, borderRadius: "4px 4px 10px 10px" })}
+      </>)}
+      {kind === "tiburon" && (<>
+        {box({ left: 0, bottom: 0, width: w, height: w * 0.3, background: "#35d8f5", borderRadius: "50%" })}
+        {box({ left: w * 0.38, bottom: w * 0.15, width: w * 0.24, height: w * 0.4, background: "#9aa0b0", borderRadius: "80% 20% 0 0 / 100% 40% 0 0" })}
+      </>)}
+      {kind === "banera" && (<>
+        {box({ left: w * 0.05, bottom: w * 0.08, width: w * 0.9, height: w * 0.4, background: SIGN_FACE, borderRadius: "10px 10px 26px 26px" })}
+        {box({ left: w * 0.1, bottom: w * 0.4, width: w * 0.8, height: w * 0.22, background: "#ffffff", borderRadius: "50%" })}
+        {box({ left: w * 0.6, bottom: w * 0.5, width: w * 0.18, height: w * 0.16, background: TAXI_YELLOW, borderRadius: "50%" })}
+      </>)}
+      {kind === "sofa" && (<>
+        {box({ left: 0, bottom: 0, width: w * 0.72, height: w * 0.42, background: "#ff1f8f", borderRadius: "12px 12px 8px 8px" })}
+        {box({ left: w * 0.84, bottom: 0, width: w * 0.04, height: w * 0.62, background: "#b9b4c8", borderRadius: 2 })}
+        {box({ left: w * 0.74, bottom: w * 0.55, width: w * 0.24, height: w * 0.16, background: TAXI_YELLOW, borderRadius: "4px 4px 8px 8px" })}
+      </>)}
+      {kind === "piano" && (<>
+        {box({ left: w * 0.05, bottom: w * 0.1, width: w * 0.9, height: w * 0.36, background: "#3768ff", borderRadius: "6px 30px 6px 6px" })}
+        {box({ left: w * 0.05, bottom: w * 0.22, width: w * 0.6, height: w * 0.08, background: SIGN_FACE, borderRadius: 2 })}
+        {box({ left: w * 0.3, bottom: w * 0.44, width: w * 0.62, height: w * 0.22, background: "#3768ff", borderRadius: "6px 30px 4px 4px", transform: "skewX(-20deg)" })}
+      </>)}
+      {kind === "flamenco" && (<>
+        {box({ left: w * 0.1, bottom: 0, width: w * 0.6, height: w * 0.36, background: "#ff5aa8", borderRadius: "50%" })}
+        {box({ left: w * 0.6, bottom: w * 0.25, width: w * 0.1, height: w * 0.4, background: "#ff5aa8", borderRadius: 8 })}
+        {box({ left: w * 0.55, bottom: w * 0.6, width: w * 0.24, height: w * 0.16, background: "#ff5aa8", borderRadius: "50%" })}
+      </>)}
+      {kind === "pinguino" && (<>
+        {box({ left: w * 0.3, bottom: w * 0.08, width: w * 0.4, height: w * 0.62, background: "#2a2750", borderRadius: "50% 50% 40% 40%" })}
+        {box({ left: w * 0.38, bottom: w * 0.1, width: w * 0.24, height: w * 0.36, background: SIGN_FACE, borderRadius: "50%" })}
+        {box({ left: w * 0.3, bottom: 0, width: w * 0.16, height: w * 0.08, background: "#35d8f5", borderRadius: 4 })}
+        {box({ left: w * 0.54, bottom: 0, width: w * 0.16, height: w * 0.08, background: "#35d8f5", borderRadius: 4 })}
+      </>)}
+      {kind === "ovni" && (<>
+        {box({ left: 0, bottom: w * 0.08, width: w, height: w * 0.2, background: "#b9b4c8", borderRadius: "50%" })}
+        {box({ left: w * 0.28, bottom: w * 0.24, width: w * 0.44, height: w * 0.3, background: "#35d8f5", borderRadius: "50% 50% 0 0" })}
+        {box({ left: w * 0.12, bottom: w * 0.14, width: w * 0.76, height: w * 0.06, background: TAXI_YELLOW, borderRadius: 4 })}
+      </>)}
+    </div>
+  );
+}
+
+/**
+ * Un obstáculo bajando por su carril: nace en el punto de fuga, crece y pasa
+ * de largo hasta salir. `p` lo mueve el ticker (0 horizonte, 1 pie del plano).
+ */
+export function Obstacle({ m, kind, pct, p }: { m: PlaneMetrics; kind: ObstacleKind; pct: number; p: number }) {
+  if (p > TRAVEL_END) return null;
+  const { y, k, s } = travel(m, p);
+  const x = laneXAt(m, pct, s);
+  const scale = k / m.kBottom;
   return (
     <div
-      data-testid="pothole"
+      data-testid="obstacle"
       aria-hidden
-      className="pointer-events-none absolute"
+      className="pointer-events-none absolute left-0 top-0"
       style={{
-        left: x - w / 2,
-        top: -h / 2,
-        width: w,
-        height: h,
-        ["--to" as string]: `${to}px`,
-        animation: `dotaxi-approach ${durationMs}ms linear both`,
+        transform: `translate(${x}px, ${y}px) translate(-50%, -100%) scale(${scale})`,
+        transformOrigin: "bottom center",
+        opacity: Math.min(1, 0.3 + p * 3),
       }}
     >
-      {/* grietas */}
-      {[-38, 14, 62].map((deg, i) => (
-        <div
-          key={i}
-          className="absolute"
-          style={{
-            left: w / 2 - 1, top: h / 2 - 1, width: 2, height: h * 0.9,
-            background: "#0f0e1f",
-            transformOrigin: "top center",
-            transform: `rotate(${deg}deg)`,
-            borderRadius: 1,
-            opacity: 0.85,
-          }}
-        />
-      ))}
-      {/* borde irregular: tres elipses solapadas, desplazadas */}
-      {[[0, 0, w, h], [w * 0.18, -h * 0.12, w * 0.6, h * 0.7], [w * 0.3, h * 0.35, w * 0.55, h * 0.6]].map(([l, t, ww, hh], i) => (
-        <div
-          key={i}
-          className="absolute rounded-[50%]"
-          style={{ left: l, top: t, width: ww, height: hh, background: "#0f0e1f", border: `1.5px solid ${i === 0 ? "#4a4766" : "#0f0e1f"}` }}
-        />
-      ))}
-      {/* fondo del agujero */}
-      <div className="absolute rounded-[50%]" style={{ left: w * 0.22, top: h * 0.22, width: w * 0.56, height: h * 0.5, background: "#1c1a33" }} />
+      <ObstacleArt kind={kind} />
     </div>
   );
 }
@@ -550,8 +694,10 @@ export function DestinationApproach({ m, trip, progress }: { m: PlaneMetrics; tr
   // llega rápido y frena, como el taxi
   const p = Math.min(1, Math.max(0, progress));
   const e = 1 - Math.pow(1 - p, 3);
-  const { k, y } = project(m, m.planeH * 0.64 * e);
-  const w = 96;
+  const { k, y } = project(m, m.planeH * 0.7 * e);
+  // ancho que tendría en el pie del plano; a la parada (70 %) queda en ~200 px
+  const w = 620;
+  const scale = k / m.kBottom;
   return (
     <div
       data-testid="destination"
@@ -559,7 +705,7 @@ export function DestinationApproach({ m, trip, progress }: { m: PlaneMetrics; tr
       className="pointer-events-none absolute left-0 top-0 flex flex-col items-center"
       style={{
         width: w,
-        transform: `translate(${m.sceneW / 2}px, ${y}px) translate(-50%, -100%) scale(${k})`,
+        transform: `translate(${m.sceneW / 2}px, ${y}px) translate(-50%, -100%) scale(${scale})`,
         transformOrigin: "bottom center",
         opacity: Math.min(1, 0.4 + e),
       }}
@@ -567,8 +713,8 @@ export function DestinationApproach({ m, trip, progress }: { m: PlaneMetrics; tr
       {/* El letrero lleva el nombre como TEXTO de marca: el arte se genera con
           el cartel en blanco. */}
       <div
-        className="mb-1 rounded-md px-2 py-0.5 font-display text-[10px] font-extrabold tracking-wider"
-        style={{ background: SIGN_FACE, color: "var(--accent)", border: `2px solid ${INK}`, boxShadow: `0 2px 0 ${INK}` }}
+        className="mb-2 rounded-2xl px-6 py-2 font-display text-[54px] font-extrabold tracking-wider"
+        style={{ background: SIGN_FACE, color: "var(--accent)", border: `8px solid ${INK}`, boxShadow: `0 8px 0 ${INK}` }}
       >
         {trip.destination.sign}
       </div>

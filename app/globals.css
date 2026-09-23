@@ -395,6 +395,11 @@ h1, h2, h3, .font-display {
   0%   { transform: rotate(0deg) translateY(0); }
   100% { transform: rotate(2.5deg) translateY(4px); }
 }
+/* Nubes a la deriva: cruzan la escena de izquierda a derecha (--drift = ancho + margen) */
+@keyframes dotaxi-cloud-drift {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(var(--drift, 500px)); }
+}
 @keyframes dotaxi-fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
