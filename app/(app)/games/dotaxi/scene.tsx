@@ -564,10 +564,10 @@ export function TaxiRear({
 
 // ── Laterales: farolas y árboles que se acercan ─────────────────────────────
 
-/** Altura de cada sprite al llegar al borde cercano, en altos de escena: más
- *  que la escena, como en OutRun. Al pasar se salen por arriba y por los lados. */
-const LAMP_H_FRAC = 1.23;
-const TREE_H_FRAC = 1.125;
+/** Altura de cada sprite al llegar al borde cercano, en altos de escena
+ *  (Sergio los fue bajando desde 1,45/1,25 hasta verlos en proporción). */
+const LAMP_H_FRAC = 0.98;
+const TREE_H_FRAC = 0.9;
 const ROADSIDE_SLOTS = 8;
 /** La farola planta el poste sobre la acera, a esta distancia del bordillo
  *  (px del borde cercano): separada de la calle, como pidió Sergio. */
@@ -839,7 +839,16 @@ export function DestinationApproach({ m, trip, progress }: { m: PlaneMetrics; tr
  * techo del taxi como un bocadillo; se remonta por key para volver a saltar.
  * Tamaño constante: va fuera del wrapper de escala del taxi.
  */
-export function ReactionBubble({ pose, style }: { pose: DotyPose; style?: React.CSSProperties }) {
+export function ReactionBubble({
+  pose,
+  style,
+  side = "right",
+}: {
+  pose: DotyPose;
+  style?: React.CSSProperties;
+  /** de qué lado del taxi está: la cola apunta hacia el techo */
+  side?: "left" | "right";
+}) {
   return (
     <div
       data-testid="reaction"
@@ -871,11 +880,16 @@ export function ReactionBubble({ pose, style }: { pose: DotyPose; style?: React.
           <Doty pose={pose} size="medium" />
         </div>
       </div>
-      {/* cola hacia el techo */}
+      {/* cola hacia el techo, del lado del taxi */}
       <div
         aria-hidden
         className="absolute"
-        style={{ left: 8, bottom: -8, width: 12, height: 12, background: SIGN_FACE, borderLeft: `2.5px solid ${INK}`, borderBottom: `2.5px solid ${INK}`, transform: "rotate(-45deg)" }}
+        style={{
+          ...(side === "right" ? { left: 8 } : { right: 8 }),
+          bottom: -8, width: 12, height: 12, background: SIGN_FACE,
+          borderLeft: `2.5px solid ${INK}`, borderBottom: `2.5px solid ${INK}`,
+          transform: side === "right" ? "rotate(-45deg)" : "rotate(45deg)",
+        }}
       />
     </div>
   );
@@ -1007,7 +1021,18 @@ export function SpeedLines({ m, intensity }: { m: PlaneMetrics; intensity: numbe
  * Lo que dice el pasajero desde el asiento de atrás: bocadillo pequeño con su
  * cara como remitente. Se remonta por key para volver a saltar.
  */
-export function Remark({ trip, text, style }: { trip: Trip; text: string; style?: React.CSSProperties }) {
+export function Remark({
+  trip,
+  text,
+  style,
+  side = "left",
+}: {
+  trip: Trip;
+  text: string;
+  style?: React.CSSProperties;
+  /** de qué lado del taxi está: la cola apunta hacia la ventanilla */
+  side?: "left" | "right";
+}) {
   return (
     <div
       data-testid="remark"
@@ -1018,7 +1043,7 @@ export function Remark({ trip, text, style }: { trip: Trip; text: string; style?
         color: INK,
         border: `2px solid ${INK}`,
         boxShadow: `0 3px 0 ${INK}`,
-        whiteSpace: "nowrap",
+        width: "max-content",
         animation: "dotaxi-bubble-in 0.25s var(--ease-out-strong) both",
         ...style,
       }}
@@ -1037,11 +1062,15 @@ export function Remark({ trip, text, style }: { trip: Trip; text: string; style?
         />
       </span>
       {text}
-      {/* cola hacia la ventanilla */}
+      {/* cola hacia la ventanilla, del lado del taxi */}
       <div
         aria-hidden
         className="absolute"
-        style={{ right: 10, bottom: -7, width: 12, height: 12, background: SIGN_FACE, borderRight: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, transform: "rotate(45deg)" }}
+        style={{
+          ...(side === "left" ? { right: 10 } : { left: 10 }),
+          bottom: -7, width: 12, height: 12, background: SIGN_FACE,
+          borderRight: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, transform: "rotate(45deg)",
+        }}
       />
     </div>
   );

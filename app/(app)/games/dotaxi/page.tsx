@@ -83,6 +83,7 @@ const SIGNAL_MS = 900;
 // No habla en cada suceso —cansaba— sino con estas probabilidades.
 const REMARK_DELAY_MS = 260;
 const REMARK_MS = 1500;
+const REMARK_MAX_W = 160; // ancho máximo del bocadillo del pasajero, en px
 const REMARK_CHANCE_CHEER = 0.4;
 const REMARK_CHANCE_OUCH = 0.7;
 const REMARK_CHANCE_HURRY = 0.35;
@@ -725,12 +726,32 @@ function DotaxiInner({ seed }: { seed?: number }) {
   // taxi tapaba al pasajero que espera a su izquierda.
   const lanePct = laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)] ?? 50;
   const laneScale = (MIN_LANES / lanes) * TAXI_ZOOM;
-  // Con la calzada un 30 % más ancha que la escena, el carril del borde cae en
-  // parte fuera: el taxi se queda entero en pantalla aunque se descentre unos
-  // píxeles de su carril.
-  const taxiHalf = (TAXI_W * laneScale) / 2 + 6;
+  // Con la calzada un 50 % más ancha que la escena, el carril del borde cae en
+  // buena parte fuera. El taxi puede asomar hasta un 35 % de su ancho por el
+  // marco: así sigue leyéndose en SU carril y no parece estar en el vecino.
+  const taxiHalf = (TAXI_W * laneScale) / 2;
+  const taxiMin = taxiHalf * 0.3;
   const rawTaxiX = laneXBottom(m, phase === "arrival" || phase === "pickup" ? 50 : lanePct);
-  const taxiX = sceneW > 0 ? Math.min(Math.max(rawTaxiX, taxiHalf), m.sceneW - taxiHalf) : rawTaxiX;
+  const taxiX = sceneW > 0 ? Math.min(Math.max(rawTaxiX, taxiMin), m.sceneW - taxiMin) : rawTaxiX;
+  // Los bocadillos se abren hacia el centro de la escena: en el carril del
+  // borde, hacia fuera se perdían. Doty sobre el techo; el pasajero a la
+  // altura de la ventanilla, acotado para no salirse por el otro lado.
+  const bubbleSide: "left" | "right" = taxiX <= m.sceneW / 2 ? "right" : "left";
+  const wrapperLeft = taxiX - TAXI_W / 2;
+  const remarkGap = taxiHalf + 4;
+  const remarkLeftScreen =
+    bubbleSide === "right"
+      ? Math.min(taxiX + remarkGap, m.sceneW - 6 - REMARK_MAX_W)
+      : Math.max(taxiX - remarkGap - REMARK_MAX_W, 6);
+  const remarkStyle: React.CSSProperties = {
+    left: remarkLeftScreen - wrapperLeft,
+    bottom: TAXI_H * laneScale * 0.6,
+    maxWidth: REMARK_MAX_W,
+  };
+  const reactionStyle: React.CSSProperties = {
+    ...(bubbleSide === "right" ? { left: TAXI_W / 2 + 10 * laneScale } : { right: TAXI_W / 2 + 10 * laneScale }),
+    bottom: TAXI_H * laneScale + 8,
+  };
   const braking = impact || stopped;
   // La velocidad que se ve: vaivén del motor y líneas en los bordes.
   const speedMul = 1 + Math.min(combo, SPEED_MAX_COMBO) * SPEED_PER_COMBO;
@@ -976,21 +997,10 @@ function DotaxiInner({ seed }: { seed?: number }) {
                       {stopped && <TireSmoke />}
                     </div>
                   </div>
-                  {reaction && (
-                    <ReactionBubble
-                      key={reaction}
-                      pose={reaction}
-                      style={{ left: TAXI_W / 2 + 10 * laneScale, bottom: TAXI_H * laneScale + 8 }}
-                    />
-                  )}
-                  {/* el pasajero, desde la ventanilla izquierda; Doty sale por la derecha */}
+                  {reaction && <ReactionBubble key={reaction} pose={reaction} side={bubbleSide} style={reactionStyle} />}
+                  {/* el pasajero, desde la ventanilla del lado del centro */}
                   {remark && trip && !passengerOut && (
-                    <Remark
-                      key={remarkKey}
-                      trip={trip}
-                      text={remark}
-                      style={{ right: TAXI_W / 2 + 4 * laneScale, bottom: TAXI_H * laneScale - 4 }}
-                    />
+                    <Remark key={remarkKey} trip={trip} text={remark} side={bubbleSide === "right" ? "right" : "left"} style={remarkStyle} />
                   )}
                 </div>
 
