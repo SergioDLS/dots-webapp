@@ -12,8 +12,12 @@
 // punto: con 64° y 300 el borde cercano ocupa casi toda la escena y el fondo
 // llega al horizonte con un 30 % del ancho (3,3× de convergencia). Con 54° y
 // 320 se quedaba en el 40 % y la calzada parecía una cinta plana.
-export const THETA_DEG = 72;
-export const PERSPECTIVE = 280;
+export const THETA_DEG = 76;
+export const PERSPECTIVE = 260;
+/** El plano se alarga estos px de pantalla más allá del pie de la escena y
+ *  ella lo recorta: si el alto cambia tras medirse (la barra del navegador
+ *  del móvil se esconde), el suelo no se corta antes del borde. */
+export const DEPTH_OVERSHOOT_PX = 32;
 /** Cuántas veces la calzada (con aceras) mide el terreno a cada lado: el
  *  suelo tiene que cubrir la escena entera por debajo del horizonte. */
 export const GROUND_FACTOR = 3;
@@ -21,7 +25,7 @@ export const GROUND_FACTOR = 3;
 export const HORIZON_FRAC = 0.34;
 /** Acera visible a cada lado en el borde cercano, en px de pantalla. Fina a
  *  propósito: la calzada es el escenario y cada px suyo es carril. */
-export const CURB_BOTTOM_PX = 12;
+export const CURB_BOTTOM_PX = 8;
 
 export interface PlaneMetrics {
   sceneW: number;
@@ -51,7 +55,7 @@ export function planeMetrics(sceneW: number, sceneH: number): PlaneMetrics {
   const th = rad(THETA_DEG);
   const P = PERSPECTIVE;
   const horizonY = Math.round(sceneH * HORIZON_FRAC);
-  const depth = Math.max(0, sceneH - horizonY);
+  const depth = Math.max(0, sceneH - horizonY) + DEPTH_OVERSHOOT_PX;
   // s cuya proyección vertical s·cosθ·k(s) vale exactamente `depth`
   const planeH = (depth * P) / (P * Math.cos(th) + depth * Math.sin(th));
   const kBottom = P / (P - planeH * Math.sin(th));

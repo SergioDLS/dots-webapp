@@ -33,7 +33,7 @@ SLUGS = {
               # arte de dentro de dotaxi (no tiles): el taxi cenital, sus dos estados
               # de daño editados a partir de él, el bache y la casa de llegada
               "dotaxi-taxi", "dotaxi-taxi-d1", "dotaxi-taxi-d2", "dotaxi-taxi-d3", "dotaxi-taxi-d4",
-              "dotaxi-taxi-wrecked", "dotaxi-pothole", "dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio",
+              "dotaxi-taxi-wrecked", "dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio",
               "dotaxi-skyline-dia", "dotaxi-skyline-noche"},
     "characters": {"doty-fem", "doty-sailor", "doty-scientist"},
     "app-icon": {"app-icon"},
@@ -46,7 +46,7 @@ GAMES = SLUGS["games"]
 def test_fase1_counts_and_rules():
     cat = mjlib.load_catalog(BATCH)
     counts = Counter(p["group"] for p in cat["pieces"])
-    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 105
+    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 104
     for p in cat["pieces"]:
         # "games" es ahora el unico grupo no-mascota: "icons" (correcto,
         # incorrecto, atencion, cargando, racha, nivel-completado) se retiro
@@ -62,7 +62,7 @@ def test_fase1_counts_and_rules():
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "games"} == GAMES
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
-    assert len({p["prefix"] for p in cat["pieces"]}) == 105
+    assert len({p["prefix"] for p in cat["pieces"]}) == 104
 
 def test_solo_lentes_y_scientist_llevan_glasses():
     cat = mjlib.load_catalog(BATCH)
@@ -221,7 +221,7 @@ def test_fase1_dotaxi_variants_are_edits_of_the_intact_taxi():
     by = {p["slug"]: p for p in cat["pieces"]}
     for slug in ("dotaxi-taxi-d1", "dotaxi-taxi-d2", "dotaxi-taxi-d3", "dotaxi-taxi-d4", "dotaxi-taxi-wrecked"):
         assert by[slug]["edit_from"] == "dotaxi-taxi"
-    for slug in ("dotaxi-pothole", "dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio"):
+    for slug in ("dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio"):
         assert "edit_from" not in by[slug]
 
 

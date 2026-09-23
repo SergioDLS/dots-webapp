@@ -31,6 +31,7 @@ import { pickTrip, type Trip } from "./trip";
 import {
   Backdrop,
   GroundPlane,
+  HorizonHaze,
   Gantry,
   GantryApproach,
   TaxiRear,
@@ -61,6 +62,13 @@ const RESOLVE_MS = 1300; // pausa tras resolver la ronda
 // hasta el morro. El golpe (sonido, corazón, abolladura) llega cuando pasa
 // por debajo, no al pulsar. 450 + los 500 del temblor caben en RESOLVE_MS.
 const POTHOLE_MS = 450;
+// El bache no frena bajo el taxi: pasa de largo y sale por abajo. A POTHOLE_MS
+// está en POTHOLE_HIT (bajo el morro) y sigue, lineal, hasta POTHOLE_EXIT.
+const POTHOLE_HIT = 0.92;
+// El pie del plano ya queda fuera de la escena (sobresale DEPTH_OVERSHOOT_PX),
+// así que basta con llegar a él. Más allá la profundidad se acerca a la
+// distancia de cámara, la escala explota y la proyección se invierte.
+const POTHOLE_EXIT = 1.0;
 // Recogida: el pasajero pide destino y sube. Un toque la salta.
 const PICKUP_MS = 2000;
 // Llegada: el destino crece desde el punto de fuga y la carretera frena.
@@ -77,7 +85,7 @@ const TAXI_TILT_MS = 260; // inclinación al cambiar de carril
 const SIGN_APPROACH_MS = 900;
 // Velocidad de las rayas en unidades de plano por ms: la perspectiva la
 // multiplica ×3 en el borde cercano y la deja tal cual en el horizonte.
-const ROAD_SPEED = 0.09;
+const ROAD_SPEED = 0.13;
 const DASH_CYCLE = 64;
 
 type Phase = "intro" | "pickup" | "playing" | "arrival" | "breakdown" | "result";
@@ -735,9 +743,15 @@ function DotaxiInner({ seed }: { seed?: number }) {
                 <Backdrop m={m} />
                 <GroundPlane m={m} roadY={roadY} lanes={lanes}>
                   {phase === "playing" && outcome === "crash" && (
-                    <Pothole m={m} pct={lanePct} to={m.planeH * 0.92} durationMs={POTHOLE_MS} />
+                    <Pothole
+                      m={m}
+                      pct={lanePct}
+                      to={m.planeH * POTHOLE_EXIT}
+                      durationMs={Math.round((POTHOLE_MS * POTHOLE_EXIT) / POTHOLE_HIT)}
+                    />
                   )}
                 </GroundPlane>
+                <HorizonHaze m={m} />
 
                 {/* Llegada: el destino se acerca por el centro de la calzada */}
                 {phase === "arrival" && trip && (

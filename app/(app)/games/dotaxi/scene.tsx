@@ -222,6 +222,25 @@ export function GroundPlane({
   );
 }
 
+/**
+ * Neblina en el horizonte: la calzada y el césped se funden con el cielo en
+ * vez de acabar en una línea recta. Es la perspectiva atmosférica de toda la
+ * vida y lo que hace que la vía "se pierda" a lo lejos.
+ */
+export function HorizonHaze({ m }: { m: PlaneMetrics }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0"
+      style={{
+        top: m.horizonY - 2,
+        height: Math.max(40, m.sceneH * 0.11),
+        background: "linear-gradient(to bottom, var(--sky-bottom) 0%, color-mix(in srgb, var(--sky-bottom) 70%, transparent) 35%, transparent 100%)",
+      }}
+    />
+  );
+}
+
 // ── Pórtico de señales (la firma) ────────────────────────────────────────────
 
 export function Gantry({
@@ -447,40 +466,55 @@ export function TaxiRear({
 
 // ── Bache sobre el plano ─────────────────────────────────────────────────────
 
+/**
+ * Bache en vectores: sobre el plano se estira casi cinco veces al llegar al
+ * morro y cualquier sprite se pixela. Un agujero oscuro de borde irregular con
+ * tres grietas radiales aguanta cualquier escala. Tumbado sobre el asfalto: la
+ * perspectiva del padre lo achata solo.
+ */
 export function Pothole({ m, pct, to, durationMs }: { m: PlaneMetrics; pct: number; to: number; durationMs: number }) {
   const x = lanePlaneX(m, pct);
+  const w = 34;
+  const h = 26;
   return (
     <div
       data-testid="pothole"
       aria-hidden
       className="pointer-events-none absolute"
       style={{
-        left: x - 22,
-        top: -22,
-        width: 44,
-        height: 44,
+        left: x - w / 2,
+        top: -h / 2,
+        width: w,
+        height: h,
         ["--to" as string]: `${to}px`,
         animation: `dotaxi-approach ${durationMs}ms linear both`,
       }}
     >
-      {/* El sprite trae un disco gris alrededor del agujero que sobre el
-          asfalto se lee como una tapa de alcantarilla. Una máscara radial
-          conserva la grieta y funde el disco con la calzada. */}
-      <Image
-        src="/images/games/dotaxi-pothole.png"
-        alt=""
-        aria-hidden
-        width={512}
-        height={512}
-        sizes="120px"
-        priority
-        draggable={false}
-        className="absolute inset-0 h-full w-full select-none"
-        style={{
-          maskImage: "radial-gradient(circle at 50% 50%, #000 30%, rgba(0,0,0,0.55) 40%, transparent 52%)",
-          WebkitMaskImage: "radial-gradient(circle at 50% 50%, #000 30%, rgba(0,0,0,0.55) 40%, transparent 52%)",
-        }}
-      />
+      {/* grietas */}
+      {[-38, 14, 62].map((deg, i) => (
+        <div
+          key={i}
+          className="absolute"
+          style={{
+            left: w / 2 - 1, top: h / 2 - 1, width: 2, height: h * 0.9,
+            background: "#0f0e1f",
+            transformOrigin: "top center",
+            transform: `rotate(${deg}deg)`,
+            borderRadius: 1,
+            opacity: 0.85,
+          }}
+        />
+      ))}
+      {/* borde irregular: tres elipses solapadas, desplazadas */}
+      {[[0, 0, w, h], [w * 0.18, -h * 0.12, w * 0.6, h * 0.7], [w * 0.3, h * 0.35, w * 0.55, h * 0.6]].map(([l, t, ww, hh], i) => (
+        <div
+          key={i}
+          className="absolute rounded-[50%]"
+          style={{ left: l, top: t, width: ww, height: hh, background: "#0f0e1f", border: `1.5px solid ${i === 0 ? "#4a4766" : "#0f0e1f"}` }}
+        />
+      ))}
+      {/* fondo del agujero */}
+      <div className="absolute rounded-[50%]" style={{ left: w * 0.22, top: h * 0.22, width: w * 0.56, height: h * 0.5, background: "#1c1a33" }} />
     </div>
   );
 }

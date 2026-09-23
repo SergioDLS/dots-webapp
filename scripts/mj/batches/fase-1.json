@@ -993,17 +993,6 @@
       "cutout_model": "isnet-general-use"
     },
     {
-      "slug": "dotaxi-pothole",
-      "group": "games",
-      "prefix": "Cracked pothole with a puddle",
-      "prompt": "a round pothole in a road seen straight from above, jagged cracked rim, a cyan-blue puddle of water inside with a small white reflection, a few loose pebbles around it",
-      "size": 512,
-      "mascot": false,
-      "done": true,
-      "source_file": "Mandrakin_Cracked_pothole_with_a_puddle_a_round_pothole_in_a__434a0273-42ea-47d0-bf72-a7301e9cdd16_0.png",
-      "cutout_model": "isnet-general-use"
-    },
-    {
       "slug": "dont-pop",
       "group": "games",
       "prefix": "Doty riding a hot air balloon",
