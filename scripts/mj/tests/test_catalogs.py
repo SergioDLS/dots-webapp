@@ -34,7 +34,11 @@ SLUGS = {
               # de daño editados a partir de él, el bache y la casa de llegada
               "dotaxi-taxi", "dotaxi-taxi-d1", "dotaxi-taxi-d2", "dotaxi-taxi-d3", "dotaxi-taxi-d4",
               "dotaxi-taxi-wrecked", "dotaxi-puerto", "dotaxi-laboratorio", "dotaxi-estadio",
-              "dotaxi-skyline-dia", "dotaxi-skyline-noche"},
+              "dotaxi-skyline-dia", "dotaxi-skyline-noche",
+              # laterales, cielo y los ocho obstáculos insólitos del rediseño OutRun
+              "dotaxi-farola", "dotaxi-arbol", "dotaxi-nube",
+              "dotaxi-obs-cerdito", "dotaxi-obs-tiburon", "dotaxi-obs-banera", "dotaxi-obs-sofa",
+              "dotaxi-obs-piano", "dotaxi-obs-flamenco", "dotaxi-obs-pinguino", "dotaxi-obs-ovni"},
     "characters": {"doty-fem", "doty-sailor", "doty-scientist"},
     "app-icon": {"app-icon"},
 }
@@ -46,7 +50,7 @@ GAMES = SLUGS["games"]
 def test_fase1_counts_and_rules():
     cat = mjlib.load_catalog(BATCH)
     counts = Counter(p["group"] for p in cat["pieces"])
-    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 104
+    assert dict(counts) == EXPECTED and len(cat["pieces"]) == 115
     for p in cat["pieces"]:
         # "games" es ahora el unico grupo no-mascota: "icons" (correcto,
         # incorrecto, atencion, cargando, racha, nivel-completado) se retiro
@@ -62,7 +66,7 @@ def test_fase1_counts_and_rules():
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "games"} == GAMES
     assert {p["slug"] for p in cat["pieces"] if p["group"] == "characters"} == {"doty-fem", "doty-sailor", "doty-scientist"}
     assert any(p["slug"] == "hablando" and p["group"] == "poses" for p in cat["pieces"])
-    assert len({p["prefix"] for p in cat["pieces"]}) == 104
+    assert len({p["prefix"] for p in cat["pieces"]}) == 115
 
 def test_solo_lentes_y_scientist_llevan_glasses():
     cat = mjlib.load_catalog(BATCH)

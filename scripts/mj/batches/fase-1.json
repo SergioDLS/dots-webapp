@@ -993,6 +993,116 @@
       "cutout_model": "isnet-general-use"
     },
     {
+      "slug": "dotaxi-farola",
+      "group": "games",
+      "prefix": "Tall street lamp post",
+      "prompt": "a tall city street lamp post seen straight from the front, a slim pale grey pole on a small base, a rounded lamp head glowing warm yellow at the top, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-arbol",
+      "group": "games",
+      "prefix": "Round city tree",
+      "prompt": "a round city tree seen straight from the front, a lush green rounded canopy on a short brown trunk, a small ring of soil at the base, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-nube",
+      "group": "games",
+      "prefix": "Fluffy cartoon cloud",
+      "prompt": "a fluffy white cartoon cloud seen from the front, soft rounded bumps on top and a slightly flat base, a hint of pale blue shading underneath, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-cerdito",
+      "group": "games",
+      "prefix": "Piglet drinking coffee",
+      "prompt": "a small pink piglet sitting at a tiny round cafe table, holding a white cup of coffee with steam, seen straight from the front, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-tiburon",
+      "group": "games",
+      "prefix": "Shark fin in a puddle",
+      "prompt": "a round puddle of cyan water seen slightly from above with a grey shark fin poking out of the middle, small ripples around it, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-banera",
+      "group": "games",
+      "prefix": "Bathtub full of foam",
+      "prompt": "a white bathtub on little feet full of white foam bubbles, a yellow rubber duck sitting on top, seen straight from the front, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-sofa",
+      "group": "games",
+      "prefix": "Sofa with a floor lamp",
+      "prompt": "a pink two-seat sofa with round cushions and a tall floor lamp beside it glowing warm yellow, seen straight from the front, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-piano",
+      "group": "games",
+      "prefix": "Grand piano with the lid open",
+      "prompt": "a glossy blue grand piano with its lid propped open, white and cyan keys, three slim legs, seen from the front and slightly to the side, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-flamenco",
+      "group": "games",
+      "prefix": "Inflatable pool flamingo",
+      "prompt": "a pink inflatable pool flamingo float with a long curved neck and a yellow beak, plump round body, seen from the front and slightly to the side, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-pinguino",
+      "group": "games",
+      "prefix": "Penguin on roller skates",
+      "prompt": "a small penguin wearing a yellow helmet and cyan roller skates, arms out for balance, seen straight from the front, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
+      "slug": "dotaxi-obs-ovni",
+      "group": "games",
+      "prefix": "Small parked flying saucer",
+      "prompt": "a small flying saucer parked on the ground, a cyan glass dome on top, a ring of glowing yellow lights around the rim, a little ladder folded down, seen straight from the front, thick navy outline",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "cutout_model": "isnet-general-use"
+    },
+    {
       "slug": "dont-pop",
       "group": "games",
       "prefix": "Doty riding a hot air balloon",
