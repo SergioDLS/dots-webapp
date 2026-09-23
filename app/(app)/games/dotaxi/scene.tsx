@@ -321,11 +321,14 @@ export function HorizonHaze({ m }: { m: PlaneMetrics }) {
  *  para leerse, lejos para que los carriles aún converjan bajo ellas. */
 const WORD_REST_R = 0.6;
 /** Altura de reposo como fracción del alto de la escena. Con 2 carriles una
- *  sola; con 3–4 alternan dos en zigzag para que una palabra pueda ser más
- *  ancha que su carril sin pisar a la vecina. */
+ *  sola (o dos en zigzag si alguna opción es una frase); con 3–4, UNA FILA
+ *  POR CARRIL en escalera entre WORD_Y_TOP y WORD_Y_BOTTOM: así ninguna
+ *  palabra puede pisar a otra y todas van al mismo tamaño sin encoger. */
 const WORD_Y_SINGLE = 0.33;
 const WORD_Y_HIGH = 0.25;
 const WORD_Y_LOW = 0.4;
+const WORD_Y_TOP = 0.16;
+const WORD_Y_BOTTOM = 0.47;
 /** Cuánto crecen al atravesarlas respecto al reposo. */
 const WORD_EXIT_GROWTH = 2.2;
 
@@ -336,7 +339,8 @@ const WORD_EXIT_GROWTH = 2.2;
  * reloj); al confirmar el taxi las atraviesa (`exit` 0→1): la correcta en
  * verde, las otras en rojo y tachadas, y todas se van por arriba y los lados.
  * Todo por escala desde el punto de fuga: un objeto quieto en el mundo se
- * aleja del punto de fuga en proporción a su escala.
+ * aleja del punto de fuga en proporción a su escala. Con 3–4 carriles cada
+ * palabra tiene su fila (escalera): con dos alturas compartidas se solapaban.
  */
 export function FloatingWords({
   m,
@@ -368,20 +372,30 @@ export function FloatingWords({
   const x = Math.min(1, Math.max(0, exit));
   const ex = x * x; // acelera al pasar
   const g = x > 0 ? 1 + WORD_EXIT_GROWTH * ex : 0.12 + 0.88 * ea;
-  const fontPx = lanes >= 4 ? 17 : lanes === 3 ? 19 : 22;
+  // Con 3–4 carriles cada palabra tiene su fila entera: una sola línea, al
+  // ancho que haga falta, a 20 px.
+  const staircase = lanes >= 3;
+  const fontPx = staircase ? 20 : 22;
   const spacing = (m.roadBottomW / lanes) * WORD_REST_R;
-  // Zigzag también con 2 carriles si alguna opción es una frase: «Like many
-  // others» a 22 px mide más que su carril y pisaba a la vecina.
-  const zigzag = lanes >= 3 || options.some((o) => o.length > 9);
-  // Una frase larga se parte en dos líneas antes de medir más de media escena;
-  // y como el carril del borde cae en parte fuera, el centro de cada palabra
-  // se acota para que no se corte contra el marco mientras flota.
-  const maxW = Math.min(Math.max(80, spacing * 2 - 6), m.sceneW * 0.55);
+  // Con 2 carriles, zigzag si alguna opción es una frase: «Like many others»
+  // a 22 px mide más que su carril y pisaba a la vecina.
+  const zigzag = !staircase && options.some((o) => o.length > 9);
+  // Con 2 carriles una frase larga se parte en dos líneas antes de medir más
+  // de media escena. En todos los casos el centro de cada palabra se acota
+  // para que no se corte contra el marco mientras flota (el carril del borde
+  // cae en parte fuera).
+  const maxW = staircase ? m.sceneW - 12 : Math.min(Math.max(80, spacing * 2 - 6), m.sceneW * 0.55);
   return (
     <>
       {options.map((opt, i) => {
         const restX = laneXAtScale(m, centersPct[i] ?? 50, WORD_REST_R);
-        const yFrac = !zigzag ? WORD_Y_SINGLE : i % 2 === 0 ? WORD_Y_LOW : WORD_Y_HIGH;
+        const yFrac = staircase
+          ? WORD_Y_TOP + (i * (WORD_Y_BOTTOM - WORD_Y_TOP)) / (lanes - 1)
+          : !zigzag
+            ? WORD_Y_SINGLE
+            : i % 2 === 0
+              ? WORD_Y_LOW
+              : WORD_Y_HIGH;
         const restY = m.sceneH * yFrac;
         const size = opt.length >= 9 ? fontPx - 2 : fontPx;
         const estW = Math.min(maxW, opt.length * size * 0.58 + 20);
@@ -415,13 +429,14 @@ export function FloatingWords({
                   maxWidth: maxW,
                   fontSize: size,
                   color,
-                  WebkitTextStroke: `${lanes >= 4 ? 4 : 5}px ${INK}`,
+                  WebkitTextStroke: `5px ${INK}`,
                   paintOrder: "stroke fill",
-                  textShadow: `0 3px 0 ${INK}, 0 6px 12px rgba(30, 27, 92, 0.45)`,
+                  // relieve + halo oscuro suave: se lee sobre nubes y skyline
+                  textShadow: `0 3px 0 ${INK}, 0 0 4px rgba(30, 27, 92, 0.9), 0 0 18px rgba(30, 27, 92, 0.8), 0 6px 12px rgba(30, 27, 92, 0.45)`,
                   letterSpacing: "0.01em",
                   textDecoration: isBlocked ? "line-through" : "none",
                   textDecorationThickness: 3,
-                  whiteSpace: opt.length > 12 ? "normal" : "nowrap",
+                  whiteSpace: !staircase && opt.length > 12 ? "normal" : "nowrap",
                   touchAction: "manipulation",
                   transition: "color 0.2s",
                 }}
