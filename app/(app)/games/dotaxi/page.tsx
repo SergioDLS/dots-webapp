@@ -37,8 +37,10 @@ import {
   Obstacle,
   OBSTACLE_KINDS,
   type ObstacleKind,
-  Gantry,
-  GantryApproach,
+  FloatingWords,
+  SpeedLines,
+  Remark,
+  TireSmoke,
   TaxiRear,
   ReactionBubble,
   DestinationApproach,
@@ -72,8 +74,21 @@ const OBSTACLE_MS = Math.round(IMPACT_MS / IMPACT_P); // lo que tarda en llegar 
 // El taxi, un poco más grande que su sprite: en una calzada más ancha que la
 // pantalla se perdía.
 const TAXI_ZOOM = 1.12;
-// Recogida: el pasajero pide destino y sube. Un toque la salta.
-const PICKUP_MS = 2000;
+// Recogida: el pasajero espera en la acera con su petición hasta que el
+// jugador pulsa «¡Vamos!»; entonces sube y el taxi arranca.
+const BOARD_MS = 650;
+// Intermitente al cambiar de carril.
+const SIGNAL_MS = 900;
+// El pasajero comenta desde atrás: sale un poco después de Doty y se va solo.
+const REMARK_DELAY_MS = 260;
+const REMARK_MS = 1500;
+// Con menos de esto en el reloj, el pasajero mete prisa (una vez por ronda).
+const HURRY_AT_MS = 1300;
+// Velocidad: cada acierto de racha suma un escalón (tope SPEED_MAX_COMBO) y al
+// confirmar el taxi acelera un instante para atravesar las palabras.
+const SPEED_PER_COMBO = 0.12;
+const SPEED_MAX_COMBO = 5;
+const BURST_BOOST = 0.6;
 // Llegada: el destino crece desde el punto de fuga y la carretera frena.
 const ARRIVAL_BRAKE_MS = 1400;
 const ARRIVAL_MS = 2400;
@@ -83,8 +98,8 @@ const TIER_ZOOM_MS = 450; // cámara alejándose al abrirse un carril
 // El aviso congela la cuenta atrás; tiene que durar al menos lo que el zoom.
 const TIER_NOTICE_MS = 900;
 const TAXI_TILT_MS = 260; // inclinación al cambiar de carril
-// El pórtico nace en el punto de fuga y se acerca hasta ser legible; el reloj
-// no arranca hasta entonces. Leer no puede costar tiempo de respuesta.
+// Las palabras nacen en el punto de fuga y se acercan hasta ser legibles; el
+// reloj no arranca hasta entonces. Leer no puede costar tiempo de respuesta.
 const SIGN_APPROACH_MS = 900;
 // Velocidad en unidades de plano por ms: la perspectiva la multiplica por
 // kBottom (8) en el borde cercano y la deja tal cual en el horizonte.
@@ -136,7 +151,8 @@ function DotaxiGame() {
 // ── Componente principal ─────────────────────────────────────────────────────
 
 type TimerName =
-  | "resolve" | "notice" | "impact" | "tilt" | "board" | "pickup" | "arrival" | "out" | "breakdown";
+  | "resolve" | "notice" | "impact" | "tilt" | "board" | "arrival" | "out" | "breakdown"
+  | "signal" | "remark" | "remarkHide";
 
 function DotaxiInner({ seed }: { seed?: number }) {
   const router = useRouter();
@@ -187,6 +203,12 @@ function DotaxiInner({ seed }: { seed?: number }) {
   // quien mide la escena (sin medida no se pinta nada), pero no mueve la
   // carretera ni descuenta tiempo.
   const parkedRef = useRef(false);
+  // El pasajero ya está subiendo: un segundo «¡Vamos!» no reinicia la subida.
+  const boardingRef = useRef(false);
+  // El viaje, para los callbacks del motor (los comentarios del pasajero).
+  const tripRef = useRef<Trip | null>(null);
+  // Ya metió prisa en esta ronda.
+  const hurriedRef = useRef(false);
 
   // Todos los temporizadores por nombre: uno solo de cada, y un clearAll al
   // salir. Antes eran cinco refs sueltas y cada salida tenía que recordarlas.
@@ -232,6 +254,27 @@ function DotaxiInner({ seed }: { seed?: number }) {
   // recogida: el pasajero está subiendo; llegada: ya bajó
   const [boarding, setBoarding] = useState(false);
   const [passengerOut, setPassengerOut] = useState(false);
+  // intermitente del taxi: −1 izquierda, 1 derecha, 0 apagado
+  const [signal, setSignal] = useState<-1 | 0 | 1>(0);
+  // lo que dice el pasajero ahora (null: nada); la key remonta el bocadillo
+  const [remark, setRemark] = useState<string | null>(null);
+  const [remarkKey, setRemarkKey] = useState(0);
+
+  /** El pasajero comenta desde atrás, un poco después de la reacción de Doty. */
+  const say = useCallback(
+    (text: string) => {
+      setT(
+        "remark",
+        () => {
+          setRemark(text);
+          setRemarkKey((k) => k + 1);
+        },
+        REMARK_DELAY_MS,
+      );
+      setT("remarkHide", () => setRemark(null), REMARK_DELAY_MS + REMARK_MS);
+    },
+    [setT],
+  );
 
   // Fetch con patrón fetchAttempt (regla 5)
   const [fetchAttempt, setFetchAttempt] = useState(0);
@@ -342,6 +385,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       setDustKey(0);
       setObstacles([]);
       resolvingRef.current = false;
+      hurriedRef.current = false;
     },
     [seed, clearT, setT],
   );
@@ -384,17 +428,26 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setBrakeProgress(0);
     setPhase("breakdown");
     setT("breakdown", finishGame, BREAKDOWN_MS);
-  }, [clearT, setT, finishGame]);
+    if (tripRef.current) say(tripRef.current.voice.groan);
+  }, [clearT, setT, finishGame, say]);
 
   /** Fin de la recogida: arranca la primera ronda. */
   const beginDriving = useCallback(() => {
-    clearT("pickup");
     clearT("board");
     parkedRef.current = false;
+    boardingRef.current = false;
     setBoarding(false);
     setPhase("playing");
     setupRound(0);
   }, [clearT, setupRound]);
+
+  /** «¡Vamos!» en la recogida: el pasajero sube y, al cerrar la puerta, se arranca. */
+  const boardPassenger = useCallback(() => {
+    if (boardingRef.current) return;
+    boardingRef.current = true;
+    setBoarding(true);
+    setT("board", beginDriving, BOARD_MS);
+  }, [setT, beginDriving]);
 
   const startGame = useCallback(() => {
     clearAll();
@@ -424,18 +477,23 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setOutcome("none");
     setPassengerOut(false);
     setBoarding(false);
+    boardingRef.current = false;
+    setSignal(0);
+    setRemark(null);
     // Revancha con mazo fresco: sin esto las 15 preguntas se repiten en el
     // mismo orden y basta memorizarlas. Con seed se conserva el determinismo.
     playDeckRef.current =
       seed !== undefined ? deck : shuffleWith(deck, Math.random);
     // El pasajero sale de un rng aparte del mazo: con seed, los rivales
     // llevan al mismo; sin seed, azar.
-    setTrip(pickTrip(seed !== undefined ? mulberry32(seed * 31 + 7) : Math.random));
+    const nextTrip = pickTrip(seed !== undefined ? mulberry32(seed * 31 + 7) : Math.random);
+    tripRef.current = nextTrip;
+    setTrip(nextTrip);
+    // El taxi espera parado hasta «¡Vamos!»: la petición del pasajero se lee
+    // con calma, y arrancar es un gesto del jugador.
     parkedRef.current = true;
     setPhase("pickup");
-    setT("board", () => setBoarding(true), PICKUP_MS * 0.6);
-    setT("pickup", beginDriving, PICKUP_MS);
-  }, [clearAll, deck, seed, setT, beginDriving]);
+  }, [clearAll, deck, seed]);
 
   const resolve = useCallback(() => {
     if (resolvingRef.current || !question) return;
@@ -461,8 +519,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
         })),
     );
 
+    const voice = tripRef.current?.voice;
+    const pickLine = (lines: readonly string[]) => lines[Math.floor(Math.random() * lines.length)] ?? lines[0];
     if (hit) {
       playSound("correct");
+      if (voice) say(pickLine(voice.cheer));
       comboRef.current += 1;
       scoreRef.current += 100 * comboRef.current;
       correctCountRef.current += 1;
@@ -485,6 +546,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
           setHearts(heartsRef.current);
           setImpact(true);
           setDustKey((k) => k + 1);
+          if (voice) say(pickLine(voice.ouch));
         },
         IMPACT_MS,
       );
@@ -506,7 +568,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
       },
       RESOLVE_MS,
     );
-  }, [question, laneOptions, seed, setupRound, startArrival, startBreakdown, setT]);
+  }, [question, laneOptions, seed, setupRound, startArrival, startBreakdown, setT, say]);
 
   /** Mover el taxi a un carril: se inclina hacia el lado del giro y vuelve. */
   const pickLane = useCallback(
@@ -518,6 +580,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
       if (dir !== 0) {
         setTilt(dir * 4);
         setT("tilt", () => setTilt(0), TAXI_TILT_MS);
+        setSignal(dir as -1 | 1);
+        setT("signal", () => setSignal(0), SIGNAL_MS);
       }
     },
     [setT],
@@ -559,9 +623,14 @@ function DotaxiInner({ seed }: { seed?: number }) {
         setBrakeProgress(progress);
       }
 
+      // La racha acelera la carretera y, al confirmar, el taxi pega un
+      // acelerón que se apaga a lo largo de la resolución.
+      const burst = resolvingRef.current ? Math.max(0, 1 - obstacleElapsedRef.current / RESOLVE_MS) : 0;
+      const mul = 1 + Math.min(comboRef.current, SPEED_MAX_COMBO) * SPEED_PER_COMBO + BURST_BOOST * burst;
+
       // distancia recorrida en unidades de plano: rayas, bordillos y laterales
       // la comparten, cada uno con su periodo
-      distRef.current += dtMs * ROAD_SPEED * speed;
+      distRef.current += dtMs * ROAD_SPEED * speed * mul;
       setDist(distRef.current);
 
       // los obstáculos avanzan aunque la ronda esté resolviéndose
@@ -582,9 +651,13 @@ function DotaxiInner({ seed }: { seed?: number }) {
       if (noticeRef.current) return; // el aviso congela la cuenta atrás
       remainingRef.current = Math.max(0, remainingRef.current - dtMs);
       setRemaining(remainingRef.current);
+      if (remainingRef.current <= HURRY_AT_MS && !hurriedRef.current && tripRef.current) {
+        hurriedRef.current = true;
+        say(tripRef.current.voice.hurry);
+      }
       if (remainingRef.current <= 0) resolve(); // se acabó el tiempo: se resuelve con el carril actual
     },
-    [resolve],
+    [resolve, say],
   );
 
   useTicker(TICKER_FPS, onTick, inGamePhase(phase));
@@ -630,10 +703,17 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const laneScale = (MIN_LANES / lanes) * TAXI_ZOOM;
   const stopped = phase === "arrival" || phase === "breakdown";
   // Centro del taxi en px de pantalla: su carril mientras se juega, el centro
-  // de la calzada en la llegada. El bache usa el mismo carril para caer bajo él.
+  // de la calzada en la recogida y la llegada. En la recogida el carril 0 cae
+  // casi fuera de la escena (la calzada es más ancha que la pantalla) y el
+  // taxi tapaba al pasajero que espera a su izquierda.
   const lanePct = laneGeometry(effectiveLanes).centersPct[Math.min(lane, effectiveLanes - 1)] ?? 50;
-  const taxiX = laneXBottom(m, phase === "arrival" ? 50 : lanePct);
+  const taxiX = laneXBottom(m, phase === "arrival" || phase === "pickup" ? 50 : lanePct);
   const braking = impact || stopped;
+  // La velocidad que se ve: vaivén del motor y líneas en los bordes.
+  const speedMul = 1 + Math.min(combo, SPEED_MAX_COMBO) * SPEED_PER_COMBO;
+  const burst = outcome !== "none" ? Math.max(0, 1 - obstacleT / RESOLVE_MS) : 0;
+  const speedIntensity = phase === "playing" ? (speedMul - 1) / (SPEED_MAX_COMBO * SPEED_PER_COMBO) + 0.8 * burst : 0;
+  const wordsExit = outcome !== "none" ? Math.min(1, obstacleT / RESOLVE_MS) : 0;
   const won = correctCount >= WIN_CORRECT;
   const lost = hearts <= 0;
   // La cara de Doty salta en burbuja cuando pasa algo; en marcha normal no hay.
@@ -660,7 +740,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
             howTo={[
               "Doty es taxista: sube un pasajero y llévalo a su destino.",
               "Lee la frase con el hueco y busca la palabra que encaja.",
-              "Toca el cartel del pórtico —o su carril— para mover el taxi, y pulsa «¡Vamos!» antes de que se acabe el tiempo.",
+              "Toca la palabra que flota sobre su carril —o el carril mismo— para mover el taxi, y pulsa «¡Vamos!» antes de que se acabe el tiempo.",
               "Empiezas con 2 carriles; según aciertas se abren más (¡hasta 4!).",
               `${WIN_CORRECT} aciertos para llegar. Cada fallo es un bache que abolla el taxi: al quinto se rompe y pierdes.`,
             ]}
@@ -737,7 +817,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
               </p>
             ) : (
               <p className="font-display text-lg font-extrabold" style={{ color: "var(--accent)" }}>
-                {phase === "pickup" && trip && `${trip.name} sube al taxi`}
+                {phase === "pickup" && trip && (boarding ? `${trip.name} sube al taxi` : `${trip.name} pide un taxi`)}
                 {phase === "arrival" && trip && trip.arrive}
                 {phase === "breakdown" && "¡El taxi no da más!"}
               </p>
@@ -767,10 +847,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
               // el tap del carril no compite con el pan de scroll de la página
               touchAction: "manipulation",
             }}
-            // un toque salta la recogida, la llegada y la avería
-            onPointerUp={
-              stopped ? finishGame : phase === "pickup" ? beginDriving : undefined
-            }
+            // un toque salta la llegada y la avería (la recogida arranca con el botón)
+            onPointerUp={stopped ? finishGame : undefined}
           >
             {sceneW > 0 && (
               <>
@@ -779,6 +857,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
                 <GroundPlane m={m} dist={dist} lanes={lanes} />
                 <HorizonHaze m={m} />
                 <Roadside m={m} dist={dist} />
+                <SpeedLines m={m} intensity={speedIntensity} />
 
                 {/* Obstáculos de la ronda, uno por carril incorrecto */}
                 {phase === "playing" &&
@@ -815,20 +894,6 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     );
                   })}
 
-                {phase === "playing" && (
-                  <GantryApproach m={m} progress={signProgress}>
-                    <Gantry
-                      m={m}
-                      lanes={lanes}
-                      options={laneOptions}
-                      lane={lane}
-                      outcome={outcome}
-                      correct={question?.correct}
-                      onPick={pickLane}
-                    />
-                  </GantryApproach>
-                )}
-
                 {/* Recogida: el pasajero espera en la acera y sube */}
                 {phase === "pickup" && trip && (
                   <>
@@ -846,7 +911,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
                       <Passenger trip={trip} size={64} eager />
                     </div>
                     {!boarding && (
-                      <SpeechBubble text={trip.ask} style={{ left: 8, bottom: TAXI_H + 4, maxWidth: m.sceneW * 0.62 }} />
+                      <SpeechBubble text={trip.ask} style={{ left: 8, bottom: TAXI_H + 4, maxWidth: m.sceneW * 0.7, fontSize: 15 }} />
                     )}
                   </>
                 )}
@@ -881,8 +946,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
                         transition: `transform ${TAXI_TILT_MS}ms var(--ease-out-strong)`,
                       }}
                     >
-                      <TaxiRear damage={damage} braking={braking} crashing={impact} />
+                      <TaxiRear damage={damage} braking={braking} crashing={impact} speed={speedMul} signal={signal} />
                       {dustKey > 0 && <Dust key={dustKey} />}
+                      {/* humo de ruedas: en cada golpe y al frenar en la llegada o la avería */}
+                      {dustKey > 0 && <TireSmoke key={`hit-${dustKey}`} />}
+                      {stopped && <TireSmoke />}
                     </div>
                   </div>
                   {reaction && (
@@ -892,7 +960,32 @@ function DotaxiInner({ seed }: { seed?: number }) {
                       style={{ left: TAXI_W / 2 + 10 * laneScale, bottom: TAXI_H * laneScale + 8 }}
                     />
                   )}
+                  {/* el pasajero, desde la ventanilla izquierda; Doty sale por la derecha */}
+                  {remark && trip && !passengerOut && (
+                    <Remark
+                      key={remarkKey}
+                      trip={trip}
+                      text={remark}
+                      style={{ right: TAXI_W / 2 + 4 * laneScale, bottom: TAXI_H * laneScale - 4 }}
+                    />
+                  )}
                 </div>
+
+                {/* Las palabras van por encima de todo: al atravesarlas pasan
+                    sobre la cámara. Su zona de toque no compite con el taxi
+                    (decorativo) ni con los carriles (debajo en el DOM). */}
+                {phase === "playing" && (
+                  <FloatingWords
+                    m={m}
+                    options={laneOptions}
+                    lane={lane}
+                    outcome={outcome}
+                    correct={question?.correct}
+                    onPick={pickLane}
+                    approach={signProgress}
+                    exit={wordsExit}
+                  />
+                )}
 
                 {/* Llegada: el pasajero baja junto al taxi */}
                 {phase === "arrival" && trip && passengerOut && (
@@ -905,6 +998,14 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     }}
                   >
                     <Passenger trip={trip} size={56} />
+                    {/* anclado por la derecha: el pasajero baja por el lado
+                        derecho y un bocadillo que creciera hacia allá se
+                        saldría de la escena */}
+                    <SpeechBubble
+                      text={trip.voice.thanks}
+                      tail="right"
+                      style={{ right: -4, bottom: 56 + 12, width: "max-content", maxWidth: m.sceneW * 0.5, fontSize: 12 }}
+                    />
                   </div>
                 )}
 
@@ -930,8 +1031,12 @@ function DotaxiInner({ seed }: { seed?: number }) {
           {/* Confirmar: separado de moverse */}
           <button
             data-testid="go"
-            onPointerUp={resolve}
-            disabled={phase !== "playing" || outcome !== "none" || signProgress < 1}
+            onPointerUp={phase === "pickup" ? boardPassenger : resolve}
+            disabled={
+              phase === "pickup"
+                ? boarding
+                : phase !== "playing" || outcome !== "none" || signProgress < 1
+            }
             className="dots-pressable w-full rounded-2xl py-4 text-base font-extrabold disabled:opacity-40"
             style={{
               background: "var(--accent)",
@@ -940,13 +1045,15 @@ function DotaxiInner({ seed }: { seed?: number }) {
             }}
           >
             {phase === "pickup"
-              ? "Subiendo pasajero…"
+              ? boarding
+                ? "Subiendo pasajero…"
+                : "¡Vamos!"
               : phase === "arrival"
                 ? "Llegando a destino…"
                 : phase === "breakdown"
                   ? "Taxi averiado…"
                   : signProgress < 1
-                    ? "Se acerca la señal…"
+                    ? "Llegan las palabras…"
                     : "¡Vamos!"}
           </button>
         </div>

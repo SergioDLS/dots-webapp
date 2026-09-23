@@ -33,6 +33,20 @@ export interface Trip {
   failed: string;
   /** resultado: el jugador salió a medio camino */
   midway: string;
+  /** Lo que suelta desde el asiento de atrás según lo que pasa. Frases cortas:
+   *  se leen en un bocadillo pequeño junto al taxi, en marcha. */
+  voice: {
+    /** acierto (se elige una al azar) */
+    cheer: readonly string[];
+    /** bache */
+    ouch: readonly string[];
+    /** queda poco tiempo, una vez por ronda */
+    hurry: string;
+    /** al bajar en el destino */
+    thanks: string;
+    /** el taxi se rompió */
+    groan: string;
+  };
 }
 
 export const TRIPS: readonly Trip[] = [
@@ -46,6 +60,13 @@ export const TRIPS: readonly Trip[] = [
     arrived: "Gus llegó al puerto justo a tiempo. ¡Propina!",
     failed: "Gus no llegó al puerto… el taxi no aguantó.",
     midway: "Gus se quedó a medio camino del puerto.",
+    voice: {
+      cheer: ["¡Viento en popa!", "¡Así se navega!", "¡Rumbo firme!"],
+      ouch: ["¡Uy, marejada!", "¡Mi gorra!", "¡Se me mueve el suelo!"],
+      hurry: "¡Que zarpa el barco!",
+      thanks: "¡Gracias, Doty! Nos vemos en el muelle.",
+      groan: "Adiós barco… adiós mar…",
+    },
   },
   {
     key: "diana",
@@ -57,6 +78,13 @@ export const TRIPS: readonly Trip[] = [
     arrived: "Diana llegó al laboratorio. ¡Eureka y propina!",
     failed: "Diana no llegó al laboratorio… el taxi no aguantó.",
     midway: "Diana se quedó a medio camino del laboratorio.",
+    voice: {
+      cheer: ["¡Hipótesis confirmada!", "¡Exacto!", "¡Eureka!"],
+      ouch: ["¡Mis probetas!", "¡Cuidado, Doty!", "¡Eso no estaba en el plan!"],
+      hurry: "¡El experimento no espera!",
+      thanks: "¡Gracias, Doty! A la ciencia.",
+      groan: "Mi experimento… arruinado.",
+    },
   },
   {
     key: "andrea",
@@ -68,6 +96,13 @@ export const TRIPS: readonly Trip[] = [
     arrived: "Andrea llegó al estadio antes del pitido. ¡Propina!",
     failed: "Andrea no llegó al estadio… el taxi no aguantó.",
     midway: "Andrea se quedó a medio camino del estadio.",
+    voice: {
+      cheer: ["¡Golazo!", "¡Eso, Doty!", "¡Vamos que llegamos!"],
+      ouch: ["¡Uy!", "¡Mi bandera!", "¡Casi me caigo!"],
+      hurry: "¡Ya va a empezar!",
+      thanks: "¡Gracias, Doty! Te guardo un asiento.",
+      groan: "Me perdí el partido…",
+    },
   },
 ];
 

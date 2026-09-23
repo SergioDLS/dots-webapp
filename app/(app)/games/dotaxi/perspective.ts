@@ -96,6 +96,13 @@ export function laneXBottom(m: PlaneMetrics, pct: number): number {
   return m.roadLeftBottom + (pct / 100) * m.roadBottomW;
 }
 
+/** Centro del carril `pct` visto a la escala relativa `r` (= k/kBottom, 1 en el
+ *  borde cercano, →0 en el horizonte). Para lo que se coloca por escala y no
+ *  por profundidad, como las palabras que flotan sobre la calzada. */
+export function laneXAtScale(m: PlaneMetrics, pct: number, r: number): number {
+  return m.sceneW / 2 + (pct / 100 - 0.5) * m.roadBottomW * r;
+}
+
 /** Centro del carril `pct` a profundidad `s`: converge hacia el punto de fuga. */
 export function laneXAt(m: PlaneMetrics, pct: number, s: number): number {
   const { k } = project(m, s);

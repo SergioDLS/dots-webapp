@@ -404,6 +404,48 @@ h1, h2, h3, .font-display {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* Palabras flotando sobre su carril: un bamboleo lento, cada una con su desfase */
+@keyframes dotaxi-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+/* Intermitente: dos estados secos, sin fundido */
+@keyframes dotaxi-blink {
+  0%, 49%  { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
+}
+/* Líneas de velocidad en los bordes: caen y se apagan */
+@keyframes dotaxi-speedline {
+  0%   { transform: translateY(-60%) scaleY(0.6); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateY(160%) scaleY(1.4); opacity: 0; }
+}
+/* Estrellas que parpadean (la noche la pone el padre con --dotaxi-night) */
+@keyframes dotaxi-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+/* Rayos del sol girando despacio */
+@keyframes dotaxi-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Bandada: cruza el cielo (--from → --to) y se queda fuera el resto del ciclo */
+@keyframes dotaxi-birds {
+  0%   { transform: translateX(var(--from, 400px)); }
+  58%  { transform: translateX(var(--to, -80px)); }
+  100% { transform: translateX(var(--to, -80px)); }
+}
+/* Aleteo: la V se aplana y se abre */
+@keyframes dotaxi-flap {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(0.35); }
+}
+/* Humo de ruedas en el frenazo: sale hacia fuera y se disipa */
+@keyframes dotaxi-tire-smoke {
+  0%   { transform: translate(0, 0) scale(0.5); opacity: 0.85; }
+  100% { transform: translate(var(--dx, 0px), -18px) scale(1.8); opacity: 0; }
+}
 
 /* ─── DOTY: movimiento y sombra ───────────────────────────────
    Solo transform (portable a RN); la sombra va por CSS porque los sprites

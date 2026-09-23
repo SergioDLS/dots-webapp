@@ -7,8 +7,8 @@ import { Icon } from "@/components/ui/icon";
 import { laneGeometry } from "./lanes";
 import {
   PERSPECTIVE,
-  laneXBottom,
   laneXAt,
+  laneXAtScale,
   edgeXAt,
   project,
   travel,
@@ -33,6 +33,7 @@ export const BRAKE_RED = "#ff3b5c";
 export const BRAKE_DIM = "#b3122e";
 export const PANEL_BLUE = "#3768ff";
 export const SIGN_FACE = "#f7f4ea";
+export const TURN_AMBER = "#ffb020";
 
 /** 0 intacto … 5 destruido: un escalón por corazón perdido. */
 export type Damage = 0 | 1 | 2 | 3 | 4 | 5;
@@ -66,7 +67,19 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
         className="absolute inset-0"
         style={{ background: "linear-gradient(180deg, var(--sky-top), var(--sky-bottom))" }}
       />
-      {/* sol de día / luna de noche: el mismo disco, dos opacidades complementarias */}
+      {/* sol de día / luna de noche: el mismo disco, dos opacidades complementarias.
+          El sol lleva detrás un abanico de rayos que gira despacio. */}
+      <div
+        className="absolute rounded-full"
+        style={{
+          top: skyH * 0.52 - 30, right: 22 - 30, width: 90, height: 90,
+          background: `repeating-conic-gradient(from 0deg, ${TAXI_YELLOW}55 0deg 14deg, transparent 14deg 30deg)`,
+          maskImage: "radial-gradient(circle, black 30%, transparent 72%)",
+          WebkitMaskImage: "radial-gradient(circle, black 30%, transparent 72%)",
+          opacity: "calc(1 - var(--dotaxi-night))",
+          animation: "dotaxi-spin 48s linear infinite",
+        }}
+      />
       <div
         className="absolute rounded-full"
         style={{
@@ -83,16 +96,22 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
           opacity: "var(--dotaxi-night)",
         }}
       />
-      {STARS.map(([x, y], i) => (
-        <div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            left: `${x}%`, top: `${y}%`, width: 2 + (i % 2), height: 2 + (i % 2),
-            background: SIGN_FACE, opacity: "var(--dotaxi-night)",
-          }}
-        />
-      ))}
+      {/* estrellas: la noche la pone el padre; cada una parpadea a su ritmo */}
+      <div className="absolute inset-0" style={{ opacity: "var(--dotaxi-night)" }}>
+        {STARS.map(([x, y], i) => (
+          <div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              left: `${x}%`, top: `${y}%`, width: 2 + (i % 2), height: 2 + (i % 2),
+              background: SIGN_FACE,
+              animation: `dotaxi-twinkle ${2.2 + (i % 3) * 0.5}s ease-in-out ${-(i * 0.37)}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+      <Birds skyH={skyH} sceneW={m.sceneW} yFrac={0.3} scale={1} dur={26} delay={4} />
+      <Birds skyH={skyH} sceneW={m.sceneW} yFrac={0.18} scale={0.7} dur={37} delay={19} />
       {/* skyline: dos franjas 3:1 (dotaxi-skyline-dia / -noche) con fundido por
           --dotaxi-night. El pipeline las deja centradas en un lienzo cuadrado:
           la franja ocupa de 0,395 a 0,604 del alto, y se coloca para que su
@@ -119,6 +138,42 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
           }}
         />
       ))}
+    </div>
+  );
+}
+
+/** Una bandada de tres pájaros en V cruzando el cielo de derecha a izquierda;
+ *  el resto del ciclo se queda fuera de escena, así no parece un carrusel. */
+function Birds({ skyH, sceneW, yFrac, scale, dur, delay }: {
+  skyH: number; sceneW: number; yFrac: number; scale: number; dur: number; delay: number;
+}) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute left-0"
+      style={{
+        top: skyH * yFrac,
+        width: 60,
+        height: 20,
+        ["--from" as string]: `${sceneW + 40}px`,
+        ["--to" as string]: "-100px",
+        animation: `dotaxi-birds ${dur}s linear ${delay}s infinite`,
+        // de noche son siluetas apenas visibles
+        opacity: "calc(1 - 0.6 * var(--dotaxi-night))",
+      }}
+    >
+      <div style={{ transform: `scale(${scale})`, transformOrigin: "left top" }}>
+        {([[0, 6], [18, 0], [36, 9]] as const).map(([x, y], i) => (
+          <div
+            key={i}
+            className="absolute"
+            style={{ left: x, top: y, width: 15, height: 8, animation: `dotaxi-flap 0.5s ease-in-out ${i * 0.12}s infinite` }}
+          >
+            <div className="absolute" style={{ left: 0, top: 3, width: 8, height: 2, background: INK, borderRadius: 1, transform: "rotate(-28deg)", transformOrigin: "right center" }} />
+            <div className="absolute" style={{ left: 7, top: 3, width: 8, height: 2, background: INK, borderRadius: 1, transform: "rotate(28deg)", transformOrigin: "left center" }} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -244,125 +299,142 @@ export function HorizonHaze({ m }: { m: PlaneMetrics }) {
   );
 }
 
-// ── Pórtico de señales (la firma) ────────────────────────────────────────────
+// ── Palabras flotantes (la firma) ───────────────────────────────────────────
 
-export function Gantry({
+/** Escala relativa (k/kBottom) a la que las palabras quedan flotando: cerca
+ *  para leerse, lejos para que los carriles aún converjan bajo ellas. */
+const WORD_REST_R = 0.6;
+/** Altura de reposo como fracción del alto de la escena. Con 2 carriles una
+ *  sola; con 3–4 alternan dos en zigzag para que una palabra pueda ser más
+ *  ancha que su carril sin pisar a la vecina. */
+const WORD_Y_SINGLE = 0.33;
+const WORD_Y_HIGH = 0.25;
+const WORD_Y_LOW = 0.4;
+/** Cuánto crecen al atravesarlas respecto al reposo. */
+const WORD_EXIT_GROWTH = 2.2;
+
+/**
+ * Las opciones flotan sobre su carril como texto suelto: blanco con contorno
+ * navy, el carril elegido en amarillo taxi. Nacen en el punto de fuga y crecen
+ * hasta su sitio (`approach` 0→1: hasta entonces no se puede tocar ni corre el
+ * reloj); al confirmar el taxi las atraviesa (`exit` 0→1): la correcta en
+ * verde, las otras en rojo y tachadas, y todas se van por arriba y los lados.
+ * Todo por escala desde el punto de fuga: un objeto quieto en el mundo se
+ * aleja del punto de fuga en proporción a su escala.
+ */
+export function FloatingWords({
   m,
-  lanes,
   options,
   lane,
   outcome,
   correct,
   onPick,
+  approach,
+  exit,
 }: {
   m: PlaneMetrics;
-  lanes: number;
   options: readonly string[];
   lane: number;
   outcome: "none" | "clear" | "crash";
   correct: string | undefined;
   onPick: (i: number) => void;
+  /** 0 en el horizonte … 1 en reposo */
+  approach: number;
+  /** 0 en reposo … 1 ya atravesadas */
+  exit: number;
 }) {
-  // Los paneles se reparten en el ancho VISIBLE, no en el de la calzada: esta
-  // sobresale de la escena y los paneles de los extremos se saldrían. Como el
-  // pórtico está lejos, la correspondencia con el carril es por orden, no por
-  // posición exacta.
-  const inner = m.sceneW - 24;
-  const laneW = inner / lanes;
-  const panelW = laneW * 0.92;
-  const postH = m.horizonY + 26 - 14;
-  const fontPx = lanes >= 4 ? 10.5 : lanes === 3 ? 12 : 14;
+  const lanes = Math.max(1, options.length);
+  const { centersPct } = laneGeometry(lanes);
+  const vpX = m.sceneW / 2;
+  const vpY = m.horizonY;
+  const a = Math.min(1, Math.max(0, approach));
+  const ea = 1 - Math.pow(1 - a, 3);
+  const x = Math.min(1, Math.max(0, exit));
+  const ex = x * x; // acelera al pasar
+  const g = x > 0 ? 1 + WORD_EXIT_GROWTH * ex : 0.12 + 0.88 * ea;
+  const fontPx = lanes >= 4 ? 17 : lanes === 3 ? 19 : 22;
+  const spacing = (m.roadBottomW / lanes) * WORD_REST_R;
   return (
     <>
-      {/* travesaño y postes */}
-      <div aria-hidden className="pointer-events-none absolute rounded-full" style={{ top: 14, left: 18, right: 18, height: 10, background: INK }} />
-      {[18, m.sceneW - 24].map((x) => (
-        <div key={x} aria-hidden className="pointer-events-none absolute" style={{ top: 14, left: x, width: 6, height: postH, background: INK, borderRadius: 3 }} />
-      ))}
-      {/* paneles, uno por carril */}
       {options.map((opt, i) => {
+        const restX = laneXAtScale(m, centersPct[i] ?? 50, WORD_REST_R);
+        const yFrac = lanes <= 2 ? WORD_Y_SINGLE : i % 2 === 0 ? WORD_Y_LOW : WORD_Y_HIGH;
+        const restY = m.sceneH * yFrac;
+        const cx = vpX + (restX - vpX) * g;
+        const cy = vpY + (restY - vpY) * g;
         const isClear = outcome !== "none" && opt === correct;
         const isBlocked = outcome !== "none" && !isClear;
         const active = outcome === "none" && lane === i;
-        const cx = 12 + (i + 0.5) * laneW;
+        const color = isClear ? "var(--success)" : isBlocked ? "var(--danger)" : active ? TAXI_YELLOW : SIGN_FACE;
         return (
-          <React.Fragment key={`${i}-${opt}`}>
-            <div aria-hidden className="pointer-events-none absolute" style={{ top: 22, left: cx - 4, width: 8, height: 8, background: INK }} />
-            <button
-              type="button"
-              data-testid={`lane-${i}`}
-              onPointerUp={() => onPick(i)}
-              className="absolute flex items-center justify-center rounded-lg border-2 px-1 py-1.5 font-display font-extrabold leading-tight break-words"
-              style={{
-                top: 30,
-                left: cx - panelW / 2,
-                width: panelW,
-                minHeight: 38,
-                fontSize: fontPx,
-                color: SIGN_FACE,
-                background: isClear ? "var(--success)" : isBlocked ? "var(--danger)" : PANEL_BLUE,
-                borderColor: active ? EDGE_PAINT : INK,
-                boxShadow: active
-                  ? `0 0 0 2px ${EDGE_PAINT}, 0 4px 0 ${INK}`
-                  : `0 4px 0 ${INK}`,
-                touchAction: "manipulation",
-                transition: "background 0.2s, border-color 0.2s, box-shadow 0.2s, left 450ms var(--ease-out-strong), width 450ms var(--ease-out-strong)",
-              }}
-            >
-              {outcome === "none" ? opt : <Icon name={isClear ? "check" : "cruz"} size={20} mono />}
-            </button>
-          </React.Fragment>
+          <div
+            key={`${i}-${opt}`}
+            data-testid={`word-${i}`}
+            className="absolute left-0 top-0"
+            style={{
+              transform: `translate(${cx}px, ${cy}px) translate(-50%, -50%) scale(${g * (active ? 1.12 : 1)})`,
+              opacity: x > 0 ? 1 - Math.max(0, (x - 0.55) / 0.45) : 0.3 + 0.7 * ea,
+              pointerEvents: a >= 1 && outcome === "none" ? "auto" : "none",
+            }}
+          >
+            <div style={{ animation: `dotaxi-float 2.4s ease-in-out ${-(i * 0.55)}s infinite` }}>
+              <button
+                type="button"
+                data-testid={`lane-${i}`}
+                onPointerUp={() => onPick(i)}
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-center font-display font-extrabold leading-none"
+                style={{
+                  minWidth: 44,
+                  minHeight: 36,
+                  maxWidth: Math.max(80, spacing * 2 - 6),
+                  fontSize: opt.length >= 9 ? fontPx - 2 : fontPx,
+                  color,
+                  WebkitTextStroke: `${lanes >= 4 ? 4 : 5}px ${INK}`,
+                  paintOrder: "stroke fill",
+                  textShadow: `0 3px 0 ${INK}, 0 6px 12px rgba(30, 27, 92, 0.45)`,
+                  letterSpacing: "0.01em",
+                  textDecoration: isBlocked ? "line-through" : "none",
+                  textDecorationThickness: 3,
+                  whiteSpace: opt.length > 12 ? "normal" : "nowrap",
+                  touchAction: "manipulation",
+                  transition: "color 0.2s",
+                }}
+              >
+                {isClear && <Icon name="check" size={18} mono />}
+                {isBlocked && <Icon name="cruz" size={18} mono />}
+                <span>{opt}</span>
+              </button>
+            </div>
+          </div>
         );
       })}
     </>
   );
 }
 
-/**
- * El pórtico llegando desde el punto de fuga: nace pequeño en el horizonte y
- * sube creciendo hasta su sitio (lo que está por encima de la vista sube al
- * acercarse). Solo transform/opacity; el progreso lo marca el ticker.
- */
-export function GantryApproach({ m, progress, children }: { m: PlaneMetrics; progress: number; children: React.ReactNode }) {
-  const p = Math.min(1, Math.max(0, progress));
-  const e = 1 - Math.pow(1 - p, 3);
-  const k = 0.18 + 0.82 * e;
-  // centro del pórtico en reposo ≈ y 50; en el horizonte, sobre el punto de fuga
-  const dy = (1 - e) * (m.horizonY - 50 - 6);
-  return (
-    <div
-      data-testid="gantry"
-      className="absolute inset-x-0 top-0"
-      style={{
-        height: 110,
-        transform: `translateY(${dy}px) scale(${k})`,
-        transformOrigin: "50% 50px",
-        opacity: 0.35 + 0.65 * e,
-        pointerEvents: p >= 1 ? "auto" : "none",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 // ── Taxi trasero ─────────────────────────────────────────────────────────────
 
 /**
- * El taxi visto por detrás con Doty al volante. Placeholder CSS hasta que
- * lleguen los sprites dotaxi-taxi{,-d1..-d4,-wrecked}: entonces este cuerpo
- * se cambia por un <Image> por nivel de daño y NADA más cambia.
+ * El taxi visto por detrás, un sprite por escalón de daño. Encima van las
+ * capas vivas: cono de faros de noche, intermitente al cambiar de carril,
+ * pilotos al frenar, la gorra de Doty en la luneta y el humo del destrozado.
  */
 export function TaxiRear({
   damage,
   braking,
   crashing,
+  speed = 1,
+  signal = 0,
 }: {
   damage: Damage;
   /** pilotos encendidos + hundimiento del morro */
   braking: boolean;
   /** temblor del golpe */
   crashing: boolean;
+  /** 1 en crucero, hasta ~1,6 con racha: acorta el vaivén del motor */
+  speed?: number;
+  /** intermitente: −1 izquierda, 1 derecha, 0 apagado */
+  signal?: -1 | 0 | 1;
 }) {
   const wrecked = damage >= 5;
   return (
@@ -371,9 +443,23 @@ export function TaxiRear({
       style={{
         width: TAXI_W,
         height: TAXI_H,
-        animation: crashing ? "dotaxi-shake 0.5s ease-in-out" : "dotaxi-bob 0.8s ease-in-out infinite",
+        animation: crashing
+          ? "dotaxi-shake 0.5s ease-in-out"
+          : `dotaxi-bob ${(0.8 / Math.max(1, speed)).toFixed(2)}s ease-in-out infinite`,
       }}
     >
+      {/* faros de noche: un cono de luz sobre la calzada por delante del taxi,
+          que se estrecha hacia el horizonte. Debajo del sprite. */}
+      <div
+        aria-hidden
+        className="absolute"
+        style={{
+          left: -8, right: -8, bottom: TAXI_H - 34, height: 150,
+          background: "linear-gradient(to top, rgba(255, 236, 170, 0.45), rgba(255, 236, 170, 0.1) 65%, transparent)",
+          clipPath: "polygon(0 100%, 100% 100%, 64% 0, 36% 0)",
+          opacity: "var(--dotaxi-night)",
+        }}
+      />
       <div
         className="absolute inset-0"
         style={{ animation: braking ? "dotaxi-brake-dip 420ms var(--ease-out-strong) both" : "none", transformOrigin: "bottom center" }}
@@ -395,26 +481,24 @@ export function TaxiRear({
             }}
           />
           {/* carrocería: un sprite por escalón de daño (dotaxi-taxi, -d1..-d4,
-              -wrecked). El lienzo es cuadrado de 512 con el taxi ocupando de
-              y=40 a y=469: se pinta a TAXI_W y se baja para que las ruedas
-              apoyen en el pie del wrapper. */}
+              -wrecked). Lienzo cuadrado de 1024 con el taxi de y=0,08 a 0,92:
+              se pinta a TAXI_W y se baja para que las ruedas apoyen en el pie
+              del wrapper. */}
           <Image
             src={`/images/games/${TAXI_SPRITES[damage]}.png`}
             alt=""
             aria-hidden
-            width={512}
-            height={512}
-            sizes={`${TAXI_W * 2}px`}
+            width={1024}
+            height={1024}
+            sizes={`${TAXI_W * 3}px`}
             priority
             draggable={false}
             className="absolute select-none"
             style={{ left: 0, bottom: -10, width: TAXI_W, height: TAXI_W }}
           />
-          {/* luneta: se ve la NUCA de Doty al volante, con la gorra. Su cara va
-              en la burbuja de reacción, que es donde una expresión se lee
-              desde atrás. Coordenadas sobre el sprite: ventana ≈ x 32-96, y 32-58. */}
-          {/* Desde atrás, de Doty se ve la gorra y tres púas del penacho que
-              asoman por debajo. Una cabeza redonda entera parecía una pelota. */}
+          {/* luneta: desde atrás, de Doty se ve la gorra y tres púas del penacho
+              que asoman por debajo. Su cara va en la burbuja de reacción, que es
+              donde una expresión se lee desde atrás. Ventana ≈ x 32-96, y 32-58. */}
           <div className="absolute" style={{ left: 38, top: 33, width: 28, height: 22 }}>
             {[-2, 8, 18].map((x, i) => (
               <div
@@ -447,6 +531,20 @@ export function TaxiRear({
               }}
             />
           ))}
+          {/* intermitente del lado hacia el que gira */}
+          {signal !== 0 && (
+            <div
+              aria-hidden
+              data-testid="signal"
+              className="absolute rounded-full"
+              style={{
+                left: (signal < 0 ? 24 : 102) - 9, top: 66, width: 18, height: 12,
+                background: TURN_AMBER,
+                boxShadow: `0 0 10px ${TURN_AMBER}, 0 0 20px ${TURN_AMBER}`,
+                animation: "dotaxi-blink 0.4s linear infinite",
+              }}
+            />
+          )}
           {/* humo animado solo en el destrozado: d3 y d4 ya traen su bocanada
               pintada en el sprite, y dos humos no suman, ensucian */}
           {wrecked &&
@@ -473,17 +571,19 @@ export function TaxiRear({
 
 // ── Laterales: farolas y árboles que se acercan ─────────────────────────────
 
-/** Altura de los sprites en el borde cercano (escala kBottom); se dividen por kBottom al proyectar. */
-const LAMP_H = 170;
-const TREE_H = 140;
+/** Altura de cada sprite al llegar al borde cercano, en altos de escena: más
+ *  que la escena, como en OutRun. Al pasar se salen por arriba y por los lados. */
+const LAMP_H_FRAC = 1.45;
+const TREE_H_FRAC = 1.25;
 const ROADSIDE_SLOTS = 8;
-const ROADSIDE_OFFSET_PX = 30;
+/** La farola planta el poste a esta distancia de la acera (px del borde cercano). */
+const LAMP_OFFSET_PX = 26;
+/** Aire transparente del lienzo del árbol a cada lado de la copa (fracción del lado). */
+const TREE_INSET = 0.12;
 
-/** Farola o árbol (dotaxi-farola / dotaxi-arbol). El lienzo es cuadrado con el
- *  objeto apoyado en el pie, así que se pinta a la altura del objeto y se
- *  ancla abajo; de noche la farola suma su halo. */
-function RoadsideArt({ kind }: { kind: "farola" | "arbol" }) {
-  const size = kind === "farola" ? LAMP_H : TREE_H;
+/** Farola o árbol (dotaxi-farola / dotaxi-arbol) a 1024: de cerca ocupan más
+ *  que la escena y a 512 se veían borrosos. De noche la farola suma su halo. */
+function RoadsideArt({ kind, size }: { kind: "farola" | "arbol"; size: number }) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
       {kind === "farola" && (
@@ -491,7 +591,7 @@ function RoadsideArt({ kind }: { kind: "farola" | "arbol" }) {
           aria-hidden
           className="absolute rounded-full"
           style={{
-            left: size / 2 - 40, top: -14, width: 80, height: 80,
+            left: size * 0.26, top: -size * 0.06, width: size * 0.48, height: size * 0.48,
             background: `radial-gradient(circle, ${TAXI_YELLOW}80, transparent 70%)`,
             opacity: "var(--dotaxi-night)",
           }}
@@ -501,9 +601,9 @@ function RoadsideArt({ kind }: { kind: "farola" | "arbol" }) {
         src={`/images/games/dotaxi-${kind}.png`}
         alt=""
         aria-hidden
-        width={512}
-        height={512}
-        sizes={`${size * 2}px`}
+        width={1024}
+        height={1024}
+        sizes="min(100vw, 640px)"
         draggable={false}
         className="absolute inset-0 h-full w-full select-none"
       />
@@ -515,32 +615,51 @@ function RoadsideArt({ kind }: { kind: "farola" | "arbol" }) {
  * Farolas y árboles alternando a ambos lados, en ciclo: nacen en el punto de
  * fuga y crecen al acercarse, a la misma velocidad que las rayas (misma
  * `dist`). Van en espacio de pantalla con travel(): son los que venden el
- * avance, más que las rayas.
+ * avance, más que las rayas. La farola se ancla por el poste; el árbol por su
+ * borde interior, así la copa crece hacia fuera y nunca tapa la calzada.
  */
 export function Roadside({ m, dist }: { m: PlaneMetrics; dist: number }) {
   const cycle = m.planeH * TRAVEL_END;
+  const lampH = m.sceneH * LAMP_H_FRAC;
+  const treeH = m.sceneH * TREE_H_FRAC;
   return (
     <>
       {Array.from({ length: ROADSIDE_SLOTS }).map((_, i) => {
         const side: -1 | 1 = i % 2 === 0 ? -1 : 1;
         const kind = (i >> 1) % 2 === 0 ? "farola" : "arbol";
-        const p = (((dist + (i * cycle) / ROADSIDE_SLOTS) % cycle) + cycle) % cycle / m.planeH;
+        const p = ((((dist + (i * cycle) / ROADSIDE_SLOTS) % cycle) + cycle) % cycle) / m.planeH;
         if (p > TRAVEL_END) return null;
         const { y, k, s } = travel(m, p);
-        const x = edgeXAt(m, side, ROADSIDE_OFFSET_PX, s);
         const scale = k / m.kBottom;
+        const size = kind === "farola" ? lampH : treeH;
+        const drawn = size * scale;
+        let x: number;
+        let anchor: string;
+        let origin: string;
+        if (kind === "farola") {
+          x = edgeXAt(m, side, LAMP_OFFSET_PX, s);
+          if (x + drawn / 2 < 0 || x - drawn / 2 > m.sceneW) return null;
+          anchor = "translate(-50%, -100%)";
+          origin = "bottom center";
+        } else {
+          x = edgeXAt(m, side, 0, s) - side * TREE_INSET * drawn;
+          if ((side < 0 && x - TREE_INSET * drawn < 0) || (side > 0 && x + TREE_INSET * drawn > m.sceneW)) return null;
+          anchor = side < 0 ? "translate(-100%, -100%)" : "translate(0, -100%)";
+          origin = side < 0 ? "bottom right" : "bottom left";
+        }
         return (
           <div
             key={i}
             aria-hidden
+            data-testid={`roadside-${kind}`}
             className="pointer-events-none absolute left-0 top-0"
             style={{
-              transform: `translate(${x}px, ${y}px) translate(-50%, -100%) scale(${scale})`,
-              transformOrigin: "bottom center",
+              transform: `translate(${x}px, ${y}px) ${anchor} scale(${scale})`,
+              transformOrigin: origin,
               opacity: Math.min(1, 0.25 + p * 3),
             }}
           >
-            <RoadsideArt kind={kind} />
+            <RoadsideArt kind={kind} size={size} />
           </div>
         );
       })}
@@ -550,13 +669,19 @@ export function Roadside({ m, dist }: { m: PlaneMetrics; dist: number }) {
 
 // ── Nubes ─────────────────────────────────────────────────────────────────────
 
-const CLOUDS: readonly { w: number; yFrac: number; dur: number; delay: number }[] = [
-  { w: 96, yFrac: 0.36, dur: 70, delay: -12 },
-  { w: 72, yFrac: 0.5, dur: 95, delay: -50 },
-  { w: 120, yFrac: 0.43, dur: 80, delay: -30 },
+/** Cinco nubes repartidas por todo el cielo. `start` es dónde empieza cada
+ *  una su cruce (0 entrando por la izquierda, 1 saliendo): así al abrir la
+ *  escena ya están desplegadas y no en fila. Las grandes están más cerca y
+ *  cruzan más rápido (parallax). */
+const CLOUDS: readonly { w: number; yFrac: number; dur: number; start: number }[] = [
+  { w: 132, yFrac: 0.16, dur: 30, start: 0.05 },
+  { w: 66, yFrac: 0.08, dur: 54, start: 0.25 },
+  { w: 84, yFrac: 0.36, dur: 46, start: 0.42 },
+  { w: 110, yFrac: 0.58, dur: 36, start: 0.72 },
+  { w: 96, yFrac: 0.46, dur: 40, start: 0.9 },
 ];
 
-/** Nubes a la deriva por el cielo, con parallax por tamaño. Placeholder CSS hasta dotaxi-nube. */
+/** Nubes a la deriva de izquierda a derecha (dotaxi-nube). */
 export function Clouds({ m }: { m: PlaneMetrics }) {
   const skyH = m.horizonY;
   return (
@@ -565,17 +690,19 @@ export function Clouds({ m }: { m: PlaneMetrics }) {
         <div
           key={i}
           aria-hidden
+          data-testid="cloud"
           className="pointer-events-none absolute left-0"
           style={{
             top: skyH * cl.yFrac - cl.w * 0.25,
             width: cl.w,
             height: cl.w * 0.5,
             ["--drift" as string]: `${m.sceneW + cl.w * 2}px`,
-            animation: `dotaxi-cloud-drift ${cl.dur}s linear ${cl.delay}s infinite`,
+            animation: `dotaxi-cloud-drift ${cl.dur}s linear ${-(cl.start * cl.dur)}s infinite`,
             opacity: "calc(0.95 - 0.45 * var(--dotaxi-night))",
+            willChange: "transform",
           }}
         >
-            {/* dotaxi-nube: lienzo cuadrado con la nube en la franja central */}
+          {/* dotaxi-nube: lienzo cuadrado con la nube en la franja central */}
           <Image
             src="/images/games/dotaxi-nube.png"
             alt=""
@@ -654,8 +781,8 @@ export function DestinationArt({ trip, width }: { trip: Trip; width: number }) {
       src={`/images/games/dotaxi-${trip.destination.key}.png`}
       alt=""
       aria-hidden
-      width={512}
-      height={512}
+      width={1024}
+      height={1024}
       sizes={`${Math.round(width * 2)}px`}
       priority
       draggable={false}
@@ -785,7 +912,16 @@ export function Passenger({
   );
 }
 
-export function SpeechBubble({ text, style }: { text: string; style?: React.CSSProperties }) {
+export function SpeechBubble({
+  text,
+  style,
+  tail = "left",
+}: {
+  text: string;
+  style?: React.CSSProperties;
+  /** de qué lado sale la cola: hacia quien habla */
+  tail?: "left" | "right";
+}) {
   return (
     <div
       data-testid="bubble"
@@ -803,7 +939,11 @@ export function SpeechBubble({ text, style }: { text: string; style?: React.CSSP
       <div
         aria-hidden
         className="absolute"
-        style={{ left: 14, bottom: -7, width: 12, height: 12, background: SIGN_FACE, borderRight: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, transform: "rotate(45deg)" }}
+        style={{
+          ...(tail === "left" ? { left: 14 } : { right: 14 }),
+          bottom: -7, width: 12, height: 12, background: SIGN_FACE,
+          borderRight: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, transform: "rotate(45deg)",
+        }}
       />
     </div>
   );
@@ -829,6 +969,107 @@ export function Dust() {
           }}
         />
       ))}
+    </>
+  );
+}
+
+// ── Velocidad, comentarios y humo ────────────────────────────────────────────
+
+/**
+ * Líneas de velocidad en los bordes, sobre el césped: aparecen con la racha y
+ * al confirmar (el taxi acelera al atravesar las palabras). `intensity` 0..1.
+ */
+export function SpeedLines({ m, intensity }: { m: PlaneMetrics; intensity: number }) {
+  if (intensity <= 0.03) return null;
+  const xs = [8, 22, 38, m.sceneW - 12, m.sceneW - 26, m.sceneW - 42];
+  return (
+    <div aria-hidden data-testid="speedlines" className="pointer-events-none absolute inset-0 overflow-hidden" style={{ opacity: Math.min(1, intensity) }}>
+      {xs.map((x, i) => (
+        <div
+          key={i}
+          className="absolute"
+          style={{
+            left: x,
+            top: m.horizonY + 24 + (i % 3) * 44,
+            width: 2,
+            height: 70 + (i % 2) * 30,
+            borderRadius: 1,
+            background: `linear-gradient(to bottom, transparent, ${SIGN_FACE}, transparent)`,
+            animation: `dotaxi-speedline ${(0.42 + (i % 3) * 0.08).toFixed(2)}s linear ${-(i * 0.09)}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Lo que dice el pasajero desde el asiento de atrás: bocadillo pequeño con su
+ * cara como remitente. Se remonta por key para volver a saltar.
+ */
+export function Remark({ trip, text, style }: { trip: Trip; text: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      data-testid="remark"
+      aria-hidden
+      className="pointer-events-none absolute flex items-center gap-1.5 rounded-2xl py-1 pl-1 pr-2.5 font-display text-[12px] font-extrabold leading-tight"
+      style={{
+        background: SIGN_FACE,
+        color: INK,
+        border: `2px solid ${INK}`,
+        boxShadow: `0 3px 0 ${INK}`,
+        whiteSpace: "nowrap",
+        animation: "dotaxi-bubble-in 0.25s var(--ease-out-strong) both",
+        ...style,
+      }}
+    >
+      {/* la cara: el avatar es de cuerpo entero, se encuadra la cabeza */}
+      <span className="relative block h-6 w-6 shrink-0 overflow-hidden rounded-full" style={{ background: "#e9e6f2", border: `1.5px solid ${INK}` }}>
+        <Image
+          src={`/images/avatars/${trip.avatar}.png`}
+          alt=""
+          width={512}
+          height={512}
+          sizes="64px"
+          draggable={false}
+          className="absolute select-none"
+          style={{ left: "50%", top: 1, width: 42, height: 42, transform: "translateX(-50%)" }}
+        />
+      </span>
+      {text}
+      {/* cola hacia la ventanilla */}
+      <div
+        aria-hidden
+        className="absolute"
+        style={{ right: 10, bottom: -7, width: 12, height: 12, background: SIGN_FACE, borderRight: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, transform: "rotate(45deg)" }}
+      />
+    </div>
+  );
+}
+
+/** Humo de ruedas en el frenazo: dos bocanadas por rueda hacia fuera. Se
+ *  remonta por key para repetirse. */
+export function TireSmoke() {
+  return (
+    <>
+      {([[14, -1], [114, 1]] as const).map(([x, dir]) =>
+        [0, 1].map((j) => (
+          <div
+            key={`${x}-${j}`}
+            aria-hidden
+            className="pointer-events-none absolute rounded-full"
+            style={{
+              left: x - 8,
+              bottom: 2,
+              width: 16,
+              height: 16,
+              background: "rgba(225, 222, 235, 0.85)",
+              ["--dx" as string]: `${dir * (14 + j * 10)}px`,
+              animation: `dotaxi-tire-smoke 480ms ease-out ${j * 90}ms both`,
+            }}
+          />
+        )),
+      )}
     </>
   );
 }
