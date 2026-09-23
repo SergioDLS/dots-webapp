@@ -80,7 +80,7 @@ export const POSES = {
   "sticker-nice": { src: "/images/Doty/stickers/nice.png", group: "stickers" },
   "sticker-excellent": { src: "/images/Doty/stickers/excellent.png", group: "stickers" },
   "sticker-see-you": { src: "/images/Doty/stickers/see-you.png", group: "stickers" },
-  taxista: { src: "/images/Doty/expressions/feliz.png", group: "poses" },
+  taxista: { src: "/images/Doty/poses/taxista.png", group: "poses" },
   "en-llamas": { src: "/images/Doty/expressions/en-llamas.png", group: "expressions" },
   aura: { src: "/images/Doty/expressions/aura.png", group: "expressions" },
   cocinado: { src: "/images/Doty/expressions/cocinado.png", group: "expressions" },

@@ -871,7 +871,9 @@
       "prompt": "a yellow taxi cab seen from directly behind and slightly above, roof sign on top, two round red taillights, a large empty rear window showing only the pale blue interior with no one inside, a wide checkered stripe along the rear bumper, rear wheels peeking out at the sides, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Yellow_taxi_from_behind_a_yellow_taxi_cab_seen_from_46a09552-e85f-4b8d-af8f-284ea985af7e_3.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-taxi-d1",
@@ -880,8 +882,10 @@
       "prompt": "the same taxi from behind with a single round dent on the trunk lid, the rear window still empty",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "edit_from": "dotaxi-taxi"
+      "done": true,
+      "edit_from": "dotaxi-taxi",
+      "source_file": "Mandrakin_Taxi_with_one_dent_the_same_taxi_from_behind_with_a_64cea7a0-237f-454e-84d2-6f5f9254429f_1.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-taxi-d2",
@@ -890,8 +894,10 @@
       "prompt": "the same taxi from behind with two round dents on the trunk and a thin crack across the empty rear window",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "edit_from": "dotaxi-taxi"
+      "done": true,
+      "edit_from": "dotaxi-taxi",
+      "source_file": "Mandrakin_Taxi_with_two_dents_the_same_taxi_from_behind_with__a72bc4d4-a775-498e-a062-5321f9ba28d7_2.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-taxi-d3",
@@ -900,8 +906,10 @@
       "prompt": "the same taxi from behind with three dents, the left taillight broken and unlit, a longer crack across the empty rear window, a small puff of light grey smoke rising past the roof",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "edit_from": "dotaxi-taxi"
+      "done": true,
+      "edit_from": "dotaxi-taxi",
+      "source_file": "Mandrakin_Taxi_with_three_dents_the_same_taxi_from_behind_wit_93691960-56ff-4829-9466-a6df9f17494b_2.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-taxi-d4",
@@ -910,8 +918,10 @@
       "prompt": "the same taxi from behind badly dented in four places, the roof sign knocked askew, the empty rear window cracked in a web, two puffs of light grey smoke rising past the roof",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "edit_from": "dotaxi-taxi"
+      "done": true,
+      "edit_from": "dotaxi-taxi",
+      "source_file": "Mandrakin_Taxi_with_four_dents_the_same_taxi_from_behind_badl_94a9c836-9f56-4ce5-bea2-1b7cbb95ce4a_1.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-taxi-wrecked",
@@ -920,8 +930,10 @@
       "prompt": "the same taxi from behind wrecked: dents everywhere, the roof sign hanging sideways and unlit, both taillights broken, the empty rear window shattered in a web, the bumper drooping on one side, a thick plume of light grey smoke rising past the roof",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "edit_from": "dotaxi-taxi"
+      "done": true,
+      "edit_from": "dotaxi-taxi",
+      "source_file": "Mandrakin_Wrecked_smoking_taxi_the_same_taxi_from_behind_wrec_42e3deea-4d1d-44cb-979a-5cee3cd98bc7_2.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-puerto",
@@ -930,7 +942,9 @@
       "prompt": "a small harbor seen straight from the front, a short pier over cyan-blue water, a white lighthouse with red bands and a glowing yellow lamp, a tiny pink boat moored beside it, a completely blank white rectangular signboard on a post with nothing written on it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Harbor_pier_with_a_lighthouse_a_small_harbor_seen_s_d74049b8-f49c-4e9e-a46f-22ef1a55d6c8_2.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-laboratorio",
@@ -939,7 +953,9 @@
       "prompt": "a small science laboratory building seen straight from the front, cream walls, a violet roof strip, a big round cyan window, a pink flask-shaped sign on the roof, two blue doors, a completely blank white rectangular signboard above the entrance with nothing written on it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Science_laboratory_building_a_small_science_laborat_43db949b-3cf4-40db-bd22-239e7a43f541_3.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-estadio",
@@ -948,7 +964,9 @@
       "prompt": "a small football stadium seen straight from the front, a pink rounded bowl with a white ring of seats, a cyan entrance arch, two tall white floodlight poles with glowing yellow lamps, a completely blank white rectangular signboard above the entrance with nothing written on it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Football_stadium_with_floodlights_a_small_football__78b5433f-8771-48a4-aadc-9b0b4bb51bd4_0.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-skyline-dia",
@@ -958,7 +976,9 @@
       "size": 1536,
       "aspect": "3:1",
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_City_skyline_by_day_a_wide_flat_city_skyline_strip__b82376aa-f02c-430b-b1dc-192339114417_2.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-skyline-noche",
@@ -968,7 +988,9 @@
       "size": 1536,
       "aspect": "3:1",
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_City_skyline_at_night_a_wide_flat_city_skyline_stri_e1a37f71-f026-4781-b89f-a7fbf57d7be6_3.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dotaxi-pothole",
@@ -977,7 +999,9 @@
       "prompt": "a round pothole in a road seen straight from above, jagged cracked rim, a cyan-blue puddle of water inside with a small white reflection, a few loose pebbles around it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Cracked_pothole_with_a_puddle_a_round_pothole_in_a__434a0273-42ea-47d0-bf72-a7301e9cdd16_0.png",
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "dont-pop",
@@ -1051,7 +1075,8 @@
       "prompt": "standing upright wearing a yellow taxi driver cap with a cyan visor and a small round pink badge, one hand resting on a small steering wheel held in front, proud confident smile",
       "size": 1024,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_the_taxi_driver_standing_upright_wearing_a_yel_626bad64-ff24-4acf-b312-607db6177e57_1.png"
     }
   ]
 }

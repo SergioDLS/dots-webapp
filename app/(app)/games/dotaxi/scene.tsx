@@ -40,13 +40,17 @@ export type Damage = 0 | 1 | 2 | 3 | 4 | 5;
 export const TAXI_W = 128;
 export const TAXI_H = 110;
 
-// ── Cielo y skyline ──────────────────────────────────────────────────────────
+/** Sprite por escalón de daño: 0 intacto … 5 destruido. */
+const TAXI_SPRITES: Record<Damage, string> = {
+  0: "dotaxi-taxi",
+  1: "dotaxi-taxi-d1",
+  2: "dotaxi-taxi-d2",
+  3: "dotaxi-taxi-d3",
+  4: "dotaxi-taxi-d4",
+  5: "dotaxi-taxi-wrecked",
+};
 
-const BUILDINGS: readonly { w: number; h: number }[] = [
-  { w: 30, h: 46 }, { w: 22, h: 30 }, { w: 40, h: 68 }, { w: 26, h: 38 },
-  { w: 34, h: 56 }, { w: 20, h: 26 }, { w: 44, h: 74 }, { w: 28, h: 42 },
-  { w: 36, h: 60 }, { w: 24, h: 34 }, { w: 32, h: 50 }, { w: 40, h: 64 },
-];
+// ── Cielo y skyline ──────────────────────────────────────────────────────────
 
 const STARS: readonly [number, number][] = [
   [8, 12], [22, 30], [37, 9], [51, 24], [64, 14], [78, 33], [90, 10], [15, 48], [45, 44], [70, 52], [96, 42], [30, 60],
@@ -88,31 +92,32 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
           }}
         />
       ))}
-      {/* skyline: siluetas teñidas con el cielo; las ventanas se encienden de noche */}
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-center gap-[2px] overflow-hidden">
-        {BUILDINGS.map((b, i) => (
-          <div
-            key={i}
-            className="relative shrink-0"
-            style={{
-              width: b.w, height: b.h,
-              background: "color-mix(in srgb, var(--sky-bottom) 40%, #1e1b5c)",
-              borderRadius: "3px 3px 0 0",
-            }}
-          >
-            <div
-              className="absolute inset-x-1 top-1 bottom-0"
-              style={{
-                backgroundImage: `repeating-linear-gradient(0deg, ${TAXI_YELLOW} 0 3px, transparent 3px 8px), repeating-linear-gradient(90deg, ${TAXI_YELLOW} 0 3px, transparent 3px 8px)`,
-                backgroundBlendMode: "multiply",
-                opacity: "calc(var(--dotaxi-night) * 0.85)",
-                maskImage: `repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 8px)`,
-                WebkitMaskImage: `repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 8px)`,
-              }}
-            />
-          </div>
-        ))}
-      </div>
+      {/* skyline: dos franjas 3:1 (dotaxi-skyline-dia / -noche) con fundido por
+          --dotaxi-night. El pipeline las deja centradas en un lienzo cuadrado:
+          la franja ocupa de 0,395 a 0,604 del alto, y se coloca para que su
+          pie caiga en el horizonte. */}
+      {(["dia", "noche"] as const).map((v) => (
+        <Image
+          key={v}
+          src={`/images/games/dotaxi-skyline-${v}.png`}
+          alt=""
+          aria-hidden
+          width={1536}
+          height={1536}
+          sizes="420px"
+          priority
+          draggable={false}
+          className="absolute select-none"
+          style={{
+            left: "50%",
+            width: m.sceneW * 1.04,
+            height: m.sceneW * 1.04,
+            top: skyH - m.sceneW * 1.04 * 0.604,
+            transform: "translateX(-50%)",
+            opacity: v === "noche" ? "var(--dotaxi-night)" : "calc(1 - var(--dotaxi-night))",
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -292,14 +297,6 @@ export function GantryApproach({ m, progress, children }: { m: PlaneMetrics; pro
 
 // ── Taxi trasero ─────────────────────────────────────────────────────────────
 
-const DENTS: readonly { top: number; left: number; w: number; h: number }[] = [
-  { top: 58, left: 22, w: 16, h: 10 },
-  { top: 12, left: 84, w: 14, h: 9 },
-  { top: 70, left: 84, w: 18, h: 11 },
-  { top: 36, left: 12, w: 12, h: 14 },
-  { top: 20, left: 46, w: 20, h: 9 },
-];
-
 /**
  * El taxi visto por detrás con Doty al volante. Placeholder CSS hasta que
  * lleguen los sprites dotaxi-taxi{,-d1..-d4,-wrecked}: entonces este cuerpo
@@ -346,126 +343,60 @@ export function TaxiRear({
               filter: "blur(2px)",
             }}
           />
-          {/* ruedas traseras */}
-          {[6, TAXI_W - 28].map((left) => (
-            <div key={left} className="absolute rounded-md" style={{ left, top: 76, width: 22, height: 30, background: INK }} />
-          ))}
-          {/* carrocería */}
-          <div
-            className="absolute"
-            style={{
-              left: 10, right: 10, top: 8, bottom: 14,
-              background: `linear-gradient(180deg, ${TAXI_YELLOW}, ${TAXI_YELLOW_DEEP})`,
-              border: `3px solid ${INK}`,
-              borderRadius: "26px 26px 18px 18px",
-              boxShadow: "0 8px 14px rgba(0,0,0,0.35)",
-            }}
-          >
-            {/* cartel del techo */}
+          {/* carrocería: un sprite por escalón de daño (dotaxi-taxi, -d1..-d4,
+              -wrecked). El lienzo es cuadrado de 512 con el taxi ocupando de
+              y=40 a y=469: se pinta a TAXI_W y se baja para que las ruedas
+              apoyen en el pie del wrapper. */}
+          <Image
+            src={`/images/games/${TAXI_SPRITES[damage]}.png`}
+            alt=""
+            aria-hidden
+            width={512}
+            height={512}
+            sizes={`${TAXI_W * 2}px`}
+            priority
+            draggable={false}
+            className="absolute select-none"
+            style={{ left: 0, bottom: -10, width: TAXI_W, height: TAXI_W }}
+          />
+          {/* luneta: se ve la NUCA de Doty al volante, con la gorra. Su cara va
+              en la burbuja de reacción, que es donde una expresión se lee
+              desde atrás. Coordenadas sobre el sprite: ventana ≈ x 32-96, y 32-58. */}
+          <div className="absolute" style={{ left: 40, top: 34, width: 22, height: 22 }}>
+            <div className="absolute rounded-full" style={{ left: 0, top: 4, width: 22, height: 22, background: "#ff1f8f", border: `2px solid ${INK}` }} />
+            <div className="absolute rounded-t-full" style={{ left: -2, top: 0, width: 26, height: 10, background: INK }} />
+            <div className="absolute rounded-full" style={{ left: -3, top: 8, width: 28, height: 3.5, background: TAXI_YELLOW, border: `1px solid ${INK}` }} />
+          </div>
+          {/* pilotos encendidos al frenar: sobre los del sprite (x≈24 y 102, y≈74) */}
+          {[24, 102].map((cx, i) => (
             <div
-              className="absolute left-1/2 rounded-md px-2 py-0.5 text-[9px] font-black tracking-widest"
+              key={i}
+              aria-hidden
+              className="absolute rounded-full"
               style={{
-                top: -12,
-                background: INK,
-                color: TAXI_YELLOW,
-                transform: `translateX(-50%) rotate(${damage >= 4 ? -14 : 0}deg)`,
-                transition: "transform 0.3s var(--ease-out-strong)",
-                opacity: wrecked ? 0.55 : 1,
-              }}
-            >
-              TAXI
-            </div>
-            {/* luneta: se ve la NUCA de Doty al volante, con la gorra. Su cara
-                va en la burbuja de reacción (ReactionBubble), que es donde
-                una expresión se lee desde atrás. */}
-            <div
-              className="absolute overflow-hidden"
-              style={{ left: 18, right: 18, top: 8, height: 38, background: "#bfe9ff", border: `2px solid ${INK}`, borderRadius: 12 }}
-            >
-              {/* reposacabezas */}
-              <div className="absolute rounded-md" style={{ left: 12, top: 18, width: 30, height: 22, background: "#2a2750", border: `2px solid ${INK}` }} />
-              {/* cabeza por detrás */}
-              <div className="absolute rounded-full" style={{ left: 14, top: 6, width: 26, height: 26, background: "#ff1f8f", border: `2px solid ${INK}` }} />
-              {/* gorra: copa y banda */}
-              <div className="absolute rounded-t-full" style={{ left: 12, top: 1, width: 30, height: 12, background: INK }} />
-              <div className="absolute rounded-full" style={{ left: 10, top: 10, width: 34, height: 4, background: TAXI_YELLOW, border: `1px solid ${INK}` }} />
-              {/* grietas */}
-              {damage >= 2 && (
-                <div aria-hidden className="absolute" style={{ top: -4, left: 52, width: 2, height: 46, background: INK, transform: "rotate(24deg)", opacity: 0.8 }} />
-              )}
-              {damage >= 4 && (
-                <div aria-hidden className="absolute" style={{ top: 6, left: 30, width: 2, height: 30, background: INK, transform: "rotate(-38deg)", opacity: 0.8 }} />
-              )}
-            </div>
-            {/* línea del maletero */}
-            <div className="absolute" style={{ left: 16, right: 16, top: 54, height: 2, background: INK, opacity: 0.55 }} />
-            {/* matrícula */}
-            <div
-              className="absolute left-1/2 flex items-center justify-center rounded-sm text-[7px] font-black"
-              style={{
-                top: 58, width: 30, height: 11, background: SIGN_FACE, border: `1.5px solid ${INK}`, color: INK,
-                transform: `translateX(-50%) rotate(${damage >= 3 ? 9 : 0}deg)`,
-                transition: "transform 0.3s var(--ease-out-strong)",
-              }}
-            >
-              DOTS
-            </div>
-            {/* pilotos */}
-            {[
-              { left: 8, broken: damage >= 3 },
-              { right: 8, broken: false },
-            ].map((p, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full"
-                style={{
-                  ...(p.left !== undefined ? { left: p.left } : { right: p.right }),
-                  top: 60, width: 18, height: 9,
-                  background: p.broken ? "#4a1020" : braking ? BRAKE_RED : BRAKE_DIM,
-                  border: `1.5px solid ${INK}`,
-                  boxShadow: braking && !p.broken ? `0 0 10px ${BRAKE_RED}` : "none",
-                  transition: "background 150ms, box-shadow 150ms",
-                }}
-              />
-            ))}
-            {/* parachoques con la franja a cuadros */}
-            <div
-              className="absolute"
-              style={{
-                left: 6, right: 6, bottom: -2, height: 9, borderRadius: 4,
-                background: `repeating-linear-gradient(90deg, ${INK} 0 7px, ${SIGN_FACE} 7px 14px)`,
-                border: `1.5px solid ${INK}`,
+                left: cx - 9, top: 68, width: 18, height: 12,
+                background: BRAKE_RED,
+                boxShadow: `0 0 10px ${BRAKE_RED}, 0 0 22px ${BRAKE_RED}`,
+                opacity: braking && !(i === 0 && damage >= 3) ? 0.95 : 0,
+                transition: "opacity 150ms",
               }}
             />
-            {/* abolladuras: una por corazón perdido */}
-            {DENTS.slice(0, Math.min(damage, 5)).map((d) => (
-              <div
-                key={`${d.top}-${d.left}`}
-                className="absolute rounded-full"
-                style={{
-                  top: d.top, left: d.left, width: d.w, height: d.h,
-                  background: "rgba(30,27,92,0.45)",
-                  boxShadow: "inset 1px 1px 0 rgba(255,255,255,0.35)",
-                }}
-              />
-            ))}
-            {/* destrozado: la pintura pierde brillo */}
-            {wrecked && <div className="absolute inset-0 rounded-[22px]" style={{ background: "rgba(60,60,80,0.28)" }} />}
-          </div>
-          {/* humo: del morro (más allá del techo) desde el tercer golpe */}
-          {damage >= 3 &&
-            Array.from({ length: wrecked ? 4 : damage >= 4 ? 2 : 1 }).map((_, i) => (
+          ))}
+          {/* humo animado solo en el destrozado: d3 y d4 ya traen su bocanada
+              pintada en el sprite, y dos humos no suman, ensucian */}
+          {wrecked &&
+            Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
                 aria-hidden
                 className="absolute rounded-full"
                 style={{
-                  top: -10 - (i % 2) * 6,
-                  left: 44 + i * 12,
-                  width: wrecked ? 20 : 14,
-                  height: wrecked ? 20 : 14,
+                  top: -14 - (i % 2) * 6,
+                  left: 70 + i * 10,
+                  width: 20,
+                  height: 20,
                   background: "rgba(205,205,220,0.85)",
-                  animation: `dotaxi-smoke ${wrecked ? 1.4 : 1.1}s ease-out ${i * 0.3}s infinite`,
+                  animation: `dotaxi-smoke 1.4s ease-out ${i * 0.3}s infinite`,
                 }}
               />
             ))}
@@ -486,62 +417,35 @@ export function Pothole({ m, pct, to, durationMs }: { m: PlaneMetrics; pct: numb
       className="pointer-events-none absolute"
       style={{
         left: x - 18,
-        top: -12,
+        top: -18,
         width: 36,
-        height: 24,
+        height: 36,
         ["--to" as string]: `${to}px`,
         animation: `dotaxi-approach ${durationMs}ms linear both`,
       }}
     >
-      <div className="absolute inset-0 rounded-[50%]" style={{ background: "#141228", border: `2px solid ${ASPHALT_EDGE}` }} />
-      <div className="absolute rounded-[50%]" style={{ top: 6, left: 7, width: 22, height: 12, background: "linear-gradient(180deg,#35d8f5,#3768ff)", opacity: 0.9 }} />
+      <Image src="/images/games/dotaxi-pothole.png" alt="" aria-hidden width={512} height={512} sizes="120px" priority draggable={false} className="absolute inset-0 h-full w-full select-none" />
     </div>
   );
 }
 
 // ── Destino ──────────────────────────────────────────────────────────────────
 
-/** El edificio de cada destino. Placeholder hasta dotaxi-{puerto,laboratorio,estadio}. */
+/** El edificio de cada destino (dotaxi-puerto / -laboratorio / -estadio). */
 export function DestinationArt({ trip, width }: { trip: Trip; width: number }) {
-  const s = width / 96; // dibujado a 96 de ancho
-  const k = trip.destination.key;
   return (
-    <div className="relative" style={{ width, height: 92 * s }}>
-      <div className="absolute inset-0" style={{ transform: `scale(${s})`, transformOrigin: "top left", width: 96, height: 92 }}>
-        {k === "puerto" && (
-          <>
-            <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: 14, background: "#35d8f5", border: `2px solid ${INK}`, borderRadius: 4 }} />
-            <div className="absolute" style={{ left: 34, bottom: 12, width: 28, height: 64, background: `repeating-linear-gradient(180deg, ${SIGN_FACE} 0 12px, ${BRAKE_RED} 12px 24px)`, border: `2px solid ${INK}`, borderRadius: "6px 6px 2px 2px" }} />
-            <div className="absolute" style={{ left: 30, bottom: 74, width: 36, height: 12, background: INK, borderRadius: 3 }} />
-            <div className="absolute rounded-full" style={{ left: 40, bottom: 77, width: 16, height: 8, background: TAXI_YELLOW, boxShadow: `0 0 10px ${TAXI_YELLOW}` }} />
-            <div className="absolute" style={{ left: 4, bottom: 10, width: 22, height: 10, background: "#ff1f8f", border: `2px solid ${INK}`, borderRadius: "2px 2px 8px 8px" }} />
-          </>
-        )}
-        {k === "laboratorio" && (
-          <>
-            <div className="absolute" style={{ left: 6, right: 6, bottom: 0, height: 64, background: SIGN_FACE, border: `2px solid ${INK}`, borderRadius: 6 }} />
-            <div className="absolute" style={{ left: 2, right: 2, bottom: 60, height: 12, background: "#9c84dc", border: `2px solid ${INK}`, borderRadius: 4 }} />
-            <div className="absolute rounded-full" style={{ left: 34, bottom: 24, width: 28, height: 28, background: "#35d8f5", border: `2px solid ${INK}` }} />
-            <div className="absolute" style={{ left: 14, bottom: 0, width: 14, height: 22, background: "#3768ff", border: `2px solid ${INK}`, borderRadius: "6px 6px 0 0" }} />
-            <div className="absolute" style={{ left: 68, bottom: 0, width: 14, height: 22, background: "#3768ff", border: `2px solid ${INK}`, borderRadius: "6px 6px 0 0" }} />
-            <div className="absolute" style={{ left: 38, bottom: 72, width: 20, height: 18, background: "#ff1f8f", border: `2px solid ${INK}`, borderRadius: "4px 4px 10px 10px" }} />
-          </>
-        )}
-        {k === "estadio" && (
-          <>
-            <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: 46, background: "#ff1f8f", border: `2px solid ${INK}`, borderRadius: "40px 40px 8px 8px" }} />
-            <div className="absolute" style={{ left: 12, right: 12, bottom: 30, height: 12, background: SIGN_FACE, border: `2px solid ${INK}`, borderRadius: 20 }} />
-            <div className="absolute" style={{ left: 22, right: 22, bottom: 0, height: 16, background: "#35d8f5", border: `2px solid ${INK}`, borderRadius: "6px 6px 0 0" }} />
-            {[6, 84].map((x) => (
-              <React.Fragment key={x}>
-                <div className="absolute" style={{ left: x, bottom: 44, width: 4, height: 40, background: INK }} />
-                <div className="absolute rounded-sm" style={{ left: x - 6, bottom: 82, width: 16, height: 8, background: TAXI_YELLOW, border: `1.5px solid ${INK}`, boxShadow: `0 0 10px ${TAXI_YELLOW}` }} />
-              </React.Fragment>
-            ))}
-          </>
-        )}
-      </div>
-    </div>
+    <Image
+      src={`/images/games/dotaxi-${trip.destination.key}.png`}
+      alt=""
+      aria-hidden
+      width={512}
+      height={512}
+      sizes={`${Math.round(width * 2)}px`}
+      priority
+      draggable={false}
+      className="h-auto select-none object-contain"
+      style={{ width }}
+    />
   );
 }
 
