@@ -11,12 +11,11 @@ import {
   laneXAtScale,
   edgeXAt,
   SIDEWALK_BOTTOM_PX,
-  project,
   travel,
   TRAVEL_END,
   type PlaneMetrics,
 } from "./perspective";
-import type { Trip } from "./trip";
+import type { DestinationKey, Trip } from "./trip";
 
 // ── Paleta fija de la escena ─────────────────────────────────────────────────
 // Solo el cielo (tokens --sky-*) y las ventanas del skyline (--dotaxi-night)
@@ -447,7 +446,10 @@ export function FloatingWords({
               ? WORD_Y_LOW
               : WORD_Y_HIGH;
         const restY = m.sceneH * yFrac;
-        const size = opt.length >= 9 ? fontPx - 2 : fontPx;
+        // una opción kilométrica («I'm looking forward to getting to know you
+        // all») no cabe ni en una fila entera: baja de tamaño y se parte
+        const huge = opt.length > 26;
+        const size = huge ? fontPx - 4 : opt.length >= 9 ? fontPx - 2 : fontPx;
         const estW = Math.min(maxW, opt.length * size * 0.58 + 20);
         const clampedRestX = Math.min(Math.max(restX, estW / 2 + 6), m.sceneW - estW / 2 - 6);
         const cx = vpX + ((x > 0 ? restX : clampedRestX) - vpX) * g;
@@ -486,7 +488,7 @@ export function FloatingWords({
                   letterSpacing: "0.01em",
                   textDecoration: isBlocked ? "line-through" : "none",
                   textDecorationThickness: 3,
-                  whiteSpace: !staircase && opt.length > 12 ? "normal" : "nowrap",
+                  whiteSpace: huge || (!staircase && opt.length > 12) ? "normal" : "nowrap",
                   touchAction: "manipulation",
                   transition: "color 0.2s",
                 }}
@@ -862,42 +864,144 @@ export function DestinationArt({ trip, width }: { trip: Trip; width: number }) {
   );
 }
 
+// ── Llegada: cutscene ────────────────────────────────────────────────────────
+
+/** Dónde empieza y dónde apoya cada edificio dentro de su lienzo cuadrado
+ *  (fracciones del alto, medidas en el PNG): así el pie del dibujo cae en la
+ *  explanada y el letrero queda justo sobre el tejado. */
+const DEST_TOP_FRAC: Record<DestinationKey, number> = { puerto: 0.17, laboratorio: 0.1, estadio: 0.24 };
+const DEST_BASE_FRAC: Record<DestinationKey, number> = { puerto: 0.83, laboratorio: 0.9, estadio: 0.76 };
+/** Escala final del taxi al frenar en la puerta: la misma que el `to` de
+ *  `dotaxi-arrive-drive` en globals.css (la animación manda; esto coloca al
+ *  pasajero y las burbujas a su alrededor). */
+const ARRIVE_TAXI_SCALE = 0.5;
+/** El taxi aparca a la izquierda de la puerta (fracción del ancho): así el
+ *  pasajero baja hacia la entrada y su bocadillo crece hacia la derecha sin
+ *  chocar con la burbuja de Doty, que queda a la izquierda del techo. */
+const ARRIVE_TAXI_X = 0.36;
+
 /**
- * El destino acercándose por el centro de la calzada. Va en espacio de
- * pantalla y se coloca con project(): probado sobre el plano con
- * preserve-3d, el navegador lo escalaba 2,5 veces más de lo que dice la
- * geometría y el cartel tapaba la calzada entera. Con la proyección a mano
- * el tamaño es exactamente el que se calcula. Solo transform y opacity.
+ * La llegada como escena aparte: funde a un cielo limpio con una explanada y
+ * el edificio del destino grande y centrado (sin carretera ni skyline: un
+ * estadio plantado en mitad de la autopista se veía raro). El taxi entra por
+ * abajo y se aleja hacia la puerta encogiéndose, frena con luces y humo, el
+ * pasajero baja y agradece y Doty celebra en burbuja. Solo transform/opacity;
+ * `progress` (0→1) lo lleva el ticker con la frenada de la carretera.
  */
-export function DestinationApproach({ m, trip, progress }: { m: PlaneMetrics; trip: Trip; progress: number }) {
-  // llega rápido y frena, como el taxi
+export function ArrivalCutscene({
+  m,
+  trip,
+  progress,
+  passengerOut,
+  reaction,
+  damage,
+  driveMs,
+}: {
+  m: PlaneMetrics;
+  trip: Trip;
+  progress: number;
+  passengerOut: boolean;
+  reaction: DotyPose | null;
+  damage: Damage;
+  driveMs: number;
+}) {
+  const W = m.sceneW;
+  const H = m.sceneH;
+  const groundY = H * 0.7;
+  const buildingW = Math.min(W * 0.8, H * 0.62);
+  const key = trip.destination.key;
+  const buildingTop = groundY - DEST_BASE_FRAC[key] * buildingW;
+  const roofY = buildingTop + DEST_TOP_FRAC[key] * buildingW;
   const p = Math.min(1, Math.max(0, progress));
-  const e = 1 - Math.pow(1 - p, 3);
-  const { k, y } = project(m, m.planeH * 0.7 * e);
-  // ancho que tendría en el pie del plano; a la parada (70 %) queda en ~200 px
-  const w = 620;
-  const scale = k / m.kBottom;
+  const parked = p >= 1;
+  // el taxi acaba con las ruedas un poco por debajo de la línea de la explanada
+  const taxiBottom = H - groundY - 10;
+  const taxiW = TAXI_W * ARRIVE_TAXI_SCALE;
+  const taxiH = TAXI_H * ARRIVE_TAXI_SCALE;
+  // entra por el centro y se va cerrando hacia su plaza, con la misma frenada
+  // que el resto (el ticker lleva `progress`; solo transform)
+  const ease = 1 - Math.pow(1 - p, 3);
+  const taxiX = W / 2 + (W * ARRIVE_TAXI_X - W / 2) * ease;
   return (
     <div
-      data-testid="destination"
+      data-testid="arrival"
       aria-hidden
-      className="pointer-events-none absolute left-0 top-0 flex flex-col items-center"
-      style={{
-        width: w,
-        transform: `translate(${m.sceneW / 2}px, ${y}px) translate(-50%, -100%) scale(${scale})`,
-        transformOrigin: "bottom center",
-        opacity: Math.min(1, 0.4 + e),
-      }}
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={{ animation: "dotaxi-cut-in 400ms ease-out both" }}
     >
-      {/* El letrero lleva el nombre como TEXTO de marca: el arte se genera con
-          el cartel en blanco. */}
+      {/* cielo y astro, como en la carretera */}
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--sky-top), var(--sky-bottom))" }} />
+      <div className="absolute rounded-full" style={{ top: H * 0.1, right: 26, width: 34, height: 34, background: TAXI_YELLOW, boxShadow: `0 0 20px ${TAXI_YELLOW}`, opacity: "calc(1 - var(--dotaxi-night))" }} />
+      <div className="absolute rounded-full" style={{ top: H * 0.1, right: 28, width: 30, height: 30, background: SIGN_FACE, boxShadow: `0 0 14px ${SIGN_FACE}`, opacity: "var(--dotaxi-night)" }} />
+      {([[0.06, 0.16, 110], [0.62, 0.3, 84]] as const).map(([xf, yf, w], i) => (
+        <div key={i} className="absolute" style={{ left: W * xf, top: H * yf - w * 0.25, width: w, height: w * 0.5, animation: `dotaxi-float ${5 + i}s ease-in-out infinite`, opacity: "calc(0.95 - 0.45 * var(--dotaxi-night))" }}>
+          <Image src="/images/games/dotaxi-nube.png" alt="" aria-hidden width={512} height={512} sizes={`${w * 2}px`} draggable={false} className="absolute select-none" style={{ left: 0, top: -w * 0.24, width: w, height: w }} />
+        </div>
+      ))}
+      {/* explanada: franja de césped y plaza embaldosada */}
+      <div className="absolute inset-x-0" style={{ top: groundY - 10, height: 10, background: "color-mix(in srgb, var(--sky-bottom) 28%, #2f7a4f)" }} />
       <div
-        className="mb-2 rounded-2xl px-6 py-2 font-display text-[54px] font-extrabold tracking-wider"
-        style={{ background: SIGN_FACE, color: "var(--accent)", border: `8px solid ${INK}`, boxShadow: `0 8px 0 ${INK}` }}
+        className="absolute inset-x-0 bottom-0"
+        style={{
+          top: groundY,
+          background: `color-mix(in srgb, var(--sky-bottom) 16%, ${SIDEWALK})`,
+          backgroundImage: `repeating-linear-gradient(to bottom, ${SIDEWALK_LINE} 0 1.5px, transparent 1.5px 26px)`,
+        }}
+      />
+      {/* el edificio y su letrero */}
+      <div className="absolute" style={{ left: "50%", top: buildingTop, width: buildingW, transform: "translateX(-50%)" }}>
+        <DestinationArt trip={trip} width={buildingW} />
+      </div>
+      <div
+        className="absolute rounded-2xl px-5 py-1.5 font-display text-[26px] font-extrabold tracking-wider"
+        style={{ left: "50%", top: Math.max(10, roofY - 58), transform: "translateX(-50%)", background: SIGN_FACE, color: "var(--accent)", border: `4px solid ${INK}`, boxShadow: `0 5px 0 ${INK}` }}
       >
         {trip.destination.sign}
       </div>
-      <DestinationArt trip={trip} width={w} />
+      {/* el taxi: entra grande por abajo, se cierra a la izquierda y frena
+          ante la puerta. La x la lleva el ticker; la y y la escala, la
+          animación (misma curva de frenada). */}
+      <div className="absolute left-0 bottom-0" style={{ transform: `translateX(${taxiX}px)` }}>
+        <div
+          data-testid="arrival-taxi"
+          className="absolute"
+          style={{
+            left: 0,
+            bottom: 0,
+            transformOrigin: "bottom center",
+            ["--from-y" as string]: "24px",
+            ["--to-y" as string]: `${-taxiBottom}px`,
+            animation: `dotaxi-arrive-drive ${driveMs}ms cubic-bezier(0.2, 0.8, 0.2, 1) both`,
+          }}
+        >
+          <div className="relative">
+            <TaxiRear damage={damage} braking={parked} crashing={false} />
+            {parked && <TireSmoke />}
+          </div>
+        </div>
+      </div>
+      {/* el pasajero baja hacia la puerta y agradece, hacia la derecha */}
+      {passengerOut && (
+        <div
+          className="absolute"
+          style={{ left: W * ARRIVE_TAXI_X + taxiW / 2 + 10, bottom: taxiBottom - 2, animation: "dotaxi-fade-in 0.35s var(--ease-out-strong) both" }}
+        >
+          <Passenger trip={trip} size={44} />
+          <SpeechBubble
+            text={trip.voice.thanks}
+            tail="left"
+            style={{ left: -4, bottom: 44 + 10, width: "max-content", maxWidth: W * 0.42, fontSize: 12 }}
+          />
+        </div>
+      )}
+      {/* Doty celebra a la izquierda del techo */}
+      {parked && reaction && (
+        <ReactionBubble
+          pose={reaction}
+          side="left"
+          style={{ right: W - (W * ARRIVE_TAXI_X - taxiW / 2) + 2, bottom: taxiBottom + taxiH - 6 }}
+        />
+      )}
     </div>
   );
 }

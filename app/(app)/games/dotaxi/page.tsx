@@ -43,7 +43,7 @@ import {
   TireSmoke,
   TaxiRear,
   ReactionBubble,
-  DestinationApproach,
+  ArrivalCutscene,
   DestinationArt,
   Passenger,
   SpeechBubble,
@@ -99,9 +99,12 @@ const HURRY_AT_MS = 1300;
 const SPEED_PER_COMBO = 0.12;
 const SPEED_MAX_COMBO = 5;
 const BURST_BOOST = 0.6;
-// Llegada: el destino crece desde el punto de fuga y la carretera frena.
-const ARRIVAL_BRAKE_MS = 1400;
-const ARRIVAL_MS = 2400;
+// Llegada: la carretera frena mientras la cutscene funde y el taxi recorre la
+// explanada hasta la puerta (ARRIVAL_BRAKE_MS); el pasajero baja un poco
+// después y la escena se sostiene hasta ARRIVAL_MS.
+const ARRIVAL_BRAKE_MS = 1500;
+const ARRIVAL_OUT_MS = 1900;
+const ARRIVAL_MS = 3800;
 // Avería: al perder el último corazón el taxi se detiene humeando.
 const BREAKDOWN_MS = 2200;
 const TIER_ZOOM_MS = 450; // cámara alejándose al abrirse un carril
@@ -443,7 +446,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setBrakeProgress(0);
     setPassengerOut(false);
     setPhase("arrival");
-    setT("out", () => setPassengerOut(true), ARRIVAL_BRAKE_MS);
+    setT("out", () => setPassengerOut(true), ARRIVAL_OUT_MS);
     setT("arrival", finishGame, ARRIVAL_MS);
   }, [clearT, setT, finishGame]);
 
@@ -921,11 +924,6 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     <Obstacle key={o.id} m={m} kind={o.kind} pct={o.pct} p={obstacleT / OBSTACLE_MS} />
                   ))}
 
-                {/* Llegada: el destino se acerca por el centro de la calzada */}
-                {phase === "arrival" && trip && (
-                  <DestinationApproach m={m} trip={trip} progress={brakeProgress} />
-                )}
-
                 {/* Zona de toque de cada carril, a todo lo alto; las de los
                     extremos se estiran hasta el borde. Va DEBAJO del pórtico
                     en el DOM para no robarle el tap. */}
@@ -972,49 +970,53 @@ function DotaxiInner({ seed }: { seed?: number }) {
                   </>
                 )}
 
-                {/* Taxi. Decorativo (pointer-events none), o taparía la zona
-                    del carril donde está parado. Capas: carril (280 ms, o el
-                    frenazo entero al centrarse), zoom de cámara (450 ms) e
-                    inclinación del giro (260 ms): tres duraciones distintas
-                    no caben en un solo transform. */}
-                <div
-                  data-testid="taxi"
-                  className="pointer-events-none absolute"
-                  style={{
-                    left: 0,
-                    bottom: 10,
-                    transform: `translateX(${taxiX}px) translateX(-50%)`,
-                    transition: `transform ${phase === "arrival" ? ARRIVAL_BRAKE_MS : 280}ms var(--ease-out-strong)`,
-                  }}
-                >
+                {/* En la llegada el taxi lo pinta la cutscene */}
+                {phase !== "arrival" && (
+                  <>
+                  {/* Taxi. Decorativo (pointer-events none), o taparía la zona
+                      del carril donde está parado. Capas: carril (280 ms), zoom
+                      de cámara (450 ms) e inclinación del giro (260 ms): tres
+                      duraciones distintas no caben en un solo transform. */}
                   <div
+                    data-testid="taxi"
+                    className="pointer-events-none absolute"
                     style={{
-                      transform: `scale(${laneScale})`,
-                      transformOrigin: "bottom center",
-                      transition: `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong)`,
+                      left: 0,
+                      bottom: 10,
+                      transform: `translateX(${taxiX}px) translateX(-50%)`,
+                      transition: "transform 280ms var(--ease-out-strong)",
                     }}
                   >
                     <div
-                      className="relative"
                       style={{
-                        transform: `rotate(${tilt}deg)`,
+                        transform: `scale(${laneScale})`,
                         transformOrigin: "bottom center",
-                        transition: `transform ${TAXI_TILT_MS}ms var(--ease-out-strong)`,
+                        transition: `transform ${TIER_ZOOM_MS}ms var(--ease-out-strong)`,
                       }}
                     >
-                      <TaxiRear damage={damage} braking={braking} crashing={impact} speed={speedMul} signal={signal} />
-                      {dustKey > 0 && <Dust key={dustKey} />}
-                      {/* humo de ruedas: en cada golpe y al frenar en la llegada o la avería */}
-                      {dustKey > 0 && <TireSmoke key={`hit-${dustKey}`} />}
-                      {stopped && <TireSmoke />}
+                      <div
+                        className="relative"
+                        style={{
+                          transform: `rotate(${tilt}deg)`,
+                          transformOrigin: "bottom center",
+                          transition: `transform ${TAXI_TILT_MS}ms var(--ease-out-strong)`,
+                        }}
+                      >
+                        <TaxiRear damage={damage} braking={braking} crashing={impact} speed={speedMul} signal={signal} />
+                        {dustKey > 0 && <Dust key={dustKey} />}
+                        {/* humo de ruedas: en cada golpe y al frenar en la llegada o la avería */}
+                        {dustKey > 0 && <TireSmoke key={`hit-${dustKey}`} />}
+                        {stopped && <TireSmoke />}
+                      </div>
                     </div>
+                    {reaction && <ReactionBubble key={reaction} pose={reaction} side={bubbleSide} style={reactionStyle} />}
+                    {/* el pasajero, desde la ventanilla del lado del centro */}
+                    {remark && trip && !passengerOut && (
+                      <Remark key={remarkKey} trip={trip} text={remark} side={bubbleSide === "right" ? "right" : "left"} style={remarkStyle} />
+                    )}
                   </div>
-                  {reaction && <ReactionBubble key={reaction} pose={reaction} side={bubbleSide} style={reactionStyle} />}
-                  {/* el pasajero, desde la ventanilla del lado del centro */}
-                  {remark && trip && !passengerOut && (
-                    <Remark key={remarkKey} trip={trip} text={remark} side={bubbleSide === "right" ? "right" : "left"} style={remarkStyle} />
-                  )}
-                </div>
+                  </>
+                )}
 
                 {/* Las palabras van por encima de todo: al atravesarlas pasan
                     sobre la cámara. Su zona de toque no compite con el taxi
@@ -1032,26 +1034,18 @@ function DotaxiInner({ seed }: { seed?: number }) {
                   />
                 )}
 
-                {/* Llegada: el pasajero baja junto al taxi */}
-                {phase === "arrival" && trip && passengerOut && (
-                  <div
-                    className="pointer-events-none absolute"
-                    style={{
-                      left: taxiX + (TAXI_H * laneScale) / 2 + 6,
-                      bottom: 18,
-                      animation: "dotaxi-fade-in 0.35s var(--ease-out-strong) both",
-                    }}
-                  >
-                    <Passenger trip={trip} size={56} />
-                    {/* anclado por la derecha: el pasajero baja por el lado
-                        derecho y un bocadillo que creciera hacia allá se
-                        saldría de la escena */}
-                    <SpeechBubble
-                      text={trip.voice.thanks}
-                      tail="right"
-                      style={{ right: -4, bottom: 56 + 12, width: "max-content", maxWidth: m.sceneW * 0.5, fontSize: 12 }}
-                    />
-                  </div>
+                {/* Llegada: cutscene por encima de la carretera, que sigue
+                    frenando debajo hasta que el fundido la tapa */}
+                {phase === "arrival" && trip && (
+                  <ArrivalCutscene
+                    m={m}
+                    trip={trip}
+                    progress={brakeProgress}
+                    passengerOut={passengerOut}
+                    reaction={reaction}
+                    damage={damage}
+                    driveMs={ARRIVAL_BRAKE_MS}
+                  />
                 )}
 
                 {/* aviso de carril nuevo */}

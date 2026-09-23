@@ -441,6 +441,16 @@ h1, h2, h3, .font-display {
   0%, 100% { transform: scaleY(1); }
   50%      { transform: scaleY(0.35); }
 }
+/* Cutscene de llegada: la capa entra en fundido, sin desplazarse */
+@keyframes dotaxi-cut-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* El taxi entra por abajo grande y se aleja hacia la puerta frenando */
+@keyframes dotaxi-arrive-drive {
+  from { transform: translate(-50%, var(--from-y, 24px)) scale(1.15); }
+  to   { transform: translate(-50%, var(--to-y, -200px)) scale(0.5); }
+}
 /* Humo de ruedas en el frenazo: sale hacia fuera y se disipa */
 @keyframes dotaxi-tire-smoke {
   0%   { transform: translate(0, 0) scale(0.5); opacity: 0.85; }
