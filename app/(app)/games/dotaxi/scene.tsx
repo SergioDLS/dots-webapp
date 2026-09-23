@@ -473,31 +473,40 @@ export function TaxiRear({
 
 // ── Laterales: farolas y árboles que se acercan ─────────────────────────────
 
-/** Tamaños en el borde cercano (escala kBottom); se dividen por kBottom al proyectar. */
-const LAMP_W = 28;
-const LAMP_H = 150;
-const TREE_W = 120;
-const TREE_H = 130;
+/** Altura de los sprites en el borde cercano (escala kBottom); se dividen por kBottom al proyectar. */
+const LAMP_H = 170;
+const TREE_H = 140;
 const ROADSIDE_SLOTS = 8;
 const ROADSIDE_OFFSET_PX = 30;
 
-/** Farola o árbol. Placeholder CSS hasta dotaxi-farola / dotaxi-arbol. */
+/** Farola o árbol (dotaxi-farola / dotaxi-arbol). El lienzo es cuadrado con el
+ *  objeto apoyado en el pie, así que se pinta a la altura del objeto y se
+ *  ancla abajo; de noche la farola suma su halo. */
 function RoadsideArt({ kind }: { kind: "farola" | "arbol" }) {
-  if (kind === "farola") {
-    return (
-      <div className="relative" style={{ width: LAMP_W, height: LAMP_H }}>
-        <div className="absolute rounded-full" style={{ left: LAMP_W / 2 - 3, top: 10, width: 6, height: LAMP_H - 10, background: "#b9b4c8", border: `1.5px solid ${INK}` }} />
-        <div className="absolute rounded-b-sm rounded-t-xl" style={{ left: 0, top: 0, width: LAMP_W, height: 18, background: TAXI_YELLOW, border: `1.5px solid ${INK}` }} />
-        <div className="absolute rounded-full" style={{ left: -LAMP_W, top: -LAMP_W * 0.8, width: LAMP_W * 3, height: LAMP_W * 3, background: `radial-gradient(circle, ${TAXI_YELLOW}66, transparent 70%)`, opacity: "var(--dotaxi-night)" }} />
-        <div className="absolute rounded-sm" style={{ left: LAMP_W / 2 - 8, bottom: 0, width: 16, height: 8, background: "#8f89a8", border: `1.5px solid ${INK}` }} />
-      </div>
-    );
-  }
+  const size = kind === "farola" ? LAMP_H : TREE_H;
   return (
-    <div className="relative" style={{ width: TREE_W, height: TREE_H }}>
-      <div className="absolute rounded-sm" style={{ left: TREE_W / 2 - 9, bottom: 0, width: 18, height: TREE_H * 0.4, background: "#8a5a3c", border: `1.5px solid ${INK}` }} />
-      <div className="absolute rounded-full" style={{ left: 0, top: 0, width: TREE_W, height: TREE_H * 0.72, background: "#3f9a5c", border: `2px solid ${INK}` }} />
-      <div className="absolute rounded-full" style={{ left: TREE_W * 0.15, top: TREE_H * 0.08, width: TREE_W * 0.4, height: TREE_H * 0.3, background: "#5cb877" }} />
+    <div className="relative" style={{ width: size, height: size }}>
+      {kind === "farola" && (
+        <div
+          aria-hidden
+          className="absolute rounded-full"
+          style={{
+            left: size / 2 - 40, top: -14, width: 80, height: 80,
+            background: `radial-gradient(circle, ${TAXI_YELLOW}80, transparent 70%)`,
+            opacity: "var(--dotaxi-night)",
+          }}
+        />
+      )}
+      <Image
+        src={`/images/games/dotaxi-${kind}.png`}
+        alt=""
+        aria-hidden
+        width={512}
+        height={512}
+        sizes={`${size * 2}px`}
+        draggable={false}
+        className="absolute inset-0 h-full w-full select-none"
+      />
     </div>
   );
 }
@@ -566,10 +575,18 @@ export function Clouds({ m }: { m: PlaneMetrics }) {
             opacity: "calc(0.95 - 0.45 * var(--dotaxi-night))",
           }}
         >
-          <div className="absolute rounded-full" style={{ left: 0, bottom: 0, width: cl.w * 0.45, height: cl.w * 0.36, background: SIGN_FACE }} />
-          <div className="absolute rounded-full" style={{ left: cl.w * 0.25, top: 0, width: cl.w * 0.5, height: cl.w * 0.5, background: SIGN_FACE }} />
-          <div className="absolute rounded-full" style={{ right: 0, bottom: 0, width: cl.w * 0.42, height: cl.w * 0.34, background: SIGN_FACE }} />
-          <div className="absolute rounded-full" style={{ left: cl.w * 0.1, bottom: 0, width: cl.w * 0.8, height: cl.w * 0.22, background: SIGN_FACE }} />
+            {/* dotaxi-nube: lienzo cuadrado con la nube en la franja central */}
+          <Image
+            src="/images/games/dotaxi-nube.png"
+            alt=""
+            aria-hidden
+            width={512}
+            height={512}
+            sizes={`${cl.w * 2}px`}
+            draggable={false}
+            className="absolute select-none"
+            style={{ left: 0, top: -cl.w * 0.24, width: cl.w, height: cl.w }}
+          />
         </div>
       ))}
     </>
@@ -586,55 +603,20 @@ export type ObstacleKind = (typeof OBSTACLE_KINDS)[number];
 /** Ancho en el borde cercano; se divide por kBottom al proyectar. */
 const OBSTACLE_W = 120;
 
-/** Silueta de cada obstáculo. Placeholder CSS hasta dotaxi-obs-<kind>. */
+/** El sprite de cada obstáculo (dotaxi-obs-<kind>), apoyado en el pie del lienzo. */
 function ObstacleArt({ kind }: { kind: ObstacleKind }) {
-  const w = OBSTACLE_W;
-  const box = (extra: React.CSSProperties) => (
-    <div className="absolute" style={{ border: `2px solid ${INK}`, ...extra }} />
-  );
   return (
-    <div className="relative" style={{ width: w, height: w * 0.8 }}>
-      {kind === "cerdito" && (<>
-        {box({ left: w * 0.3, bottom: 0, width: w * 0.4, height: w * 0.06, background: "#8a5a3c", borderRadius: 3 })}
-        {box({ left: w * 0.15, bottom: w * 0.05, width: w * 0.5, height: w * 0.45, background: "#ff8fc8", borderRadius: "50%" })}
-        {box({ left: w * 0.62, bottom: w * 0.25, width: w * 0.22, height: w * 0.2, background: SIGN_FACE, borderRadius: "4px 4px 10px 10px" })}
-      </>)}
-      {kind === "tiburon" && (<>
-        {box({ left: 0, bottom: 0, width: w, height: w * 0.3, background: "#35d8f5", borderRadius: "50%" })}
-        {box({ left: w * 0.38, bottom: w * 0.15, width: w * 0.24, height: w * 0.4, background: "#9aa0b0", borderRadius: "80% 20% 0 0 / 100% 40% 0 0" })}
-      </>)}
-      {kind === "banera" && (<>
-        {box({ left: w * 0.05, bottom: w * 0.08, width: w * 0.9, height: w * 0.4, background: SIGN_FACE, borderRadius: "10px 10px 26px 26px" })}
-        {box({ left: w * 0.1, bottom: w * 0.4, width: w * 0.8, height: w * 0.22, background: "#ffffff", borderRadius: "50%" })}
-        {box({ left: w * 0.6, bottom: w * 0.5, width: w * 0.18, height: w * 0.16, background: TAXI_YELLOW, borderRadius: "50%" })}
-      </>)}
-      {kind === "sofa" && (<>
-        {box({ left: 0, bottom: 0, width: w * 0.72, height: w * 0.42, background: "#ff1f8f", borderRadius: "12px 12px 8px 8px" })}
-        {box({ left: w * 0.84, bottom: 0, width: w * 0.04, height: w * 0.62, background: "#b9b4c8", borderRadius: 2 })}
-        {box({ left: w * 0.74, bottom: w * 0.55, width: w * 0.24, height: w * 0.16, background: TAXI_YELLOW, borderRadius: "4px 4px 8px 8px" })}
-      </>)}
-      {kind === "piano" && (<>
-        {box({ left: w * 0.05, bottom: w * 0.1, width: w * 0.9, height: w * 0.36, background: "#3768ff", borderRadius: "6px 30px 6px 6px" })}
-        {box({ left: w * 0.05, bottom: w * 0.22, width: w * 0.6, height: w * 0.08, background: SIGN_FACE, borderRadius: 2 })}
-        {box({ left: w * 0.3, bottom: w * 0.44, width: w * 0.62, height: w * 0.22, background: "#3768ff", borderRadius: "6px 30px 4px 4px", transform: "skewX(-20deg)" })}
-      </>)}
-      {kind === "flamenco" && (<>
-        {box({ left: w * 0.1, bottom: 0, width: w * 0.6, height: w * 0.36, background: "#ff5aa8", borderRadius: "50%" })}
-        {box({ left: w * 0.6, bottom: w * 0.25, width: w * 0.1, height: w * 0.4, background: "#ff5aa8", borderRadius: 8 })}
-        {box({ left: w * 0.55, bottom: w * 0.6, width: w * 0.24, height: w * 0.16, background: "#ff5aa8", borderRadius: "50%" })}
-      </>)}
-      {kind === "pinguino" && (<>
-        {box({ left: w * 0.3, bottom: w * 0.08, width: w * 0.4, height: w * 0.62, background: "#2a2750", borderRadius: "50% 50% 40% 40%" })}
-        {box({ left: w * 0.38, bottom: w * 0.1, width: w * 0.24, height: w * 0.36, background: SIGN_FACE, borderRadius: "50%" })}
-        {box({ left: w * 0.3, bottom: 0, width: w * 0.16, height: w * 0.08, background: "#35d8f5", borderRadius: 4 })}
-        {box({ left: w * 0.54, bottom: 0, width: w * 0.16, height: w * 0.08, background: "#35d8f5", borderRadius: 4 })}
-      </>)}
-      {kind === "ovni" && (<>
-        {box({ left: 0, bottom: w * 0.08, width: w, height: w * 0.2, background: "#b9b4c8", borderRadius: "50%" })}
-        {box({ left: w * 0.28, bottom: w * 0.24, width: w * 0.44, height: w * 0.3, background: "#35d8f5", borderRadius: "50% 50% 0 0" })}
-        {box({ left: w * 0.12, bottom: w * 0.14, width: w * 0.76, height: w * 0.06, background: TAXI_YELLOW, borderRadius: 4 })}
-      </>)}
-    </div>
+    <Image
+      src={`/images/games/dotaxi-obs-${kind}.png`}
+      alt=""
+      aria-hidden
+      width={512}
+      height={512}
+      sizes={`${OBSTACLE_W * 2}px`}
+      draggable={false}
+      className="select-none"
+      style={{ width: OBSTACLE_W, height: OBSTACLE_W }}
+    />
   );
 }
 

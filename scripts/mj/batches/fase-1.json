@@ -999,8 +999,9 @@
       "prompt": "a tall city street lamp post seen straight from the front, a slim pale grey pole on a small base, a rounded lamp head glowing warm yellow at the top, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Tall_street_lamp_post_a_tall_city_street_lamp_post__51e75967-8adf-420b-9e02-2db5dc01ab40_0.png"
     },
     {
       "slug": "dotaxi-arbol",
@@ -1009,8 +1010,9 @@
       "prompt": "a round city tree seen straight from the front, a lush green rounded canopy on a short brown trunk, a small ring of soil at the base, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Round_city_tree_a_round_city_tree_seen_straight_fro_5ea0db53-9895-4b64-b684-e485ec4caeb1_0.png"
     },
     {
       "slug": "dotaxi-nube",
@@ -1019,8 +1021,9 @@
       "prompt": "a fluffy white cartoon cloud seen from the front, soft rounded bumps on top and a slightly flat base, a hint of pale blue shading underneath, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Fluffy_cartoon_cloud_a_fluffy_white_cartoon_cloud_s_e2ee5d35-ef86-408d-a0ee-dc3fc19c5b3e_2.png"
     },
     {
       "slug": "dotaxi-obs-cerdito",
@@ -1029,8 +1032,9 @@
       "prompt": "a small pink piglet sitting at a tiny round cafe table, holding a white cup of coffee with steam, seen straight from the front, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Piglet_drinking_coffee_a_small_pink_piglet_sitting__049d2c5d-b5a0-4980-890f-68b5d7f40438_2.png"
     },
     {
       "slug": "dotaxi-obs-tiburon",
@@ -1039,8 +1043,9 @@
       "prompt": "a round puddle of cyan water seen slightly from above with a grey shark fin poking out of the middle, small ripples around it, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Shark_fin_in_a_puddle_a_round_puddle_of_cyan_water__47efb75d-77fc-4053-998a-e6f3f138f8a8_3.png"
     },
     {
       "slug": "dotaxi-obs-banera",
@@ -1049,8 +1054,9 @@
       "prompt": "a white bathtub on little feet full of white foam bubbles, a yellow rubber duck sitting on top, seen straight from the front, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Bathtub_full_of_foam_a_white_bathtub_on_little_feet_57deb336-4d68-46ae-a0f4-c86c08fffc86_1.png"
     },
     {
       "slug": "dotaxi-obs-sofa",
@@ -1059,8 +1065,9 @@
       "prompt": "a pink two-seat sofa with round cushions and a tall floor lamp beside it glowing warm yellow, seen straight from the front, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Sofa_with_a_floor_lamp_a_pink_one-seat_sofa_with_ro_a79b9c36-6213-4217-be2c-6ac145916e03_3.png"
     },
     {
       "slug": "dotaxi-obs-piano",
@@ -1069,8 +1076,9 @@
       "prompt": "a glossy blue grand piano with its lid propped open, white and cyan keys, three slim legs, seen from the front and slightly to the side, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Grand_piano_with_the_lid_open_a_glossy_blue_grand_p_e5fe5afb-c91b-4f53-9a51-3058040517a4_1.png"
     },
     {
       "slug": "dotaxi-obs-flamenco",
@@ -1079,8 +1087,9 @@
       "prompt": "a pink inflatable pool flamingo float with a long curved neck and a yellow beak, plump round body, seen from the front and slightly to the side, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Inflatable_pool_flamingo_a_pink_inflatable_pool_fla_80efe066-5751-471d-85cc-4892988fcc5a_2.png"
     },
     {
       "slug": "dotaxi-obs-pinguino",
@@ -1089,8 +1098,9 @@
       "prompt": "a small penguin wearing a yellow helmet and cyan roller skates, arms out for balance, seen straight from the front, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Penguin_on_roller_skates_a_small_penguin_wearing_a__f1af094b-e612-4838-a06f-02ce8fec024c_2.png"
     },
     {
       "slug": "dotaxi-obs-ovni",
@@ -1099,8 +1109,9 @@
       "prompt": "a small flying saucer parked on the ground, a cyan glass dome on top, a ring of glowing yellow lights around the rim, a little ladder folded down, seen straight from the front, thick navy outline",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Small_parked_flying_saucer_a_small_flying_saucer_pa_4eecda6e-9403-49dc-8494-9ae3949b8970_1.png"
     },
     {
       "slug": "dont-pop",
