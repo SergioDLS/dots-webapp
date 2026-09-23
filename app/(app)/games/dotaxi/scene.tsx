@@ -10,6 +10,7 @@ import {
   laneXAt,
   laneXAtScale,
   edgeXAt,
+  SIDEWALK_BOTTOM_PX,
   project,
   travel,
   TRAVEL_END,
@@ -24,6 +25,8 @@ import type { Trip } from "./trip";
 export const ASPHALT = "#34314f";
 export const ASPHALT_EDGE = "#1e1b5c";
 export const CURB = "#d9d4e6";
+export const SIDEWALK = "#b7b1cc";
+export const SIDEWALK_LINE = "rgba(30, 27, 92, 0.28)";
 export const LANE_PAINT = "#f4f1e4";
 export const EDGE_PAINT = "#ffd21e";
 export const TAXI_YELLOW = "#ffd21e";
@@ -238,8 +241,20 @@ export function GroundPlane({
         className="absolute inset-x-0"
         style={{ ...scroll(60), backgroundImage: stripes("rgba(255,255,255,0.07)", "transparent", 26, 60) }}
       />
-      {/* aceras: bordillo rojo-blanco tipo circuito, en movimiento */}
-      {[m.groundMargin, m.groundMargin + m.curbW + m.roadW].map((left, i) => (
+      {/* aceras pavimentadas, con las juntas de las baldosas en movimiento */}
+      {[m.groundMargin, m.groundMargin + m.sidewalkW + 2 * m.curbW + m.roadW].map((left, i) => (
+        <div
+          key={`sw-${i}`}
+          className="absolute inset-y-0 overflow-hidden"
+          style={{ left: left * R, width: m.sidewalkW * R, background: `color-mix(in srgb, var(--sky-bottom) 16%, ${SIDEWALK})` }}
+        >
+          <div className="absolute inset-x-0" style={{ ...scroll(40), backgroundImage: stripes(SIDEWALK_LINE, "transparent", 1.4, 40) }} />
+          {/* junta longitudinal, a un tercio del bordillo */}
+          <div className="absolute inset-y-0" style={{ [i === 0 ? "right" : "left"]: m.sidewalkW * R * 0.34, width: 1.2 * R, background: SIDEWALK_LINE }} />
+        </div>
+      ))}
+      {/* bordillos rojo-blanco tipo circuito, en movimiento */}
+      {[m.groundMargin + m.sidewalkW, m.groundMargin + m.sidewalkW + m.curbW + m.roadW].map((left, i) => (
         <div key={i} className="absolute inset-y-0 overflow-hidden" style={{ left: left * R, width: m.curbW * R, background: CURB }}>
           <div className="absolute inset-x-0" style={{ ...scroll(24), backgroundImage: stripes(BRAKE_RED, SIGN_FACE, 12, 24) }} />
         </div>
@@ -248,7 +263,7 @@ export function GroundPlane({
       <div
         className="absolute inset-y-0 overflow-hidden"
         style={{
-          left: (m.groundMargin + m.curbW) * R,
+          left: (m.groundMargin + m.sidewalkW + m.curbW) * R,
           width: m.roadW * R,
           // más oscuro hacia el horizonte: la distancia se lee también en el tono
           background: `linear-gradient(to top, ${ASPHALT} 0%, #2a2842 55%, #201e35 100%)`,
@@ -554,8 +569,11 @@ export function TaxiRear({
 const LAMP_H_FRAC = 1.23;
 const TREE_H_FRAC = 1.125;
 const ROADSIDE_SLOTS = 8;
-/** La farola planta el poste a esta distancia de la acera (px del borde cercano). */
-const LAMP_OFFSET_PX = 26;
+/** La farola planta el poste sobre la acera, a esta distancia del bordillo
+ *  (px del borde cercano): separada de la calle, como pidió Sergio. */
+const LAMP_OFFSET_PX = 44;
+/** El árbol arranca en el césped, justo detrás de la acera. */
+const TREE_OFFSET_PX = SIDEWALK_BOTTOM_PX + 4;
 /** Aire transparente del lienzo del árbol a cada lado de la copa (fracción del lado). */
 const TREE_INSET = 0.12;
 
@@ -593,8 +611,9 @@ function RoadsideArt({ kind, size }: { kind: "farola" | "arbol"; size: number })
  * Farolas y árboles alternando a ambos lados, en ciclo: nacen en el punto de
  * fuga y crecen al acercarse, a la misma velocidad que las rayas (misma
  * `dist`). Van en espacio de pantalla con travel(): son los que venden el
- * avance, más que las rayas. La farola se ancla por el poste; el árbol por su
- * borde interior, así la copa crece hacia fuera y nunca tapa la calzada.
+ * avance, más que las rayas. La farola se ancla por el poste, sobre la acera;
+ * el árbol por su borde interior en el césped de detrás, así la copa crece
+ * hacia fuera y nunca tapa la calzada.
  */
 export function Roadside({ m, dist }: { m: PlaneMetrics; dist: number }) {
   const cycle = m.planeH * TRAVEL_END;
@@ -620,7 +639,7 @@ export function Roadside({ m, dist }: { m: PlaneMetrics; dist: number }) {
           anchor = "translate(-50%, -100%)";
           origin = "bottom center";
         } else {
-          x = edgeXAt(m, side, 0, s) - side * TREE_INSET * drawn;
+          x = edgeXAt(m, side, TREE_OFFSET_PX, s) - side * TREE_INSET * drawn;
           if ((side < 0 && x - TREE_INSET * drawn < 0) || (side > 0 && x + TREE_INSET * drawn > m.sceneW)) return null;
           anchor = side < 0 ? "translate(-100%, -100%)" : "translate(0, -100%)";
           origin = side < 0 ? "bottom right" : "bottom left";

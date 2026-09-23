@@ -20,8 +20,11 @@ export const K_BOTTOM = 8;
  *  pierde por cada lado, los bordillos salen por las esquinas y abajo casi
  *  todo es asfalto (pedido de Sergio: que se vea espaciosa). */
 export const ROAD_BOTTOM_FACTOR = 1.3;
-/** Acera a cada lado en el borde cercano, en px de pantalla. */
+/** Bordillo rojo-blanco a cada lado en el borde cercano, en px de pantalla. */
 export const CURB_BOTTOM_PX = 14;
+/** Acera pavimentada más allá del bordillo, en px de pantalla en el borde
+ *  cercano: ahí van las farolas; los árboles, en el césped de detrás. */
+export const SIDEWALK_BOTTOM_PX = 56;
 /** Cuántas veces la calzada (con aceras) mide el terreno. Tiene que cubrir la
  *  escena entera TAMBIÉN en el horizonte, donde la calzada mide 1/K_BOTTOM
  *  del ancho de la escena: con 3 el césped acababa a media pantalla y a los
@@ -43,9 +46,10 @@ export interface PlaneMetrics {
   kBottom: number;
   /** alto del plano en unidades de plano: su pie proyecta a sceneH + overshoot */
   planeH: number;
-  /** calzada, acera y plano (acera+calzada+acera) en unidades de plano */
+  /** calzada, bordillo, acera y plano (acera+bordillo+calzada+bordillo+acera) en unidades de plano */
   roadW: number;
   curbW: number;
+  sidewalkW: number;
   planeW: number;
   /** terreno completo en unidades de plano y el césped a cada lado */
   groundW: number;
@@ -69,7 +73,8 @@ export function planeMetrics(sceneW: number, sceneH: number): PlaneMetrics {
   const roadBottomW = sceneW * ROAD_BOTTOM_FACTOR;
   const roadW = roadBottomW / K;
   const curbW = CURB_BOTTOM_PX / K;
-  const planeW = roadW + 2 * curbW;
+  const sidewalkW = SIDEWALK_BOTTOM_PX / K;
+  const planeW = roadW + 2 * curbW + 2 * sidewalkW;
   const groundW = planeW * GROUND_FACTOR;
   return {
     sceneW,
@@ -80,6 +85,7 @@ export function planeMetrics(sceneW: number, sceneH: number): PlaneMetrics {
     planeH,
     roadW,
     curbW,
+    sidewalkW,
     planeW,
     groundW,
     groundMargin: (groundW - planeW) / 2,
@@ -113,8 +119,9 @@ export function laneXAt(m: PlaneMetrics, pct: number, s: number): number {
   return m.sceneW / 2 + (pct / 100 - 0.5) * m.roadBottomW * (k / m.kBottom);
 }
 
-/** Un punto del arcén (`side` −1 izquierda, +1 derecha) a `offsetBottomPx` de la
- *  acera medidos en el borde cercano, proyectado a profundidad `s`. */
+/** Un punto del lateral (`side` −1 izquierda, +1 derecha) a `offsetBottomPx`
+ *  del borde exterior del bordillo, medidos en el borde cercano, proyectado a
+ *  profundidad `s`. La acera ocupa de 0 a SIDEWALK_BOTTOM_PX. */
 export function edgeXAt(m: PlaneMetrics, side: -1 | 1, offsetBottomPx: number, s: number): number {
   const { k } = project(m, s);
   return m.sceneW / 2 + side * (m.roadBottomW / 2 + CURB_BOTTOM_PX + offsetBottomPx) * (k / m.kBottom);
