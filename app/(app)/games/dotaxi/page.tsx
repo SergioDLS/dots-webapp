@@ -62,10 +62,10 @@ const WIN_CORRECT = 10;
 // Tiempo para responder, desde que las palabras son legibles: arranca en
 // TIMER_START, se recorta TIMER_STEP por ronda hasta TIMER_MIN y suma
 // LANE_BONUS_MS por cada carril más allá del mínimo (más opciones que leer).
-// Sergio lo sintió muy corto con 5 s / 2,5 s.
+// Sergio lo sintió muy corto con 5 s / 2,5 s, y el suelo de 4 s también.
 const TIMER_START = 7000;
 const TIMER_STEP = 250;
-const TIMER_MIN = 4000;
+const TIMER_MIN = 5000;
 const LANE_BONUS_MS = 1200;
 const TICKER_FPS = 30;
 const RESOLVE_MS = 1300; // pausa tras resolver la ronda
