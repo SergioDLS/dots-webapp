@@ -451,6 +451,17 @@ h1, h2, h3, .font-display {
   from { transform: translate(-50%, var(--from-y, 24px)) scale(1.15); }
   to   { transform: translate(-50%, var(--to-y, -200px)) scale(0.5); }
 }
+/* Avería: el taxi entra por abajo y se detiene antes, más grande que en la llegada */
+@keyframes dotaxi-breakdown-drive {
+  from { transform: translate(-50%, var(--from-y, 24px)) scale(1.15); }
+  to   { transform: translate(-50%, var(--to-y, -120px)) scale(0.85); }
+}
+/* Humo grande de la avería: bocanadas que suben, crecen y se disipan */
+@keyframes dotaxi-big-smoke {
+  0%   { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  15%  { opacity: 0.85; }
+  100% { transform: translate(var(--dx, 0px), -70px) scale(2.2); opacity: 0; }
+}
 /* Humo de ruedas en el frenazo: sale hacia fuera y se disipa */
 @keyframes dotaxi-tire-smoke {
   0%   { transform: translate(0, 0) scale(0.5); opacity: 0.85; }

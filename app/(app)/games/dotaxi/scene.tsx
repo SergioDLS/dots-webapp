@@ -880,6 +880,22 @@ const ARRIVE_TAXI_SCALE = 0.5;
  *  chocar con la burbuja de Doty, que queda a la izquierda del techo. */
 const ARRIVE_TAXI_X = 0.36;
 
+/** Cielo, astro y dos nubes de las cutscenes (llegada y avería). */
+function CutsceneSky({ W, H }: { W: number; H: number }) {
+  return (
+    <>
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--sky-top), var(--sky-bottom))" }} />
+      <div className="absolute rounded-full" style={{ top: H * 0.1, right: 26, width: 34, height: 34, background: TAXI_YELLOW, boxShadow: `0 0 20px ${TAXI_YELLOW}`, opacity: "calc(1 - var(--dotaxi-night))" }} />
+      <div className="absolute rounded-full" style={{ top: H * 0.1, right: 28, width: 30, height: 30, background: SIGN_FACE, boxShadow: `0 0 14px ${SIGN_FACE}`, opacity: "var(--dotaxi-night)" }} />
+      {([[0.06, 0.16, 110], [0.62, 0.3, 84]] as const).map(([xf, yf, w], i) => (
+        <div key={i} className="absolute" style={{ left: W * xf, top: H * yf - w * 0.25, width: w, height: w * 0.5, animation: `dotaxi-float ${5 + i}s ease-in-out infinite`, opacity: "calc(0.95 - 0.45 * var(--dotaxi-night))" }}>
+          <Image src="/images/games/dotaxi-nube.png" alt="" aria-hidden width={512} height={512} sizes={`${w * 2}px`} draggable={false} className="absolute select-none" style={{ left: 0, top: -w * 0.24, width: w, height: w }} />
+        </div>
+      ))}
+    </>
+  );
+}
+
 /**
  * La llegada como escena aparte: funde a un cielo limpio con una explanada y
  * el edificio del destino grande y centrado (sin carretera ni skyline: un
@@ -929,15 +945,7 @@ export function ArrivalCutscene({
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ animation: "dotaxi-cut-in 400ms ease-out both" }}
     >
-      {/* cielo y astro, como en la carretera */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--sky-top), var(--sky-bottom))" }} />
-      <div className="absolute rounded-full" style={{ top: H * 0.1, right: 26, width: 34, height: 34, background: TAXI_YELLOW, boxShadow: `0 0 20px ${TAXI_YELLOW}`, opacity: "calc(1 - var(--dotaxi-night))" }} />
-      <div className="absolute rounded-full" style={{ top: H * 0.1, right: 28, width: 30, height: 30, background: SIGN_FACE, boxShadow: `0 0 14px ${SIGN_FACE}`, opacity: "var(--dotaxi-night)" }} />
-      {([[0.06, 0.16, 110], [0.62, 0.3, 84]] as const).map(([xf, yf, w], i) => (
-        <div key={i} className="absolute" style={{ left: W * xf, top: H * yf - w * 0.25, width: w, height: w * 0.5, animation: `dotaxi-float ${5 + i}s ease-in-out infinite`, opacity: "calc(0.95 - 0.45 * var(--dotaxi-night))" }}>
-          <Image src="/images/games/dotaxi-nube.png" alt="" aria-hidden width={512} height={512} sizes={`${w * 2}px`} draggable={false} className="absolute select-none" style={{ left: 0, top: -w * 0.24, width: w, height: w }} />
-        </div>
-      ))}
+      <CutsceneSky W={W} H={H} />
       {/* explanada: franja de césped y plaza embaldosada */}
       <div className="absolute inset-x-0" style={{ top: groundY - 10, height: 10, background: "color-mix(in srgb, var(--sky-bottom) 28%, #2f7a4f)" }} />
       <div
@@ -1001,6 +1009,117 @@ export function ArrivalCutscene({
           side="left"
           style={{ right: W - (W * ARRIVE_TAXI_X - taxiW / 2) + 2, bottom: taxiBottom + taxiH - 6 }}
         />
+      )}
+    </div>
+  );
+}
+
+/** Escala final del taxi averiado: la del `to` de `dotaxi-breakdown-drive`. */
+const BREAKDOWN_TAXI_SCALE = 0.85;
+
+/**
+ * La avería como escena aparte: mismo cielo limpio, una calle plana y el
+ * taxi destrozado que entra, se detiene y se queda humeando en medio. El
+ * pasajero baja por la derecha y se lamenta; Doty llora en su burbuja a la
+ * izquierda. Solo transform/opacity; `progress` lo lleva el ticker.
+ */
+export function BreakdownCutscene({
+  m,
+  trip,
+  progress,
+  passengerOut,
+  reaction,
+  driveMs,
+}: {
+  m: PlaneMetrics;
+  trip: Trip;
+  progress: number;
+  passengerOut: boolean;
+  reaction: DotyPose | null;
+  driveMs: number;
+}) {
+  const W = m.sceneW;
+  const H = m.sceneH;
+  const groundY = H * 0.62;
+  const p = Math.min(1, Math.max(0, progress));
+  const stopped = p >= 1;
+  const taxiBottom = H - groundY - 26;
+  const taxiW = TAXI_W * BREAKDOWN_TAXI_SCALE;
+  const taxiH = TAXI_H * BREAKDOWN_TAXI_SCALE;
+  const passengerLeft = W / 2 + taxiW / 2 - 4;
+  return (
+    <div
+      data-testid="breakdown"
+      aria-hidden
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={{ animation: "dotaxi-cut-in 400ms ease-out both" }}
+    >
+      <CutsceneSky W={W} H={H} />
+      {/* la calle, plana: arcén amarillo, asfalto y una raya discontinua */}
+      <div className="absolute inset-x-0" style={{ top: groundY - 8, height: 8, background: "color-mix(in srgb, var(--sky-bottom) 28%, #2f7a4f)" }} />
+      <div className="absolute inset-x-0 bottom-0" style={{ top: groundY, background: ASPHALT }}>
+        <div className="absolute inset-x-0" style={{ top: 0, height: 3, background: EDGE_PAINT }} />
+        <div
+          className="absolute inset-x-0"
+          style={{ top: (H - groundY) * 0.62, height: 4, backgroundImage: `repeating-linear-gradient(to right, ${LANE_PAINT} 0 28px, transparent 28px 52px)` }}
+        />
+      </div>
+      {/* el taxi destrozado entra y se para en medio */}
+      <div className="absolute left-0 bottom-0" style={{ transform: `translateX(${W / 2}px)` }}>
+        <div
+          data-testid="breakdown-taxi"
+          className="absolute"
+          style={{
+            left: 0,
+            bottom: 0,
+            transformOrigin: "bottom center",
+            ["--from-y" as string]: "24px",
+            ["--to-y" as string]: `${-taxiBottom}px`,
+            animation: `dotaxi-breakdown-drive ${driveMs}ms cubic-bezier(0.2, 0.8, 0.2, 1) both`,
+          }}
+        >
+          <div className="relative">
+            <TaxiRear damage={5} braking={stopped} crashing={false} />
+            {stopped && <TireSmoke />}
+            {/* humo grande del capó, además del que trae el taxi */}
+            {stopped &&
+              [0, 1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  aria-hidden
+                  className="absolute rounded-full"
+                  style={{
+                    top: -6 - (i % 2) * 8,
+                    left: TAXI_W / 2 - 18 + (i - 2) * 9,
+                    width: 30,
+                    height: 30,
+                    background: "rgba(200, 198, 214, 0.85)",
+                    ["--dx" as string]: `${(i - 2) * 10}px`,
+                    animation: `dotaxi-big-smoke 1.8s ease-out ${i * 0.32}s infinite`,
+                  }}
+                />
+              ))}
+          </div>
+        </div>
+      </div>
+      {/* el pasajero se baja pegado al taxi y se lamenta; el bocadillo se
+          acota al marco (a la derecha queda poco sitio) */}
+      {passengerOut && (
+        <div
+          className="absolute"
+          style={{ left: passengerLeft, bottom: taxiBottom - 2, animation: "dotaxi-fade-in 0.35s var(--ease-out-strong) both" }}
+        >
+          <Passenger trip={trip} size={48} />
+          <SpeechBubble
+            text={trip.voice.groan}
+            tail="left"
+            style={{ left: -28, bottom: 48 + 10, width: "max-content", maxWidth: W - (passengerLeft - 28) - 8, fontSize: 12 }}
+          />
+        </div>
+      )}
+      {/* Doty llora a la izquierda del techo */}
+      {stopped && reaction && (
+        <ReactionBubble pose={reaction} side="left" style={{ right: W / 2 + taxiW / 2 + 2, bottom: taxiBottom + taxiH - 10 }} />
       )}
     </div>
   );

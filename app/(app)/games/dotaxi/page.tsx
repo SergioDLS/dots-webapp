@@ -44,6 +44,7 @@ import {
   TaxiRear,
   ReactionBubble,
   ArrivalCutscene,
+  BreakdownCutscene,
   DestinationArt,
   Passenger,
   SpeechBubble,
@@ -105,8 +106,9 @@ const BURST_BOOST = 0.6;
 const ARRIVAL_BRAKE_MS = 1500;
 const ARRIVAL_OUT_MS = 1900;
 const ARRIVAL_MS = 3800;
-// Avería: al perder el último corazón el taxi se detiene humeando.
-const BREAKDOWN_MS = 2200;
+// Avería: al perder el último corazón, cutscene con el taxi humeando; el
+// pasajero baja a ARRIVAL_OUT_MS igual que en la llegada.
+const BREAKDOWN_MS = 3800;
 const TIER_ZOOM_MS = 450; // cámara alejándose al abrirse un carril
 // El aviso congela la cuenta atrás; tiene que durar al menos lo que el zoom.
 const TIER_NOTICE_MS = 900;
@@ -460,10 +462,11 @@ function DotaxiInner({ seed }: { seed?: number }) {
     brakeElapsedRef.current = 0;
     brakingRef.current = true;
     setBrakeProgress(0);
+    setPassengerOut(false);
     setPhase("breakdown");
+    setT("out", () => setPassengerOut(true), ARRIVAL_OUT_MS);
     setT("breakdown", finishGame, BREAKDOWN_MS);
-    if (tripRef.current) say(tripRef.current.voice.groan);
-  }, [clearT, setT, finishGame, say]);
+  }, [clearT, setT, finishGame]);
 
   /** Fin de la recogida: arranca la primera ronda. */
   const beginDriving = useCallback(() => {
@@ -970,8 +973,8 @@ function DotaxiInner({ seed }: { seed?: number }) {
                   </>
                 )}
 
-                {/* En la llegada el taxi lo pinta la cutscene */}
-                {phase !== "arrival" && (
+                {/* En la llegada y la avería el taxi lo pinta la cutscene */}
+                {!stopped && (
                   <>
                   {/* Taxi. Decorativo (pointer-events none), o taparía la zona
                       del carril donde está parado. Capas: carril (280 ms), zoom
@@ -1044,6 +1047,16 @@ function DotaxiInner({ seed }: { seed?: number }) {
                     passengerOut={passengerOut}
                     reaction={reaction}
                     damage={damage}
+                    driveMs={ARRIVAL_BRAKE_MS}
+                  />
+                )}
+                {phase === "breakdown" && trip && (
+                  <BreakdownCutscene
+                    m={m}
+                    trip={trip}
+                    progress={brakeProgress}
+                    passengerOut={passengerOut}
+                    reaction={reaction}
                     driveMs={ARRIVAL_BRAKE_MS}
                   />
                 )}
