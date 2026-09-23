@@ -57,6 +57,10 @@ const TAXI_SPRITES: Record<Damage, string> = {
 
 // ── Cielo y skyline ──────────────────────────────────────────────────────────
 
+/** Ancho del skyline respecto a la escena: sobresale por los lados y sus
+ *  edificios llegan más alto (Sergio lo subió un 10 % desde 1,04). */
+const SKYLINE_W = 1.144;
+
 const STARS: readonly [number, number][] = [
   [8, 12], [22, 30], [37, 9], [51, 24], [64, 14], [78, 33], [90, 10], [15, 48], [45, 44], [70, 52], [96, 42], [30, 60],
 ];
@@ -118,7 +122,7 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
       {/* skyline: dos franjas 3:1 (dotaxi-skyline-dia / -noche) con fundido por
           --dotaxi-night. El pipeline las deja centradas en un lienzo cuadrado:
           la franja ocupa de 0,395 a 0,604 del alto, y se coloca para que su
-          pie caiga en el horizonte. */}
+          pie caiga en el horizonte. Se pinta a SKYLINE_W anchos de escena. */}
       {(["dia", "noche"] as const).map((v) => (
         <Image
           key={v}
@@ -127,15 +131,15 @@ export function Backdrop({ m }: { m: PlaneMetrics }) {
           aria-hidden
           width={1536}
           height={1536}
-          sizes="420px"
+          sizes="480px"
           priority
           draggable={false}
           className="absolute select-none"
           style={{
             left: "50%",
-            width: m.sceneW * 1.04,
-            height: m.sceneW * 1.04,
-            top: skyH - m.sceneW * 1.04 * 0.604,
+            width: m.sceneW * SKYLINE_W,
+            height: m.sceneW * SKYLINE_W,
+            top: skyH - m.sceneW * SKYLINE_W * 0.604,
             transform: "translateX(-50%)",
             opacity: v === "noche" ? "var(--dotaxi-night)" : "calc(1 - var(--dotaxi-night))",
           }}
@@ -574,8 +578,9 @@ const ROADSIDE_SLOTS = 8;
 const LAMP_OFFSET_PX = 51;
 /** La farola se estrecha un poco (poste y cabeza): a tamaño natural pesaba. */
 const LAMP_SQUEEZE = 0.9;
-/** El árbol arranca en el césped, justo detrás de la acera. */
-const TREE_OFFSET_PX = SIDEWALK_BOTTOM_PX + 4;
+/** El árbol arranca en la mitad exterior de la acera (alcorque): detrás de la
+ *  acera entera quedaba tan lejos que solo se veía en el horizonte. */
+const TREE_OFFSET_PX = SIDEWALK_BOTTOM_PX * 0.55;
 /** Aire transparente del lienzo del árbol a cada lado de la copa (fracción del lado). */
 const TREE_INSET = 0.12;
 
