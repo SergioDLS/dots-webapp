@@ -159,7 +159,12 @@ export function GroundPlane({
       {/* calzada */}
       <div
         className="absolute inset-y-0 overflow-hidden"
-        style={{ left: m.curbW, width: m.roadW, background: ASPHALT }}
+        style={{
+          left: m.curbW,
+          width: m.roadW,
+          // más oscuro hacia el horizonte: la distancia se lee también en el tono
+          background: `linear-gradient(to top, ${ASPHALT} 0%, #2a2842 55%, #201e35 100%)`,
+        }}
       >
         {/* divisorias discontinuas: una tira alta que se desplaza en unidades
             de plano; la perspectiva del padre las acorta hacia el horizonte */}
@@ -362,10 +367,24 @@ export function TaxiRear({
           {/* luneta: se ve la NUCA de Doty al volante, con la gorra. Su cara va
               en la burbuja de reacción, que es donde una expresión se lee
               desde atrás. Coordenadas sobre el sprite: ventana ≈ x 32-96, y 32-58. */}
-          <div className="absolute" style={{ left: 40, top: 34, width: 22, height: 22 }}>
-            <div className="absolute rounded-full" style={{ left: 0, top: 4, width: 22, height: 22, background: "#ff1f8f", border: `2px solid ${INK}` }} />
-            <div className="absolute rounded-t-full" style={{ left: -2, top: 0, width: 26, height: 10, background: INK }} />
-            <div className="absolute rounded-full" style={{ left: -3, top: 8, width: 28, height: 3.5, background: TAXI_YELLOW, border: `1px solid ${INK}` }} />
+          {/* Desde atrás, de Doty se ve la gorra y tres púas del penacho que
+              asoman por debajo. Una cabeza redonda entera parecía una pelota. */}
+          <div className="absolute" style={{ left: 38, top: 33, width: 28, height: 22 }}>
+            {[-2, 8, 18].map((x, i) => (
+              <div
+                key={x}
+                className="absolute"
+                style={{
+                  left: x, top: 9 + (i === 1 ? -2 : 0), width: 8, height: 12,
+                  background: "#ff1f8f", border: `1.5px solid ${INK}`,
+                  borderRadius: "2px 2px 6px 6px",
+                  transform: `rotate(${(i - 1) * 22}deg)`,
+                  transformOrigin: "top center",
+                }}
+              />
+            ))}
+            <div className="absolute rounded-t-full" style={{ left: 0, top: 0, width: 28, height: 11, background: TAXI_YELLOW, border: `1.5px solid ${INK}` }} />
+            <div className="absolute rounded-full" style={{ left: -2, top: 9, width: 32, height: 4, background: "#35d8f5", border: `1px solid ${INK}` }} />
           </div>
           {/* pilotos encendidos al frenar: sobre los del sprite (x≈24 y 102, y≈74) */}
           {[24, 102].map((cx, i) => (
@@ -416,15 +435,32 @@ export function Pothole({ m, pct, to, durationMs }: { m: PlaneMetrics; pct: numb
       aria-hidden
       className="pointer-events-none absolute"
       style={{
-        left: x - 18,
-        top: -18,
-        width: 36,
-        height: 36,
+        left: x - 22,
+        top: -22,
+        width: 44,
+        height: 44,
         ["--to" as string]: `${to}px`,
         animation: `dotaxi-approach ${durationMs}ms linear both`,
       }}
     >
-      <Image src="/images/games/dotaxi-pothole.png" alt="" aria-hidden width={512} height={512} sizes="120px" priority draggable={false} className="absolute inset-0 h-full w-full select-none" />
+      {/* El sprite trae un disco gris alrededor del agujero que sobre el
+          asfalto se lee como una tapa de alcantarilla. Una máscara radial
+          conserva la grieta y funde el disco con la calzada. */}
+      <Image
+        src="/images/games/dotaxi-pothole.png"
+        alt=""
+        aria-hidden
+        width={512}
+        height={512}
+        sizes="120px"
+        priority
+        draggable={false}
+        className="absolute inset-0 h-full w-full select-none"
+        style={{
+          maskImage: "radial-gradient(circle at 50% 50%, #000 30%, rgba(0,0,0,0.55) 40%, transparent 52%)",
+          WebkitMaskImage: "radial-gradient(circle at 50% 50%, #000 30%, rgba(0,0,0,0.55) 40%, transparent 52%)",
+        }}
+      />
     </div>
   );
 }
@@ -517,7 +553,7 @@ export function ReactionBubble({ pose, style }: { pose: DotyPose; style?: React.
       <div className="absolute overflow-hidden rounded-xl" style={{ inset: 3 }}>
         <div
           className="absolute"
-          style={{ left: "50%", top: -3, transform: "translateX(-50%) scale(2.35)", transformOrigin: "top center" }}
+          style={{ left: "50%", top: -24, transform: "translateX(-50%) scale(3.3)", transformOrigin: "top center" }}
         >
           <Doty pose={pose} size="micro" />
         </div>

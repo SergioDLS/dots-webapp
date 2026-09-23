@@ -8,17 +8,17 @@
 // coloque SOBRE el plano (bache, destino) hereda la perspectiva sin cálculos.
 // Lo que va fuera del plano (taxi, pórtico) se sitúa con estas funciones.
 
-// Inclinación y distancia de cámara. Con 58° y 260 la calzada llegaba al
-// horizonte con un tercio de su ancho y los carriles se sentían estrechos;
-// con 54° y 320 el fondo conserva el 40 % y las señales del pórtico ganan
-// sitio para la palabra.
-export const THETA_DEG = 54;
-export const PERSPECTIVE = 320;
+// Inclinación y distancia de cámara. Una carretera real converge hacia un
+// punto: con 64° y 300 el borde cercano ocupa casi toda la escena y el fondo
+// llega al horizonte con un 30 % del ancho (3,3× de convergencia). Con 54° y
+// 320 se quedaba en el 40 % y la calzada parecía una cinta plana.
+export const THETA_DEG = 64;
+export const PERSPECTIVE = 300;
 /** El horizonte, a esta fracción del alto de la escena. */
 export const HORIZON_FRAC = 0.34;
 /** Acera visible a cada lado en el borde cercano, en px de pantalla. Fina a
  *  propósito: la calzada es el escenario y cada px suyo es carril. */
-export const CURB_BOTTOM_PX = 22;
+export const CURB_BOTTOM_PX = 12;
 
 export interface PlaneMetrics {
   sceneW: number;
