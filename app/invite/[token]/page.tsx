@@ -9,6 +9,7 @@ import {
 } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
+import { writeAvatarMirror } from "@/lib/avatar-mirror";
 import {
   inputCls,
   btnPrimary,
@@ -149,6 +150,9 @@ export default function AcceptInvite() {
           profile_pic: response.profile_picture ?? null,
         }),
       );
+      // Mismo espejo que el login: aceptar la invitación abre sesión por el
+      // mismo camino (issueSession), así que siembra lo mismo.
+      writeAvatarMirror(response.avatar);
       router.push("/onboarding");
     } catch (e) {
       const reason = readRejection(e);

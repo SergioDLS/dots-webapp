@@ -30,6 +30,20 @@ html {
   overscroll-behavior-y: none;
 }
 
+/* Manita sobre lo que se pulsa. Tailwind 3 se la ponía a los `<button>` en su
+   preflight y Tailwind 4 dejó de hacerlo: pasan a `cursor: default`, el valor
+   del navegador. Los enlaces no se enteraron —el user-agent ya les da
+   `pointer`—, así que el riel se sentía vivo y TODO lo demás (los nodos del
+   Camino, los tiles del arcade, las flechas de dificultad) muerto al pasar el
+   ratón por encima. Solo se nota en escritorio: en táctil no hay cursor, y
+   nada de esto cambia cómo se juega (regla 2).
+   `:not(:disabled)` porque lo deshabilitado no se pulsa, y ahí el `default`
+   es justo la señal correcta. */
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
 body {
   overscroll-behavior-y: none;
   /* Contrapeso del viewportFit: "cover" del layout: sin esto, en landscape

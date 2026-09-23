@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
+import { writeAvatarMirror } from "@/lib/avatar-mirror";
 import Doty, { toDotyPose } from "@/components/ui/doty/doty";
 import {
   marcarVista,
@@ -213,6 +214,11 @@ export default function Login() {
             profile_pic: response.profile_picture ?? null,
           }),
         );
+        // Siembra el espejo del avatar con el que acaba de llegar en la
+        // sesión: sin esto, la PRIMERA visita al perfil de cada sesión pinta
+        // el clásico hasta que responde /me/settings, porque el logout borra
+        // el espejo a propósito y nadie más lo escribe hasta llegar allí.
+        writeAvatarMirror(response.avatar);
         // Pide el saludo de bienvenida. Va aquí y no en el efecto a propósito:
         // esto solo ocurre cuando alguien escribió sus credenciales. El efecto
         // también corre al rehidratar la sesión desde la cookie — la mayoría de

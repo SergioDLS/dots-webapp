@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -60,12 +61,25 @@ export default function AppNav() {
         aria-label="Navegación principal"
         className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-40 md:w-[84px] md:items-center md:gap-1 md:border-r md:border-(--border) md:bg-(--surface) md:py-5 md:ps-[env(safe-area-inset-left)]"
       >
+        {/* La marca, y de paso el atajo a inicio. Es el MISMO icono que la PWA
+            instalada y el favicon, que es lo que lo hace reconocible: una "d"
+            suelta en un cuadrado no se leía como logo. `icon-192` y no el
+            maskable porque solo ese trae transparencia — el maskable lleva
+            fondo sólido a propósito y aquí pintaría un cuadro claro sobre el
+            tema oscuro. El alt va vacío porque el enlace ya se anuncia. */}
         <Link
           href="/levels"
           aria-label="dots — inicio"
-          className="mb-4 grid h-11 w-11 place-items-center rounded-2xl bg-(--accent) text-lg font-black text-(--accent-contrast)"
+          className="mb-4 grid h-11 w-11 place-items-center"
         >
-          d
+          <Image
+            src="/icons/icon-192.png"
+            alt=""
+            width={44}
+            height={44}
+            priority
+            className="h-11 w-11"
+          />
         </Link>
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
