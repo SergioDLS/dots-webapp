@@ -11,7 +11,11 @@
  * los caches dots-* de versiones anteriores.
  * Emergencia en producción: instrucciones en public/sw.kill.js.
  */
-const SW_VERSION = "v2";
+/* v3: el avatar `clasico` cambió de arte conservando el nombre de archivo, y
+   /images/ se sirve cache-first desde `dots-media-`. Sin este bump, quien ya lo
+   tuviera cacheado seguiría viendo el retrato viejo para siempre: el nombre no
+   lleva hash, así que nada más delata el cambio. */
+const SW_VERSION = "v3";
 
 const PRECACHE = `dots-precache-${SW_VERSION}`; // fijo, sin trim
 const STATIC = `dots-static-${SW_VERSION}`; //   runtime, con trim

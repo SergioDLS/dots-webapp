@@ -176,22 +176,23 @@
     {
       "slug": "clasico",
       "group": "avatars",
-      "prefix": "Avatar Doty classic smile",
-      "prompt": "a confident lopsided grin showing the teeth, one eyebrow raised, eyes locked straight on the viewer, chin tipped forward, the easy confidence of someone who already knows you, no accessories",
+      "prefix": "Doty face close up icon",
+      "prompt": "head and shoulders close-up, centered, big smile, looking at the viewer",
       "size": 512,
       "mascot": true,
       "done": true,
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
-      "source_file": "Mandrakin_Avatar_Doty_classic_smile_a_confident_lopsided_grin_a74e4985-f6fe-4391-9c30-29639994ecb9_3.png"
+      "source_file": "Mandrakin_Doty_face_close_up_icon_head_and_shoulders_close-up_6ff961d7-72e7-4479-a520-945e35ef563b_2.png"
     },
     {
       "slug": "nerd",
       "group": "avatars",
       "prefix": "Avatar Doty nerd with round glasses",
-      "prompt": "big round cyan-framed glasses, pushing them up the nose with one finger, a smug clever grin, eyes locked straight on the viewer over the rim",
+      "prompt": "big round cyan-framed glasses sitting straight on the face, wide bright eyes fully behind the lenses, a soft closed-lip smile, head tilted a little to one side, eager and curious rather than clever, no other accessories",
       "size": 512,
       "mascot": true,
       "done": true,
+      "regen": true,
       "glasses": true,
       "framing": "head and shoulders only, centered with margin, plain white background, no shadow",
       "source_file": "Mandrakin_Avatar_Doty_nerd_with_round_glasses_big_round_cyan-_ee2cdc0f-d1b4-4e54-8a48-afdabbfe3e42_3.png"
