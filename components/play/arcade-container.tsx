@@ -12,18 +12,19 @@ import {
   getWordleService,
   type Game,
 } from "@/services/games.service";
-import { getTournamentService } from "@/services/tournament.service";
+import { getTournamentService, type TournamentData } from "@/services/tournament.service";
 import ArcadeGrid from "./arcade-grid";
 import ArcadeSkeleton from "./arcade-skeleton";
 
-/** Lo que adorna la rejilla pero nunca la bloquea: badges y estado de hoy. */
+/** Lo que adorna la rejilla pero nunca la bloquea: torneo y estado de hoy. */
 interface Extras {
-  tournamentPath: string | null;
+  /** Torneo de la semana completo: el tile destacado necesita cierre y seed. */
+  tournament: TournamentData | null;
   dailyStates: Record<string, DailyState | null>;
 }
 
 const NO_EXTRAS: Extras = {
-  tournamentPath: null,
+  tournament: null,
   dailyStates: { [DAILY_PATHS[0]]: null, [DAILY_PATHS[1]]: null },
 };
 
@@ -64,7 +65,7 @@ export default function ArcadeContainer() {
       .then(([tournament, wordle, crossword]) => {
         if (!active) return;
         setExtras({
-          tournamentPath: tournament?.gamePath ?? null,
+          tournament,
           dailyStates: {
             [DAILY_PATHS[0]]: wordle ? { done: wordle.done, won: wordle.won } : null,
             [DAILY_PATHS[1]]: crossword ? { done: crossword.done, won: crossword.won } : null,
@@ -87,6 +88,14 @@ export default function ArcadeContainer() {
   // Regla 1: router.push. La grilla vieja navegaba recargando la página
   // entera (excepción legacy ya retirada), lo que tiraba el token en memoria.
   const open = (path: string) => router.push(`/games${path}`);
+
+  // El destacado entra EN torneo: mismo mazo para todos (seed) y el score
+  // cuenta en la tabla. Es lo mismo que hace la tarjeta de /quests.
+  const openTournament = () => {
+    const t = extras.tournament;
+    if (t === null) return;
+    router.push(`/games${t.gamePath}?tournament=1&seed=${t.seed}`);
+  };
 
   if (loadError) {
     return (
@@ -117,9 +126,11 @@ export default function ArcadeContainer() {
   return (
     <ArcadeGrid
       games={games}
-      tournamentPath={extras.tournamentPath}
+      tournamentPath={extras.tournament?.gamePath ?? null}
+      tournamentEndsAt={extras.tournament?.endsAt ?? null}
       dailyStates={extras.dailyStates}
       onOpen={open}
+      onOpenTournament={openTournament}
     />
   );
 }

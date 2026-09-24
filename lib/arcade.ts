@@ -54,6 +54,43 @@ export function splitGames(games: Game[]): SplitGames {
   };
 }
 
+export interface HoistedTournament {
+  /** El juego del torneo, si está en esta grilla. */
+  featured: Game | null;
+  /** Los demás, en el orden en que llegaron. */
+  rest: Game[];
+}
+
+/**
+ * Saca el juego del torneo al frente de la grilla para que salga destacado.
+ * Devuelve `featured: null` cuando no hay torneo o cuando apunta a un juego
+ * que no está en esta lista (un diario, o uno con `enabled=false`): la grilla
+ * se queda entonces igual que siempre.
+ */
+export function hoistTournament(
+  arcade: Game[],
+  tournamentPath: string | null,
+): HoistedTournament {
+  if (tournamentPath === null) return { featured: null, rest: arcade };
+  const featured = arcade.find((g) => g.path === tournamentPath) ?? null;
+  if (featured === null) return { featured: null, rest: arcade };
+  return { featured, rest: arcade.filter((g) => g !== featured) };
+}
+
+/**
+ * Lo que falta para que cierre el torneo: "4d 5h" mientras quede más de un
+ * día, "14h" el último. Toma `now` por parámetro para poder probarse y para
+ * que quien la use decida cada cuánto recalcula.
+ */
+export function formatCountdown(endsAt: string, now: number = Date.now()): string {
+  const ms = new Date(endsAt).getTime() - now;
+  if (ms <= 0) return "terminado";
+  const totalSecs = Math.floor(ms / 1000);
+  const days = Math.floor(totalSecs / 86400);
+  const hours = Math.floor((totalSecs % 86400) / 3600);
+  return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+}
+
 /** Cuánto falta para abrir un juego. Concuerda en singular y plural. */
 export function lockedLabel(levelsLeft: number): string {
   if (levelsLeft <= 0) return "ya casi";

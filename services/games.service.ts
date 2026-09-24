@@ -27,6 +27,8 @@ export type Game = {
   unlock: number;
   unlocked: boolean;
   levelsLeft: number;
+  /** Abierto SOLO por ser el torneo de la semana: el lunes vuelve a cerrarse. */
+  tournamentPass: boolean;
 };
 
 export type GameWord = {

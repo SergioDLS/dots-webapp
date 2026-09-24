@@ -3,21 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon, type UiIconName } from "@/components/ui/ui-icon";
+import { formatCountdown } from "@/lib/arcade";
 import {
   getTournamentService,
   type TournamentData,
 } from "@/services/tournament.service";
-
-// ── Countdown helper ──────────────────────────────────────────────────────────
-
-function formatCountdown(endsAt: string): string {
-  const ms = new Date(endsAt).getTime() - Date.now();
-  if (ms <= 0) return "terminado";
-  const totalSecs = Math.floor(ms / 1000);
-  const days = Math.floor(totalSecs / 86400);
-  const hours = Math.floor((totalSecs % 86400) / 3600);
-  return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
-}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 

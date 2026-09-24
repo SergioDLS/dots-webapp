@@ -1,10 +1,11 @@
 "use client";
 
-import { badgesFor, splitGames, type DailyState } from "@/lib/arcade";
+import { badgesFor, hoistTournament, splitGames, type DailyState } from "@/lib/arcade";
 import type { Game } from "@/services/games.service";
 import DailyHero from "./daily-hero";
 import GameTile from "./game-tile";
 import LockedTile from "./locked-tile";
+import TournamentTile from "./tournament-tile";
 
 /**
  * Vista pura del arcade: recibe todo cargado y lo reparte en los tres bloques
@@ -47,13 +48,30 @@ interface Props {
   games: Game[];
   /** `gamePath` del torneo de la semana — ya viene con barra desde el backend. */
   tournamentPath: string | null;
+  /** Cierre del torneo en ISO; null mientras no llega. Sin él no hay destacado. */
+  tournamentEndsAt: string | null;
+  /** Abre el juego del torneo EN modo torneo (seed + flag). */
+  onOpenTournament: () => void;
   /** Estado del puzzle de hoy por ruta ("/wordle" → {done, won}); null si aún no llega. */
   dailyStates: Record<string, DailyState | null>;
   onOpen: (path: string) => void;
 }
 
-export default function ArcadeGrid({ games, tournamentPath, dailyStates, onOpen }: Props) {
+export default function ArcadeGrid({
+  games,
+  tournamentPath,
+  tournamentEndsAt,
+  dailyStates,
+  onOpen,
+  onOpenTournament,
+}: Props) {
   const { daily, arcade, locked } = splitGames(games);
+  // Sin `endsAt` el tile no puede contar el cierre, así que el juego se queda
+  // en la grilla normal con su trofeo hasta que llegue.
+  const { featured, rest } = hoistTournament(
+    arcade,
+    tournamentEndsAt === null ? null : tournamentPath,
+  );
 
   return (
     <div className={ARCADE_STACK_CLASS}>
@@ -75,7 +93,16 @@ export default function ArcadeGrid({ games, tournamentPath, dailyStates, onOpen 
         <section className="flex flex-col gap-3">
           <Eyebrow>Arcade</Eyebrow>
           <ul className={ARCADE_GRID_CLASS}>
-            {arcade.map((game) => (
+            {featured !== null && tournamentEndsAt !== null && (
+              <li key={featured.id} className="col-span-2">
+                <TournamentTile
+                  game={featured}
+                  endsAt={tournamentEndsAt}
+                  onOpen={onOpenTournament}
+                />
+              </li>
+            )}
+            {rest.map((game) => (
               <li key={game.id}>
                 <GameTile game={game} badges={badgesFor(game.path, { tournamentPath })} onOpen={onOpen} />
               </li>
