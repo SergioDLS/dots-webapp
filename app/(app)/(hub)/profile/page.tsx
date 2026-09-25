@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import AvatarPicker from "@/components/profile/avatar-picker";
 import BadgesGrid from "@/components/profile/badges-grid";
 import GesturesCard from "@/components/profile/gestures-card";
+import InstallCard from "@/components/pwa/install-card";
 import ProfileIdentity from "@/components/profile/profile-identity";
 import ProfileStats from "@/components/profile/profile-stats";
 import ProfileXpBar from "@/components/profile/profile-xp-bar";
@@ -152,6 +153,9 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-6">
           <BadgesGrid badges={badges} />
           <GesturesCard items={inventory} onToggle={toggleEquip} />
+          {/* Se quita sola cuando ya está instalada; en escritorio explica
+              cómo se hace allí en vez de esconderse. */}
+          <InstallCard />
         </div>
       </div>
 

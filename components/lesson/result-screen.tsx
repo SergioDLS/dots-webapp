@@ -1,11 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import UIButton from "@/components/ui/button/button";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import RewardPanel from "@/components/lesson/reward-panel";
+import { marcarActividadCompletada } from "@/lib/install-browser";
 import type { ProgressReward } from "@/services/engagement.service";
 
 export type ResultMode = "perfect" | "finished" | "gameover";
@@ -38,6 +39,19 @@ export default function ResultScreen({
   onSecondary,
 }: ResultScreenProps) {
   const isGameover = mode === "gameover";
+
+  // Terminar algo es el momento en que se invita a instalar la PWA: el
+  // usuario acaba de ver para qué sirve esto. La marca solo se deja; quien
+  // decide si se enseña algo —y si toca, y cuántas veces— es
+  // components/pwa/install-watch.tsx, ya de vuelta en el hub.
+  //
+  // Quedarse sin corazones no cuenta: pedir un favor justo ahí es pedirlo en
+  // el peor momento posible.
+  useEffect(() => {
+    if (mode === "gameover") return;
+    marcarActividadCompletada();
+  }, [mode]);
+
   const emoji = mode === "perfect" ? "🌟" : isGameover ? "💔" : "🎉";
   const title =
     mode === "perfect" ? "¡Perfecto!" : isGameover ? "¡Oh no!" : "¡Muy bien!";

@@ -252,6 +252,38 @@ export const ICON_PATHS = {
       <rect x="14" y="8" width="12" height="10" rx="3" fill="#FF1F8F" transform="rotate(-10 20 13)" />
     </g>
   ),
+  // Los tres de abajo NO son iconos de dots: son citas de botones que dibuja
+  // el sistema operativo, y salen en el tutorial de instalación
+  // (components/pwa/install-sheet.tsx) para que el usuario reconozca de un
+  // vistazo qué tiene que tocar. Por eso imitan la forma de iOS y de Android
+  // en vez de inventarse una propia — el parecido es el punto—, pero se
+  // dibujan aquí, con la paleta y el grosor de la familia: un emoji o una
+  // captura no se pueden teñir ni sobreviven al cambio de tema (regla 11).
+  compartir: (
+    <g fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      {/* La caja va abierta por arriba: el `fill` la cierra en recto y deja
+          que la flecha la atraviese, igual que en la barra de Safari. */}
+      <path d="M17,19 H12 A3,3 0 0 0 9,22 V39 A3,3 0 0 0 12,42 H36 A3,3 0 0 0 39,39 V22 A3,3 0 0 0 36,19 H31" fill="#35D8F5" />
+      <path d="M24,29 V8" stroke="#FF1F8F" />
+      <path d="M16,15 L24,7 L32,15" stroke="#FF1F8F" />
+    </g>
+  ),
+  "anadir-inicio": (
+    <g fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="8" width="32" height="32" rx="8" fill="#3768FF" />
+      <path d="M24,17 V31 M17,24 H31" stroke="#ffffff" />
+    </g>
+  ),
+  // Sin contorno a propósito: tres discos de 9 px con línea alrededor se
+  // empastan al tamaño al que se renderizan (20 px), y el grosor de la
+  // familia no es negociable para arreglarlo.
+  "menu-puntos": (
+    <g fill="#FF1F8F" stroke="none">
+      <circle cx="24" cy="10" r="4.5" />
+      <circle cx="24" cy="24" r="4.5" />
+      <circle cx="24" cy="38" r="4.5" />
+    </g>
+  ),
 } as const satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof ICON_PATHS;

@@ -7,6 +7,7 @@ import DotyEntrada from "@/components/ui/doty/doty-entrada";
 import ThemeSync from "@/components/theme/theme-sync";
 import TipsController from "@/components/tips/tips-controller";
 import RivalWatch from "@/components/rival/rival-watch";
+import InstallWatch from "@/components/pwa/install-watch";
 
 /**
  * Chrome persistente de las pantallas "hub" (camino, repaso, retos, zona de
@@ -36,6 +37,9 @@ export default function HubLayout({
       {/* Aviso "te pasó" (spec §6.5): reacciona a la ruta y solo en Camino,
           Juegos y Retos. No bloquea nada: no es un modal. */}
       <RivalWatch />
+      {/* Invitación a instalar la PWA: solo en móvil, solo al volver de
+          terminar algo y dos veces como mucho en la vida del dispositivo. */}
+      <InstallWatch />
       <AppNav />
       <AppHeader />
       {/* El hueco inferior es la barra de nav (58 px) más un respiro, y suma

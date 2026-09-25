@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
 import SwRegister from "@/components/pwa/sw-register";
+import InstallCapture from "@/components/pwa/install-capture";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 const nunito = Nunito({
@@ -114,8 +115,12 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${baloo.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Fuera de AuthProvider a propósito: el SW no depende de la sesión. */}
+        {/* Fuera de AuthProvider a propósito: ni el SW ni el evento de
+            instalación dependen de la sesión. InstallCapture va aquí, en el
+            layout raíz, porque `beforeinstallprompt` llega una sola vez y
+            poco después de cargar: engancharlo en el hub llegaría tarde. */}
         <SwRegister />
+        <InstallCapture />
         <AuthProvider>
           <AuthSync />
           {children}
