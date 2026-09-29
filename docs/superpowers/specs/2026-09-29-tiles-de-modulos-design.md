@@ -87,8 +87,10 @@ ALTER TABLE dots.path_nodes ADD COLUMN IF NOT EXISTS src varchar(255);
 ```
 
 Es aditiva: el código desplegado hoy no la nota. **Tiene que correr antes de
-desplegar el backend nuevo**: en cuanto la entity declare `src`, el `find()`
-de `GET /path` la pide en el `SELECT` y fallaría sin ella.
+desplegar el backend nuevo**: en cuanto la entity declare `src`, todo `find()`
+de `PathNode` la pide en el `SELECT` (`GET /path`, completar nodos,
+checkpoint, contenido del nodo, vecinos, placement y admin), así que todo eso
+respondería 500 sin ella.
 
 ### Backend
 
@@ -125,6 +127,9 @@ de `GET /path` la pide en el `SELECT` y fallaría sin ella.
   garantizarlo el script, no la memoria de quien lo corre.
 - Por eso se puede correr por tandas: asigna lo publicado y deja el resto
   para la siguiente corrida.
+- Un nodo cuyo `src` ya tiene otro valor (no nulo y distinto del del mapa)
+  lo puso alguien a mano desde `/admin/path`: el script lo **respeta** y lo
+  lista como `respeta`, salvo que se pase `--pisar`.
 
 ## Catálogo de arte
 
