@@ -1332,3 +1332,20 @@ def test_build_prompt_sin_icon_block_propio_usa_el_del_estilo():
     style = dict(STYLE, icon_block="fills only in pink")
     out = mjlib.build_prompt(piece(group="levels", mascot=False), style)
     assert "fills only in pink" in out
+
+
+def test_slots_de_pieza_con_paleta_propia_van_sin_sref():
+    cat = _cat_levels(
+        {"anchor_sref": "public/images/levels/estructuras.png"},
+        {"slug": "colores", "group": "levels", "prefix": "Level tile paint palette",
+         "prompt": "a palette", "size": 512, "mascot": False, "done": False,
+         "icon_block": "true colors"}
+    )
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "esta pieza trae su propia paleta" in out
+    # Check the colores block doesn't contain the anchor's sref
+    colores_block_start = out.find("`colores`")
+    assert colores_block_start != -1, "colores section not found in lote"
+    next_section = out.find("### ", colores_block_start + 1)
+    colores_block = out[colores_block_start:next_section] if next_section != -1 else out[colores_block_start:]
+    assert "la descarga elegida de `formas`" not in colores_block

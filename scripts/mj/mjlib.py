@@ -292,6 +292,11 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
         origen = (f"`{cat['fase']}/{fuente['source_file']}`" if fuente.get("source_file")
                   else f"la descarga que elijas de `{fuente['slug']}` (misma carpeta)")
         return f"> 📎 **Attach to prompt:** {origen} · 🎨 **Style reference:** VACÍO"
+    if piece.get("icon_block"):
+        # Paleta propia (colores): el --sref del ancla transfiere paleta y la
+        # arrastraría a la de marca — describirla con palabras no basta (gemas).
+        return ("> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO "
+                "(esta pieza trae su propia paleta: el sref del ancla la arrastraría a la de marca)")
     ancla = next((q for q in cat["pieces"] if q.get("group") == piece["group"] and q.get("anchor")), None)
     if ancla is None or ancla["slug"] == piece["slug"]:
         if piece.get("anchor_sref"):

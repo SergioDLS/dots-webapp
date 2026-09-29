@@ -1,4 +1,5 @@
 import sys
+import re
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import mjlib  # noqa: E402
@@ -78,3 +79,17 @@ def test_solo_abecedario_y_numeros_llevan_glifos():
 
 def test_solo_colores_sale_de_la_paleta_cerrada():
     assert {p["slug"] for p in _cat()["pieces"] if p.get("icon_block")} == {"colores"} & _slugs()
+
+
+# Rellenos solo en rosa, azul, cyan y blanco (spec, decisión 3). El navy de
+# relleno ya lo rechaza validate_catalog al cargar; esto cubre el resto de
+# colores ajenos, que nada comprobaba. `colores` es la excepción declarada.
+FUERA_DE_MARCA = re.compile(
+    r"\b(red|orange|yellow|green|purple|violet|brown|beige|gold|golden|gr[ae]y|black|silver)\b", re.I)
+
+
+def test_ningun_prompt_nombra_colores_fuera_de_la_marca():
+    for p in _cat()["pieces"]:
+        if p["slug"] == "colores":
+            continue
+        assert not FUERA_DE_MARCA.search(p["prompt"]), (p["slug"], p["prompt"])
