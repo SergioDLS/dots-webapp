@@ -86,8 +86,11 @@ Los scripts leen `../.env` relativo a `scripts/` y `dotenv` lo busca en el cwd. 
 ```bash
 cd /home/endurance/Projects/Endurance/dots/dots-backend/.claude/worktrees/tiles-modulos
 ln -s /home/endurance/Projects/Endurance/dots/dots-backend/.env .env
+ln -s /home/endurance/Projects/Endurance/dots/dots-backend/scripts/out scripts/out
 source ~/.nvm/nvm.sh && nvm use && npm ci
 ```
+
+El segundo enlace hace que los respaldos de las escrituras a producción sobrevivan al worktree: `scripts/out/` está en `.gitignore` y `git worktree remove` borra los archivos ignorados. Va antes de correr ningún script, porque `fs.mkdirSync` lo crearía como directorio real y el enlace acabaría dentro de él. Ojo: la regla `scripts/out/` (con barra final) solo ignora directorios, así que `git status` mostrará el enlace como `?? scripts/out`; es lo esperado y nunca se añade (los `git add` de este plan van siempre con rutas explícitas, jamás `-A` ni `.`).
 
 Expected: `added N packages`, sin errores.
 
@@ -98,7 +101,7 @@ cp /home/endurance/Projects/Endurance/dots/dots-backend/scripts/merge-duplicate-
 node --check scripts/merge-duplicate-nodes.js && git status --short
 ```
 
-Expected: `?? scripts/merge-duplicate-nodes.js` y nada más.
+Expected: `?? scripts/merge-duplicate-nodes.js` y el enlace `?? scripts/out` del Step 2, nada más.
 
 - [ ] **Step 4: Commit y retirar la copia sin trackear del checkout compartido**
 
@@ -287,7 +290,7 @@ npx jest
 npx eslint src/modules/path/node-src.ts src/modules/path/node-src.spec.ts src/modules/path/path.service.ts src/modules/path/path.dto.ts src/common/entity/path_node.entity.ts
 ```
 
-Expected: sin errores de tipos; toda la suite en verde; eslint sin errores. `resolveNodeSrc` es la regla entera de `toNodeDto` para `src`: el test de la spec ("nodo módulo con `src`, sin `src`, `practice` que hereda") se cubre sobre ella, y el cableado lo verifica `tsc`.
+Expected: sin errores de tipos; toda la suite en verde; eslint sin errores. `resolveNodeSrc` es la regla entera de `toNodeDto` para `src`: el test de la spec ("nodo módulo con `src`, sin `src`, `practice` que hereda") se cubre sobre ella, y el cableado (que un `practice` hereda `levels.src` y uno propio lo gana) lo cubre `src/modules/path/to-node-dto.spec.ts`, añadido en la tanda de arreglos de la revisión final.
 
 - [ ] **Step 9: Commit**
 
@@ -488,7 +491,10 @@ EOF
  * hasta que scripts/set-node-art.js las rellene.
  *
  * Tiene que correr ANTES de desplegar el backend que declara la columna en la
- * entity PathNode: el find() de GET /path la pide en el SELECT y sin ella falla.
+ * entity PathNode: en cuanto la entity la declara, TODO find() de PathNode la
+ * pide en el SELECT (GET /path, node-progress —completar nodos—, checkpoint,
+ * node-content, path-neighbors, skip-applier —placement— y el admin), así que
+ * todo eso responde 500 hasta que la migración se aplica.
  *
  * Usage (from dots-backend/):
  *   node scripts/migrate-path-node-src.js            # dry-run
@@ -562,6 +568,10 @@ async function main() {
       timestamp: new Date().toISOString(),
       addedColumns: before ? [] : [{ table: 'path_nodes', column: 'src' }],
     };
+    // El ADD COLUMN es solo de metadatos, pero espera un lock ACCESS EXCLUSIVE:
+    // en la BD compartida, una transacción larga dejaría las lecturas en cola
+    // detrás de él. Con el timeout falla rápido y se puede reintentar.
+    await client.query(`SET lock_timeout = '5s'`);
     for (const sql of DDL) {
       await client.query(sql);
       console.log('OK:', sql.replace(/\s+/g, ' ').slice(0, 80));
@@ -652,7 +662,7 @@ EOF
 
 **Interfaces:**
 - Consumes: la columna `path_nodes.src` (Task 4, en producción desde la Parte B).
-- Produces: `node scripts/set-node-art.js [--apply | --rollback <respaldo>]`. Respaldo en `scripts/out/backup-node-art-<ts>.json` como array `{ id, key, old, new }`.
+- Produces: `node scripts/set-node-art.js [--apply [--pisar] | --rollback <respaldo>]`. Respaldo en `scripts/out/backup-node-art-<ts>.json` como array `{ id, key, old, new }`. Un nodo con un `src` distinto y no nulo (puesto a mano desde `/admin/path`) se respeta y se lista como `respeta`; solo `--pisar` lo sobrescribe.
 
 - [ ] **Step 1: Escribir el script**
 
@@ -665,7 +675,11 @@ EOF
  *
  *   node scripts/set-node-art.js                    # dry-run
  *   node scripts/set-node-art.js --apply            # UPDATE de las filas publicadas
+ *   node scripts/set-node-art.js --apply --pisar    # también reemplaza imágenes puestas a mano
  *   node scripts/set-node-art.js --rollback scripts/out/backup-node-art-<ts>.json
+ *
+ * Un nodo cuyo `src` ya tiene otro valor (alguien lo puso a mano desde
+ * /admin/path) se respeta y se lista como `respeta`; solo --pisar lo sobrescribe.
  *
  * El mapa va por `tipo:ref_id` y no por id de nodo: identifica el contenido
  * aunque alguien recree el nodo desde /admin/path.
@@ -756,6 +770,7 @@ async function main() {
   loadEnv();
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const apply = process.argv.includes('--apply');
+  const pisar = process.argv.includes('--pisar');
   const rollbackFile = arg('--rollback');
 
   const db = new Client({
@@ -803,15 +818,20 @@ async function main() {
     const listos = [];
     const esperan = [];
     const iguales = [];
+    const propias = [];
     for (const p of plan) {
       if (p.node.src === p.nuevo) { iguales.push(p); continue; }
+      // Un src distinto y no nulo lo puso alguien a mano: no se pisa sin --pisar.
+      if (p.node.src && !pisar) { propias.push(p); continue; }
       if (!visto.has(p.slug)) visto.set(p.slug, await publicado(PROD + p.nuevo));
       (visto.get(p.slug) ? listos : esperan).push(p);
     }
     const fila = (p) => `${String(p.node.id).padStart(4)}  ${p.key.padEnd(16)}`;
     for (const p of listos) console.log(`  asigna  ${fila(p)} ${p.node.src ?? 'null'} → ${p.nuevo}`);
     for (const p of esperan) console.log(`  espera  ${fila(p)} ${p.slug}.png no responde 200 en producción`);
-    console.log(`\n${listos.length} se asignan · ${esperan.length} esperan su PNG · ${iguales.length} ya estaban`);
+    for (const p of propias) console.log(`  respeta ${fila(p)} ${p.node.src} (puesta a mano; --pisar para reemplazarla)`);
+    console.log(`\n${listos.length} se asignan · ${esperan.length} esperan su PNG · ${iguales.length} ya estaban`
+      + (propias.length ? ` · ${propias.length} con imagen puesta a mano` : ''));
     if (!apply) return console.log('\n(dry-run — nada escrito. Usa --apply.)');
     if (!listos.length) return console.log('\nNada que escribir.');
 
@@ -1302,6 +1322,8 @@ Expected: `path_nodes.src: will be added`.
 
 - [ ] **Step 2: 🔒 `--apply` de la migración**
 
+Antes, comprobar que los respaldos caerán fuera del worktree: `ls -l scripts/out` tiene que mostrar el enlace simbólico al checkout compartido (`scripts/out -> /home/endurance/Projects/Endurance/dots/dots-backend/scripts/out`), no un directorio real.
+
 Pedir consentimiento. Con el sí: `node scripts/migrate-path-node-src.js --apply`
 Expected: `OK: ALTER TABLE dots.path_nodes ADD COLUMN IF NOT EXISTS src varchar(255)`, `Backup written: …`, `Migration verified OK.`
 Si el clasificador lo bloquea, pasarle a Sergio (fish):
@@ -1315,9 +1337,15 @@ cd /home/endurance/Projects/Endurance/dots/dots-backend/.claude/worktrees/tiles-
 Run: `node scripts/set-node-art.js`
 Expected: ya no dice `path_nodes.src no existe`. Termina en `10 se asignan · 48 esperan su PNG · 0 ya estaban` y `(dry-run — nada escrito…)`. **Este es el criterio de aceptación 6**: los 48 slugs sin publicar se saltan.
 
-- [ ] **Step 4: 🔒 Integrar el backend en `main`**
+- [ ] **Step 4: 🔒 Integrar el backend en `main` y verificar el deploy**
 
-Pedir a Sergio cómo integrarlo (PR o merge directo). Antes: `npx jest` en verde en el worktree. Render despliega `main`. Sergio confirma en el panel de Render que el deploy terminó bien.
+(a) Justo antes de integrar, volver a correr `node scripts/migrate-path-node-src.js` y exigir `path_nodes.src: exists`. Y `npx jest` en verde en el worktree.
+
+(b) 🔒 Integrar como prefiera Sergio (PR o merge directo). Render despliega `main` solo, así que integrar ES desplegar.
+
+(c) Con el deploy terminado, abrir el Camino en producción y comprobar: carga; la sección 1 se ve exactamente como antes (iconos de tipo); las secciones 2+ conservan sus tiles de la fase 2; y al abrir un nodo y recorrer su flujo hasta completarlo, nada responde 500.
+
+(d) Revisar los logs de Render: ninguna línea con `column` y `src does not exist`.
 
 ---
 
@@ -1482,10 +1510,12 @@ uv run scripts/mj/tile_sheet.py \
   colores:profesiones:ropa:cuerpo:cuidado-personal:animales \
   formas:deportes:estructuras \
   familia:comparativo:singular-plural \
+  comidas:partes-del-dia \
+  meses:frecuencia \
   --out /tmp/claude-1000/hoja-tanda-1.png
 ```
 
-Abrir la hoja con Read y comprobar, sobre los dos fondos: (a) cada pieza se reconoce; (b) las de una misma fila se distinguen; (c) A B C y 1 2 3 son correctos — si tras una regeneración siguen deformes, se para aquí: el plan B de la spec (bloques en blanco y glifos compuestos con Baloo 2) es una tarea nueva que se diseña con Sergio, no un apaño dentro de esta; (d) sin rellenos fuera de la paleta de marca salvo `colores`; (e) `formas` y `deportes` comparten grosor con `estructuras`; (f) `familia` no se confunde con `comparativo` ni con `singular-plural`. Enseñarle la hoja a Sergio; lo que no pase se marca `regen: true` y se vuelve al Step 2.
+Abrir la hoja con Read y comprobar, sobre los dos fondos: (a) cada pieza se reconoce; (b) las de una misma fila se distinguen; (c) A B C y 1 2 3 son correctos — si tras una regeneración siguen deformes, se para aquí: el plan B de la spec (bloques en blanco y glifos compuestos con Baloo 2) es una tarea nueva que se diseña con Sergio, no un apaño dentro de esta; (d) sin rellenos fuera de la paleta de marca salvo `colores`; (e) `formas` y `deportes` comparten grosor con `estructuras`; (f) `familia` no se confunde con `comparativo` ni con `singular-plural`; (g) `comidas` no se confunde con `partes-del-dia` ni `meses` con `frecuencia`. Enseñarle la hoja a Sergio; lo que no pase se marca `regen: true` y se vuelve al Step 2.
 
 - [ ] **Step 6: Lint, build y commit**
 
