@@ -16,7 +16,7 @@
       "slug": "abecedario",
       "group": "levels",
       "prefix": "Level tile ABC blocks",
-      "prompt": "three chunky toy blocks in a small pyramid, their front faces showing the capital letters A, B and C in thick white letters, the blocks pink, cyan and blue",
+      "prompt": "three chunky toy blocks in a small pyramid, their front faces showing the capital letters A, B and C in thick white letters with a navy outline, the blocks pink, cyan and blue",
       "size": 512,
       "mascot": false,
       "done": false,
@@ -90,7 +90,7 @@
       "slug": "hora",
       "group": "levels",
       "prefix": "Level tile alarm clock",
-      "prompt": "a round alarm clock with two bells on top, pink body, white face and blue hands pointing at ten past two",
+      "prompt": "a round alarm clock with two bells on top, pink body, white face with only tick marks and blue hands pointing at ten past two",
       "size": 512,
       "mascot": false,
       "done": false
@@ -109,7 +109,7 @@
       "slug": "familia",
       "group": "levels",
       "prefix": "Doty and a little Doty",
-      "prompt": "holding hands with a much smaller Doty child standing beside him, both smiling, walking together",
+      "prompt": "holding hands with a much smaller Doty child walking beside him, both smiling",
       "size": 512,
       "mascot": true,
       "done": false
@@ -190,7 +190,7 @@
       "slug": "deportes",
       "group": "levels",
       "prefix": "Level tile sports balls",
-      "prompt": "a basketball, a soccer ball and a tennis ball grouped together, each with its seam pattern drawn in navy lines",
+      "prompt": "a pink basketball, a soccer ball with white and cyan panels and a cyan tennis ball grouped together, all their seams drawn as navy lines",
       "size": 512,
       "mascot": false,
       "done": false

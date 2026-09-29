@@ -1298,9 +1298,19 @@ def test_slots_del_ancla_con_anchor_sref_pone_la_imagen_en_style_reference():
 def test_ancla_con_anchor_sref_encabezado_y_slots_dicen_lo_mismo():
     cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
     out = mjlib.emit_lote(cat, STYLE, ["levels"])
-    # No line should say "sin nada adjunto" for the anchor when it has anchor_sref
-    linea_ancla = next(l for l in out.splitlines() if "`formas`" in l)
-    assert "sin nada adjunto" not in linea_ancla
+    # El ancla dice su adjunto en DOS sitios: el encabezado `###` y la linea de
+    # slots `> 📎` que va justo debajo. Los dos tienen que nombrar la imagen, y
+    # ninguno puede decir "sin nada adjunto" ni dejar el slot VACÍO. Mirar solo
+    # el encabezado no basta: esa mitad ya manejaba `anchor_sref`, y la linea de
+    # slots era la que podia seguir mintiendo.
+    lineas = out.splitlines()
+    i = next(i for i, l in enumerate(lineas) if l.startswith("### ") and "`formas`" in l)
+    encabezado = lineas[i]
+    slots = next(l for l in lineas[i + 1:] if l.startswith("> 📎"))
+    for nombre, linea in (("encabezado", encabezado), ("slots", slots)):
+        assert "`public/images/levels/estructuras.png`" in linea, nombre
+        assert "sin nada adjunto" not in linea, nombre
+        assert "VACÍO" not in linea, nombre
 
 
 def test_slots_del_ancla_sin_anchor_sref_sigue_vacio():
