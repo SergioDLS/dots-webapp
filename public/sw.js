@@ -15,7 +15,11 @@
    /images/ se sirve cache-first desde `dots-media-`. Sin este bump, quien ya lo
    tuviera cacheado seguiría viendo el retrato viejo para siempre: el nombre no
    lleva hash, así que nada más delata el cambio. */
-const SW_VERSION = "v3";
+/* v4: offline.html cambió de imagen (logo-192, la burbuja neutral, en vez de
+   icon-192, que es la cara del Doty nuevo) y el precache con ella. Además
+   /apple-icon.png cambió de arte y va stale-while-revalidate desde `dots-static-`:
+   el bump vacía esa copia en vez de esperar a una segunda visita. */
+const SW_VERSION = "v4";
 
 const PRECACHE = `dots-precache-${SW_VERSION}`; // fijo, sin trim
 const STATIC = `dots-static-${SW_VERSION}`; //   runtime, con trim
@@ -26,7 +30,7 @@ const OFFLINE_URL = "/offline.html";
 // Si una 404ea, el install entero falla: verificar al tocar esta lista.
 const PRECACHE_URLS = [
   OFFLINE_URL,
-  "/icons/icon-192.png",
+  "/icons/logo-192.png", // la imagen de offline.html
   "/sounds/answers/correct.wav",
   "/sounds/answers/wrong.wav",
 ];
