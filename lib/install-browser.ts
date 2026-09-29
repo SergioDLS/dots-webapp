@@ -155,6 +155,15 @@ export function guardarMarca(marca: MarcaAviso): void {
   }
 }
 
+/** Olvida la marca: la invitación a instalar vuelve a salir. Lo usa la caja de admin. */
+export function borrarMarca(): void {
+  try {
+    window.localStorage.removeItem(CLAVE_MARCA);
+  } catch {
+    // modo privado: no había nada que olvidar
+  }
+}
+
 /**
  * El disparo: "se acaba de terminar una actividad".
  *

@@ -15,8 +15,10 @@ import { setAdminModeService } from "@/services/admin-lab.service";
  */
 export default function AdminModeSwitch({
   subtitle = "Todo abierto y herramientas de prueba",
+  onChange,
 }: {
   subtitle?: string;
+  onChange?: (on: boolean) => void;
 }) {
   const { estado, encendido } = useAdminMode();
   const [busy, setBusy] = useState(false);
@@ -31,6 +33,7 @@ export default function AdminModeSwitch({
       .then((r) => {
         fijarModoAdmin(r.admin_mode ? "encendido" : "apagado");
         bumpCuenta();
+        onChange?.(r.admin_mode);
       })
       .catch(() => setError("No se pudo cambiar. ¿El backend está al día?"))
       .finally(() => setBusy(false));
