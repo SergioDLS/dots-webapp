@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getMyStatsService, type MyStats } from "@/services/engagement.service";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { levelProgress } from "@/lib/level-math";
+import { useAccountVersion } from "@/hooks/use-account-version";
 
 /**
  * HUD superior de las pantallas hub, sin marcos (spec §3.3): llama encendida
@@ -14,6 +15,9 @@ import { levelProgress } from "@/lib/level-math";
  */
 export default function AppHeader() {
   const [stats, setStats] = useState<MyStats | null>(null);
+  // Vuelve a pedir stats cuando la caja de admin regala gemas/XP/racha o cambia
+  // de modo: sin recarga (regla 1). Efecto con dependencia extra a propósito.
+  const version = useAccountVersion();
 
   useEffect(() => {
     let mounted = true;
@@ -23,7 +27,7 @@ export default function AppHeader() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [version]);
 
   const { pct } = stats ? levelProgress(stats.xp, stats.level, stats.xpForNextLevel) : { pct: 0 };
   // Sin el campo (backend viejo) la llama sigue la racha, como hasta ahora.

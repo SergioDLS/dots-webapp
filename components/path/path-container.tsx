@@ -13,6 +13,7 @@ import { getLevelsService, getPathService, getPathNeighborsService } from "@/ser
 import { adaptLevelsToPath } from "@/lib/path-adapter";
 import { useAuth } from "@/context/auth-context";
 import { useInView } from "@/hooks/use-in-view";
+import { useAccountVersion } from "@/hooks/use-account-version";
 import {
   difficultyNav,
   isDifficultyUnlocked,
@@ -54,6 +55,9 @@ export default function PathContainer() {
   // the browser (shared api client + refresh flow) can call the API.
   const { isBootstrapping } = useAuth();
   const router = useRouter();
+  // Cambiar de modo admin cambia qué llega `unlocked`: se vuelve a pedir el
+  // camino sin navegar.
+  const version = useAccountVersion();
   const [path, setPath] = useState<PathResponse | null>(null);
   // Tracks whether the path came from GET /path (true) or the /levels adapter
   // fallback (false). Peers use path_nodes.id as keys; the adapter uses
@@ -94,7 +98,7 @@ export default function PathContainer() {
     return () => {
       mounted = false;
     };
-  }, [isBootstrapping]);
+  }, [isBootstrapping, version]);
 
   // Vecinos en el camino. Adorno deliberado: si falla, se pone lento o no está
   // desplegado, el camino se ve exactamente como hoy. Sin loadError, sin botón

@@ -15,6 +15,7 @@ import {
 import { getTournamentService, type TournamentData } from "@/services/tournament.service";
 import ArcadeGrid from "./arcade-grid";
 import ArcadeSkeleton from "./arcade-skeleton";
+import { useAccountVersion } from "@/hooks/use-account-version";
 
 /** Lo que adorna la rejilla pero nunca la bloquea: torneo y estado de hoy. */
 interface Extras {
@@ -35,6 +36,8 @@ export default function ArcadeContainer() {
   const [loadError, setLoadError] = useState(false);
   // Patrón fetchAttempt (regla 3): el botón sube el contador, el efecto solo fetchea.
   const [attempt, setAttempt] = useState(0);
+  // El modo admin abre los candados de la grilla: mismo refetch que Reintentar.
+  const version = useAccountVersion();
 
   // La lista es lo único obligatorio: sin ella no hay pantalla.
   useEffect(() => {
@@ -49,7 +52,7 @@ export default function ArcadeContainer() {
     return () => {
       active = false;
     };
-  }, [attempt]);
+  }, [attempt, version]);
 
   // Badges y estado de hoy: decoran la rejilla y no deben retrasarla ni
   // romperla. Cada fuente cae a su valor neutro por separado; el catch final
