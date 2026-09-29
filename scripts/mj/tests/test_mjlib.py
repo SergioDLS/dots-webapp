@@ -1275,3 +1275,68 @@ def test_emit_registry_rechaza_claves_repetidas_entre_fases():
 def test_emit_registry_sigue_aceptando_un_solo_catalogo():
     ts = mjlib.emit_registry({"fase": "fase-1", "pieces": [piece(done=True)]})
     assert "// Fuente: scripts/mj/batches/fase-1.json" in ts
+
+
+# ── fase 5: ancla heredada, glifos y paleta propia ────────────────────────────
+
+def _cat_levels(ancla_extra=None, *extra):
+    ancla = {"slug": "formas", "group": "levels", "prefix": "Level tile shapes",
+             "prompt": "shapes", "size": 512, "mascot": False, "anchor": True, "done": False}
+    ancla.update(ancla_extra or {})
+    otra = {"slug": "dias", "group": "levels", "prefix": "Level tile week strip",
+            "prompt": "a strip", "size": 512, "mascot": False, "done": False}
+    return {"fase": "fase-t", "pieces": [ancla, otra, *extra]}
+
+
+def test_style_ref_valido_en_el_ancla_pasa():
+    mjlib.validate_catalog(_cat_levels({"style_ref": "fase-2/Mandrakin_Level_tile_x_0.png"}))
+
+
+def test_style_ref_fuera_del_ancla_falla():
+    cat = _cat_levels()
+    cat["pieces"][1]["style_ref"] = "fase-2/Mandrakin_Level_tile_x_0.png"
+    with pytest.raises(mjlib.CatalogError, match="style_ref"):
+        mjlib.validate_catalog(cat)
+
+
+def test_style_ref_debe_ser_fase_barra_png():
+    with pytest.raises(mjlib.CatalogError, match="style_ref"):
+        mjlib.validate_catalog(_cat_levels({"style_ref": "estructuras.png"}))
+
+
+def test_emit_lote_pone_el_style_ref_del_ancla_en_style_reference():
+    cat = _cat_levels({"style_ref": "fase-2/Mandrakin_Level_tile_x_0.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "Style reference:** `fase-2/Mandrakin_Level_tile_x_0.png`" in out
+    assert "esta pieza ES el ancla del grupo" not in out
+
+
+def test_emit_lote_sin_style_ref_el_ancla_sigue_sin_referencia():
+    out = mjlib.emit_lote(_cat_levels(), STYLE, ["levels"])
+    assert "esta pieza ES el ancla del grupo" in out
+
+
+def test_build_prompt_quita_text_del_negativo_si_la_pieza_lleva_glifos():
+    style = dict(STYLE, negative=["text", "glasses", "shadow"])
+    out = mjlib.build_prompt(piece(group="levels", mascot=False, glyphs=True), style)
+    assert out.endswith("--no glasses, shadow")
+
+
+def test_build_prompt_mantiene_text_en_el_negativo_por_defecto():
+    style = dict(STYLE, negative=["text", "glasses", "shadow"])
+    out = mjlib.build_prompt(piece(group="levels", mascot=False), style)
+    assert out.endswith("--no text, glasses, shadow")
+
+
+def test_build_prompt_usa_el_icon_block_de_la_pieza():
+    style = dict(STYLE, icon_block="fills only in pink")
+    out = mjlib.build_prompt(
+        piece(group="levels", mascot=False, icon_block="blobs in their true colors"), style)
+    assert "blobs in their true colors" in out
+    assert "fills only in pink" not in out
+
+
+def test_build_prompt_sin_icon_block_propio_usa_el_del_estilo():
+    style = dict(STYLE, icon_block="fills only in pink")
+    out = mjlib.build_prompt(piece(group="levels", mascot=False), style)
+    assert "fills only in pink" in out
