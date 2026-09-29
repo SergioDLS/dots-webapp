@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// Splash de arranque de iOS: fondo del tema claro con Doty centrado.
+// Splash de arranque de iOS: fondo del tema claro con el icono de la app
+// centrado, sea cual sea el que haya en icon-512 — hoy la burbuja neutral,
+// porque el splash se ve antes del login y el Doty nuevo se estrena después.
 //
 // iOS ignora el `icons` del manifest y exige un PNG por tamaño FÍSICO de
 // pantalla, que elige con media queries — de ahí que haya doce y no uno.
@@ -15,7 +17,7 @@ import { join } from "node:path";
 const root = fileURLToPath(new URL("../..", import.meta.url));
 // THEME_COLORS.light de lib/theme-colors.ts (ver nota en compose-icons.mjs).
 const BG = { r: 0xff, g: 0xf7, b: 0xfb, alpha: 1 };
-const doty = join(root, "public/icons/icon-512.png");
+const icono = join(root, "public/icons/icon-512.png");
 
 // [ancho CSS, alto CSS, DPR] — iPhone SE/8, 11/XR, 12–16 y Pro/Max, iPad 10.2–13"
 export const DEVICES = [
@@ -29,10 +31,10 @@ mkdirSync(join(root, "public/splash"), { recursive: true });
 for (const [w, h, dpr] of DEVICES) {
   const W = w * dpr;
   const H = h * dpr;
-  // Doty al 32 % del lado corto: en un iPad no queda diminuto y en un SE no
+  // El icono al 32 % del lado corto: en un iPad no queda diminuto y en un SE no
   // llega a los bordes.
   const side = Math.round(Math.min(W, H) * 0.32);
-  const d = await sharp(doty)
+  const d = await sharp(icono)
     .resize(side, side, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer();

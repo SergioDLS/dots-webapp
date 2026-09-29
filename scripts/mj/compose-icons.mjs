@@ -4,6 +4,12 @@
 //
 // Uso: node scripts/mj/compose-icons.mjs /ruta/app-icon.png
 //
+// HOY NO se usa: los iconos, el favicon y el apple-icon son la burbuja neutral
+// de 10d6620, porque todos se ven antes del login y el Doty nuevo se estrena
+// en la transformación (lib/doty-transformacion.ts). Correr esto con la cara
+// de Doty arruina la sorpresa; hacerlo solo cuando ya no importe, y después
+// `npm run splash:compose`, que parte de icon-512.
+//
 // `icon-192.png` está en PRECACHE_URLS del service worker, así que ejecutar
 // esto obliga a bumpear SW_VERSION en el mismo commit (regla 9 de CLAUDE.md):
 // sin eso los clientes instalados siguen sirviendo el icono viejo para siempre,

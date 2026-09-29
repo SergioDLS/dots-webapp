@@ -19,7 +19,11 @@
    icon-192, que es la cara del Doty nuevo) y el precache con ella. Además
    /apple-icon.png cambió de arte y va stale-while-revalidate desde `dots-static-`:
    el bump vacía esa copia en vez de esperar a una segunda visita. */
-const SW_VERSION = "v4";
+/* v5: los cuatro iconos del manifest vuelven a la burbuja neutral conservando
+   el nombre, y /icons/ va cache-first desde `dots-media-`: sin el bump, el riel
+   de escritorio y todo lo que pida icon-192 seguirían con la cara del Doty
+   nuevo para quien ya los tuviera cacheados. */
+const SW_VERSION = "v5";
 
 const PRECACHE = `dots-precache-${SW_VERSION}`; // fijo, sin trim
 const STATIC = `dots-static-${SW_VERSION}`; //   runtime, con trim
