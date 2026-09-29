@@ -8,6 +8,7 @@ import {
   entradaCliente,
   entradaServidor,
   suscribir,
+  terminarEntrada,
   SALUDO_MS,
   SALUDO_SRC,
   TRANSFORMACION_MS,
@@ -23,11 +24,11 @@ import {
  * cuando esto se desvanece; si tarda más, al desvanecerse queda el spinner
  * normal. Los dos relojes son independientes a propósito.
  *
- * Qué reproducir lo decide el login y lo deja en `sessionStorage`: es la única
- * puerta de entrada y lo único capaz de distinguir un login con formulario de
- * una sesión rehidratada. Aquí solo se reproduce.
+ * Qué reproducir lo deciden el login y la aceptación de una invitación, y lo
+ * dejan en `sessionStorage`. Aquí solo se reproduce.
  *
- * Se monta en el layout del hub, que se monta una vez por carga de página y
+ * Se monta en el layout del hub y en /onboarding, que es a donde llega quien
+ * acepta una invitación y vive fuera del hub. En el hub se monta en el layout, que se monta una vez por carga de página y
  * sobrevive al cambio de pestañas. En `/levels` reaparecería cada vez que
  * alguien volviera al Camino desde Juegos.
  */
@@ -36,7 +37,10 @@ export default function DotyEntrada() {
   const [fase, setFase] = useState<"inicial" | "saludo" | "fin">("inicial");
 
   const alTerminarTransformacion = useCallback(() => setFase("saludo"), []);
-  const alTerminarSaludo = useCallback(() => setFase("fin"), []);
+  const alTerminarSaludo = useCallback(() => {
+    terminarEntrada();
+    setFase("fin");
+  }, []);
 
   if (!entrada || fase === "fin") return null;
 

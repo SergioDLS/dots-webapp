@@ -131,9 +131,11 @@ export function suscribir(): () => void {
 /* ── Traspaso del login a la pantalla de entrada ──────────────────────────── */
 
 /**
- * Qué debe reproducir el overlay. Lo decide el login, que es la única puerta de
- * entrada y lo único que sabe distinguir un login con formulario de una sesión
- * rehidratada desde la cookie. `/levels` no puede saberlo, así que se lo dicen.
+ * Qué debe reproducir el overlay. Lo deciden las dos puertas de entrada: el
+ * login, que es lo único que sabe distinguir un login con formulario de una
+ * sesión rehidratada desde la cookie, y la aceptación de una invitación, que
+ * entra directa a /onboarding sin pasar por el login. Ni `/levels` ni
+ * `/onboarding` pueden saberlo, así que se lo dicen.
  */
 export type Entrada = "transformacion" | "saludo";
 
@@ -179,6 +181,17 @@ export function entradaCliente(): Entrada | null {
 
 export function entradaServidor(): Entrada | null {
   return null;
+}
+
+/**
+ * La llama el overlay al terminar. Sin esto, quien entra por una invitación la
+ * vería dos veces: la caché vive lo que vive la página, y la navegación de
+ * /onboarding a /levels es de cliente, así que el overlay del hub volvería a
+ * leer la misma entrada. Se limpia al TERMINAR y no al desmontar: si alguien
+ * sale de /onboarding a mitad, el hub la retoma en vez de quedarse sin ella.
+ */
+export function terminarEntrada(): void {
+  entradaCache = null;
 }
 
 /* ── Pose del login ───────────────────────────────────────────────────────── */

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   acceptInvitationService,
@@ -10,6 +10,16 @@ import {
 import { useAuth } from "@/context/auth-context";
 import DotyPreSesion, { type DotyPreSesionPose } from "@/components/ui/doty/doty-pre-sesion";
 import { writeAvatarMirror } from "@/lib/avatar-mirror";
+import {
+  marcarVista,
+  pedirEntrada,
+  snapshotCliente,
+  snapshotServidor,
+  suscribir,
+  SALIDA_MS,
+  SALUDO_SRC,
+  TRANSFORMACION_SRC,
+} from "@/lib/doty-transformacion";
 import {
   inputCls,
   btnPrimary,
@@ -81,6 +91,42 @@ export default function AcceptInvite() {
   const [birthday, setBirthday] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
+
+  // La misma decisión que el login (ver lib/doty-transformacion.ts): quien
+  // acepta una invitación entra directo a /onboarding, y sin esto conocería al
+  // Doty nuevo sin transformación. Esta página enseña el clásico, así que la
+  // animación arranca de lo último que vio.
+  const transformacionPendiente = useSyncExternalStore(
+    suscribir,
+    snapshotCliente,
+    snapshotServidor,
+  );
+  const [assetListo, setAssetListo] = useState(false);
+
+  // Se precargan con el formulario a la vista: rellenarlo da tiempo de sobra
+  // para descargarlo, así que no hace falta la espera con tope del login. Si al
+  // enviar aún no está decodificado, se entra con el saludo.
+  useEffect(() => {
+    if (!invite) return;
+    let vivo = true;
+    if (transformacionPendiente) {
+      const img = new window.Image();
+      img.src = TRANSFORMACION_SRC;
+      img
+        .decode()
+        .then(() => {
+          if (vivo) setAssetListo(true);
+        })
+        .catch(() => {});
+    }
+    const saludo = new window.Image();
+    saludo.src = SALUDO_SRC;
+    saludo.decode().catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, [invite, transformacionPendiente]);
 
   // Patrón fetchAttempt (regla #3 de CLAUDE.md): el efecto solo fetchea; el
   // botón Reintentar bumpea el contador. Nada de setState síncrono aquí.
@@ -153,7 +199,17 @@ export default function AcceptInvite() {
       // Mismo espejo que el login: aceptar la invitación abre sesión por el
       // mismo camino (issueSession), así que siembra lo mismo.
       writeAvatarMirror(response.avatar);
-      router.push("/onboarding");
+      // Como en el login: la marca ANTES de reproducir, para que un corte a
+      // mitad cueste perdérsela y nunca verla dos veces.
+      if (transformacionPendiente && assetListo) {
+        marcarVista();
+        pedirEntrada("transformacion");
+      } else {
+        pedirEntrada("saludo");
+      }
+      // Fundido de salida para encadenar con el de entrada del overlay.
+      setSaliendo(true);
+      setTimeout(() => router.push("/onboarding"), SALIDA_MS);
     } catch (e) {
       const reason = readRejection(e);
       if (reason) setRejection(reason);
@@ -222,6 +278,11 @@ export default function AcceptInvite() {
           submit();
         }}
         className="flex w-full max-w-2xl flex-col gap-7"
+        style={
+          saliendo
+            ? { animation: `dots-salida-login ${SALIDA_MS}ms ease-in both` }
+            : undefined
+        }
       >
         <div
           className="flex flex-col items-center gap-2 text-center"
