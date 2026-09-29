@@ -273,8 +273,10 @@ parece:
    URLs responden 200; el `--apply`, con consentimiento.
 
 **Rollback**: `set-node-art --rollback <respaldo>` devuelve los `src`
-anteriores. La migración solo se deshace antes del paso 2; después, primero
-se vuelve al backend anterior y luego se quita la columna.
+anteriores. La migración no se deshace dropeando la columna — como
+`migrate-settings` y `migrate-economy`, su `--rollback` la deja inerte: con
+el backend nuevo desplegado, quitarla rompería `GET /path`, y sin él nadie la
+lee.
 
 ### Tandas
 
