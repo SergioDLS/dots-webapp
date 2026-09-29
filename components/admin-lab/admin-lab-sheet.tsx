@@ -139,7 +139,14 @@ export default function AdminLabSheet({ open, onClose }: Props) {
         bumpCuenta();
         decir(texto);
       })
-      .catch(() => decir("No salió. Revisa el backend.", "error"))
+      .catch((e: unknown) => {
+        const status = (e as { response?: { status?: number } })?.response?.status;
+        if (key === "seccion" && status === 404) {
+          decir("Ya no queda sección actual: terminaste el camino.", "error");
+          return;
+        }
+        decir("No salió. Revisa el backend.", "error");
+      })
       .finally(() => setOcupado(null));
   };
 
@@ -237,8 +244,8 @@ export default function AdminLabSheet({ open, onClose }: Props) {
                   ¿Borrar todo tu progreso?
                 </p>
                 <p className="text-xs font-semibold text-(--muted)">
-                  Se va: camino, repaso, placement, checkpoints, récords y ghosts, torneo,
-                  gemas e inventario, bienvenida y pistas.
+                  Se va: camino, repaso, placement, checkpoints, récords y ghosts, torneo, XP y
+                  racha, gemas e inventario, bienvenida y pistas.
                 </p>
                 <p className="text-xs font-semibold text-(--muted)">
                   Se queda: retos 1v1, tema y el modo admin.
@@ -258,7 +265,7 @@ export default function AdminLabSheet({ open, onClose }: Props) {
                     disabled={ocupado !== null}
                     aria-busy={ocupado === "reset"}
                     className="rounded-2xl px-3 py-2.5 text-sm font-extrabold text-white transition-transform duration-150 active:scale-95 disabled:opacity-60"
-                    style={{ background: "var(--danger)", boxShadow: "0 3px 0 var(--danger-edge)" }}
+                    style={{ background: "var(--danger-edge)", boxShadow: "none" }}
                   >
                     Sí, borrar mi progreso
                   </button>

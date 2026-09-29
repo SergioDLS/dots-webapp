@@ -58,8 +58,11 @@ export default function AdminModeSwitch({
       >
         <span
           aria-hidden
-          className="absolute top-1 left-1 h-5 w-5 rounded-full bg-white transition-transform duration-200"
-          style={{ transform: encendido ? "translateX(20px)" : "none" }}
+          className="absolute top-1 left-1 h-5 w-5 rounded-full transition-transform duration-200"
+          style={{
+            background: encendido ? "var(--primary-contrast)" : "#fff",
+            transform: encendido ? "translateX(20px)" : "none",
+          }}
         />
       </button>
     </div>
