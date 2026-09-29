@@ -29,7 +29,7 @@ export default function AdminPill() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Modo admin: abrir herramientas"
-        className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-b-xl px-2.5 py-0.5 text-[10px] font-black tracking-widest text-white transition-transform active:scale-95"
+        className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-b-xl px-2.5 py-0.5 text-[10px] font-black tracking-widest text-white transition-transform before:absolute before:-inset-2 before:content-[''] active:scale-95"
         style={{ background: "var(--purple)", boxShadow: "0 2px 0 var(--purple-edge)" }}
       >
         ADMIN
