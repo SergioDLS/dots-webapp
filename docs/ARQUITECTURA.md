@@ -172,6 +172,23 @@ El acento de cada paleta viaja como dato (`PALETTE_ACCENTS` en el `lib/theme-col
 generado) porque los bloques CSS generados usan selectores `:root[data-palette]`, que
 solo casan con `<html>`: un envoltorio anidado no heredaría el token.
 
+### Modo admin (`components/admin-lab/`)
+
+Spec: `docs/superpowers/specs/2026-09-29-modo-admin-design.md`. Una cuenta con perfil 1
+tiene dos estados. *Modo alumno* (por defecto): la app tal cual, con candados reales; la
+única señal es la sección «Admin» de la hoja de ajustes (switch + enlace al panel). *Modo
+admin*: el backend reporta todo `unlocked` (es una lente en `users.settings.admin_mode`,
+NO se escribe progreso) y en el HUD sale la pestaña ADMIN (`admin-pill.tsx`, colgando del
+borde inferior del HUD, en absoluto, para no comerse la barra de XP a 375 px), que abre la
+caja (`admin-lab-sheet.tsx`): reiniciar la cuenta en dos pasos, repetir el primer inicio,
+completar la sección actual (la única que escribe progreso), palancas de gemas/XP/racha y
+«olvidar avisos» del dispositivo. El estado del modo se espeja en `lib/admin-mode.ts`
+(store puro, single-flight de `/me/settings` en `hooks/use-admin-mode.ts`, solo para
+admins) y las acciones bumpean `lib/account-refresh.ts`, que HUD, Camino y arcade llevan
+en las dependencias de su efecto de carga para volver a pedir sin recargar. Tras el reset
+se navega a `/welcome` (no a `/levels`: `FirstRunGate` ya corrió en esa carga). Fetchers en
+`services/admin-lab.service.ts`.
+
 ### Avatares (`components/ui/avatar/`)
 
 La cara pública del usuario. Un único `<Avatar avatar size>` pinta el retrato **sin
