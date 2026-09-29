@@ -3,6 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 
+import AdminModeSwitch from "@/components/admin-lab/admin-mode-switch";
 import { Icon } from "@/components/ui/icon";
 import { PALETTE_ACCENTS, PALETTES, PALETTE_LABELS, type Palette } from "@/lib/theme-colors";
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
@@ -261,6 +262,22 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
             </Row>
           </section>
 
+          {/* Admin: solo para perfil 1 (spec modo admin 2026-09-29). */}
+          {isAdmin && (
+            <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
+              <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Admin</span>
+              <AdminModeSwitch />
+              <Link
+                href="/admin"
+                onClick={onClose}
+                className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
+              >
+                Panel de admin
+                <Icon name="derecha" size={16} mono />
+              </Link>
+            </section>
+          )}
+
           {/* Acciones */}
           <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
             <button
@@ -274,16 +291,6 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
               Cambiar avatar
               <Icon name="derecha" size={16} mono />
             </button>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={onClose}
-                className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
-              >
-                Panel de admin
-                <Icon name="derecha" size={16} mono />
-              </Link>
-            )}
             <button
               type="button"
               onClick={onLogout}
