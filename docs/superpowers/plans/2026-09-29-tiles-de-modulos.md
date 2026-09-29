@@ -90,7 +90,7 @@ ln -s /home/endurance/Projects/Endurance/dots/dots-backend/scripts/out scripts/o
 source ~/.nvm/nvm.sh && nvm use && npm ci
 ```
 
-El segundo enlace hace que los respaldos de las escrituras a producción sobrevivan al worktree: `scripts/out/` está en `.gitignore` y `git worktree remove` borra los archivos ignorados. Va antes de correr ningún script, porque `fs.mkdirSync` lo crearía como directorio real y el enlace acabaría dentro de él. Ojo: la regla `scripts/out/` (con barra final) solo ignora directorios, así que `git status` mostrará el enlace como `?? scripts/out`; es lo esperado y nunca se añade (los `git add` de este plan van siempre con rutas explícitas, jamás `-A` ni `.`).
+El segundo enlace hace que los respaldos de las escrituras a producción sobrevivan al worktree: `scripts/out/` está en `.gitignore` y `git worktree remove` borra los archivos ignorados. Va antes de correr ningún script, porque `fs.mkdirSync` lo crearía como directorio real y el enlace acabaría dentro de él. La regla del `.gitignore` es `scripts/out`, sin barra final, para que cubra tanto el directorio de un checkout normal como este enlace (la corrige el commit `chore(git): scripts/out se ignora también cuando es un enlace` de la rama del backend; con la barra final solo ignoraba directorios y el enlace salía como `?? scripts/out`), así que `git status` no lo muestra. Aun así, los `git add` de este plan van siempre con rutas explícitas, jamás `-A` ni `.`.
 
 Expected: `added N packages`, sin errores.
 
@@ -101,7 +101,7 @@ cp /home/endurance/Projects/Endurance/dots/dots-backend/scripts/merge-duplicate-
 node --check scripts/merge-duplicate-nodes.js && git status --short
 ```
 
-Expected: `?? scripts/merge-duplicate-nodes.js` y el enlace `?? scripts/out` del Step 2, nada más.
+Expected: `?? scripts/merge-duplicate-nodes.js` y nada más (el enlace `scripts/out` del Step 2 no aparece: lo cubre el `.gitignore`).
 
 - [ ] **Step 4: Commit y retirar la copia sin trackear del checkout compartido**
 
