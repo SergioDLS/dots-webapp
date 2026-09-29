@@ -1288,30 +1288,22 @@ def _cat_levels(ancla_extra=None, *extra):
     return {"fase": "fase-t", "pieces": [ancla, otra, *extra]}
 
 
-def test_style_ref_valido_en_el_ancla_pasa():
-    mjlib.validate_catalog(_cat_levels({"style_ref": "fase-2/Mandrakin_Level_tile_x_0.png"}))
-
-
-def test_style_ref_fuera_del_ancla_falla():
-    cat = _cat_levels()
-    cat["pieces"][1]["style_ref"] = "fase-2/Mandrakin_Level_tile_x_0.png"
-    with pytest.raises(mjlib.CatalogError, match="style_ref"):
-        mjlib.validate_catalog(cat)
-
-
-def test_style_ref_debe_ser_fase_barra_png():
-    with pytest.raises(mjlib.CatalogError, match="style_ref"):
-        mjlib.validate_catalog(_cat_levels({"style_ref": "estructuras.png"}))
-
-
-def test_emit_lote_pone_el_style_ref_del_ancla_en_style_reference():
-    cat = _cat_levels({"style_ref": "fase-2/Mandrakin_Level_tile_x_0.png"})
+def test_slots_del_ancla_con_anchor_sref_pone_la_imagen_en_style_reference():
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
     out = mjlib.emit_lote(cat, STYLE, ["levels"])
-    assert "Style reference:** `fase-2/Mandrakin_Level_tile_x_0.png`" in out
+    assert "Style reference:** `public/images/levels/estructuras.png`" in out
     assert "esta pieza ES el ancla del grupo" not in out
 
 
-def test_emit_lote_sin_style_ref_el_ancla_sigue_sin_referencia():
+def test_ancla_con_anchor_sref_encabezado_y_slots_dicen_lo_mismo():
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    # No line should say "sin nada adjunto" for the anchor when it has anchor_sref
+    linea_ancla = next(l for l in out.splitlines() if "`formas`" in l)
+    assert "sin nada adjunto" not in linea_ancla
+
+
+def test_slots_del_ancla_sin_anchor_sref_sigue_vacio():
     out = mjlib.emit_lote(_cat_levels(), STYLE, ["levels"])
     assert "esta pieza ES el ancla del grupo" in out
 

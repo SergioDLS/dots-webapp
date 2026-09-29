@@ -135,15 +135,6 @@ def validate_catalog(cat: dict) -> None:
                     "— at most one anchor per group"
                 )
             anchors_by_group[group] = slug
-        if p.get("style_ref") is not None:
-            # El ancla de una fase nueva puede heredar el look de una anterior:
-            # `formas` (fase 5) se genera con `estructuras` (fase 2) en Style
-            # reference. Solo en el ancla: el resto del grupo ya hereda de ella.
-            if not p.get("anchor"):
-                raise CatalogError(f"{slug}: style_ref only goes on the group's anchor — the rest inherit the anchor itself")
-            ref = p["style_ref"]
-            if not (isinstance(ref, str) and re.fullmatch(r"fase-[\w-]+/[^/]+\.png", ref)):
-                raise CatalogError(f"{slug}: style_ref must be '<fase>/<file>.png' relative to --raw (got {ref!r})")
     for group in non_mascot_groups:
         if group not in anchors_by_group:
             offending = next(p["slug"] for p in cat["pieces"] if p["group"] == group and not p.get("mascot"))
@@ -303,9 +294,9 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
         return f"> 📎 **Attach to prompt:** {origen} · 🎨 **Style reference:** VACÍO"
     ancla = next((q for q in cat["pieces"] if q.get("group") == piece["group"] and q.get("anchor")), None)
     if ancla is None or ancla["slug"] == piece["slug"]:
-        if piece.get("style_ref"):
-            return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['style_ref']}` "
-                    "(ancla heredada de otra fase: esta pieza fija el look del grupo a partir de ella)")
+        if piece.get("anchor_sref"):
+            return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['anchor_sref']}` "
+                    "(ancla que toma prestado el acabado de otra fase: esta pieza fija el look del grupo a partir de ella)")
         return "> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO (esta pieza ES el ancla del grupo)"
     ref = f"`{cat['fase']}/{ancla['source_file']}`" if ancla.get("source_file") else f"la descarga elegida de `{ancla['slug']}`"
     return f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** {ref} (ancla `{ancla['slug']}`)"
