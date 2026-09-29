@@ -13,6 +13,7 @@ import api, {
   setAccessToken as setApiAccessToken,
 } from "@/lib/api-client";
 import { clearAvatarMirror } from "@/lib/avatar-mirror";
+import { marcarConocido } from "@/lib/doty-transformacion";
 import { borrarEspejo } from "@/lib/first-run";
 import { SOUND_KEY } from "@/lib/sound-prefs";
 import { DIRTY_KEY, MODE_KEY, PALETTE_KEY } from "@/lib/theme-prefs";
@@ -33,6 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAccessToken = useCallback((token: string | null) => {
     setAccessTokenState(token);
     setApiAccessToken(token);
+    // Con sesión, la persona va a ver al Doty nuevo dentro de la app: desde ya
+    // las pantallas previas a la sesión pueden enseñárselo (ver
+    // lib/doty-transformacion.ts). El logout no la borra a propósito.
+    if (token) marcarConocido();
   }, []);
 
   // Bootstrap: try to restore a session from the HttpOnly refresh cookie.

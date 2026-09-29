@@ -7,11 +7,14 @@ import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
 import { writeAvatarMirror } from "@/lib/avatar-mirror";
 import Doty, { toDotyPose } from "@/components/ui/doty/doty";
+import DotyPreSesion from "@/components/ui/doty/doty-pre-sesion";
 import {
   marcarVista,
   snapshotCliente,
   snapshotServidor,
   suscribir,
+  conocidoCliente,
+  conocidoServidor,
   pedirEntrada,
   sorteoLogin,
   ESPERA_MAX_MS,
@@ -71,6 +74,14 @@ export default function Login() {
     suscribir,
     snapshotCliente,
     snapshotServidor,
+  );
+  // Otra pregunta, y no la misma: la animación la apagan reduced-motion y
+  // CADUCA, pero la sorpresa no. Quien no ha tenido sesión en este dispositivo
+  // ve el clásico en todo el login, se anime luego o no.
+  const conoceDotyNuevo = useSyncExternalStore(
+    suscribir,
+    conocidoCliente,
+    conocidoServidor,
   );
   // Una pose distinta en cada carga, para que la puerta de entrada no sea
   // siempre la misma foto. Se elige una sola vez y con el mismo mecanismo que el
@@ -297,7 +308,7 @@ export default function Login() {
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
           <div style={{ animation: "dots-float 3.5s ease-in-out infinite" }}>
-            {transformacionPendiente ? (
+            {transformacionPendiente || !conoceDotyNuevo ? (
               // El Doty clásico, y es EXACTAMENTE el primer fotograma del WebP
               // — sale del mismo pipeline (compose-transformacion.py), así que
               // al arrancar la animación no hay salto: es el mismo píxel.
@@ -306,6 +317,10 @@ export default function Login() {
               // pose del registro ni debe serlo. Vive fuera de
               // public/images/Doty/, que es justo lo que recorre
               // check-doty-assets --strict buscando huérfanos.
+              //
+              // Sale también para quien aún no conoce al nuevo aunque no vaya a
+              // animarse (reduced-motion, pasada CADUCA): la sorpresa se
+              // guarda para dentro de la app.
               <Image
                 src="/images/doty-clasico-login.png"
                 alt=""
@@ -376,7 +391,7 @@ export default function Login() {
             ¿Olvidaste tu contraseña?
           </button>
           <div className="dots-compact-list flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-(--border) px-4 py-4 text-center">
-            <Doty pose="senalando" size="micro" />
+            <DotyPreSesion pose="senalando" size="micro" />
             <p className="text-xs font-bold text-(--muted)">
               ¿No tienes cuenta? La app es parte de los beneficios de{" "}
               <span className="font-extrabold text-foreground">

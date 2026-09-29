@@ -77,7 +77,10 @@
 </head>
 <body>
 <main>
-  <img src="/icons/icon-192.png" alt="" />
+  <!-- La burbuja neutral, no el icono de la app: el Doty nuevo es una sorpresa
+       que se estrena DENTRO de la sesión (lib/doty-transformacion.ts), y esta
+       página la ve cualquiera que se quede sin red, con sesión o sin ella. -->
+  <img src="/icons/logo-192.png" alt="" />
   <h1>¡Ups, sin conexión!</h1>
   <p>Doty buscó internet por todos lados y nada. Revisa tu conexión y vuelve a intentarlo — tu racha te espera.</p>
   <!-- reload() aquí es correcto y no viola la regla 5: en esta página no hay

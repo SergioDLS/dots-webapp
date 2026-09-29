@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   acceptInvitationService,
@@ -8,8 +8,18 @@ import {
   type InvitationPreview,
 } from "@/services/auth.service";
 import { useAuth } from "@/context/auth-context";
-import Doty, { type DotyPose } from "@/components/ui/doty/doty";
+import DotyPreSesion, { type DotyPreSesionPose } from "@/components/ui/doty/doty-pre-sesion";
 import { writeAvatarMirror } from "@/lib/avatar-mirror";
+import {
+  marcarVista,
+  pedirEntrada,
+  snapshotCliente,
+  snapshotServidor,
+  suscribir,
+  SALIDA_MS,
+  SALUDO_SRC,
+  TRANSFORMACION_SRC,
+} from "@/lib/doty-transformacion";
 import {
   inputCls,
   btnPrimary,
@@ -22,7 +32,7 @@ import {
 /** Por qué el link no sirve. El backend lo manda en `reason`. */
 type Rejection = "notfound" | "expired" | "revoked" | "used";
 
-const REJECTION_COPY: Record<Rejection, { title: string; body: string; pose: DotyPose }> = {
+const REJECTION_COPY: Record<Rejection, { title: string; body: string; pose: DotyPreSesionPose }> = {
   expired: {
     title: "Este enlace ya venció",
     body: "Las invitaciones duran 48 horas. Pídele a tu academia que te mande una nueva.",
@@ -81,6 +91,42 @@ export default function AcceptInvite() {
   const [birthday, setBirthday] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
+
+  // La misma decisión que el login (ver lib/doty-transformacion.ts): quien
+  // acepta una invitación entra directo a /onboarding, y sin esto conocería al
+  // Doty nuevo sin transformación. Esta página enseña el clásico, así que la
+  // animación arranca de lo último que vio.
+  const transformacionPendiente = useSyncExternalStore(
+    suscribir,
+    snapshotCliente,
+    snapshotServidor,
+  );
+  const [assetListo, setAssetListo] = useState(false);
+
+  // Se precargan con el formulario a la vista: rellenarlo da tiempo de sobra
+  // para descargarlo, así que no hace falta la espera con tope del login. Si al
+  // enviar aún no está decodificado, se entra con el saludo.
+  useEffect(() => {
+    if (!invite) return;
+    let vivo = true;
+    if (transformacionPendiente) {
+      const img = new window.Image();
+      img.src = TRANSFORMACION_SRC;
+      img
+        .decode()
+        .then(() => {
+          if (vivo) setAssetListo(true);
+        })
+        .catch(() => {});
+    }
+    const saludo = new window.Image();
+    saludo.src = SALUDO_SRC;
+    saludo.decode().catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, [invite, transformacionPendiente]);
 
   // Patrón fetchAttempt (regla #3 de CLAUDE.md): el efecto solo fetchea; el
   // botón Reintentar bumpea el contador. Nada de setState síncrono aquí.
@@ -153,7 +199,17 @@ export default function AcceptInvite() {
       // Mismo espejo que el login: aceptar la invitación abre sesión por el
       // mismo camino (issueSession), así que siembra lo mismo.
       writeAvatarMirror(response.avatar);
-      router.push("/onboarding");
+      // Como en el login: la marca ANTES de reproducir, para que un corte a
+      // mitad cueste perdérsela y nunca verla dos veces.
+      if (transformacionPendiente && assetListo) {
+        marcarVista();
+        pedirEntrada("transformacion");
+      } else {
+        pedirEntrada("saludo");
+      }
+      // Fundido de salida para encadenar con el de entrada del overlay.
+      setSaliendo(true);
+      setTimeout(() => router.push("/onboarding"), SALIDA_MS);
     } catch (e) {
       const reason = readRejection(e);
       if (reason) setRejection(reason);
@@ -171,7 +227,7 @@ export default function AcceptInvite() {
         className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
         style={{ animation: "dots-pop-in 0.5s ease-out both" }}
       >
-        <Doty pose={copy.pose} size="smaller" animation={rejection === "used" ? "cheer" : "sad"} />
+        <DotyPreSesion pose={copy.pose} size="smaller" animation={rejection === "used" ? "cheer" : "sad"} siempreClasico />
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
           {copy.title}
         </h1>
@@ -184,7 +240,7 @@ export default function AcceptInvite() {
   } else if (loadError) {
     content = (
       <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
-        <Doty pose="oh-no" size="smaller" animation="sad" />
+        <DotyPreSesion pose="oh-no" size="smaller" animation="sad" siempreClasico />
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
           ¡Ups!
         </h1>
@@ -207,7 +263,7 @@ export default function AcceptInvite() {
     content = (
       <div className="flex flex-col items-center gap-4 text-center">
         <div style={{ animation: "dots-float 1.5s ease-in-out infinite" }}>
-          <Doty pose="pensando" size="tiny" />
+          <DotyPreSesion pose="pensando" size="tiny" siempreClasico />
         </div>
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border) border-t-(--accent)" />
         <p className="text-sm font-bold text-(--muted)">Revisando tu invitación…</p>
@@ -222,12 +278,17 @@ export default function AcceptInvite() {
           submit();
         }}
         className="flex w-full max-w-2xl flex-col gap-7"
+        style={
+          saliendo
+            ? { animation: `dots-salida-login ${SALIDA_MS}ms ease-in both` }
+            : undefined
+        }
       >
         <div
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
-          <Doty pose="lo-lograste" size="smaller" animation="cheer" />
+          <DotyPreSesion pose="lo-lograste" size="smaller" animation="cheer" siempreClasico />
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             ¡Te estábamos esperando!
           </h1>
