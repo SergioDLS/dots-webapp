@@ -12,6 +12,11 @@ export type UserSettings = {
   avatar: PublicAvatar;
   onboarded_at: string | null;
   tips_seen: string[];
+  /**
+   * Lente del modo admin (spec 2026-09-29). Solo llega true a un admin con el
+   * flag encendido; un backend viejo no lo manda, y ausente = apagado.
+   */
+  admin_mode?: boolean;
 };
 
 export type SettingsPatch = {
