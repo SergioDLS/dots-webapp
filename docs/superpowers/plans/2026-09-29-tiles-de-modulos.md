@@ -49,7 +49,7 @@
 |---|---|
 | `services/admin.service.ts` | `src` en `AdminPathNode` y en los payloads |
 | `app/(app)/admin/path/page.tsx` | campo «Image» con vista previa en el modal del nodo |
-| `scripts/mj/mjlib.py` | `style_ref` (ancla heredada de otra fase), `glyphs` (permite texto), `icon_block` por pieza |
+| `scripts/mj/mjlib.py` | `anchor_sref` también en la línea de slots del lote, `glyphs` (permite texto), `icon_block` por pieza |
 | `scripts/mj/tests/test_mjlib.py` | tests de las tres opciones |
 | `scripts/mj/batches/fase-5.json` | **nuevo** — catálogo; crece por tanda |
 | `scripts/mj/tests/test_catalogo_fase5.py` | **nuevo** — el catálogo cumple la spec |
@@ -971,12 +971,12 @@ EOF
 ### Task 7: Tres opciones nuevas en el pipeline de Midjourney
 
 **Files:**
-- Modify: `scripts/mj/mjlib.py` — `validate_catalog` (bloque del ancla, ~línea 126), `build_prompt` (~línea 205), `_slots_line` (~línea 289)
+- Modify: `scripts/mj/mjlib.py` — `build_prompt` (~línea 214), `_slots_line` (~línea 303)
 - Test: `scripts/mj/tests/test_mjlib.py` (al final del archivo)
 
 **Interfaces:**
 - Produces, como campos opcionales de una pieza del catálogo:
-  - `style_ref: "<fase>/<archivo>.png"` — solo en el ancla; el lote pone ese archivo en *Style reference*.
+  - `anchor_sref: "<ruta>"` (existente) — ahora también se muestra en la línea de slots del lote (antes solo en el encabezado).
   - `glyphs: true` — quita `text` del `--no`.
   - `icon_block: "<texto>"` — sustituye `style["icon_block"]` en esa pieza.
 
@@ -996,30 +996,22 @@ def _cat_levels(ancla_extra=None, *extra):
     return {"fase": "fase-t", "pieces": [ancla, otra, *extra]}
 
 
-def test_style_ref_valido_en_el_ancla_pasa():
-    mjlib.validate_catalog(_cat_levels({"style_ref": "fase-2/Mandrakin_Level_tile_x_0.png"}))
-
-
-def test_style_ref_fuera_del_ancla_falla():
-    cat = _cat_levels()
-    cat["pieces"][1]["style_ref"] = "fase-2/Mandrakin_Level_tile_x_0.png"
-    with pytest.raises(mjlib.CatalogError, match="style_ref"):
-        mjlib.validate_catalog(cat)
-
-
-def test_style_ref_debe_ser_fase_barra_png():
-    with pytest.raises(mjlib.CatalogError, match="style_ref"):
-        mjlib.validate_catalog(_cat_levels({"style_ref": "estructuras.png"}))
-
-
-def test_emit_lote_pone_el_style_ref_del_ancla_en_style_reference():
-    cat = _cat_levels({"style_ref": "fase-2/Mandrakin_Level_tile_x_0.png"})
+def test_slots_del_ancla_con_anchor_sref_pone_la_imagen_en_style_reference():
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
     out = mjlib.emit_lote(cat, STYLE, ["levels"])
-    assert "Style reference:** `fase-2/Mandrakin_Level_tile_x_0.png`" in out
+    assert "Style reference:** `public/images/levels/estructuras.png`" in out
     assert "esta pieza ES el ancla del grupo" not in out
 
 
-def test_emit_lote_sin_style_ref_el_ancla_sigue_sin_referencia():
+def test_ancla_con_anchor_sref_encabezado_y_slots_dicen_lo_mismo():
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    # No line should say "sin nada adjunto" for the anchor when it has anchor_sref
+    linea_ancla = next(l for l in out.splitlines() if "`formas`" in l)
+    assert "sin nada adjunto" not in linea_ancla
+
+
+def test_slots_del_ancla_sin_anchor_sref_sigue_vacio():
     out = mjlib.emit_lote(_cat_levels(), STYLE, ["levels"])
     assert "esta pieza ES el ancla del grupo" in out
 
@@ -1052,26 +1044,10 @@ def test_build_prompt_sin_icon_block_propio_usa_el_del_estilo():
 
 - [ ] **Step 2: Correrlos y verlos fallar**
 
-Run: `uv run --python 3.12 --with pytest --with pillow python -m pytest scripts/mj/tests/test_mjlib.py -q -k "style_ref or glifos or text_en or icon_block"`
-Expected: FAIL en `test_style_ref_fuera_del_ancla_falla`, `test_style_ref_debe_ser_fase_barra_png`, `test_emit_lote_pone_el_style_ref…`, `test_build_prompt_quita_text…` y `test_build_prompt_usa_el_icon_block…` (los otros cuatro ya pasan: fijan el comportamiento actual).
+Run: `uv run --python 3.12 --with pytest --with pillow python -m pytest scripts/mj/tests/test_mjlib.py -q -k "anchor_sref or glifos or text_en or icon_block"`
+Expected: FAIL en `test_slots_del_ancla_con_anchor_sref…`, `test_ancla_con_anchor_sref…`, `test_build_prompt_quita_text…` y `test_build_prompt_usa_el_icon_block…` (los otros cuatro ya pasan: fijan el comportamiento actual).
 
-- [ ] **Step 3: Validar `style_ref`**
-
-En `validate_catalog`, justo después del bloque `if p.get("anchor"): ... anchors_by_group[group] = slug`:
-
-```python
-        if p.get("style_ref") is not None:
-            # El ancla de una fase nueva puede heredar el look de una anterior:
-            # `formas` (fase 5) se genera con `estructuras` (fase 2) en Style
-            # reference. Solo en el ancla: el resto del grupo ya hereda de ella.
-            if not p.get("anchor"):
-                raise CatalogError(f"{slug}: style_ref only goes on the group's anchor — the rest inherit the anchor itself")
-            ref = p["style_ref"]
-            if not (isinstance(ref, str) and re.fullmatch(r"fase-[\w-]+/[^/]+\.png", ref)):
-                raise CatalogError(f"{slug}: style_ref must be '<fase>/<file>.png' relative to --raw (got {ref!r})")
-```
-
-- [ ] **Step 4: `glyphs` e `icon_block` en `build_prompt`**
+- [ ] **Step 3: `glyphs` e `icon_block` en `build_prompt`**
 
 Sustituir:
 
@@ -1097,7 +1073,7 @@ por:
     body = ", ".join([piece["prefix"], piece["prompt"], bloque])
 ```
 
-- [ ] **Step 5: `style_ref` en el lote**
+- [ ] **Step 4: `anchor_sref` en la línea de slots del lote**
 
 En `_slots_line`, sustituir:
 
@@ -1110,27 +1086,28 @@ por:
 
 ```python
     if ancla is None or ancla["slug"] == piece["slug"]:
-        if piece.get("style_ref"):
-            return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['style_ref']}` "
-                    "(ancla heredada de otra fase: esta pieza fija el look del grupo a partir de ella)")
+        if piece.get("anchor_sref"):
+            return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['anchor_sref']}` "
+                    "(ancla que toma prestado el acabado de otra fase: esta pieza fija el look del grupo a partir de ella)")
         return "> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO (esta pieza ES el ancla del grupo)"
 ```
 
-- [ ] **Step 6: Correr toda la suite del pipeline**
+- [ ] **Step 5: Correr toda la suite del pipeline**
 
 Run: `uv run --python 3.12 --with pytest --with pillow python -m pytest scripts/mj/tests -q`
 Expected: todo en verde.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add scripts/mj/mjlib.py scripts/mj/tests/test_mjlib.py
 git commit -m "$(cat <<'EOF'
-feat(mj): ancla heredada de otra fase, glifos permitidos y paleta por pieza
+feat(mj): glifos permitidos, paleta por pieza, y anchor_sref en slots del lote
 
-Lo que pide la fase 5 de tiles: formas hereda el look de estructuras
-(fase 2), el abecedario y los números llevan sus letras, y colores sale
-de la paleta cerrada.
+Lo que pide la fase 5 de tiles: el abecedario y los números llevan sus letras,
+colores sale de la paleta cerrada, y el ancla gemas (que hereda el look de
+estructuras vía anchor_sref) ahora lo muestra en la línea de slots además del
+encabezado.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 EOF
@@ -1146,7 +1123,7 @@ EOF
 - Test: `scripts/mj/tests/test_catalogo_fase5.py`
 
 **Interfaces:**
-- Consumes: `style_ref`, `glyphs`, `icon_block` (Task 7).
+- Consumes: `anchor_sref`, `glyphs`, `icon_block` (Task 7).
 - Produces: `TANDAS` en el test (los slugs de cada tanda); las Tasks 13 y 14 añaden piezas a este mismo archivo.
 
 - [ ] **Step 1: Escribir el test que falla**
@@ -1219,9 +1196,8 @@ def test_ningun_slug_pisa_un_tile_de_la_fase_2():
 def test_el_ancla_es_formas_y_hereda_de_estructuras():
     anclas = [p for p in _cat()["pieces"] if p.get("anchor")]
     assert [p["slug"] for p in anclas] == ["formas"]
-    estructuras = next(p for p in mjlib.load_catalog(BATCHES / "fase-2.json")["pieces"]
-                       if p["slug"] == "estructuras")
-    assert anclas[0]["style_ref"] == f"fase-2/{estructuras['source_file']}"
+    assert anclas[0]["anchor_sref"] == "public/images/levels/estructuras.png"
+    assert (BATCHES.parents[2] / anclas[0]["anchor_sref"]).exists()
 
 
 def test_doty_solo_donde_la_spec_lo_pone():
@@ -1251,7 +1227,7 @@ uv run --python 3.12 python - <<'EOF'
 import json
 from pathlib import Path
 piezas = json.loads(r'''[
-  {"slug": "formas", "group": "levels", "prefix": "Level tile shapes", "prompt": "a circle, a triangle, a square and a star in a loose cluster, the circle pink, the triangle cyan, the square blue and the star pink", "size": 512, "mascot": false, "done": false, "anchor": true, "style_ref": "fase-2/Mandrakin_Level_tile_puzzle_pieces_four_puzzle_pieces_locking_a78c780c-553d-4ebe-9e75-c622b8713a99_0.png"},
+  {"slug": "formas", "group": "levels", "prefix": "Level tile shapes", "prompt": "a circle, a triangle, a square and a star in a loose cluster, the circle pink, the triangle cyan, the square blue and the star pink", "size": 512, "mascot": false, "done": false, "anchor": true, "anchor_sref": "public/images/levels/estructuras.png"},
   {"slug": "abecedario", "group": "levels", "prefix": "Level tile ABC blocks", "prompt": "three chunky toy blocks in a small pyramid, their front faces showing the capital letters A, B and C in thick white letters, the blocks pink, cyan and blue", "size": 512, "mascot": false, "done": false, "glyphs": true},
   {"slug": "numeros-1-20", "group": "levels", "prefix": "Level tile number blocks", "prompt": "three chunky toy blocks in a row, their front faces showing the digits 1, 2 and 3 in thick white numerals, the blocks blue, pink and cyan", "size": 512, "mascot": false, "done": false, "glyphs": true},
   {"slug": "decenas", "group": "levels", "prefix": "Level tile ten rods", "prompt": "three upright base-ten rods standing side by side, each rod made of ten small stacked cubes, the rods pink, cyan and blue, no numbers", "size": 512, "mascot": false, "done": false},
@@ -1475,7 +1451,7 @@ Expected: imprime la ruta; la imagen muestra dos filas repetidas sobre fondo cla
 uv run scripts/mj/process.py --emit-lote levels --fase fase-5 --raw /home/endurance/Projects/Endurance/dots/imagenes/mj --pendientes
 ```
 
-Expected: `26 piezas (1 mascota, 25 icono) → /home/endurance/Projects/Endurance/dots/imagenes/mj/fase-5/LOTE-levels.md`. Comprobar que la línea de `formas` dice `Style reference:** \`fase-2/Mandrakin_Level_tile_puzzle_pieces…_0.png\``.
+Expected: `26 piezas (1 mascota, 25 icono) → /home/endurance/Projects/Endurance/dots/imagenes/mj/fase-5/LOTE-levels.md`. Comprobar que la línea de `formas` dice `Style reference:** \`public/images/levels/estructuras.png\``.
 
 - [ ] **Step 3: 🔒 Sergio genera en Midjourney**
 
