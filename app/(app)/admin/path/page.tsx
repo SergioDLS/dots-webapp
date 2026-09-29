@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
+import WordImg from "@/components/ui/word-img/word-img";
 import {
   AdminModal,
   Field,
@@ -454,6 +455,10 @@ function NodeModal({
     node ? String(node.position) : "",
   );
   const [title, setTitle] = useState(node?.title ?? "");
+  const [src, setSrc] = useState(node?.src ?? "");
+  // Solo se previsualiza una ruta que ya parece un archivo de imagen: mientras
+  // se escribe, "/images/lev" pediría un 404 por tecla.
+  const preview = /\.(png|webp|jpe?g)$/i.test(src.trim()) ? src.trim() : null;
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -488,6 +493,7 @@ function NodeModal({
       type,
       refId: needsRef ? Number(refId) : null,
       title: title.trim() || undefined,
+      src: src.trim() || null,
     };
     try {
       if (isEdit && node) {
@@ -580,6 +586,18 @@ function NodeModal({
           placeholder={type === "checkpoint" ? "Checkpoint" : "Auto"}
           className={modalInputCls}
         />
+      </Field>
+
+      <Field label="Image (tile on the path — /images/levels/<slug>.png)">
+        <div className="flex items-center gap-3">
+          <input
+            value={src}
+            onChange={(e) => setSrc(e.target.value)}
+            placeholder={type === "practice" ? "Auto (level image)" : "None (type icon)"}
+            className={modalInputCls}
+          />
+          {preview && <WordImg src={preview} size="small" />}
+        </div>
       </Field>
     </AdminModal>
   );
