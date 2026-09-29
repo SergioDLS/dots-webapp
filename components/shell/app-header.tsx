@@ -7,6 +7,7 @@ import { getMyStatsService, type MyStats } from "@/services/engagement.service";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { levelProgress } from "@/lib/level-math";
 import { useAccountVersion } from "@/hooks/use-account-version";
+import AdminPill from "@/components/admin-lab/admin-pill";
 
 /**
  * HUD superior de las pantallas hub, sin marcos (spec §3.3): llama encendida
@@ -85,6 +86,9 @@ export default function AppHeader() {
           {stats ? `${stats.xp}/${stats.xpForNextLevel}` : "—"} XP
         </span>
       </div>
+
+      {/* Modo admin: pinta null para todo el mundo salvo un admin con la lente encendida. */}
+      <AdminPill />
     </header>
   );
 }
