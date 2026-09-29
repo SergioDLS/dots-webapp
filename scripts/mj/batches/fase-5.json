@@ -1,0 +1,244 @@
+{
+  "fase": "fase-5",
+  "pieces": [
+    {
+      "slug": "formas",
+      "group": "levels",
+      "prefix": "Level tile shapes",
+      "prompt": "a circle, a triangle, a square and a star in a loose cluster, the circle pink, the triangle cyan, the square blue and the star pink",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "anchor": true,
+      "anchor_sref": "public/images/levels/estructuras.png"
+    },
+    {
+      "slug": "abecedario",
+      "group": "levels",
+      "prefix": "Level tile ABC blocks",
+      "prompt": "three chunky toy blocks in a small pyramid, their front faces showing the capital letters A, B and C in thick white letters, the blocks pink, cyan and blue",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "glyphs": true
+    },
+    {
+      "slug": "numeros-1-20",
+      "group": "levels",
+      "prefix": "Level tile number blocks",
+      "prompt": "three chunky toy blocks in a row, their front faces showing the digits 1, 2 and 3 in thick white numerals, the blocks blue, pink and cyan",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "glyphs": true
+    },
+    {
+      "slug": "decenas",
+      "group": "levels",
+      "prefix": "Level tile ten rods",
+      "prompt": "three upright base-ten rods standing side by side, each rod made of ten small stacked cubes, the rods pink, cyan and blue, no numbers",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "dias",
+      "group": "levels",
+      "prefix": "Level tile week strip",
+      "prompt": "a horizontal strip of seven rounded square boxes in a row, all white except the fourth one filled pink",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "meses",
+      "group": "levels",
+      "prefix": "Level tile wall calendar",
+      "prompt": "a wall calendar with two cyan binder rings on top and a grid of twelve small squares, three of them filled pink and two blue",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "estaciones",
+      "group": "levels",
+      "prefix": "Level tile seasons tree",
+      "prompt": "a round tree crown split into four quarters: one covered in white snow, one with pink blossoms, one full of cyan leaves and one bare with a single blue leaf falling",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "partes-del-dia",
+      "group": "levels",
+      "prefix": "Level tile sun and moon arc",
+      "prompt": "a dotted arc over a flat horizon line, a small pink sun rising at the left end, a big pink sun at the top of the arc and a blue crescent moon at the right end",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "clima",
+      "group": "levels",
+      "prefix": "Level tile storm cloud",
+      "prompt": "a fluffy white cloud with cyan raindrops and a pink lightning bolt underneath, a small pink sun peeking out from behind its top",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "hora",
+      "group": "levels",
+      "prefix": "Level tile alarm clock",
+      "prompt": "a round alarm clock with two bells on top, pink body, white face and blue hands pointing at ten past two",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "colores",
+      "group": "levels",
+      "prefix": "Level tile paint palette",
+      "prompt": "a painter's palette with a thumb hole and six round paint blobs, a brush resting across it",
+      "size": 512,
+      "mascot": false,
+      "done": false,
+      "icon_block": "flat icon, thick rounded #1E1B5C navy outline, the paint blobs in their true colors (red, orange, yellow, green, blue and purple) and the palette itself white, centered, plain white background"
+    },
+    {
+      "slug": "familia",
+      "group": "levels",
+      "prefix": "Doty and a little Doty",
+      "prompt": "holding hands with a much smaller Doty child standing beside him, both smiling, walking together",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "profesiones",
+      "group": "levels",
+      "prefix": "Level tile work hats",
+      "prompt": "three hats side by side: a tall white chef hat, a blue hard hat and a pink nurse cap with a white cross",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "ropa",
+      "group": "levels",
+      "prefix": "Level tile clothes set",
+      "prompt": "a pink t-shirt, a cyan baseball cap and a pair of blue sneakers arranged together",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "cuerpo",
+      "group": "levels",
+      "prefix": "Level tile hand eye foot",
+      "prompt": "an open waving hand, one big cartoon eye and a bare foot in a row, the hand and foot pink, the eye white with a blue iris",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "cuidado-personal",
+      "group": "levels",
+      "prefix": "Level tile toothbrush comb",
+      "prompt": "a toothbrush with a blob of toothpaste, a comb and a small lotion bottle with a pump, in pink, cyan and blue",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "alimentos",
+      "group": "levels",
+      "prefix": "Level tile cheese and bread",
+      "prompt": "a wedge of cheese with holes, a loaf of bread and a sausage grouped together, each in a flat pink, blue or cyan fill",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "comidas",
+      "group": "levels",
+      "prefix": "Level tile meal plates",
+      "prompt": "three round plates in a row with a fork and a knife, above them a small rising sun, a high sun and a crescent moon, one over each plate",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "frutas",
+      "group": "levels",
+      "prefix": "Level tile fruit bowl",
+      "prompt": "a round bowl holding an apple, a banana and a bunch of grapes, all in flat pink, cyan and blue fills",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "cocina",
+      "group": "levels",
+      "prefix": "Level tile pot and pan",
+      "prompt": "a cooking pot with a lid, a frying pan and a spatula crossed in front of them",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "deportes",
+      "group": "levels",
+      "prefix": "Level tile sports balls",
+      "prompt": "a basketball, a soccer ball and a tennis ball grouped together, each with its seam pattern drawn in navy lines",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "animales",
+      "group": "levels",
+      "prefix": "Level tile cat dog bird",
+      "prompt": "a sitting cat and a sitting dog side by side with a small bird perched between them, simple friendly faces",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "casa",
+      "group": "levels",
+      "prefix": "Level tile house front",
+      "prompt": "a small house seen from the front with a pink triangular roof, a blue door, two windows and a patch of front yard with a little fence",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "muebles",
+      "group": "levels",
+      "prefix": "Level tile sofa and lamp",
+      "prompt": "a cozy two-seat sofa with cushions and a tall floor lamp standing beside it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "escuela",
+      "group": "levels",
+      "prefix": "Level tile backpack and book",
+      "prompt": "a school backpack with a pencil sticking out of it and a closed book leaning against it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "ciudad",
+      "group": "levels",
+      "prefix": "Level tile city bus stop",
+      "prompt": "three city buildings of different heights with windows, and a bus stop sign with a small bench in front of them",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    }
+  ]
+}
