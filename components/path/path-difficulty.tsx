@@ -5,7 +5,7 @@ import PathSection from "./path-section";
 import DifficultyBanner from "./difficulty-banner";
 import UpcomingDivider from "./upcoming-divider";
 import { DIFFICULTY_COLOR_NAMES, DIFFICULTY_COLOR_HEX } from "@/lib/difficulty-palette";
-import { firstUpcomingSectionIndex, type DifficultyNav } from "@/lib/path-view";
+import { firstUpcomingSectionIndex, type DifficultyNav, type SectionMark } from "@/lib/path-view";
 import type { PathDifficulty as PathDifficultyType, PathPeer } from "@/types/path.types";
 
 interface PathDifficultyProps {
@@ -16,6 +16,8 @@ interface PathDifficultyProps {
   /** Dificultad bloqueada vista "por curiosidad": todo en gris, sin popovers ni marcador. */
   preview: boolean;
   onGo: (id: number) => void;
+  /** Sección que se está mirando, para el panel sticky de escritorio. */
+  mark: SectionMark | null;
   /** El contenedor observa el banner para plegar la cabecera. */
   bannerRef: React.Ref<HTMLDivElement>;
   /** Cabecera plegada (móvil): va antes del banner para poder ser sticky dentro de esta vista. */
@@ -45,6 +47,7 @@ export default function PathDifficulty({
   peersByNodeId,
   preview,
   onGo,
+  mark,
   bannerRef,
   header,
   bannerFooter,
@@ -68,6 +71,7 @@ export default function PathDifficulty({
             nav={nav}
             onGo={onGo}
             preview={preview}
+            mark={mark}
           >
             {bannerFooter}
           </DifficultyBanner>

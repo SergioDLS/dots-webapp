@@ -13,11 +13,13 @@ import { getLevelsService, getPathService, getPathNeighborsService } from "@/ser
 import { adaptLevelsToPath } from "@/lib/path-adapter";
 import { useAuth } from "@/context/auth-context";
 import { useInView } from "@/hooks/use-in-view";
+import { useActiveSection } from "@/hooks/use-active-section";
 import {
   difficultyNav,
   isDifficultyUnlocked,
   pickDefaultDifficultyId,
   prettyDifficultyName,
+  sectionMark,
 } from "@/lib/path-view";
 import { estadoPrimerInicio, suscribirPrimerInicio } from "@/lib/first-run";
 import type { PathPeer, PathResponse } from "@/types/path.types";
@@ -192,6 +194,9 @@ export default function PathContainer() {
     { threshold: 0.4 },
   );
   const showBack = shownId !== null && (shownId !== currentId || !currentInView);
+  // La sección que se está mirando: la cabecera plegada (móvil) y el panel sticky
+  // (escritorio) la muestran aunque su sub-banner ya se haya ido por arriba.
+  const activeSectionIndex = useActiveSection(`${shownId}:${path ? 1 : 0}`);
 
   const pendingScrollRef = useRef(false);
   const scrollToCurrent = useCallback(() => {
@@ -256,7 +261,9 @@ export default function PathContainer() {
     );
   }
 
-  const accentHex = difficultyColors(shown.id)[0];
+  const colors = difficultyColors(shown.id);
+  const accentHex = colors[0];
+  const mark = sectionMark(shown.sections, activeSectionIndex, colors);
   const locked = difficulties.filter((d) => d.id !== shown.id && !isDifficultyUnlocked(d));
 
   return (
@@ -268,8 +275,9 @@ export default function PathContainer() {
         peersByNodeId={peersByNodeId}
         preview={preview}
         onGo={goTo}
+        mark={mark}
         bannerRef={bannerRef}
-        header={<FoldedHeader difficulty={shown} nav={nav} accentHex={accentHex} visible={!bannerInView} onGo={goTo} />}
+        header={<FoldedHeader difficulty={shown} nav={nav} accentHex={accentHex} mark={mark} visible={!bannerInView} onGo={goTo} />}
         bannerFooter={<div className="hidden md:block"><BackToCurrent visible={showBack} onClick={backToCurrent} variant="inline" /></div>}
       />
       <BackToCurrent visible={showBack} onClick={backToCurrent} variant="floating" />
