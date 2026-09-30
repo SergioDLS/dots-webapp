@@ -143,8 +143,10 @@ export default function PathNode({
             height: BUBBLE_H,
             borderRadius: 28,
             background: `color-mix(in srgb, ${tint} 8%, var(--surface))`,
-            border: `2px solid color-mix(in srgb, ${tint} 40%, var(--border))`,
-            boxShadow: "var(--shadow-card)",
+            // Borde como sombra interior y no `border`: un borde desplazaría 2 px
+            // la columna (los hijos absolutos cuentan desde dentro del borde) y
+            // dejaría de alinear con los hitos, que se posicionan en el slot.
+            boxShadow: `inset 0 0 0 2px color-mix(in srgb, ${tint} 40%, var(--border)), var(--shadow-card)`,
           }}
         >
           <div inert={!expanded} className="dots-node-col absolute flex flex-col" style={{ top: COL.top }}>
