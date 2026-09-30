@@ -43,7 +43,7 @@ export const TIPS: readonly Tip[] = [
     ruta: "/levels",
     pose: "senalando",
     titulo: "Este es tu primer nivel",
-    frase: "Toca la imagen y arrancamos. Cada lección son unos tres minutos.",
+    frase: "Toca «Empezar» y arrancamos. Cada lección son unos tres minutos.",
   },
   {
     key: "camino.racha",
