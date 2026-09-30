@@ -27,6 +27,7 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
+import { ganoAlFantasma } from "@/lib/ghost-verdict";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -334,6 +335,13 @@ function GhostRaceInner() {
     const finalDuration =
       myTimeline.length > 0 ? myTimeline[myTimeline.length - 1] : 0;
 
+    const veredictoLocal = () =>
+      ganoAlFantasma({
+        completo: questionIndex >= items.length,
+        mio: myTimeline,
+        fantasma: ghostTimeline,
+      });
+
     postGhostRunService({
       seed: finalSeed,
       score: finalScore,
@@ -341,18 +349,14 @@ function GhostRaceInner() {
       timeline: myTimeline,
     })
       .then(({ beatGhost: beat }) => {
-        setBeatGhost(beat);
+        // Contra el Doty sintético no hay rival real en la BD y el servidor
+        // siempre diría «perdiste»: ahí decide la regla local, la misma del
+        // respaldo de abajo (lib/ghost-verdict.ts).
+        setBeatGhost(ghost === null ? veredictoLocal() : beat);
       })
       .catch(() => {
         // If submit fails, compare locally: my last step vs ghost's last step
-        const myLast = myTimeline.length > 0 ? myTimeline[myTimeline.length - 1] : Infinity;
-        const ghostLast =
-          ghostTimeline.length > 0
-            ? ghostTimeline[ghostTimeline.length - 1]
-            : Infinity;
-        setBeatGhost(
-          questionIndex >= items.length && myLast < ghostLast,
-        );
+        setBeatGhost(veredictoLocal());
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);

@@ -1,8 +1,8 @@
 /**
  * "Algo de MI cuenta cambió sin navegar" (spec modo admin 2026-09-29). Las
- * acciones de la caja de herramientas lo bumpean; el HUD, el Camino y el
- * arcade lo llevan en las dependencias de su efecto de carga y vuelven a
- * pedir. Sin esto habría que recargar la página, que tira el token en memoria
+ * acciones de la caja de herramientas lo bumpean; el HUD, el Camino, el
+ * arcade y la tienda lo llevan en las dependencias de su efecto de carga y
+ * vuelven a pedir. Sin esto habría que recargar la página, que tira el token en memoria
  * (CLAUDE.md regla 1). Puro, sin React, bajo node --test.
  */
 let version = 0;
