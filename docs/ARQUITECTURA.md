@@ -189,6 +189,13 @@ en las dependencias de su efecto de carga para volver a pedir sin recargar. Tras
 se navega a `/welcome` (no a `/levels`: `FirstRunGate` ya corrió en esa carga). Fetchers en
 `services/admin-lab.service.ts`.
 
+Con el modo encendido la **tienda cuesta 0**: avatares, gestos, escudos y boosts salen con precio
+0 en `GET /shop` (la pantalla dice «Gratis») y se llevan de verdad, como una compra; con el modo
+apagado vuelven los precios reales. Aparte, y siempre, **la competencia es solo de los
+estudiantes**: el backend deja fuera a los admins del ranking, el aviso de rival, el torneo, el
+trono, los retos 1v1, el fantasma y los vecinos del Camino. Un admin puede ver esas pantallas pero
+nunca aparece en ellas ni cobra sus premios, y `top-students.tsx` le oculta el botón «Retar».
+
 ### Avatares (`components/ui/avatar/`)
 
 La cara pública del usuario. Un único `<Avatar avatar size>` pinta el retrato **sin

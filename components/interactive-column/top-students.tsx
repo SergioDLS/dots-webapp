@@ -10,6 +10,8 @@ import Doty from "../ui/doty/doty";
 import Avatar from "@/components/ui/avatar/avatar";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon, type UiIconName } from "@/components/ui/ui-icon";
+import { ADMIN_PROFILE } from "@/constants";
+import { useStoredUser } from "@/hooks/use-stored-user";
 import {
   getLeaderboardService,
   type LeaderboardEntry,
@@ -82,6 +84,10 @@ export default function TopStudents() {
 
   const loading = loaded === null || loaded.period !== period;
   const ranking = loading ? [] : loaded.rows;
+  // La competencia es solo de los estudiantes: un admin ve el ranking pero no
+  // reta a nadie (el backend rechaza el reto con 403). `useStoredUser` da {}
+  // en el servidor y al hidratar, así que el botón no parpadea.
+  const soyAdmin = useStoredUser().profile === ADMIN_PROFILE;
 
   const sendChallenge = (userId: number, gameKey: string) => {
     // Optimista: cerramos el picker y celebramos ya; si el backend rechaza
@@ -138,7 +144,7 @@ export default function TopStudents() {
       <div className="flex flex-col gap-2">
         {ranking.map((item) => {
           const canChallenge =
-            typeof item.id === "number" && myId !== null && item.id !== myId;
+            !soyAdmin && typeof item.id === "number" && myId !== null && item.id !== myId;
           const pickerOpen = canChallenge && pickerFor === item.id;
           const rowFeedback =
             canChallenge && feedback?.userId === item.id ? feedback : null;

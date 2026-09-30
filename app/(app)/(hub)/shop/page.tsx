@@ -266,7 +266,10 @@ export default function ShopPage() {
                         ? <span className="inline-flex items-center gap-1"><Icon name="check" size={16} /> Tienes</span>
                         : busy === item.key
                           ? "…"
-                          : <span className="inline-flex items-center gap-1"><UiIcon name="gemas" size={16} /> {item.price}</span>}
+                          : item.price === 0
+                            // Precio 0: en modo admin toda la tienda es gratis para probarla.
+                            ? "Gratis"
+                            : <span className="inline-flex items-center gap-1"><UiIcon name="gemas" size={16} /> {item.price}</span>}
                     </button>
                   </div>
                 );
