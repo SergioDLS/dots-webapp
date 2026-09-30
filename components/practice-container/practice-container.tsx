@@ -14,6 +14,11 @@ import RewardPanel from "@/components/lesson/reward-panel";
 import type { Sentence, SentenceOption as Option } from "@/types/practice.types";
 import type { ProgressReward } from "@/services/engagement.service";
 import { resolveSentenceSoundUrl } from "@/constants";
+import { moveItem } from "@/lib/tray-drop";
+import { useTrayDrag, DRAG_SCALE } from "./use-tray-drag";
+
+// Chip de palabra de «¡Arma la oración!»: mismo tamaño en banco, hueco y bandeja
+const wordChipCls = `${baseOptionCls} px-3 py-1.5 text-sm`;
 
 interface PracticeContainerProps {
   mode: string;
@@ -101,6 +106,19 @@ export default function PracticeContainer({
       click(item.correct);
     }
   }, [answered, mode, options, buildUpSentence, dataSentence.text, click]);
+
+  // Reordenar arrastrando dentro de la oración, sin desarmarla
+  const reorderHandler = (from: number, to: number) => {
+    if (answered !== "") return;
+    const updatedBuild = moveItem(buildUpSentence, from, to);
+    const text = updatedBuild.map((o) => o.word).join(" ");
+    setPracticeState((s) => ({ ...s, buildUpSentence: updatedBuild }));
+    click(text.toUpperCase() === dataSentence.text.toUpperCase());
+  };
+  const { trayRef, drag, chipProps, consumeClick } = useTrayDrag({
+    enabled: mode === "buildUp" && answered === "" && flyingId === null,
+    onMove: reorderHandler,
+  });
 
   let sentenceText = dataSentence.text;
   if (answered === "correct") {
@@ -207,46 +225,108 @@ export default function PracticeContainer({
           </p>
         )}
 
-        {/* Selected words tray */}
+        {/* Selected words tray. Dos capas en la misma celda del grid: la
+            invisible lleva TODAS las palabras, así la bandeja mide desde el
+            principio lo que medirá llena y nada se mueve mientras armas. */}
         <div
-          className="flex flex-wrap gap-2 w-full min-h-14 rounded-2xl p-3"
+          className="grid w-full min-h-14 rounded-2xl p-3"
           style={{
             background: "var(--background)",
             border: "2px dashed var(--border)",
           }}
         >
-          {buildUpSentence.length === 0 && (
-            <span className="text-xs self-center" style={{ color: "var(--muted)" }}>
-              Toca las palabras de abajo para armar la oración…
-            </span>
-          )}
-          {buildUpSentence.map((word, i) => (
-            <button
-              key={`tray-${word.id}-${i}`}
-              onClick={() => selectHandler(i, word)}
-              className={`${baseOptionCls} px-3 py-1.5 text-sm`}
-              style={{
-                background: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                border: "2px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                color: "var(--accent)",
-                animation: flyingId === word.id && flyDir === "to-tray"
-                  ? "pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both"
-                  : flyingId === word.id && flyDir === "from-tray"
-                    ? "pc-fly-back-from-tray 0.24s ease-in both"
-                    : `pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both ${i * 0.04}s`,
-              }}
-            >
-              {word.word}
-            </button>
-          ))}
+          <div aria-hidden className="invisible flex flex-wrap gap-2" style={{ gridArea: "1 / 1" }}>
+            {options.map((item) => (
+              <span key={item.id} className={wordChipCls} style={{ border: "2px solid transparent" }}>
+                {item.word}
+              </span>
+            ))}
+          </div>
+          <div
+            ref={trayRef}
+            className="relative flex flex-wrap content-start items-start gap-2"
+            style={{ gridArea: "1 / 1" }}
+          >
+            {buildUpSentence.length === 0 && (
+              <span
+                className="absolute inset-0 flex items-center justify-center text-center text-xs"
+                style={{ color: "var(--muted)" }}
+              >
+                Toca las palabras de abajo para armar la oración…
+              </span>
+            )}
+            {buildUpSentence.map((word, i) => {
+              const held = drag?.id === word.id ? drag : null;
+              return (
+                <button
+                  key={word.id}
+                  {...chipProps(word.id, i)}
+                  onClick={() => {
+                    if (!consumeClick()) selectHandler(i, word);
+                  }}
+                  className={wordChipCls}
+                  style={{
+                    background: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                    border: "2px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                    color: "var(--accent)",
+                    touchAction: answered === "" ? "none" : undefined,
+                    animation: flyingId === word.id && flyDir === "to-tray"
+                      ? "pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both"
+                      : flyingId === word.id && flyDir === "from-tray"
+                        ? "pc-fly-back-from-tray 0.24s ease-in both"
+                        : `pc-fly-from-pool 0.28s cubic-bezier(.34,1.5,.64,1) both ${i * 0.04}s`,
+                    ...(held && {
+                      // opaco: flota por encima de las otras palabras
+                      background: "color-mix(in srgb, var(--accent) 16%, var(--surface))",
+                      translate: `${held.dx}px ${held.dy}px`,
+                      scale: DRAG_SCALE,
+                      transition: "none",
+                      zIndex: 10,
+                      cursor: "grabbing",
+                      boxShadow: "0 8px 20px color-mix(in srgb, var(--accent) 25%, transparent)",
+                    }),
+                  }}
+                >
+                  {word.word}
+                </button>
+              );
+            })}
+            {drag?.caret && (
+              <span
+                aria-hidden
+                className="absolute left-0 top-0 w-[3px] rounded-full pointer-events-none"
+                style={{
+                  height: drag.caret.h,
+                  transform: `translate(${drag.caret.x - 1.5}px, ${drag.caret.y}px)`,
+                  background: "var(--accent)",
+                }}
+              />
+            )}
+          </div>
         </div>
 
         <div className="w-full h-px" style={{ background: "var(--border)" }} />
 
-        {/* Word pool */}
+        {/* Word pool. La palabra que pasa a la oración deja su hueco, del
+            mismo tamaño, para que el banco no cambie de forma. */}
         <div className="flex flex-wrap justify-center gap-2 w-full">
           {options.map((item, index) => {
-            if (item.selected) return null;
+            if (item.selected) {
+              return (
+                <span
+                  key={item.id}
+                  aria-hidden
+                  className={`${wordChipCls} pointer-events-none`}
+                  style={{
+                    background: "color-mix(in srgb, var(--border) 45%, transparent)",
+                    border: "2px dashed var(--border)",
+                    color: "transparent",
+                  }}
+                >
+                  {item.word}
+                </span>
+              );
+            }
             const isFlyingOut = flyingId === item.id && flyDir === "to-tray";
             const state = getOptionState(false, answered, item.correct);
             return (
@@ -254,13 +334,13 @@ export default function PracticeContainer({
                 key={item.id}
                 onClick={() => selectHandler(index, item)}
                 disabled={flyingId === item.id}
-                className={`${baseOptionCls} px-3 py-1.5 text-sm`}
+                className={wordChipCls}
                 style={{
                   ...optionStyles[state],
                   animation: isFlyingOut
                     ? "pc-fly-to-tray 0.26s ease-in both"
                     : `pc-option-in 0.25s ease-out both ${index * 0.04}s`,
-                  pointerEvents: flyingId !== null ? "none" : undefined,
+                  pointerEvents: flyingId !== null || drag ? "none" : undefined,
                 }}
               >
                 {item.word}
