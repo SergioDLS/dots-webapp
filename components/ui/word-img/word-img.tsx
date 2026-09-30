@@ -10,31 +10,39 @@ interface Props {
   customClass?: string;
 }
 
+// Clases literales a propósito: Tailwind solo genera las que encuentra escritas
+// enteras en el código, y un `w-[${dim}px]` armado en runtime nunca llegaba al
+// CSS (el wrapper quedaba sin tamaño y encogía como flex item). `px` alimenta
+// el width/height de NextImage, que elige la resolución a pedir.
+const SIZES = {
+  small: { px: 48, cls: "w-12 h-12" },
+  medium: { px: 80, cls: "w-20 h-20" },
+  large: { px: 128, cls: "w-32 h-32" },
+} as const;
+
 export default function WordImg({ size, opacity = 1, src, customClass }: Props) {
   // Ver lib/media-url.ts: absolutas y rutas `/…` tal cual; nombre suelto = legacy de `words`.
   const url = wordImageUrl(src, BASE_URL_IMAGES);
 
-  // Resolve numeric dimensions from semantic size names
-  const dim =
-    size === "small"  ? 48  :
-    size === "medium" ? 80  :
-    size === "large"  ? 128 :
-    80; // default
-
-  // When a custom Tailwind size class is passed (e.g. "w-32 h-32") we can't
-  // know the exact px, so we use a generous fill layout instead.
-  const isCustomSize = typeof size === "string" && !["small", "medium", "large"].includes(size);
+  // Sin `size` = medium. Cualquier otro string es una clase de Tailwind del
+  // caller (p. ej. "w-24 h-24"): no sabemos sus px, así que va con fill.
+  const preset =
+    size === undefined ? SIZES.medium
+    : Object.hasOwn(SIZES, size) ? SIZES[size as keyof typeof SIZES]
+    : null;
 
   const wrapperCls = [
     "inline-block overflow-hidden rounded",
     "transition-transform duration-150 group-active:scale-[.92]",
-    isCustomSize ? size : `w-[${dim}px] h-[${dim}px]`,
+    // shrink-0: overflow-hidden deja el min-width en 0, y en una fila flex
+    // el wrapper cedía ancho a sus hermanos.
+    preset ? `${preset.cls} shrink-0` : size,
     customClass ?? "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  if (isCustomSize) {
+  if (!preset) {
     // Use fill layout so the image covers whatever dimensions the wrapper provides
     return (
       <span className={`relative ${wrapperCls}`} style={{ opacity }}>
@@ -54,8 +62,8 @@ export default function WordImg({ size, opacity = 1, src, customClass }: Props) 
       <NextImage
         src={url}
         alt=""
-        width={dim}
-        height={dim}
+        width={preset.px}
+        height={preset.px}
         className="object-cover w-full h-full"
         loading="lazy"
       />
