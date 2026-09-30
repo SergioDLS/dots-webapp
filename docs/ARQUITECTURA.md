@@ -184,13 +184,13 @@ Camino), que abre la caja (`admin-lab-sheet.tsx`): reiniciar la cuenta en dos pa
 completar la sección actual (la única que escribe progreso), palancas de gemas/XP/racha y
 «olvidar avisos» del dispositivo. El estado del modo se espeja en `lib/admin-mode.ts`
 (store puro, single-flight de `/me/settings` en `hooks/use-admin-mode.ts`, solo para
-admins) y las acciones bumpean `lib/account-refresh.ts`, que HUD, Camino y arcade llevan
+admins) y las acciones bumpean `lib/account-refresh.ts`, que HUD, Camino, arcade y tienda llevan
 en las dependencias de su efecto de carga para volver a pedir sin recargar. Tras el reset
 se navega a `/welcome` (no a `/levels`: `FirstRunGate` ya corrió en esa carga). Fetchers en
 `services/admin-lab.service.ts`.
 
 Con el modo encendido la **tienda cuesta 0**: avatares, gestos, escudos y boosts salen con precio
-0 en `GET /shop` (la pantalla dice «Gratis») y se llevan de verdad, como una compra; con el modo
+0 en `GET /shop` (la pantalla dice «Gratis» y se vuelve a pedir al cambiar de modo) y se llevan de verdad, como una compra; con el modo
 apagado vuelven los precios reales. Aparte, y siempre, **la competencia es solo de los
 estudiantes**: el backend deja fuera a los admins del ranking, el aviso de rival, el torneo, el
 trono, los retos 1v1, el fantasma y los vecinos del Camino. Un admin puede ver esas pantallas pero

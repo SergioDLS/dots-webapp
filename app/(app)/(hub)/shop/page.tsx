@@ -13,6 +13,7 @@ import {
   type ShopItem,
 } from "@/services/shop.service";
 import { getMySettingsService, postMyAvatarService } from "@/services/settings.service";
+import { useAccountVersion } from "@/hooks/use-account-version";
 
 const kindIcon = (item: ShopItem): ReactNode => {
   if (item.kind === "streak_shield") return <Icon name="escudo" size={36} />;
@@ -45,7 +46,10 @@ export default function ShopPage() {
       setItems(s.items);
     });
   };
-  useEffect(load, []);
+  // Encender o apagar el modo admin cambia los precios (con él, todo a 0): la
+  // caja lo avisa con bumpCuenta y la tienda vuelve a pedir, sin recargar.
+  const version = useAccountVersion();
+  useEffect(load, [version]);
 
   useEffect(() => {
     getMySettingsService().then((s) => {
