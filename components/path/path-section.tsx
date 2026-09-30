@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import PathNode, { NODE_W, ART_BOX, NODE_ROW_H } from "./path-node";
+import React, { useState, type CSSProperties } from "react";
+import PathNode from "./path-node";
 import DotyMarker from "./doty-marker";
 import PathPeer from "./path-peer";
 import SectionBanner from "./section-banner";
+import { ART_BOX, DOTY_ROOM, NODE_ROW_H, SLOT_W, bubbleVars, sideOf, type NodeSide } from "@/lib/node-bubble";
 import type {
+  PathNode as PathNodeType,
   PathPeer as PathPeerType,
   PathSection as PathSectionType,
 } from "@/types/path.types";
@@ -31,6 +33,18 @@ const zigzagX = (i: number): number => {
 
 const ROW_GAP = 18; // px – vertical gap between nodes
 
+const keyOf = (n: PathNodeType) => `${n.type}-${n.id}`;
+/** El nivel actual de verdad: el mismo criterio que la estrella de PathNode. */
+const isLiveCurrent = (n: PathNodeType, preview: boolean) =>
+  !preview && n.current && n.unlocked && !n.completed;
+/** Variables de geometría por lado: tres objetos, calculados una sola vez. */
+const SLOT_VARS: Record<NodeSide, CSSProperties> = {
+  left: bubbleVars("left") as CSSProperties,
+  center: bubbleVars("center") as CSSProperties,
+  right: bubbleVars("right") as CSSProperties,
+};
+const TIP_PRIMER_NIVEL = "camino.primer-nivel";
+
 export default function PathSection({
   section,
   index,
@@ -40,22 +54,29 @@ export default function PathSection({
   preview = false,
 }: PathSectionProps) {
   const { id, checkpointAvailable, nodes } = section;
-  const [openKey, setOpenKey] = useState<string | null>(null);
+  // El nivel actual nace abierto (spec 2026-09-30, decisión 4). Inicializador y
+  // no efecto: se pinta abierto desde el primer frame, sin animar ni saltar.
+  const [openKey, setOpenKey] = useState<string | null>(() => {
+    const current = nodes.find((n) => isLiveCurrent(n, preview));
+    return current ? keyOf(current) : null;
+  });
 
-  // Todas las filas miden lo mismo (checkpoint incluido): NODE_ROW_H.
-  const slots = nodes.map((n, i) => ({
-    node: n,
-    key: `${n.type}-${n.id}`,
-    xPct: n.type === "checkpoint" ? 50 : zigzagX(i),
-    h: NODE_ROW_H,
-  }));
+  // Todas las filas miden lo mismo (checkpoint incluido): NODE_ROW_H. Abrir un
+  // nivel no lo cambia, así que las filas y el conector no se mueven nunca.
+  // El nivel actual reserva además aire arriba para que Doty asome sin tocar la
+  // etiqueta del anterior; fijo, abierto o no, por la misma razón.
+  const slots = nodes.map((n, i) => {
+    const xPct = n.type === "checkpoint" ? 50 : zigzagX(i);
+    const room = isLiveCurrent(n, preview) ? DOTY_ROOM : 0;
+    return { node: n, key: keyOf(n), xPct, side: sideOf(xPct), room, h: room + NODE_ROW_H };
+  });
   const offsets = slots.map((_, i) =>
     slots.slice(0, i).reduce((sum, s) => sum + s.h + ROW_GAP, 0),
   );
   const placed = slots.map((s, i) => ({
     ...s,
-    y: offsets[i],
-    centerY: offsets[i] + ART_BOX / 2,
+    y: offsets[i] + s.room,
+    centerY: offsets[i] + s.room + ART_BOX / 2,
   }));
   const totalH =
     slots.length === 0
@@ -85,7 +106,7 @@ export default function PathSection({
       {placed.length === 0 ? (
         <span className="text-(--muted)">No hay lecciones disponibles.</span>
       ) : (
-        <div className="relative w-full" style={{ maxWidth: 640, height: totalH }}>
+        <div className="dots-track relative w-full" style={{ maxWidth: 640, height: totalH }}>
           {/* SVG connector: solid where already travelled, dashed ahead */}
           {placed.length >= 2 && (
             <svg
@@ -116,17 +137,22 @@ export default function PathSection({
           {/* Nodes */}
           {placed.map((p, nodeIndex) => {
             const peersHere = peersByNodeId[p.node.id] ?? [];
+            const open = openKey === p.key;
+            const live = isLiveCurrent(p.node, preview);
             return (
             <div
               key={p.key}
-              className="absolute"
+              className="dots-slot absolute"
+              data-open={open ? "" : undefined}
               data-path-current={!preview && p.node.current ? "true" : undefined}
-              data-tip={!preview && p.node.current ? "camino.primer-nivel" : undefined}
+              // Una sola marca en el DOM: abierta la lleva la burbuja, que es lo que se ve.
+              data-tip={live && !open ? TIP_PRIMER_NIVEL : undefined}
               style={{
-                left: `calc(${p.xPct}% - ${NODE_W / 2}px)`,
+                ...SLOT_VARS[p.side],
+                left: `calc(${p.xPct}% - ${SLOT_W / 2}px)`,
                 top: p.y,
-                width: NODE_W,
-                zIndex: openKey === p.key ? 40 : 1,
+                width: SLOT_W,
+                zIndex: open ? 40 : 1,
               }}
             >
               <PathNode
@@ -134,22 +160,29 @@ export default function PathSection({
                 accentHex={accentHex}
                 checkpointAvailable={checkpointAvailable}
                 animationIndex={nodeIndex}
-                open={openKey === p.key}
-                onOpenChange={(v) => setOpenKey(v ? p.key : null)}
-                popoverAlign={p.xPct < 35 ? "left" : p.xPct > 65 ? "right" : "center"}
+                open={open}
+                // Updater puro: abrir otro nivel dispara también el "click fuera"
+                // de este, y sin comparar cerraría al que se acaba de abrir.
+                onOpenChange={(v) =>
+                  setOpenKey((prev) => (v ? p.key : prev === p.key ? null : prev))
+                }
+                tipKey={live ? TIP_PRIMER_NIVEL : undefined}
                 preview={preview}
               />
               {/*
                 Doty and peers claim the same slot: the interior side of the
                 node, top-aligned. There is no room for both — a row is
-                NODE_ROW_H (182px) tall, Doty takes ~110 and two peers need
+                NODE_ROW_H (188px) tall, Doty takes ~110 and two peers need
                 ~105 — so on a node that has peers, Doty yields. The star
                 badge and the pulse still mark the current node, and a peer
                 is information while "¡Sigue aquí!" is decoration.
+                With the bubble open, Doty peeks over its top edge instead
+                and the peers fade out (.dots-slot[data-open] in globals.css).
               */}
-              {!preview && p.node.current && peersHere.length === 0 && (
+              {live && peersHere.length === 0 && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
+              {live && <DotyMarker variant="peek" dotyAt={p.side === "right" ? "start" : "end"} />}
               {!preview &&
                 peersHere.map((peer, peerIndex) => (
                   <PathPeer

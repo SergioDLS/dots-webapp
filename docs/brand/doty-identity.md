@@ -196,7 +196,7 @@ energía en punta", nunca el nombre de la serie).
 | Dificultad bloqueada (vista previa) | narrador | "Termina la anterior y este camino se abre." |
 | Dificultad: 100 % | narrador | "Nivel dominado. +1000 de aura." |
 | Bienvenida (primer inicio) | `saludando` | "¡Hola! Soy Doty. Tu coach de inglés. Prometo no regañarte." |
-| Pista: primer nivel | `senalando` | "Este es tu primer nivel. Toca la imagen y arrancamos. Cada lección son unos tres minutos." |
+| Pista: primer nivel | `senalando` | "Este es tu primer nivel. Toca «Empezar» y arrancamos. Cada lección son unos tres minutos." |
 | Pista: la llama | `emocionado` | "La llama es tu racha. Practica hoy y se enciende. Un día sin practicar y se apaga. Drama garantizado." |
 
 Prohibido en copy y en prompts de arte: burlarse de un error del usuario,

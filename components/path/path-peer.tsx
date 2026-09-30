@@ -21,6 +21,9 @@ const SLOT_H = CIRCLE + 22;
  * RN-safe: el nombre va SIEMPRE visible (nada de hover como única señal) y no
  * hay animación fuera de transform/opacity. `pointer-events-none` porque hoy es
  * informativo; si más adelante se puede tocar para retar, se quita.
+ *
+ * Con la burbuja del nivel abierta se desvanece (`.dots-slot[data-open] .dots-peer`
+ * en globals.css).
  */
 export default function PathPeer({
   peer,
@@ -33,7 +36,7 @@ export default function PathPeer({
 
   return (
     <div
-      className="absolute flex flex-col items-center gap-0.5 pointer-events-none select-none"
+      className="dots-peer absolute flex flex-col items-center gap-0.5 pointer-events-none select-none"
       style={{
         top: 18 + stackIndex * SLOT_H,
         width: 72,

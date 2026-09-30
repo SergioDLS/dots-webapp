@@ -3,10 +3,7 @@
 import React, { useSyncExternalStore } from "react";
 import Doty, { toDotyPose } from "@/components/ui/doty/doty";
 import { creaSorteo } from "@/lib/doty-pose-aleatoria";
-
-interface DotyMarkerProps {
-  side?: "left" | "right";
-}
+import { DOTY_PEEK_TOP, DOTY_PEEK_W } from "@/lib/node-bubble";
 
 /**
  * Poses del marcador del Camino, que va pegado al nodo actual diciendo
@@ -36,9 +33,54 @@ const POSES_MARCADOR = [
 
 const sorteo = creaSorteo(POSES_MARCADOR);
 
+interface DotyMarkerProps {
+  side?: "left" | "right";
+  /**
+   * `side`: al costado del nivel actual, como siempre. `peek`: asomado sobre el
+   * borde de su burbuja abierta (spec 2026-09-30, decisión 9); globals.css lo
+   * muestra solo con `.dots-slot[data-open]`.
+   */
+  variant?: "side" | "peek";
+  /** En `peek`, en qué punta de la columna va Doty: `end` si la imagen está a la izquierda. */
+  dotyAt?: "start" | "end";
+}
+
 /** Small Doty anchored beside the current node, cheering the learner on. */
-export default function DotyMarker({ side = "right" }: DotyMarkerProps) {
+export default function DotyMarker({ side = "right", variant = "side", dotyAt = "end" }: DotyMarkerProps) {
   const pose = useSyncExternalStore(sorteo.suscribir, sorteo.cliente, sorteo.servidor);
+
+  const globo = (
+    <div
+      className="rounded-2xl px-2.5 py-1 text-[11px] font-black whitespace-nowrap"
+      style={{
+        background: "var(--surface)",
+        border: "2px solid var(--border)",
+        color: "var(--foreground)",
+        boxShadow: "0 3px 10px rgba(0,0,0,0.10)",
+      }}
+    >
+      ¡Sigue aquí!
+    </div>
+  );
+
+  if (variant === "peek") {
+    return (
+      <div
+        aria-hidden
+        className="dots-doty-peek absolute flex items-start justify-end gap-1 pointer-events-none select-none"
+        style={{
+          top: DOTY_PEEK_TOP,
+          width: DOTY_PEEK_W,
+          // Detrás de la burbuja: asoma cabeza y brazos por encima del borde.
+          zIndex: -1,
+          flexDirection: dotyAt === "end" ? "row" : "row-reverse",
+        }}
+      >
+        <div className="mt-3">{globo}</div>
+        <Doty pose={toDotyPose(pose)} size="mini" />
+      </div>
+    );
+  }
 
   const anchor: React.CSSProperties =
     side === "right" ? { left: "100%" } : { right: "100%" };
@@ -46,7 +88,7 @@ export default function DotyMarker({ side = "right" }: DotyMarkerProps) {
   return (
     <div
       aria-hidden
-      className="absolute flex flex-col items-center gap-0.5 pointer-events-none select-none"
+      className="dots-doty-side absolute flex flex-col items-center gap-0.5 pointer-events-none select-none"
       style={{
         top: -6,
         width: 96,
@@ -55,17 +97,7 @@ export default function DotyMarker({ side = "right" }: DotyMarkerProps) {
         ...anchor,
       }}
     >
-      <div
-        className="rounded-2xl px-2.5 py-1 text-[11px] font-black whitespace-nowrap"
-        style={{
-          background: "var(--surface)",
-          border: "2px solid var(--border)",
-          color: "var(--foreground)",
-          boxShadow: "0 3px 10px rgba(0,0,0,0.10)",
-        }}
-      >
-        ¡Sigue aquí!
-      </div>
+      {globo}
       <Doty pose={toDotyPose(pose)} size="mini" />
     </div>
   );
