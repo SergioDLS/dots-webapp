@@ -6,7 +6,7 @@ import {
   forgotPasswordService,
   resetPasswordService,
 } from "@/services/auth.service";
-import Doty from "@/components/ui/doty/doty";
+import DotyPreSesion from "@/components/ui/doty/doty-pre-sesion";
 import CodeInput from "@/components/auth/code-input";
 import {
   inputCls,
@@ -148,7 +148,7 @@ export default function ForgotPassword() {
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
-          <Doty pose="senalando" size="smaller" animation="bob" />
+          <DotyPreSesion pose="senalando" size="smaller" animation="bob" />
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             ¿Olvidaste tu contraseña?
           </h1>
@@ -218,7 +218,7 @@ export default function ForgotPassword() {
           className="flex flex-col items-center gap-2 text-center"
           style={{ animation: "dots-slide-up 0.5s ease-out both" }}
         >
-          <Doty pose="pensando" size="smaller" animation="bob" />
+          <DotyPreSesion pose="pensando" size="smaller" animation="bob" />
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             Revisa tu correo
           </h1>
@@ -293,7 +293,7 @@ export default function ForgotPassword() {
         className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
         style={{ animation: "dots-pop-in 0.5s ease-out both" }}
       >
-        <Doty pose="excelente" size="smaller" animation="cheer" />
+        <DotyPreSesion pose="excelente" size="smaller" animation="cheer" />
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
           ¡Listo!
         </h1>

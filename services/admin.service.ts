@@ -708,6 +708,8 @@ export type AdminPathNode = {
   type: PathNodeType;
   refId: number | null;
   title: string;
+  /** Tile del nodo en el Camino; null = hereda (practice) o icono del tipo. */
+  src: string | null;
   enabled: boolean;
 };
 
@@ -724,6 +726,7 @@ export async function createPathNode(payload: {
   type: PathNodeType;
   refId?: number | null;
   title?: string;
+  src?: string | null;
 }): Promise<AdminPathNode> {
   const { data } = await api.post("/admin/path-nodes", payload);
   return data;
@@ -737,6 +740,7 @@ export async function updatePathNode(
     type: PathNodeType;
     refId: number | null;
     title: string;
+    src: string | null;
     enabled: boolean;
   }>,
 ): Promise<AdminPathNode> {

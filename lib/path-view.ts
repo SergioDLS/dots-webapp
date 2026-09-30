@@ -66,6 +66,24 @@ export function firstUpcomingSectionIndex(sections: readonly PathSection[]): num
   return sections.findIndex((s) => !s.unlocked && !s.skipped);
 }
 
+export type SectionMark = { section: PathSection; index: number; total: number; accentHex: string };
+
+/**
+ * Sección que marcan la cabecera plegada y el panel de escritorio: la que se
+ * está mirando (`index` sale del scroll-spy), acotada a las que hay, porque al
+ * cambiar de dificultad el índice puede venir de una con más secciones. El
+ * color rota sobre `colors` igual que el de su sub-banner.
+ */
+export function sectionMark(
+  sections: readonly PathSection[],
+  index: number,
+  colors: readonly string[],
+): SectionMark | null {
+  if (sections.length === 0) return null;
+  const i = Math.min(Math.max(index, 0), sections.length - 1);
+  return { section: sections[i], index: i, total: sections.length, accentHex: colors[i % colors.length] };
+}
+
 /** Línea del narrador por umbral: docs/brand/doty-identity.md, "Frases aprobadas por momento". */
 export function encouragement(pct: number): string {
   const p = clampPct(pct);

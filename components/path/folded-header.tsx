@@ -4,13 +4,15 @@ import Doty from "@/components/ui/doty/doty";
 import SegmentedBar from "./segmented-bar";
 import { DifficultyArrow } from "./difficulty-nav";
 import { narratorPose } from "./narrator-pose";
-import { countLessons, panelTint, prettyDifficultyName, type DifficultyNav } from "@/lib/path-view";
+import { panelTint, prettyDifficultyName, type DifficultyNav, type SectionMark } from "@/lib/path-view";
 import type { PathDifficulty } from "@/types/path.types";
 
 interface Props {
   difficulty: PathDifficulty;
   nav: DifficultyNav;
   accentHex: string;
+  /** La sección que se está mirando (scroll-spy); null si la dificultad no trae secciones. */
+  mark: SectionMark | null;
   /** El banner salió del viewport. */
   visible: boolean;
   onGo: (id: number) => void;
@@ -21,12 +23,13 @@ interface Props {
  * mismo tinte del banner. Es un contenedor sticky de altura 0 (no deja hueco
  * mientras el banner está a la vista) y la barra real va absoluta dentro; se
  * muestra con opacity/transform. Solo móvil: en escritorio el banner es sticky.
+ * La segunda línea dice en qué sección vas; el progreso ya lo cuenta la barra.
+ * Va a 52 px del techo: el HUD mide 43 y así quedan 9 px de aire bajo él.
  */
-export default function FoldedHeader({ difficulty, nav, accentHex, visible, onGo }: Props) {
-  const { done, total } = countLessons(difficulty.sections);
+export default function FoldedHeader({ difficulty, nav, accentHex, mark, visible, onGo }: Props) {
   const pose = narratorPose(difficulty.img, nav.index);
   return (
-    <div className="sticky z-20 h-0 md:hidden" style={{ top: 44 }} aria-hidden={!visible}>
+    <div className="sticky z-20 h-0 md:hidden" style={{ top: 52 }} aria-hidden={!visible}>
       <div
         inert={!visible}
         /* Tapa una franja del viewport sin ser `header` ni `nav`: las pistas
@@ -48,9 +51,18 @@ export default function FoldedHeader({ difficulty, nav, accentHex, visible, onGo
           <p className="truncate font-display text-[13px] font-extrabold leading-tight text-foreground">
             {prettyDifficultyName(difficulty.name)}
           </p>
-          <p className="text-[11px] font-bold tabular-nums leading-tight text-(--muted)">
-            {done} de {total} lecciones
-          </p>
+          {mark && (
+            <p className="truncate text-[11px] font-bold leading-tight text-(--muted)">
+              <span
+                className="font-black tabular-nums"
+                style={{ color: `color-mix(in srgb, ${mark.accentHex} 60%, var(--foreground))` }}
+              >
+                Sección {mark.index + 1}
+              </span>
+              {" · "}
+              {mark.section.name}
+            </p>
+          )}
         </div>
         <div style={{ width: 88 }}>
           <SegmentedBar sections={difficulty.sections} accentHex={accentHex} height={6} gap={3} />

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Spinner from "@/components/ui/Spinner/Spinner";
+import DotyEntrada from "@/components/ui/doty/doty-entrada";
 import WelcomeScreen from "@/components/onboarding/welcome-screen";
 import PlacementTest from "@/components/onboarding/placement-test";
 import PlacementResultScreen from "@/components/onboarding/placement-result";
@@ -55,9 +56,15 @@ export default function OnboardingPage() {
       .finally(() => setBusy(false));
   };
 
+  // Quien acepta una invitación llega aquí directo, sin pasar por el login ni
+  // por el hub: la transformación se reproduce encima, mientras se consulta el
+  // placement. Fuera de ese caso no pinta nada.
+  const entrada = <DotyEntrada />;
+
   if (isBootstrapping || !checked) {
     return (
       <main className="flex justify-center py-24">
+        {entrada}
         <Spinner />
       </main>
     );
@@ -65,6 +72,7 @@ export default function OnboardingPage() {
 
   return (
     <main className="mx-auto w-full max-w-xl flex flex-col gap-4 p-4">
+      {entrada}
       {result ? (
         <PlacementResultScreen
           result={result}

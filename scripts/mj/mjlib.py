@@ -205,7 +205,13 @@ def build_prompt(piece: dict, style: dict) -> str:
     negativos = style["negative"]
     if piece.get("glasses"):
         negativos = [n for n in negativos if n != "glasses"]
-    body = ", ".join([piece["prefix"], piece["prompt"], style["icon_block"]])
+    # Letras y cifras sueltas (abecedario, números): el texto ES el contenido.
+    if piece.get("glyphs"):
+        negativos = [n for n in negativos if n != "text"]
+    # La paleta cerrada vive en icon_block; `colores` trae el suyo porque ahí el
+    # color es el tema (spec 2026-09-29-tiles-de-modulos, decisión 3).
+    bloque = piece.get("icon_block") or style["icon_block"]
+    body = ", ".join([piece["prefix"], piece["prompt"], bloque])
     # `aspect` por pieza: un skyline es una franja 3:1, no un cuadrado. La
     # salida sigue pasando por trim_square_resize (lienzo cuadrado con aire
     # transparente), así que `size` debe ser el lado largo para no perder resolución.
@@ -286,8 +292,16 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
         origen = (f"`{cat['fase']}/{fuente['source_file']}`" if fuente.get("source_file")
                   else f"la descarga que elijas de `{fuente['slug']}` (misma carpeta)")
         return f"> 📎 **Attach to prompt:** {origen} · 🎨 **Style reference:** VACÍO"
+    if piece.get("icon_block"):
+        # Paleta propia (colores): el --sref del ancla transfiere paleta y la
+        # arrastraría a la de marca — describirla con palabras no basta (gemas).
+        return ("> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO "
+                "(esta pieza trae su propia paleta: el sref del ancla la arrastraría a la de marca)")
     ancla = next((q for q in cat["pieces"] if q.get("group") == piece["group"] and q.get("anchor")), None)
     if ancla is None or ancla["slug"] == piece["slug"]:
+        if piece.get("anchor_sref"):
+            return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['anchor_sref']}` "
+                    "(ancla que toma prestado el acabado de otra fase: esta pieza fija el look del grupo a partir de ella)")
         return "> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO (esta pieza ES el ancla del grupo)"
     ref = f"`{cat['fase']}/{ancla['source_file']}`" if ancla.get("source_file") else f"la descarga elegida de `{ancla['slug']}`"
     return f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** {ref} (ancla `{ancla['slug']}`)"

@@ -131,9 +131,11 @@ export function suscribir(): () => void {
 /* ── Traspaso del login a la pantalla de entrada ──────────────────────────── */
 
 /**
- * Qué debe reproducir el overlay. Lo decide el login, que es la única puerta de
- * entrada y lo único que sabe distinguir un login con formulario de una sesión
- * rehidratada desde la cookie. `/levels` no puede saberlo, así que se lo dicen.
+ * Qué debe reproducir el overlay. Lo deciden las dos puertas de entrada: el
+ * login, que es lo único que sabe distinguir un login con formulario de una
+ * sesión rehidratada desde la cookie, y la aceptación de una invitación, que
+ * entra directa a /onboarding sin pasar por el login. Ni `/levels` ni
+ * `/onboarding` pueden saberlo, así que se lo dicen.
  */
 export type Entrada = "transformacion" | "saludo";
 
@@ -181,6 +183,17 @@ export function entradaServidor(): Entrada | null {
   return null;
 }
 
+/**
+ * La llama el overlay al terminar. Sin esto, quien entra por una invitación la
+ * vería dos veces: la caché vive lo que vive la página, y la navegación de
+ * /onboarding a /levels es de cliente, así que el overlay del hub volvería a
+ * leer la misma entrada. Se limpia al TERMINAR y no al desmontar: si alguien
+ * sale de /onboarding a mitad, el hub la retoma en vez de quedarse sin ella.
+ */
+export function terminarEntrada(): void {
+  entradaCache = null;
+}
+
 /* ── Pose del login ───────────────────────────────────────────────────────── */
 
 /**
@@ -207,3 +220,67 @@ export const POSES_LOGIN = [
 ] as const;
 
 export const sorteoLogin = creaSorteo(POSES_LOGIN);
+
+/* ── ¿Ya conoce al Doty nuevo? ────────────────────────────────────────────── */
+
+/**
+ * El rediseño es una sorpresa que se revela DENTRO de la app — con la
+ * transformación, o simplemente al entrar. Así que ninguna pantalla previa a la
+ * sesión (login, /forgot, /invite) puede enseñar el Doty nuevo a quien no lo ha
+ * visto todavía. Esta es la pregunta que decide eso, y es otra distinta de
+ * `debeAnimar()`: reduced-motion y CADUCA apagan la animación, no la sorpresa.
+ *
+ * La señal es "este dispositivo ha tenido una sesión abierta": quien entra ve al
+ * Doty nuevo en el Camino, así que ya no hay nada que esconderle. Se escribe en
+ * `setAccessToken` de auth-context, que es el único punto por el que pasan el
+ * login con formulario, la sesión rehidratada desde la cookie y la aceptación
+ * de una invitación.
+ *
+ * No se usa el espejo del avatar: el logout lo borra, y quien ya vio la
+ * transformación volvería a ver el clásico al cerrar sesión. Esta marca tampoco
+ * la borra el logout — como la de la transformación, es del dispositivo, no de
+ * la cuenta.
+ */
+const CLAVE_CONOCIDO = "dots_doty_nuevo_conocido";
+
+export function marcarConocido(): void {
+  try {
+    window.localStorage.setItem(CLAVE_CONOCIDO, "1");
+  } catch {
+    // Sin almacenamiento, la próxima visita vuelve a ver el clásico. Es el lado
+    // barato del error.
+  }
+}
+
+/**
+ * Al revés que `yaVista()`: si el almacenamiento falla, la respuesta segura es
+ * "no lo conoce". Allí el fallo caro era animar en cada arranque; aquí es
+ * estropear la sorpresa, y ver el clásico en el login no le cuesta nada a nadie.
+ */
+export function conoceDotyNuevo(): boolean {
+  try {
+    const ls = window.localStorage;
+    return ls.getItem(CLAVE_CONOCIDO) === "1" || ls.getItem(CLAVE) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Cacheada como `snapshotCliente`, y por lo mismo: la página se renderiza en el
+ * servidor y el snapshot tiene que ser estable. Además `marcarConocido()` se
+ * escribe mientras el login sigue en pantalla (al llegar el token), y sin caché
+ * Doty cambiaría de identidad justo antes del redirect — o a mitad de la
+ * transformación, que arranca desde el clásico.
+ */
+let conocido: boolean | null = null;
+
+export function conocidoCliente(): boolean {
+  if (conocido === null) conocido = conoceDotyNuevo();
+  return conocido;
+}
+
+/** En el servidor no hay marca que leer: se pinta el clásico. */
+export function conocidoServidor(): boolean {
+  return false;
+}

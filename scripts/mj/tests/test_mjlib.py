@@ -1275,3 +1275,87 @@ def test_emit_registry_rechaza_claves_repetidas_entre_fases():
 def test_emit_registry_sigue_aceptando_un_solo_catalogo():
     ts = mjlib.emit_registry({"fase": "fase-1", "pieces": [piece(done=True)]})
     assert "// Fuente: scripts/mj/batches/fase-1.json" in ts
+
+
+# ── fase 5: ancla heredada, glifos y paleta propia ────────────────────────────
+
+def _cat_levels(ancla_extra=None, *extra):
+    ancla = {"slug": "formas", "group": "levels", "prefix": "Level tile shapes",
+             "prompt": "shapes", "size": 512, "mascot": False, "anchor": True, "done": False}
+    ancla.update(ancla_extra or {})
+    otra = {"slug": "dias", "group": "levels", "prefix": "Level tile week strip",
+            "prompt": "a strip", "size": 512, "mascot": False, "done": False}
+    return {"fase": "fase-t", "pieces": [ancla, otra, *extra]}
+
+
+def test_slots_del_ancla_con_anchor_sref_pone_la_imagen_en_style_reference():
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "Style reference:** `public/images/levels/estructuras.png`" in out
+    assert "esta pieza ES el ancla del grupo" not in out
+
+
+def test_ancla_con_anchor_sref_encabezado_y_slots_dicen_lo_mismo():
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    # El ancla dice su adjunto en DOS sitios: el encabezado `###` y la linea de
+    # slots `> 📎` que va justo debajo. Los dos tienen que nombrar la imagen, y
+    # ninguno puede decir "sin nada adjunto" ni dejar el slot VACÍO. Mirar solo
+    # el encabezado no basta: esa mitad ya manejaba `anchor_sref`, y la linea de
+    # slots era la que podia seguir mintiendo.
+    lineas = out.splitlines()
+    i = next(i for i, l in enumerate(lineas) if l.startswith("### ") and "`formas`" in l)
+    encabezado = lineas[i]
+    slots = next(l for l in lineas[i + 1:] if l.startswith("> 📎"))
+    for nombre, linea in (("encabezado", encabezado), ("slots", slots)):
+        assert "`public/images/levels/estructuras.png`" in linea, nombre
+        assert "sin nada adjunto" not in linea, nombre
+        assert "VACÍO" not in linea, nombre
+
+
+def test_slots_del_ancla_sin_anchor_sref_sigue_vacio():
+    out = mjlib.emit_lote(_cat_levels(), STYLE, ["levels"])
+    assert "esta pieza ES el ancla del grupo" in out
+
+
+def test_build_prompt_quita_text_del_negativo_si_la_pieza_lleva_glifos():
+    style = dict(STYLE, negative=["text", "glasses", "shadow"])
+    out = mjlib.build_prompt(piece(group="levels", mascot=False, glyphs=True), style)
+    assert out.endswith("--no glasses, shadow")
+
+
+def test_build_prompt_mantiene_text_en_el_negativo_por_defecto():
+    style = dict(STYLE, negative=["text", "glasses", "shadow"])
+    out = mjlib.build_prompt(piece(group="levels", mascot=False), style)
+    assert out.endswith("--no text, glasses, shadow")
+
+
+def test_build_prompt_usa_el_icon_block_de_la_pieza():
+    style = dict(STYLE, icon_block="fills only in pink")
+    out = mjlib.build_prompt(
+        piece(group="levels", mascot=False, icon_block="blobs in their true colors"), style)
+    assert "blobs in their true colors" in out
+    assert "fills only in pink" not in out
+
+
+def test_build_prompt_sin_icon_block_propio_usa_el_del_estilo():
+    style = dict(STYLE, icon_block="fills only in pink")
+    out = mjlib.build_prompt(piece(group="levels", mascot=False), style)
+    assert "fills only in pink" in out
+
+
+def test_slots_de_pieza_con_paleta_propia_van_sin_sref():
+    cat = _cat_levels(
+        {"anchor_sref": "public/images/levels/estructuras.png"},
+        {"slug": "colores", "group": "levels", "prefix": "Level tile paint palette",
+         "prompt": "a palette", "size": 512, "mascot": False, "done": False,
+         "icon_block": "true colors"}
+    )
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "esta pieza trae su propia paleta" in out
+    # Check the colores block doesn't contain the anchor's sref
+    colores_block_start = out.find("`colores`")
+    assert colores_block_start != -1, "colores section not found in lote"
+    next_section = out.find("### ", colores_block_start + 1)
+    colores_block = out[colores_block_start:next_section] if next_section != -1 else out[colores_block_start:]
+    assert "la descarga elegida de `formas`" not in colores_block

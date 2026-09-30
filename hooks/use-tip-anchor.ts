@@ -105,7 +105,7 @@ function barras(): { arriba: number; abajo: number } {
     const r = el.getBoundingClientRect();
     if (r.height === 0 || r.width < window.innerWidth * 0.8) continue;
     // Por la mitad en la que empieza, no por si toca el borde: la barra
-    // plegada del Camino vive a 44 px del techo, debajo del HUD, y con la
+    // plegada del Camino vive a 52 px del techo, debajo del HUD, y con la
     // regla del borde no contaría.
     if (r.top < window.innerHeight / 2) arriba = Math.max(arriba, r.bottom);
     else abajo = Math.max(abajo, window.innerHeight - r.top);

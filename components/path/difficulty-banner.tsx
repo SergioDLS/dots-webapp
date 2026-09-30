@@ -12,6 +12,7 @@ import {
   panelTint,
   prettyDifficultyName,
   type DifficultyNav,
+  type SectionMark,
 } from "@/lib/path-view";
 import type { PathDifficulty } from "@/types/path.types";
 
@@ -23,6 +24,8 @@ interface Props {
   nav: DifficultyNav;
   onGo: (id: number) => void;
   preview?: boolean;
+  /** Sección que se está mirando (scroll-spy). Solo se pinta en escritorio, donde el panel es sticky. */
+  mark?: SectionMark | null;
   /** En escritorio, el botón "Volver a mi nivel" vive dentro del panel. */
   children?: React.ReactNode;
 }
@@ -32,7 +35,8 @@ interface Props {
  * borde; Doty narrador de 158 px asomando por la esquina superior derecha;
  * kicker, título, línea de ánimo, barra segmentada y conteo de lecciones (los
  * checkpoints no cuentan). `difficulty.img` trae la pose del narrador cuando el
- * backend ya la asignó; si no, cae al narrador por posición.
+ * backend ya la asignó; si no, cae al narrador por posición. En escritorio, junto
+ * a las flechas, dice en qué sección vas; en móvil eso lo hace la cabecera plegada.
  */
 export default function DifficultyBanner({
   difficulty,
@@ -42,6 +46,7 @@ export default function DifficultyBanner({
   nav,
   onGo,
   preview = false,
+  mark = null,
   children,
 }: Props) {
   const { done, total: lessons, pct } = countLessons(difficulty.sections);
@@ -74,8 +79,25 @@ export default function DifficultyBanner({
       <p className="mt-2 whitespace-nowrap text-xs font-bold tabular-nums text-(--muted)">
         <b className="text-base font-black" style={{ color: accentHex }}>{done}</b> de {lessons} lecciones · {pct} %
       </p>
-      <div className="mt-3 flex justify-end">
-        <DifficultyNavArrows nav={nav} onGo={onGo} accentHex={accentHex} />
+      {/* Alto mínimo para dos líneas de nombre: el panel es sticky y no debe
+          dar saltos al pasar de una sección de nombre corto a una de nombre largo. */}
+      <div className="mt-3 flex items-center justify-between gap-3 md:min-h-12">
+        {mark && (
+          <div className="hidden min-w-0 md:block">
+            <p
+              className="text-[10px] font-black uppercase leading-tight tracking-widest tabular-nums"
+              style={{ color: `color-mix(in srgb, ${mark.accentHex} 60%, var(--foreground))` }}
+            >
+              Sección {mark.index + 1} de {mark.total}
+            </p>
+            <p className="line-clamp-2 text-[13px] font-extrabold leading-tight text-foreground">
+              {mark.section.name}
+            </p>
+          </div>
+        )}
+        <div className="ml-auto">
+          <DifficultyNavArrows nav={nav} onGo={onGo} accentHex={accentHex} />
+        </div>
       </div>
       {children && <div className="mt-4">{children}</div>}
       <div
