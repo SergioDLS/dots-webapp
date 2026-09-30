@@ -5,7 +5,7 @@ import PathNode from "./path-node";
 import DotyMarker from "./doty-marker";
 import PathPeer from "./path-peer";
 import SectionBanner from "./section-banner";
-import { ART_BOX, NODE_ROW_H, SLOT_W, bubbleVars, sideOf, type NodeSide } from "@/lib/node-bubble";
+import { ART_BOX, DOTY_ROOM, NODE_ROW_H, SLOT_W, bubbleVars, sideOf, type NodeSide } from "@/lib/node-bubble";
 import type {
   PathNode as PathNodeType,
   PathPeer as PathPeerType,
@@ -63,17 +63,20 @@ export default function PathSection({
 
   // Todas las filas miden lo mismo (checkpoint incluido): NODE_ROW_H. Abrir un
   // nivel no lo cambia, así que las filas y el conector no se mueven nunca.
+  // El nivel actual reserva además aire arriba para que Doty asome sin tocar la
+  // etiqueta del anterior; fijo, abierto o no, por la misma razón.
   const slots = nodes.map((n, i) => {
     const xPct = n.type === "checkpoint" ? 50 : zigzagX(i);
-    return { node: n, key: keyOf(n), xPct, side: sideOf(xPct), h: NODE_ROW_H };
+    const room = isLiveCurrent(n, preview) ? DOTY_ROOM : 0;
+    return { node: n, key: keyOf(n), xPct, side: sideOf(xPct), room, h: room + NODE_ROW_H };
   });
   const offsets = slots.map((_, i) =>
     slots.slice(0, i).reduce((sum, s) => sum + s.h + ROW_GAP, 0),
   );
   const placed = slots.map((s, i) => ({
     ...s,
-    y: offsets[i],
-    centerY: offsets[i] + ART_BOX / 2,
+    y: offsets[i] + s.room,
+    centerY: offsets[i] + s.room + ART_BOX / 2,
   }));
   const totalH =
     slots.length === 0
@@ -173,10 +176,13 @@ export default function PathSection({
                 ~105 — so on a node that has peers, Doty yields. The star
                 badge and the pulse still mark the current node, and a peer
                 is information while "¡Sigue aquí!" is decoration.
+                With the bubble open, Doty peeks over its top edge instead
+                and the peers fade out (.dots-slot[data-open] in globals.css).
               */}
-              {!preview && p.node.current && peersHere.length === 0 && (
+              {live && peersHere.length === 0 && (
                 <DotyMarker side={p.xPct >= 50 ? "left" : "right"} />
               )}
+              {live && <DotyMarker variant="peek" dotyAt={p.side === "right" ? "start" : "end"} />}
               {!preview &&
                 peersHere.map((peer, peerIndex) => (
                   <PathPeer
