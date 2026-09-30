@@ -178,9 +178,9 @@ Spec: `docs/superpowers/specs/2026-09-29-modo-admin-design.md`. Una cuenta con p
 tiene dos estados. *Modo alumno* (por defecto): la app tal cual, con candados reales; la
 única señal es la sección «Admin» de la hoja de ajustes (switch + enlace al panel). *Modo
 admin*: el backend reporta todo `unlocked` (es una lente en `users.settings.admin_mode`,
-NO se escribe progreso) y en el HUD sale la pestaña ADMIN (`admin-pill.tsx`, colgando del
-borde inferior del HUD, en absoluto, para no comerse la barra de XP a 375 px), que abre la
-caja (`admin-lab-sheet.tsx`): reiniciar la cuenta en dos pasos, repetir el primer inicio,
+NO se escribe progreso) y en la fila del HUD sale el chip ADMIN (`admin-pill.tsx`; en móvil
+ocupa el lugar del texto de XP, para no estrechar la barra ni tapar la cabecera plegable del
+Camino), que abre la caja (`admin-lab-sheet.tsx`): reiniciar la cuenta en dos pasos, repetir el primer inicio,
 completar la sección actual (la única que escribe progreso), palancas de gemas/XP/racha y
 «olvidar avisos» del dispositivo. El estado del modo se espeja en `lib/admin-mode.ts`
 (store puro, single-flight de `/me/settings` en `hooks/use-admin-mode.ts`, solo para

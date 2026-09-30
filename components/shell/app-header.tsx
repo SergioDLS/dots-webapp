@@ -7,6 +7,7 @@ import { getMyStatsService, type MyStats } from "@/services/engagement.service";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { levelProgress } from "@/lib/level-math";
 import { useAccountVersion } from "@/hooks/use-account-version";
+import { useAdminMode } from "@/hooks/use-admin-mode";
 import AdminPill from "@/components/admin-lab/admin-pill";
 
 /**
@@ -19,6 +20,10 @@ export default function AppHeader() {
   // Vuelve a pedir stats cuando la caja de admin regala gemas/XP/racha o cambia
   // de modo: sin recarga (regla 1). Efecto con dependencia extra a propósito.
   const version = useAccountVersion();
+  // Con la lente encendida, el chip ADMIN ocupa en móvil el lugar del texto de
+  // XP: la barra no se estrecha y nada cuelga sobre la cabecera plegable del
+  // Camino. En escritorio hay sitio para los dos.
+  const { encendido: modoAdmin } = useAdminMode();
 
   useEffect(() => {
     let mounted = true;
@@ -82,13 +87,14 @@ export default function AppHeader() {
             style={{ width: `${pct}%`, background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
           />
         </div>
-        <span className="shrink-0 text-[11px] font-extrabold tabular-nums text-(--muted)">
+        <span
+          className={`shrink-0 text-[11px] font-extrabold tabular-nums text-(--muted)${modoAdmin ? " hidden md:inline" : ""}`}
+        >
           {stats ? `${stats.xp}/${stats.xpForNextLevel}` : "—"} XP
         </span>
+        {/* Pinta null para todo el mundo salvo un admin con la lente encendida. */}
+        <AdminPill />
       </div>
-
-      {/* Modo admin: pinta null para todo el mundo salvo un admin con la lente encendida. */}
-      <AdminPill />
     </header>
   );
 }

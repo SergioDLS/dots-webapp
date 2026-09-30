@@ -12,10 +12,11 @@ import AdminLabSheet from "./admin-lab-sheet";
  * Eléctrico oscuro, donde el púrpura es cian): nada de navy como relleno
  * (regla 11), sin icono ni Doty dentro. Abre la caja de herramientas.
  *
- * Cuelga del borde inferior del HUD (posición absoluta respecto al header
- * sticky) y no ocupa sitio en la fila: para un alumno, y para el admin con la
- * lente apagada, la fila queda idéntica; con ella encendida, la barra de XP
- * no se estrecha en pantallas de 375 px.
+ * Vive dentro de la fila del HUD, junto a la barra de XP. En móvil ocupa el
+ * lugar del texto «x/y XP», que el HUD oculta mientras la lente está
+ * encendida: la barra no se estrecha y nada cuelga sobre la cabecera plegable
+ * del Camino. En escritorio caben los dos. Para un alumno, y para el admin con
+ * la lente apagada, la fila queda idéntica.
  */
 export default function AdminPill() {
   const { encendido } = useAdminMode();
@@ -30,7 +31,7 @@ export default function AdminPill() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Modo admin: abrir herramientas"
-        className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-b-xl px-2.5 py-0.5 text-[10px] font-black tracking-widest transition-transform before:absolute before:-inset-2 before:content-[''] active:scale-95"
+        className="relative shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black tracking-widest transition-transform before:absolute before:-inset-2 before:content-[''] active:scale-95"
         style={{
           background: "var(--purple)",
           color: "var(--primary-contrast)",
