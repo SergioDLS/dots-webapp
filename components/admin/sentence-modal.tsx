@@ -21,6 +21,7 @@ import {
   resolveAudioUrl,
   resolveImageUrl,
 } from "@/components/admin/ui";
+import AnswerAlternativesEditor from "@/components/admin/answer-alternatives-editor";
 import VoiceStudio from "@/components/admin/voice-studio";
 import { resolveSentenceSoundUrl } from "@/constants";
 
@@ -338,6 +339,17 @@ export default function SentenceModal({
           onPublish={(characterId) =>
             publishNarration("sentences", savedId, characterId)
           }
+        />
+      )}
+
+      {/* Solo con la oración ya guardada (editándola o recién creada, por eso
+          `savedId` y no la prop): las respuestas aceptadas cuelgan de su id. Se
+          guardan al momento, sin pasar por «Guardar cambios». */}
+      {savedId != null && (
+        <AnswerAlternativesEditor
+          targetType="sentence"
+          targetId={savedId}
+          kinds={["word", "sentence"]}
         />
       )}
     </AdminModal>

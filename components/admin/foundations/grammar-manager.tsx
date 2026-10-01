@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import UIButton from "@/components/ui/button/button";
+import AnswerAlternativesEditor from "@/components/admin/answer-alternatives-editor";
 import {
   AdminModal,
   Field,
@@ -687,6 +688,19 @@ function ItemModal({
           />
         </Field>
       </div>
+
+      {/* Solo editando: las respuestas aceptadas cuelgan del id del ítem. Se
+          guardan al momento, sin pasar por «Save changes». Los distractores
+          son los guardados: el aviso habla del ejercicio tal como lo ve el
+          alumno ahora, que es lo que cambia al aceptar una palabra. */}
+      {item && (
+        <AnswerAlternativesEditor
+          targetType="grammar_item"
+          targetId={item.id}
+          kinds={["word"]}
+          distractors={item.distractors}
+        />
+      )}
     </AdminModal>
   );
 }

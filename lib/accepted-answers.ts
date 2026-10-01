@@ -48,3 +48,19 @@ export function sinAceptadas(opciones: readonly string[], aceptadas: readonly st
   const fuera = new Set(aceptadas.map(normalizarPalabra));
   return opciones.filter((o) => !fuera.has(normalizarPalabra(o)));
 }
+
+/**
+ * ¿Las palabras aceptadas se llevan TODAS las opciones incorrectas? Entonces
+ * `sinAceptadas` las deja en cero y el ejercicio se queda con una sola opción.
+ * Es el aviso del editor de respuestas aceptadas.
+ *
+ * Sin distractores no hay nada que cubrir (no fue lo aceptado lo que dejó una
+ * sola opción) y los renglones en blanco no son opciones, así que no cuentan.
+ */
+export function cubreTodasLasIncorrectas(
+  distractores: readonly string[],
+  aceptadas: readonly string[],
+): boolean {
+  const opciones = distractores.filter((d) => normalizarPalabra(d) !== "");
+  return opciones.length > 0 && sinAceptadas(opciones, aceptadas).length === 0;
+}
