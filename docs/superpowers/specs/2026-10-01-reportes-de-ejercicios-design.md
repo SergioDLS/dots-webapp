@@ -426,9 +426,11 @@ entity). La decisión queda escrita en un comentario sobre `KEPT_TABLES`.
   exige `answer`; `other` exige `comment`; sin `targetType` solo valen `bug` y
   `other`. Responde `{ id, merged }`.
   - **Fusión**: si el mismo alumno tiene un reporte `pending` del mismo
-    objetivo, se actualiza en vez de crear otro: unión de motivos, el
-    comentario nuevo si trae uno, y respuesta, foto y contexto del último.
-    Los bugs sin objetivo nunca se fusionan.
+    objetivo, se actualiza en vez de crear otro: unión de motivos; el
+    comentario, la respuesta, la esperada y si falló, del último solo si los
+    trae (si no, se conservan los de antes, para que «debería estar bien»
+    nunca quede sin respuesta); foto, contexto, superficie y modo, del
+    último. Los bugs sin objetivo nunca se fusionan.
   - **Tope**: más de 30 reportes creados en 24 h por el mismo alumno → 429.
     Las fusiones no cuentan.
 - `GET /me/report-notices` → `{ notices: [{ id, outcome, note, gems, prompt, resolvedAt }] }`:
