@@ -18,8 +18,19 @@ import type { ReportTarget } from "@/lib/report";
  * área de 46 px siguen igual: aparecer no agranda la tarjeta de la barra ni
  * empuja el ejercicio. Con `-m-1.5` a secas la barra sin racha ni corazones
  * crecía 8 px (42 → 50). Pide una fila flex con `items-center`.
+ *
+ * `reservar` pinta, mientras no hay nada que reportar, un hueco vacío de esa
+ * misma caja de 22×14 px: la banderita aparece cuando un efecto publica y, sin
+ * el hueco, lo que comparte fila con ella cambiaba al aparecer (la pista de la
+ * barra de progreso se encogía 34 px: 22 más el gap).
  */
-export default function ReportFlag({ objetivos }: { objetivos?: ReportTarget[] }) {
+export default function ReportFlag({
+  objetivos,
+  reservar = false,
+}: {
+  objetivos?: ReportTarget[];
+  reservar?: boolean;
+}) {
   const publicados = useCandidatosReporte();
   const lista = objetivos ?? publicados;
   const [abierta, setAbierta] = useState<ReportTarget[] | null>(null);
@@ -27,7 +38,7 @@ export default function ReportFlag({ objetivos }: { objetivos?: ReportTarget[] }
 
   return (
     <>
-      {lista.length > 0 && (
+      {lista.length > 0 ? (
         <button
           type="button"
           onClick={() => setAbierta(lista)}
@@ -36,6 +47,8 @@ export default function ReportFlag({ objetivos }: { objetivos?: ReportTarget[] }
         >
           <Icon name="bandera" size={22} />
         </button>
+      ) : (
+        reservar && <span aria-hidden className="h-3.5 w-5.5 shrink-0" />
       )}
       {abierta && <ReportSheet candidatos={abierta} onCerrar={cerrar} />}
     </>

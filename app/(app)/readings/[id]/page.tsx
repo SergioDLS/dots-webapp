@@ -146,13 +146,10 @@ export default function ReadingPage() {
               operativo: distinto en Safari de iPhone que en escritorio, y sin
               poder teñirlo (regla 11). */}
           <Icon name="lectura" size={24} />
-          {/* Hueco de 22×14 px (la caja de layout de la banderita) siempre
-              reservado y pegado al icono: la banderita aparece cuando un efecto
-              publica y, suelta en esta barra de `justify-between`, corría el
-              título y el icono hacia la izquierda al aparecer. */}
-          <div className="flex h-3.5 w-5.5 items-center justify-center">
-            <ReportFlag />
-          </div>
+          {/* Con `reservar` la banderita deja su hueco pegado al icono: aparece
+              cuando un efecto publica y, suelta en esta barra de
+              `justify-between`, corría el título y el icono hacia la izquierda. */}
+          <ReportFlag reservar />
         </div>
       </div>
 

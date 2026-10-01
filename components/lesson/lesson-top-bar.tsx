@@ -45,8 +45,10 @@ export default function LessonTopBar({ progress, streak = null, hearts }: Lesson
         <LoadBar progress={progress} streak={streak} />
       </div>
 
-      {/* Solo aparece si la pantalla publicó qué reportar (lib/report-targets.ts). */}
-      <ReportFlag />
+      {/* La banderita solo aparece si la pantalla publicó qué reportar
+          (lib/report-targets.ts), pero su hueco está siempre: sin él la pista
+          de progreso se encogía 34 px (22 + el gap) al aparecer. */}
+      <ReportFlag reservar />
     </div>
   );
 }
