@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter } from "next/navigation";
 
@@ -17,8 +17,12 @@ import {
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ExplanationHint from "@/components/lesson/explanation-hint";
 import ResultScreen from "@/components/lesson/result-screen";
+import ReportFlag from "@/components/report/report-flag";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
 import { useLessonKeys } from "@/hooks/use-lesson-keys";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { conRespuesta, objetivoDePronunciacion, objetivoDeUnidad } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import {
   putNodeProgressService,
   type NodeProgressReward,
@@ -60,6 +64,13 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
     if (!cur || series.answerState !== "") return;
     setSelectedWord(word);
     series.select(correct);
+    registrarRespondido(
+      conRespuesta(objetivoDePronunciacion(cur, nodeId), {
+        answer: word,
+        expected: cur.options.find((o) => o.correct)?.word,
+        wasWrong: !correct,
+      }),
+    );
     if (!correct) {
       wrongByItem.current.set(cur.id, (wrongByItem.current.get(cur.id) ?? 0) + 1);
     }
@@ -95,6 +106,23 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
     putNodeProgressService(nodeId, items).then(setReward).catch(console.error);
   }, [series.finished, content.items, nodeId]);
 
+  // Reportes (spec 2026-10-01): lo que hay en pantalla, con la respuesta si ya se corrigió.
+  const itemActual = series.current;
+  const objetivos = useMemo(() => {
+    if (stage === "start") return [objetivoDeUnidad(content, nodeId)];
+    if (stage === "done" || series.finished || !itemActual) return [];
+    const base = objetivoDePronunciacion(itemActual, nodeId);
+    if (series.answerState === "" || selectedWord === null) return [base];
+    return [
+      conRespuesta(base, {
+        answer: selectedWord,
+        expected: itemActual.options.find((o) => o.correct)?.word,
+        wasWrong: series.answerState === "wrong",
+      }),
+    ];
+  }, [stage, series.finished, itemActual, series.answerState, selectedWord, content, nodeId]);
+  usePublicarObjetivos(objetivos);
+
   // No audio generated yet for this unit — friendly empty state.
   if (content.items.length === 0) {
     return (
@@ -114,6 +142,10 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
   if (stage === "start") {
     return (
       <PanelWrapper>
+        {/* Alto fijo (14 px) = la caja de layout de la banderita: aparece cuando un efecto publica la lista y, sin esta reserva, empujaría el contenido. */}
+        <div className="flex h-3.5 w-full items-center justify-end">
+          <ReportFlag />
+        </div>
         <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
         {(content.soundA || content.soundB) && (
           <div className="flex items-center gap-3 font-display font-extrabold text-lg">

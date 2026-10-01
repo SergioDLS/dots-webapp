@@ -27,6 +27,8 @@ export type GrammarBlock = {
 
 export type PronunciationContent = {
   type: "pronunciation";
+  /** Id de la unidad de pronunciación (para reportarla; spec reportes §1.2). */
+  refId?: number;
   title: string;
   descriptionEs?: string | null;
   soundA?: string | null;
@@ -36,6 +38,8 @@ export type PronunciationContent = {
 
 export type GrammarContent = {
   type: "grammar";
+  /** Id de la píldora de gramática (para reportarla; spec reportes §1.2). */
+  refId?: number;
   title: string;
   explanation: GrammarBlock[];
   items: {

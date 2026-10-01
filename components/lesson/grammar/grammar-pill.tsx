@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
@@ -16,8 +16,12 @@ import LessonFooter from "@/components/lesson/lesson-footer";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ResultScreen from "@/components/lesson/result-screen";
 import ExplanationCard from "@/components/lesson/grammar/explanation-card";
+import ReportFlag from "@/components/report/report-flag";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
 import { useLessonKeys } from "@/hooks/use-lesson-keys";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { conRespuesta, objetivoDeGramatica, objetivoDePildora } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import {
   putNodeProgressService,
   type GrammarContent,
@@ -70,6 +74,13 @@ export default function GrammarPill({ nodeId, content }: Props) {
       if (selectedWord === null) return;
       const correct =
         cur.options.find((o) => o.word === selectedWord)?.correct ?? false;
+      registrarRespondido(
+        conRespuesta(objetivoDeGramatica(cur, nodeId), {
+          answer: selectedWord,
+          expected: cur.options.find((o) => o.correct)?.word,
+          wasWrong: !correct,
+        }),
+      );
       if (!correct) {
         wrongByItem.current.set(cur.id, (wrongByItem.current.get(cur.id) ?? 0) + 1);
       }
@@ -90,9 +101,30 @@ export default function GrammarPill({ nodeId, content }: Props) {
     putNodeProgressService(nodeId, items).then(setReward).catch(console.error);
   }, [series.finished, content.items, nodeId]);
 
+  // Reportes (spec 2026-10-01): lo que hay en pantalla, con la respuesta si ya se corrigió.
+  const itemActual = series.current;
+  const objetivos = useMemo(() => {
+    if (stage === "explain") return [objetivoDePildora(content, nodeId)];
+    if (series.finished || !itemActual) return [];
+    const base = objetivoDeGramatica(itemActual, nodeId);
+    if (series.answerState === "" || selectedWord === null) return [base];
+    return [
+      conRespuesta(base, {
+        answer: selectedWord,
+        expected: itemActual.options.find((o) => o.correct)?.word,
+        wasWrong: series.answerState === "wrong",
+      }),
+    ];
+  }, [stage, series.finished, itemActual, series.answerState, selectedWord, content, nodeId]);
+  usePublicarObjetivos(objetivos);
+
   if (stage === "explain") {
     return (
       <div className="flex flex-col gap-4 w-full">
+        {/* Alto fijo (14 px) = la caja de layout de la banderita: aparece cuando un efecto publica la lista y, sin esta reserva, empujaría la tarjeta. */}
+        <div className="flex h-3.5 items-center justify-end">
+          <ReportFlag />
+        </div>
         <PanelWrapper>
           <SectionLabel emoji={<Icon name="lapiz" size={20} />}>{content.title}</SectionLabel>
           <div className="flex flex-col gap-3 w-full">
@@ -140,6 +172,13 @@ export default function GrammarPill({ nodeId, content }: Props) {
     if (selectedWord === null) return;
     const correct =
       item.options.find((o) => o.word === selectedWord)?.correct ?? false;
+    registrarRespondido(
+      conRespuesta(objetivoDeGramatica(item, nodeId), {
+        answer: selectedWord,
+        expected: item.options.find((o) => o.correct)?.word,
+        wasWrong: !correct,
+      }),
+    );
     if (!correct) {
       wrongByItem.current.set(item.id, (wrongByItem.current.get(item.id) ?? 0) + 1);
     }
