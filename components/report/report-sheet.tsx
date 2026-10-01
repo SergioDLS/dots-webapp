@@ -7,6 +7,7 @@ import Doty from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
 import OverlayPortal from "@/components/ui/overlay-portal";
 import { Icon } from "@/components/ui/icon";
+import { mensajeDelServidor } from "@/lib/admin-reports";
 import {
   LUGARES_APP,
   MAX_COMENTARIO,
@@ -33,6 +34,22 @@ interface Props {
 }
 
 type Paso = "elegir" | "motivos" | "gracias";
+
+/**
+ * Qué se le dice al alumno cuando el reporte no salió. Sin `response` no llegó
+ * al servidor (red); con ella, manda el estado. Un 400 trae el porqué en
+ * español («La foto del ejercicio es demasiado grande») y mandarlo otra vez
+ * igual no lo arregla, así que se muestra lo que dijo el servidor.
+ */
+function mensajeDeFalloAlEnviar(e: unknown): string {
+  const generico = "No se pudo enviar. Inténtalo de nuevo en un rato.";
+  const respuesta = (e as { response?: { status?: number } } | null)?.response;
+  if (!respuesta) return "No se pudo enviar. Revisa tu conexión y vuelve a intentarlo.";
+  if (respuesta.status === 429) return "Ya mandaste muchos reportes hoy. ¡Gracias! Vuelve mañana.";
+  if (respuesta.status === 503) return "Los reportes aún no están disponibles. Prueba más tarde.";
+  if (respuesta.status === 400) return mensajeDelServidor(e, generico);
+  return generico;
+}
 
 /**
  * La hoja de reporte (spec 2026-10-01 §1.3): «¿sobre cuál?» si hace falta,
@@ -121,18 +138,8 @@ export default function ReportSheet({ candidatos, modo = "ejercicio", onCerrar }
     createReportService(cuerpoDelReporte(elegido, borrador, contextoTecnico(pathname, conErrores)))
       .then(() => setPaso("gracias"))
       .catch((e: unknown) => {
-        // Sin `response` no llegó al servidor (red); con ella, manda el estado.
-        const respuesta = (e as { response?: { status?: number } } | null)?.response;
         setFalloEnvio(true);
-        setError(
-          !respuesta
-            ? "No se pudo enviar. Revisa tu conexión y vuelve a intentarlo."
-            : respuesta.status === 429
-              ? "Ya mandaste muchos reportes hoy. ¡Gracias! Vuelve mañana."
-              : respuesta.status === 503
-                ? "Los reportes aún no están disponibles. Prueba más tarde."
-                : "No se pudo enviar. Inténtalo de nuevo en un rato.",
-        );
+        setError(mensajeDeFalloAlEnviar(e));
       })
       .finally(() => setEnviando(false));
   };

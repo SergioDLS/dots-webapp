@@ -147,7 +147,7 @@ export default function GroupDetail({
         flash(encendido ? "Ejercicio apagado." : "Ejercicio encendido.");
         setFetchAttempt((n) => n + 1);
       })
-      .catch(() => flash("No se pudo cambiar.", "error"));
+      .catch((e: unknown) => flash(mensajeDelServidor(e, "No se pudo cambiar."), "error"));
 
   return (
     <div className="flex flex-col gap-5">

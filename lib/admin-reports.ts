@@ -241,19 +241,20 @@ const esObjeto = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 
 /**
  * Los únicos estados cuyo `message` escribe el backend en español y explica el
- * porqué: 400 (validación y reglas de las alternativas), 404, 409 (otro admin
- * se adelantó) y 503 (migración sin aplicar). Con los demás no se muestra lo
- * que diga el servidor: los 401 y 403 de Nest vienen en inglés («Unauthorized»,
- * «Forbidden resource») y los 5xx son el servidor o su proxy fallando.
+ * porqué: 400 (validación y reglas de las alternativas y de los reportes), 404,
+ * 409 (otro admin se adelantó) y 503 (migración sin aplicar). Con los demás no
+ * se muestra lo que diga el servidor: los 401 y 403 de Nest vienen en inglés
+ * («Unauthorized», «Forbidden resource») y los 5xx son el servidor o su proxy
+ * fallando.
  */
 const ESTADOS_QUE_EXPLICAN: readonly number[] = [400, 404, 409, 503];
 
 /**
- * Lo que el servidor dijo al rechazar una acción del admin (cerrar, aceptar,
- * quitar, abrir un ejercicio), o `porDefecto` si no dijo nada utilizable.
- * `message` es un texto, o un arreglo de textos cuando lo rechaza el
- * ValidationPipe de Nest, que se une con « · » («El orden aceptado debe usar
- * las mismas fichas que la oración»).
+ * Lo que el servidor dijo al rechazar una acción (del admin: cerrar, aceptar,
+ * quitar, apagar o encender, abrir un ejercicio; del alumno: enviar un
+ * reporte), o `porDefecto` si no dijo nada utilizable. `message` es un texto, o
+ * un arreglo de textos cuando lo rechaza el ValidationPipe de Nest, que se une
+ * con « · » («El orden aceptado debe usar las mismas fichas que la oración»).
  *
  * Solo se fía del texto en `ESTADOS_QUE_EXPLICAN`. Un error sin respuesta del
  * servidor (red caída, fallo de nuestro código) o con un cuerpo que no es un
