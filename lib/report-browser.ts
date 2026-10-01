@@ -7,16 +7,16 @@ import { rastroDeErrores } from "@/lib/error-trail";
  * (usePathname), para no leer `window.location`.
  */
 export function contextoTecnico(ruta: string, conErrores: boolean): Record<string, unknown> {
-  if (typeof window === "undefined") return { route: ruta };
+  if (typeof window === "undefined") return { route: ruta.slice(0, 200) };
   const standalone =
     window.matchMedia?.("(display-mode: standalone)").matches === true ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true;
   return {
-    route: ruta,
+    route: ruta.slice(0, 200),
     ua: navigator.userAgent.slice(0, 300),
     viewport: `${window.innerWidth}x${window.innerHeight}`,
     standalone,
-    build: (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "dev").slice(0, 7),
+    build: (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "dev").slice(0, 7),
     ...(conErrores ? { errores: rastroDeErrores.leer() } : {}),
   };
 }

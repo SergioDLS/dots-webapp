@@ -9,9 +9,13 @@ export function crearRastro(max = 5) {
   let lista: ErrorAnotado[] = [];
   return {
     anotar(e: { mensaje: string; origen?: string }, ahora: Date = new Date()): void {
-      const mensaje = String(e.mensaje ?? "").slice(0, 200);
+      const mensaje = String(e.mensaje ?? "")
+        .slice(0, 200)
+        .replace(/[\ud800-\udbff]$/, "");
       if (!mensaje) return;
-      const origen = e.origen ? e.origen.slice(0, 150) : undefined;
+      const origen = e.origen
+        ? e.origen.slice(0, 150).replace(/[\ud800-\udbff]$/, "")
+        : undefined;
       lista = [...lista, { mensaje, ...(origen ? { origen } : {}), hora: ahora.toISOString() }].slice(-max);
     },
     leer(): ErrorAnotado[] {
