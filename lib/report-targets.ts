@@ -7,8 +7,12 @@ import { candidatosDeReporte, type ReportTarget } from "./report.ts";
  * vocabulario, letras y números el estado vive en componentes hijos y la
  * barra la pinta el padre.
  *
- * Publicar compara una firma (claves, respuestas y fallos): si nada cambió no
- * avisa, así que una pantalla que publica en cada render no provoca bucles.
+ * Publicar compara una firma (claves, modos, respuestas y fallos): si nada
+ * cambió no avisa, así que una pantalla que publica en cada render no provoca
+ * bucles. El modo entra porque un padre que cambia de etapa puede publicar el
+ * mismo ítem con otro modo (letras: una sola letra nueva en la presentación y
+ * luego en la práctica directa): sin él esa publicación se tragaría y el
+ * reporte saldría con el modo viejo.
  */
 let actuales: readonly ReportTarget[] = [];
 let anterior: ReportTarget | null = null;
@@ -17,7 +21,7 @@ let firma = "";
 const escuchas = new Set<() => void>();
 
 const firmaDe = (lista: readonly ReportTarget[]) =>
-  lista.map((t) => `${t.key}|${t.answer ?? ""}|${String(t.wasWrong)}`).join("·");
+  lista.map((t) => `${t.key}|${t.mode ?? ""}|${t.answer ?? ""}|${String(t.wasWrong)}`).join("·");
 
 function recalcular(): void {
   candidatos = candidatosDeReporte(actuales, anterior);
