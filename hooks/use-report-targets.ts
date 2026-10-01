@@ -17,6 +17,10 @@ const NINGUNO: ReportTarget[] = [];
  * Publicar desde el efecto escribe en un store externo, no en un setState:
  * no rompe la regla 3. Pasa la lista memoizada; si no, igual no hay bucle
  * porque el store compara firmas.
+ *
+ * Una sola pantalla publica a la vez: el padre pasa `null` mientras un hijo
+ * es dueño del ejercicio. Desmontar cualquier publicador limpia el store
+ * entero.
  */
 export function usePublicarObjetivos(lista: readonly ReportTarget[] | null): void {
   // `null` = esta pantalla no publica ahora (p. ej. el padre mientras un hijo
