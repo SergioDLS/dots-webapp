@@ -2,6 +2,13 @@
  * Respuestas aceptadas en el cliente (spec 2026-10-01 §4). La normalización
  * es gemela de `dots-backend/src/common/answer-alternatives.ts`: si cambias
  * una, cambia la otra.
+ *
+ * Un orden aceptado de una oración solo vale mientras use las MISMAS fichas
+ * que la oración (el mismo número). El servidor lo exige al crearlo, pero la
+ * oración puede crecer después y entonces un orden viejo, más corto, daría por
+ * buena una bandeja a medio armar: la práctica corrige en cada cambio y
+ * «Confirmar» está listo desde la primera ficha. El servidor también los
+ * filtra; aquí se vuelve a comprobar para no depender de eso.
  */
 
 export function normalizarOracion(s: string): string {
@@ -12,7 +19,24 @@ export function normalizarPalabra(w: string): string {
   return String(w).trim().replace(/[.,;:!?]+$/, "").trim().toUpperCase();
 }
 
-/** «Arma la oración»: la referencia se compara como siempre (mayúsculas); las alternativas, normalizadas. */
+/**
+ * Las fichas de una oración, igual que `tokenizarOracion` del servidor (y que
+ * `buildAnswer` del Constructor): por espacios y sin puntuación en la última.
+ */
+export function tokenizarOracion(s: string): string[] {
+  const fichas = String(s)
+    .split(/\s+/)
+    .filter((t) => t.length > 0);
+  if (fichas.length > 0) {
+    fichas[fichas.length - 1] = fichas[fichas.length - 1].replace(/[.,;:!?]+$/, "");
+  }
+  return fichas.filter((t) => t.length > 0);
+}
+
+/**
+ * «Arma la oración»: la referencia se compara como siempre (mayúsculas); las
+ * alternativas, normalizadas y solo si tienen las fichas de la referencia.
+ */
 export function esOracionAceptada(
   armada: string,
   referencia: string,
@@ -20,22 +44,46 @@ export function esOracionAceptada(
 ): boolean {
   if (armada.toUpperCase() === referencia.toUpperCase()) return true;
   const n = normalizarOracion(armada);
-  return n !== "" && alternativas.some((a) => normalizarOracion(a) === n);
+  if (n === "") return false;
+  const fichas = tokenizarOracion(referencia).length;
+  return alternativas.some((a) => normalizarOracion(a) === n && tokenizarOracion(a).length === fichas);
+}
+
+/** La referencia se compara como siempre: ficha a ficha, en mayúsculas. */
+function mismaFicha(a: string, b: string): boolean {
+  return a.toUpperCase() === b.toUpperCase();
+}
+
+/**
+ * Las alternativas se compararon con `tokenizarOracion`, que le quita la
+ * puntuación a la ÚLTIMA ficha; las de la bandeja la conservan («morning,»),
+ * así que aquí se comparan normalizadas.
+ */
+function mismaFichaNormalizada(a: string, b: string): boolean {
+  return normalizarPalabra(a) === normalizarPalabra(b);
 }
 
 /**
  * Constructor: índice de la primera ficha mal puesta contra la secuencia
  * válida que más se le parece, o `null` si coincide entera con alguna.
+ *
+ * `aceptadas[0]` es la referencia y el resto, los órdenes que el admin aceptó
+ * (así los manda el servidor en `answers`). Una alternativa solo cuenta si
+ * tiene tantas fichas como la referencia.
  */
 export function primerFalloEnOrden(
   bandeja: readonly string[],
   aceptadas: readonly (readonly string[])[],
 ): number | null {
+  const fichas = aceptadas.length > 0 ? aceptadas[0].length : 0;
   let mejor = -1;
-  for (const seq of aceptadas) {
+  for (let k = 0; k < aceptadas.length; k++) {
+    const seq = aceptadas[k];
     if (seq.length !== bandeja.length) continue;
+    if (k > 0 && seq.length !== fichas) continue;
+    const igual = k === 0 ? mismaFicha : mismaFichaNormalizada;
     let i = 0;
-    while (i < seq.length && bandeja[i].toUpperCase() === seq[i].toUpperCase()) i++;
+    while (i < seq.length && igual(bandeja[i], seq[i])) i++;
     if (i === seq.length) return null;
     if (i > mejor) mejor = i;
   }
