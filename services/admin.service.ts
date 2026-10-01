@@ -1055,3 +1055,188 @@ export async function generateNumberAudio(id: number, characterId?: number) {
   );
   return data;
 }
+
+// ── Reportes (spec 2026-10-01) ──────────────────────────────────
+//
+// Bandeja de reportes y respuestas aceptadas. Todo cuelga de AdminGuard (solo
+// perfil 1) y el admin sale del token, nunca del cuerpo. Con la migración sin
+// aplicar (tablas ausentes) las lecturas devuelven vacío y las ESCRITURAS
+// `resolveReports` y `createAnswerAlternative` responden 503; borrar no falla,
+// responde `{ deleted: false }`. Los 400 y demás de cada llamada están en su
+// comentario.
+
+/** Filtro de la bandeja: `closed` = lo que ya se resolvió (arreglado o descartado). */
+export type AdminReportStatus = "pending" | "closed";
+
+export type AdminReport = {
+  id: number;
+  userId: number;
+  userName: string;
+  isAdmin: boolean;
+  surface: string;
+  mode: string | null;
+  targetType: string | null;
+  targetId: string | null;
+  reasons: string[];
+  comment: string | null;
+  answer: string | null;
+  expected: string | null;
+  wasWrong: boolean | null;
+  snapshot: Record<string, unknown>;
+  context: Record<string, unknown>;
+  status: "pending" | "fixed" | "dismissed";
+  note: string | null;
+  gems: number;
+  createdAt: string;
+  resolvedAt: string | null;
+};
+
+export type AdminReportGroup = {
+  type: string;
+  id: string;
+  prompt: string;
+  surface: string;
+  where: string | null;
+  reasons: Record<string, number>;
+  students: number;
+  reports: number;
+  lastAt: string;
+};
+
+/** El contenido reportado tal como está ahora, más el padre (nivel, pack, píldora…) que piden los modales. */
+export type AdminReportContent = {
+  content: Record<string, unknown>;
+  parentId: number | null;
+  parentLabel: string | null;
+};
+
+/**
+ * Una respuesta que un alumno dio, que el sistema marcó mal y que él reportó,
+ * agrupada con las iguales. `word` = una palabra de las opciones; `sentence` =
+ * una oración en otro orden (Arma la oración, Constructor).
+ */
+export type AdminReportAnswer = {
+  answer: string;
+  kind: "word" | "sentence";
+  count: number;
+  reportIds: number[];
+};
+
+export type AdminAnswerAlternative = {
+  id: number;
+  targetType: string;
+  targetId: string;
+  kind: "word" | "sentence";
+  value: string;
+  createdAt: string;
+};
+
+export type AdminReportGroupDetail = {
+  type: string;
+  id: string;
+  prompt: string;
+  where: string | null;
+  /** null si el ejercicio ya no existe o es contenido fijo del código (`false_friend`). */
+  content: AdminReportContent | null;
+  alternatives: AdminAnswerAlternative[];
+  /** Solo de los reportes pendientes: lo que se puede «Aceptar». */
+  answers: AdminReportAnswer[];
+  /** Pendientes primero, hasta 200. */
+  reports: AdminReport[];
+};
+
+export type AdminBugReport = AdminReport & { where: string | null };
+
+/** Contadores de las pestañas: ejercicios con reportes de contenido pendientes y reportes de bug pendientes. */
+export async function getReportSummary(): Promise<{ content: number; bugs: number }> {
+  const { data } = await api.get("/admin/reports/summary");
+  return data;
+}
+
+/**
+ * Un grupo por ejercicio reportado, con más alumnos primero. `closed` solo mira
+ * los últimos 100 reportes cerrados.
+ */
+export async function getReportGroups(status: AdminReportStatus): Promise<AdminReportGroup[]> {
+  const { data } = await api.get("/admin/reports/groups", { params: { status } });
+  return data;
+}
+
+/**
+ * El detalle de un ejercicio: contenido de ahora, respuestas aceptadas,
+ * respuestas por aceptar y reportes. 400 si `type` no es un tipo conocido o
+ * `id` no es un entero.
+ */
+export async function getReportGroup(type: string, id: string): Promise<AdminReportGroupDetail> {
+  const { data } = await api.get(`/admin/reports/groups/${type}/${id}`);
+  return data;
+}
+
+/** Reportes con motivo `bug` o sin ejercicio. Uno mixto sale aquí y en su grupo. */
+export async function getBugReports(status: AdminReportStatus): Promise<AdminBugReport[]> {
+  const { data } = await api.get("/admin/reports/bugs", { params: { status } });
+  return data;
+}
+
+/**
+ * Cierra reportes como arreglados o descartados: de 1 a 200 ids y `note` de
+ * hasta 500 caracteres (400 si no cumplen). `resolved` cuenta solo los que
+ * seguían pendientes, así que cerrar dos veces no paga dos veces; `gems` es lo
+ * que se pagó: 10 por reporte `fixed`, nada en `dismissed` ni a un reporte de
+ * perfil 1. 503 si la migración no está aplicada.
+ */
+export async function resolveReports(
+  ids: number[],
+  outcome: "fixed" | "dismissed",
+  note?: string,
+): Promise<{ resolved: number; gems: number }> {
+  const { data } = await api.post("/admin/reports/resolve", { ids, outcome, ...(note ? { note } : {}) });
+  return data;
+}
+
+/**
+ * Las respuestas aceptadas de una oración o un ítem de gramática. 400 si el id
+ * no son solo dígitos; sin la migración devuelve `[]`.
+ */
+export async function getAnswerAlternatives(
+  targetType: "sentence" | "grammar_item",
+  targetId: string | number,
+): Promise<AdminAnswerAlternative[]> {
+  const { data } = await api.get("/admin/answer-alternatives", {
+    params: { targetType, targetId: String(targetId) },
+  });
+  return data;
+}
+
+/**
+ * Acepta una respuesta nueva. Idempotente: si ya existe (sin mirar mayúsculas)
+ * devuelve la que había. El servidor reduce los espacios repetidos de `value` a
+ * uno y lo recorta (1 a 300 caracteres); `sourceReportId` anota de qué reporte
+ * salió.
+ *  - 400: `grammar_item` con `kind: "sentence"` (la gramática solo acepta otras
+ *    palabras); `sentence` con `kind: "sentence"` cuyo orden no usa las mismas
+ *    fichas que la oración (distinto número de tokens); `value` vacío; o un
+ *    `targetId` que no son solo dígitos.
+ *  - 404: `sentence` con `kind: "sentence"` sobre una oración que ya no existe.
+ *  - 409: otro admin la quitó justo mientras se guardaba; vuelve a intentarlo.
+ *  - 503: la migración no está aplicada.
+ */
+export async function createAnswerAlternative(body: {
+  targetType: "sentence" | "grammar_item";
+  targetId: string;
+  kind: "word" | "sentence";
+  value: string;
+  sourceReportId?: number;
+}): Promise<AdminAnswerAlternative> {
+  const { data } = await api.post("/admin/answer-alternatives", body);
+  return data;
+}
+
+/**
+ * Quita una respuesta aceptada. `deleted: false` si ya no existía (otro admin la
+ * quitó) o si la migración no está aplicada; nunca responde 503.
+ */
+export async function deleteAnswerAlternative(id: number): Promise<{ deleted: boolean }> {
+  const { data } = await api.delete(`/admin/answer-alternatives/${id}`);
+  return data;
+}
