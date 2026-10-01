@@ -19,6 +19,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
+import { objetivoDePalabra, type ReportTarget } from "@/lib/report";
 import { useGameSeed } from "@/hooks/use-game-seed";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -97,6 +98,9 @@ function MemoryInner({ seed }: { seed?: number }) {
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [seconds, setSeconds] = useState(0);
   const [moves, setMoves] = useState(0);
+  // Las palabras que el alumno llegó a destapar: «Reportar un problema» las
+  // ofrece desde el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Refs
   const openKeysRef = useRef<string[]>([]); // at most 2 currently open (not yet matched)
@@ -182,6 +186,7 @@ function MemoryInner({ seed }: { seed?: number }) {
     setFlipped(new Set());
     setMatched(new Set());
     setMoves(0);
+    setVistos([]);
     setPhase("playing");
     startTimer();
   }, [pairs, startTimer]);
@@ -208,6 +213,14 @@ function MemoryInner({ seed }: { seed?: number }) {
       const cardA = cards.find((c) => c.key === keyA)!;
       const cardB = cards.find((c) => c.key === keyB)!;
       const isMatch = cardA.pairId === cardB.pairId;
+
+      // Las dos cartas que se destaparon, sin respuesta: es un juego de memoria,
+      // no de acertar significados.
+      const vistosAhora = [cardA.pairId, cardB.pairId]
+        .map((id) => pairs.find((p) => p.id === id))
+        .filter((p): p is (typeof pairs)[number] => Boolean(p))
+        .map((p) => objetivoDePalabra({ id: p.id, word: p.word, img: p.img }, "game:memory"));
+      setVistos((v) => [...v, ...vistosAhora]);
 
       movesRef.current += 1;
       setMoves((m) => m + 1);
@@ -247,7 +260,7 @@ function MemoryInner({ seed }: { seed?: number }) {
         }, FLIP_BACK_MS);
       }
     },
-    [cards, flipped, matched, stopTimer],
+    [cards, flipped, matched, pairs, stopTimer],
   );
 
   // ── Derived values ────────────────────────────────────────────────────────
@@ -549,6 +562,7 @@ function MemoryInner({ seed }: { seed?: number }) {
           score={finalScore}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
           extra={
             <p
               className="text-sm font-bold text-center"

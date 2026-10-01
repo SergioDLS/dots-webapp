@@ -19,6 +19,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeVocab, type ReportTarget } from "@/lib/report";
 import { useGameSeed } from "@/hooks/use-game-seed";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -157,6 +158,10 @@ function DotMatchInner({ seed }: { seed?: number }) {
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [roundMatches, setRoundMatches] = useState(0); // matches in current round
+  // Las parejas que el alumno intentó en la partida, con lo que eligió:
+  // «Reportar un problema» las ofrece desde el resultado (durante el juego no
+  // hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Board state
   const [leftCol, setLeftCol] = useState<Slot[]>([]);
@@ -296,6 +301,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
     setCombo(0);
     setMaxCombo(0);
     setRoundMatches(0);
+    setVistos([]);
     setShake(null);
     initBoard(allPairs);
     setPhase("playing");
@@ -323,6 +329,21 @@ function DotMatchInner({ seed }: { seed?: number }) {
       const lSlot = leftCol[lIdx];
       const rSlot = rightCol[rIdx];
       if (!lSlot || !rSlot) return;
+
+      // La izquierda es la palabra en inglés y la derecha la traducción que el
+      // alumno le puso: se reporta la pareja de la izquierda, con lo que eligió.
+      const par = allPairs.find((p) => p.id === lSlot.pairId);
+      const elegido = allPairs.find((p) => p.id === rSlot.pairId);
+      if (par) {
+        setVistos((v) => [
+          ...v,
+          conRespuesta(objetivoDeVocab({ id: par.id, text: par.en, meaning: par.es }, "game:dot-match", "match"), {
+            answer: elegido?.es ?? "",
+            expected: par.es,
+            wasWrong: lSlot.pairId !== rSlot.pairId,
+          }),
+        ]);
+      }
 
       if (lSlot.pairId === rSlot.pairId) {
         // Correct match
@@ -713,6 +734,7 @@ function DotMatchInner({ seed }: { seed?: number }) {
           score={finalScore}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
         />
       )}
     </div>

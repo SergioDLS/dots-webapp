@@ -164,6 +164,11 @@ export async function getAudioBlitzService(
 // ── Torre de Palabras ─────────────────────────────────────────────────────────
 
 export type TowerRound = {
+  /**
+   * vocab_items.id de la palabra: es lo que permite reportarla desde el
+   * resultado (spec reportes §5). Un backend viejo no lo manda.
+   */
+  id?: number;
   /** English word falling from the top. */
   word: string;
   /** Title of the pack this word belongs to (correct answer). */
@@ -233,6 +238,11 @@ export type WordleState = {
   hintEs: string | null;
   /** The answer word — only non-null when done. */
   answer: string | null;
+  /**
+   * vocab_items.id de la respuesta — solo no nulo con `done`, igual que
+   * `answer`. Un backend viejo no lo manda.
+   */
+  answerId?: number | null;
 };
 
 export async function getWordleService(): Promise<WordleState> {
@@ -263,6 +273,11 @@ export type CrosswordSlot = {
 export type CrosswordAnswer = {
   id: number;
   answer: string;
+  /**
+   * vocab_items.id de la palabra — viaja solo con `done`, como `answers`. Un
+   * backend viejo no lo manda.
+   */
+  vocabId?: number | null;
 };
 
 export type CrosswordState = {

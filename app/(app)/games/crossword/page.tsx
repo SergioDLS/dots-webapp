@@ -4,9 +4,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter } from "next/navigation";
 import DailyKeyboard from "@/components/games/shared/daily-keyboard";
+import ReportButton from "@/components/report/report-button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { Icon } from "@/components/ui/icon";
 import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
+import { objetivo } from "@/lib/report";
 import {
   getCrosswordService,
   postCrosswordCheckService,
@@ -774,6 +776,22 @@ export default function CrosswordPage() {
                 Volver a Zona de Juego
               </button>
             </div>
+
+            {/* Las palabras del día solo se conocen al terminar, así que es
+                ahora cuando se pueden reportar (el id viaja con `answers`). */}
+            <ReportButton
+              objetivos={(state?.answers ?? []).map((a) => {
+                const pista = slots.find((sl) => sl.id === a.id)?.clueEs;
+                return objetivo({
+                  type: "vocab_item",
+                  id: a.vocabId ?? null,
+                  surface: "game:crossword",
+                  label: a.answer,
+                  snapshot: { prompt: a.answer, ...(pista ? { meaning: pista } : {}) },
+                });
+              })}
+              surface="game:crossword"
+            />
           </div>
         )}
 

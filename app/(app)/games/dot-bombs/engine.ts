@@ -4,7 +4,8 @@
 export type GameMode = "easy" | "medium" | "hard" | "survival";
 
 export type Bomb = {
-  id: number;
+  id: number; // contador local de la partida
+  wordId: number; // words.id de la palabra: lo que permite reportarla (spec reportes §5)
   word: string;
   img: string | null;
   y: number; // 0 arriba → 1 suelo

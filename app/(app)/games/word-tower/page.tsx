@@ -22,6 +22,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivo, type ReportTarget } from "@/lib/report";
 import { useGameSeed } from "@/hooks/use-game-seed";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -60,6 +61,19 @@ function shuffled<T>(arr: T[]): T[] {
   return out;
 }
 
+/** La palabra que cae y sus carriles, tal como el alumno los vio: lo que
+ *  «Reportar un problema» ofrece desde el resultado. */
+function objetivoDeRonda(round: TowerRound): ReportTarget {
+  return objetivo({
+    type: "vocab_item",
+    id: round.id ?? null,
+    surface: "game:word-tower",
+    mode: "category",
+    label: round.word,
+    snapshot: { prompt: round.word, options: round.options },
+  });
+}
+
 // ── Main game component ───────────────────────────────────────────────────────
 
 function WordTowerInner({ seed }: { seed?: number }) {
@@ -79,6 +93,9 @@ function WordTowerInner({ seed }: { seed?: number }) {
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [progress, setProgress] = useState(0); // 0 → 1 during fall
+  // Las palabras que el alumno vio caer, con lo que eligió: «Reportar un
+  // problema» las ofrece desde el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Round sub-phase and lane buttons order
   const [roundPhase, setRoundPhase] = useState<RoundPhase>("falling");
@@ -101,7 +118,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
   // advanceRound + handleMissStable refs so callbacks/effects can call the
   // latest version without stale closures.
   const advanceRoundRef = useRef<() => void>(() => {});
-  const handleMissRef = useRef<() => void>(() => {});
+  const handleMissRef = useRef<(aterrizo?: boolean) => void>(() => {});
 
   // ── Load rounds ──────────────────────────────────────────────────────────
 
@@ -230,9 +247,13 @@ function WordTowerInner({ seed }: { seed?: number }) {
   }, [advanceRound]);
 
   // Re-wire handleMiss to use the ref so it doesn't go stale
-  const handleMissStable = useCallback(() => {
+  const handleMissStable = useCallback((aterrizo = false) => {
     playSound("wrong");
     const round = rounds[roundIndex];
+    // Aterrizó sin que el alumno tocara nada: la palabra se vio y no hubo
+    // respuesta, pero se puede reportar igual. Si tocó un carril equivocado,
+    // handleLaneTap ya la anotó con lo que eligió.
+    if (aterrizo && round) setVistos((v) => [...v, objetivoDeRonda(round)]);
     setCorrectLabel(round?.correct ?? "");
     setCombo(0);
     // Las vidas se llevan en un ref para decidir FUERA del updater: StrictMode
@@ -264,7 +285,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
     if (progress < 1) return;
     if (resolvedRef.current) return;
     resolvedRef.current = true;
-    handleMissRef.current();
+    handleMissRef.current(true);
   }, [progress, phase, roundPhase]);
 
   // ── Tap a lane button ────────────────────────────────────────────────────
@@ -277,6 +298,15 @@ function WordTowerInner({ seed }: { seed?: number }) {
 
       const round = rounds[roundIndex];
       if (!round) return;
+
+      setVistos((v) => [
+        ...v,
+        conRespuesta(objetivoDeRonda(round), {
+          answer: option,
+          expected: round.correct,
+          wasWrong: option !== round.correct,
+        }),
+      ]);
 
       if (option === round.correct) {
         playSound("correct");
@@ -319,6 +349,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
     setLives(MAX_LIVES);
     setScore(0);
     setCombo(0);
+    setVistos([]);
     setProgress(0);
     setRoundPhase("between"); // will flip to falling after BETWEEN_ROUNDS_MS
     setCorrectLabel("");
@@ -603,6 +634,7 @@ function WordTowerInner({ seed }: { seed?: number }) {
           score={score}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
         />
       )}
     </div>

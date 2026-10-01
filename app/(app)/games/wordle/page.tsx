@@ -4,8 +4,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useRouter } from "next/navigation";
 import DailyKeyboard, { KEY_ENTER, KEY_BACKSPACE } from "@/components/games/shared/daily-keyboard";
+import ReportButton from "@/components/report/report-button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { secondsUntilMidnightUTC, formatCountdown } from "@/lib/daily-games";
+import { objetivo } from "@/lib/report";
 import {
   getWordleService,
   postWordleGuessService,
@@ -602,6 +604,21 @@ export default function WordlePage() {
                 Volver a Zona de Juego
               </button>
             </div>
+
+            {/* La palabra del día solo se conoce al terminar, así que es ahora
+                cuando se puede reportar (el id viaja con `answer`). */}
+            <ReportButton
+              objetivos={[
+                objetivo({
+                  type: "vocab_item",
+                  id: state.answerId ?? null,
+                  surface: "game:wordle",
+                  label: state.answer ?? "La palabra del día",
+                  snapshot: { prompt: state.answer ?? "", ...(state.hintEs ? { meaning: state.hintEs } : {}) },
+                }),
+              ]}
+              surface="game:wordle"
+            />
           </div>
         )}
 

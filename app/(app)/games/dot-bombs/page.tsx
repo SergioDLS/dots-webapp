@@ -17,6 +17,7 @@ import { getGameWordsService, type GameWord } from "@/services/games.service";
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTicker } from "@/hooks/use-ticker";
 import { playSound } from "@/lib/feedback-sounds";
+import { objetivoDePalabra, type ReportTarget } from "@/lib/report";
 import WordImg from "@/components/ui/word-img/word-img";
 import { buildTray, tapChip, type TrayState } from "./anagram";
 import {
@@ -68,6 +69,9 @@ function DotBombsInner({ seed }: { seed?: number }) {
   const [lives, setLives] = useState(MAX_LIVES);
   const [defusedCount, setDefusedCount] = useState(0);
   const [score, setScore] = useState(0);
+  // Las palabras que el alumno desactivó o dejó caer: «Reportar un problema»
+  // las ofrece desde el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Motor en refs (el tick es la única fuente de verdad; el estado es snapshot)
   const bombsRef = useRef<Bomb[]>([]);
@@ -164,6 +168,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
     setDefusedCount(0);
     setScore(0);
     setFinalScore(0);
+    setVistos([]);
     setBombsSnapshot([]);
     setActiveId(null);
     setWinTarget(winTargetRef.current);
@@ -191,6 +196,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
       ...bombsRef.current,
       {
         id: nextBombIdRef.current++,
+        wordId: word.id,
         word: word.title.toLowerCase(),
         img: word.src,
         y: 0,
@@ -227,6 +233,11 @@ function DotBombsInner({ seed }: { seed?: number }) {
 
       // TODOS los aterrizajes del tick cuestan vida (fix del bug del booleano)
       if (landed.length > 0) {
+        // Sin respuesta: deletrear no admite alternativas, pero la palabra se vio.
+        setVistos((v) => [
+          ...v,
+          ...landed.map((b) => objetivoDePalabra({ id: b.wordId, word: b.word, img: b.img }, "game:dot-bombs")),
+        ]);
         playSound("wrong");
         comboRef.current = 0; // aterrizaje = fallo
         livesRef.current = Math.max(0, livesRef.current - landed.length);
@@ -295,6 +306,11 @@ function DotBombsInner({ seed }: { seed?: number }) {
         playSound("correct");
         const bomb = bombsRef.current.find((b) => b.id === activeIdRef.current);
         if (!bomb || bomb.word !== state.word) return;
+        // Sin respuesta: deletrear no admite alternativas, pero la palabra se vio.
+        setVistos((v) => [
+          ...v,
+          objetivoDePalabra({ id: bomb.wordId, word: bomb.word, img: bomb.img }, "game:dot-bombs"),
+        ]);
         const cfg = DIFFICULTY[mode];
         const mult =
           cfg.winAt === null
@@ -561,6 +577,7 @@ function DotBombsInner({ seed }: { seed?: number }) {
           score={finalScore}
           onReplay={() => setPhase("modes")}
           onExit={() => router.push("/play")}
+          reportables={vistos}
           extra={
             <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
               {MODE_LABEL[mode].name} · {defusedCount} bomba{defusedCount === 1 ? "" : "s"} desactivada{defusedCount === 1 ? "" : "s"}

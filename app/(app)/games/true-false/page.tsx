@@ -22,6 +22,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeTarjeta, type ReportTarget } from "@/lib/report";
 import { useGameSeed } from "@/hooks/use-game-seed";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -62,6 +63,9 @@ function TrueFalseInner({ seed }: { seed?: number }) {
   const [correction, setCorrection] = useState<string | null>(null);
   // Puntos del último acierto: alimenta el "+N" y el pop del marcador.
   const [lastGain, setLastGain] = useState<number | null>(null);
+  // Las cartas que el alumno respondió, con su veredicto: «Reportar un
+  // problema» las ofrece desde el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Swipe state
@@ -117,6 +121,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
     setMultiplier(1);
     setCorrection(null);
     setLastGain(null);
+    setVistos([]);
     setPhase("playing");
     startCountdown();
   }, [startCountdown]);
@@ -144,6 +149,15 @@ function TrueFalseInner({ seed }: { seed?: number }) {
       if (!card || correction !== null) return;
 
       const isRight = guessedCorrect === card.isCorrect;
+
+      setVistos((v) => [
+        ...v,
+        conRespuesta(objetivoDeTarjeta(card, "game:true-false"), {
+          answer: guessedCorrect ? "Verdad" : "Trampa",
+          expected: card.isCorrect ? "Verdad" : "Trampa",
+          wasWrong: !isRight,
+        }),
+      ]);
 
       if (isRight) {
         playSound("correct");
@@ -578,6 +592,7 @@ function TrueFalseInner({ seed }: { seed?: number }) {
           score={score}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
         />
       )}
     </div>
