@@ -502,9 +502,6 @@ porque cambiar este comportamiento sería incorrecto para el resto.
 - "Salir" a mitad de dot-match va a result con score parcial (decisión de diseño: su score sube desde 0). En memory, "Salir" ABANDONA sin enviar nada — su fórmula parte de 1000 y baja, y un parcial temprano superaría a cualquier partida completa (exploit de torneo, corregido 2026-08-10). En sentence-builder, "Salir" también abandona sin enviar — el guard del reto 1v1 no se rearma y un parcial quemaba el intento (corregido 2026-08-10). En ghost-race igual: salir posteaba a /ghost/run una carrera truncada (corregido 2026-08-10). En audio-blitz, true-false, word-tower, dotaxi y dont-pop el parcial SÍ cuenta para el récord personal (su score sube desde 0, como dot-match), pero torneo y reto solo aceptan partidas completas (corregido 2026-08-10).
 - `/games/dont-pop` tampoco acepta seed: no debe entrar en reto ni torneo hasta que el endpoint lo honre.
 - `/games/dotaxi` IGNORA el `seed` (el backend baraja con Math.random), así que dos rivales reciben mazos distintos: dotaxi NO debe entrar en `CHALLENGE_GAMES` ni en la rotación de torneo hasta que el endpoint lo honre.
-- Torre de Palabras: en partidas sin seed, la ronda 0 muestra la palabra de una ronda con
-  los carriles de otra (bug previo, arreglo en una tarea aparte); hasta entonces sus reportes
-  de la ronda 0 pueden traer una respuesta que no estaba entre las opciones.
 
 ## Historia
 
