@@ -1,3 +1,6 @@
+"use client";
+
+import ReportFlag from "@/components/report/report-flag";
 import LoadBar from "@/components/ui/load-bar/load-bar";
 import { UiIcon } from "@/components/ui/ui-icon";
 
@@ -41,6 +44,9 @@ export default function LessonTopBar({ progress, streak = null, hearts }: Lesson
       <div className="flex-1">
         <LoadBar progress={progress} streak={streak} />
       </div>
+
+      {/* Solo aparece si la pantalla publicó qué reportar (lib/report-targets.ts). */}
+      <ReportFlag />
     </div>
   );
 }
