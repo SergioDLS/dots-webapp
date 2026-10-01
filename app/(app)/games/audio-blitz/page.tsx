@@ -23,6 +23,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeOracion, type ReportTarget } from "@/lib/report";
 import { resolveSentenceSoundUrl } from "@/constants";
 import { useGameSeed } from "@/hooks/use-game-seed";
 
@@ -61,6 +62,9 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
+  // Las frases que el alumno vio en la partida: «Reportar un problema» las
+  // ofrece desde el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Correction state: null = no se muestra. Guarda la frase partida en tres
   // para pintarla con JSX; el aviso de timeout vive en su propio flag (antes
@@ -80,8 +84,19 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
   // Per-question timer: fires when 7s expire (= timeout → wrong)
   const handleTimeUp = useCallback(() => {
+    // Sin respuesta: no eligió nada, pero la frase se vio (quizá el audio no
+    // sonó) y se puede reportar desde el resultado.
+    const item = items[questionIndex];
+    if (item) {
+      setVistos((v) => [
+        ...v,
+        objetivoDeOracion({ id: item.id, text: item.text, options: item.options }, "game:audio-blitz", {
+          hasAudio: true,
+        }),
+      ]);
+    }
     setTimedOut(true);
-  }, []);
+  }, [items, questionIndex]);
 
   const {
     remaining,
@@ -170,6 +185,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
     advancingRef.current = false;
     setQuestionIndex(0);
     setScore(0);
+    setVistos([]);
     setCorrection(null);
     setTimedOut(false);
     setLastGain(null);
@@ -203,6 +219,16 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
 
       advancingRef.current = true;
       stopTimer();
+
+      setVistos((v) => [
+        ...v,
+        conRespuesta(
+          objetivoDeOracion({ id: item.id, text: item.text, options: item.options }, "game:audio-blitz", {
+            hasAudio: true,
+          }),
+          { answer: option, expected: item.correct, wasWrong: option !== item.correct },
+        ),
+      ]);
 
       if (option === item.correct) {
         playSound("correct");
@@ -494,6 +520,7 @@ function AudioBlitzInner({ seed }: { seed?: number }) {
           score={score}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
         />
       )}
     </div>

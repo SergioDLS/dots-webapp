@@ -3,6 +3,10 @@
 // Sin React ni DOM — portable a RN tal cual.
 
 import type { GameWord } from "@/services/games.service";
+// Ruta relativa y con extensión, como los imports de valor entre archivos de
+// lib/: así `node --test` carga este archivo tal cual (el alias `@/` no existe
+// fuera del bundler) y lib/dont-pop-rounds.test.mjs puede probarlo.
+import { sinAceptadas } from "../../../../lib/accepted-answers.ts";
 
 export type Rng = () => number; // [0,1)
 
@@ -38,6 +42,12 @@ function shuffleWith<T>(arr: readonly T[], rng: Rng): T[] {
  * las ya contestadas, el jugador las descartaría por eliminación. Con mazo
  * corto devuelve menos de OPTIONS_PER_ROUND opciones antes que repetir una.
  * Devuelve null cuando no queda ninguna palabra jugable.
+ *
+ * Las palabras que el admin aceptó para esta imagen (`word.accepted`, spec
+ * reportes §4) tampoco salen de señuelo: reventar un globo que también valía
+ * sería injusto. Se descartan DESPUÉS de barajar, nunca antes: así el rng gasta
+ * exactamente lo mismo con o sin alternativas y el mazo sembrado (torneo, reto)
+ * solo cambia en el señuelo que se sustituye.
  */
 export function buildRound(
   words: readonly GameWord[],
@@ -51,12 +61,16 @@ export function buildRound(
 
   const taken = new Set([word.title.toLowerCase()]);
   const options: string[] = [word.title];
-  for (const w of shuffleWith(pending, rng)) {
+  const candidatos = sinAceptadas(
+    shuffleWith(pending, rng).map((w) => w.title),
+    word.accepted,
+  );
+  for (const title of candidatos) {
     if (options.length >= OPTIONS_PER_ROUND) break;
-    const key = w.title.toLowerCase();
+    const key = title.toLowerCase();
     if (taken.has(key)) continue;
     taken.add(key);
-    options.push(w.title);
+    options.push(title);
   }
 
   return { word, options: shuffleWith(options, rng) };

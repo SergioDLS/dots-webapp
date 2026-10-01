@@ -19,6 +19,7 @@ import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { useTicker } from "@/hooks/use-ticker";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeOracion, type ReportTarget } from "@/lib/report";
 import {
   lanesForCorrect,
   laneGeometry,
@@ -186,6 +187,9 @@ function DotaxiInner({ seed }: { seed?: number }) {
   const [combo, setCombo] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [trip, setTrip] = useState<Trip | null>(null);
+  // Las frases que el alumno vio en el viaje, para «Reportar un problema» en el
+  // resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   /** La partida llegó a su fin natural (llegó o se rompió el taxi). */
   const completedRef = useRef(false);
@@ -495,6 +499,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
     setScore(0);
     setCombo(0);
     setFinalScore(0);
+    setVistos([]);
     roundRef.current = 0;
     laneRef.current = 0;
     lanesRef.current = 2;
@@ -538,6 +543,16 @@ function DotaxiInner({ seed }: { seed?: number }) {
 
     const chosen = laneOptions[laneRef.current];
     const hit = chosen === question.correct;
+
+    // Lo que había en las señales y lo que se eligió (o el carril en que el
+    // taxi se quedó al acabarse el tiempo): se reporta desde el resultado.
+    setVistos((v) => [
+      ...v,
+      conRespuesta(
+        objetivoDeOracion({ id: question.id, text: question.text, options: laneOptions }, "game:dotaxi"),
+        { answer: chosen ?? "", expected: question.correct, wasWrong: !hit },
+      ),
+    ]);
 
     // Un obstáculo por carril incorrecto. Del seed en torneo y reto, para que
     // los rivales vean lo mismo; al azar en partida libre.
@@ -1122,6 +1137,7 @@ function DotaxiInner({ seed }: { seed?: number }) {
           // llegaste: Doty taxista con su gorra; taxi roto: decepcionado;
           // medio camino: triste
           dotyPose={won ? "taxista" : lost ? "decepcionado" : "triste"}
+          reportables={vistos}
           extra={
             trip ? (
               <div className="flex w-full flex-col items-center gap-3">

@@ -20,6 +20,7 @@ import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
 import { useGameSeed } from "@/hooks/use-game-seed";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivo, type ReportTarget } from "@/lib/report";
 import { buildRound, roundScore } from "./rounds";
 
 // ── Constantes (mecánica heredada: el globo ES el reloj) ────────────────────
@@ -69,6 +70,9 @@ function DontPopGame() {
   const [cleared, setCleared] = useState(0);
   const [current, setCurrent] = useState<{ word: GameWord; options: string[] } | null>(null);
   const [outcome, setOutcome] = useState<Outcome>("none");
+  // Las palabras que el alumno vio en el vuelo, para «Reportar un problema» en
+  // el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Motor en refs
   const pressureRef = useRef(START_PRESSURE);
@@ -166,6 +170,7 @@ function DontPopGame() {
     setScore(0);
     setCleared(0);
     setFinalScore(0);
+    setVistos([]);
     setOutcome("none");
     setPhase("playing");
 
@@ -208,6 +213,27 @@ function DontPopGame() {
   const answer = useCallback(
     (option: string) => {
       if (phase !== "playing" || outcome !== "none" || resolvingRef.current || current === null) return;
+
+      // La imagen y lo que se tocó, para reportarlo desde el resultado.
+      setVistos((v) => [
+        ...v,
+        conRespuesta(
+          objetivo({
+            type: "sentence",
+            id: current.word.id,
+            surface: "game:dont-pop",
+            mode: "image",
+            label: current.word.title,
+            snapshot: {
+              prompt: current.word.title,
+              image: current.word.src ?? undefined,
+              options: current.options,
+            },
+            hasImage: true,
+          }),
+          { answer: option, expected: current.word.title, wasWrong: option !== current.word.title },
+        ),
+      ]);
 
       if (option === current.word.title) {
         playSound("correct");
@@ -388,6 +414,7 @@ function DontPopGame() {
           score={finalScore}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
           extra={
             <p className="text-sm font-bold text-center" style={{ color: "var(--muted)" }}>
               {/* tres desenlaces: abandonar no es reventar */}

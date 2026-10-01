@@ -21,7 +21,9 @@ import {
 import { useGameRecords } from "@/hooks/use-game-records";
 import { useTournamentMode } from "@/hooks/use-tournament-mode";
 import { useChallengeMode } from "@/hooks/use-challenge-mode";
+import { primerFalloEnOrden } from "@/lib/accepted-answers";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeOracion, type ReportTarget } from "@/lib/report";
 import { resolveSentenceSoundUrl } from "@/constants";
 import { useTicker } from "@/hooks/use-ticker";
 import { useGameSeed } from "@/hooks/use-game-seed";
@@ -88,6 +90,9 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
   // Game state
   const [sentenceIndex, setSentenceIndex] = useState(0);
   const [score, setScore] = useState(0);
+  // Las frases que el alumno armó en la partida: «Reportar un problema» las
+  // ofrece desde el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
 
   // Per-sentence state: chips in pool and tray
   const [poolChips, setPoolChips] = useState<string[]>([]);
@@ -221,6 +226,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
     checkingRef.current = false;
     setSentenceIndex(0);
     setScore(0);
+    setVistos([]);
     setPoolChips([]);
     setTrayChips([]);
     setCheckState("idle");
@@ -271,14 +277,22 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
 
     checkingRef.current = true;
 
-    // Find first out-of-place token (case-insensitive)
-    let wrongIdx: number | null = null;
-    for (let i = 0; i < s.answer.length; i++) {
-      if (trayChips[i].toUpperCase() !== s.answer[i].toUpperCase()) {
-        wrongIdx = i;
-        break;
-      }
-    }
+    // Primera ficha fuera de lugar (sin distinguir mayúsculas). Cualquier orden
+    // que el admin aceptó vale (spec reportes §4); sin `answers` (backend viejo,
+    // o `[]`) solo cuenta el de referencia.
+    const wrongIdx = primerFalloEnOrden(trayChips, s.answers?.length ? s.answers : [s.answer]);
+
+    // Lo armado, bien o mal, para reportarlo desde el resultado.
+    setVistos((v) => [
+      ...v,
+      conRespuesta(
+        objetivoDeOracion({ id: s.id, text: s.answer.join(" ") }, "game:sentence-builder", {
+          mode: "order",
+          hasAudio: true,
+        }),
+        { answer: trayChips.join(" "), expected: s.answer.join(" "), wasWrong: wrongIdx !== null },
+      ),
+    ]);
 
     if (wrongIdx === null) {
       // Correct
@@ -708,6 +722,7 @@ function SentenceBuilderInner({ seed }: { seed?: number }) {
           score={score}
           onReplay={startGame}
           onExit={() => router.push("/play")}
+          reportables={vistos}
         />
       )}
     </div>

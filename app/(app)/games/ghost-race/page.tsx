@@ -10,6 +10,7 @@ import React, {
 import { useRouter } from "next/navigation";
 import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import GameIntro from "@/components/games/shared/game-intro";
+import ReportButton from "@/components/report/report-button";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Sound from "@/components/ui/sound/sound";
 import { Icon } from "@/components/ui/icon";
@@ -28,6 +29,7 @@ import { useGameRecords } from "@/hooks/use-game-records";
 import { playSound } from "@/lib/feedback-sounds";
 import { resolveSentenceSoundUrl } from "@/constants";
 import { ganoAlFantasma } from "@/lib/ghost-verdict";
+import { conRespuesta, objetivoDeOracion, type ReportTarget } from "@/lib/report";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -68,12 +70,16 @@ type Phase = "intro" | "playing" | "result";
 type Correction = { before: string; answer: string; after: string };
 
 // ── Result card (inline — server already submitted score via /ghost/run) ───────
+// No usa GameResult porque el servidor premia la carrera por /ghost/run: esta
+// tarjeta nunca envía un score. El botón de reporte solo reporta contenido.
 
 interface ResultCardProps {
   score: number;
   /** `null` mientras el servidor resuelve el duelo — ver comentario abajo. */
   beatGhost: boolean | null;
   ghostName: string;
+  /** Las frases que se vieron en la carrera: lo que ofrece «Reportar un problema». */
+  vistos: readonly ReportTarget[];
   onReplay: () => void;
   onExit: () => void;
 }
@@ -82,6 +88,7 @@ function ResultCard({
   score,
   beatGhost,
   ghostName,
+  vistos,
   onReplay,
   onExit,
 }: ResultCardProps) {
@@ -182,6 +189,7 @@ function ResultCard({
           >
             Salir
           </button>
+          <ReportButton objetivos={vistos} surface="game:ghost-race" />
         </div>
       </div>
     </div>
@@ -207,6 +215,9 @@ function GhostRaceInner() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
+  // Las frases que el alumno vio en la carrera, para «Reportar un problema» en
+  // el resultado (durante el juego no hay banderita).
+  const [vistos, setVistos] = useState<ReportTarget[]>([]);
   const [myTimeline, setMyTimeline] = useState<number[]>([]);
   const raceStartRef = useRef<number>(0);
 
@@ -236,8 +247,19 @@ function GhostRaceInner() {
   // ── Timer (per-question countdown) ───────────────────────────────────────
 
   const handleTimeUp = useCallback(() => {
+    // Sin respuesta: no eligió nada, pero la frase se vio (quizá el audio no
+    // sonó) y se puede reportar desde el resultado.
+    const item = items[questionIndex];
+    if (item) {
+      setVistos((v) => [
+        ...v,
+        objetivoDeOracion({ id: item.id, text: item.text, options: item.options }, "game:ghost-race", {
+          hasAudio: true,
+        }),
+      ]);
+    }
     setTimedOut(true);
-  }, []);
+  }, [items, questionIndex]);
 
   const { remaining, stop: stopTimer, start: startTimer } = useCountdown(
     QUESTION_SECONDS,
@@ -383,6 +405,7 @@ function GhostRaceInner() {
     runSubmittedRef.current = false;
     setQuestionIndex(0);
     setScore(0);
+    setVistos([]);
     setMyTimeline([]);
     setElapsed(0);
     setCorrection(null);
@@ -407,6 +430,16 @@ function GhostRaceInner() {
 
       advancingRef.current = true;
       stopTimer();
+
+      setVistos((v) => [
+        ...v,
+        conRespuesta(
+          objetivoDeOracion({ id: item.id, text: item.text, options: item.options }, "game:ghost-race", {
+            hasAudio: true,
+          }),
+          { answer: option, expected: item.correct, wasWrong: option !== item.correct },
+        ),
+      ]);
 
       if (option === item.correct) {
         playSound("correct");
@@ -789,6 +822,7 @@ function GhostRaceInner() {
           score={score}
           beatGhost={beatGhost}
           ghostName={ghostName}
+          vistos={vistos}
           onReplay={() => {
             // Fresh race: new seed + latest ghost (a rival may have posted a
             // better run since). fetchAll reloads data; the intro re-shows and

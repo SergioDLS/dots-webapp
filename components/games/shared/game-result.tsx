@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import ReportButton from "@/components/report/report-button";
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
 import UIButton from "@/components/ui/button/button";
 import { UiIcon } from "@/components/ui/ui-icon";
 import { useCountUp } from "@/hooks/use-count-up";
+import type { ReportTarget } from "@/lib/report";
 import {
   submitGameScoreService,
   type ScoreResult,
@@ -24,6 +26,12 @@ interface GameResultProps {
    * batir tu marca sin llegar a la meta no es motivo de trofeo.
    */
   dotyPose?: DotyPose;
+  /**
+   * Lo que el alumno vio en la partida (spec reportes §1.5). Si viene, la
+   * pantalla ofrece «Reportar un problema»: en los juegos no hay banderita
+   * mientras se juega, solo aquí. Sin él, el botón no sale.
+   */
+  reportables?: readonly ReportTarget[];
 }
 
 /**
@@ -42,6 +50,7 @@ export default function GameResult({
   onExit,
   extra,
   dotyPose,
+  reportables,
 }: GameResultProps) {
   const [result, setResult] = useState<ScoreResult | null>(null);
   const submittedRef = useRef(false);
@@ -200,6 +209,7 @@ export default function GameResult({
           <UIButton tone="neutral" fullWidth onClick={onExit}>
             Salir
           </UIButton>
+          {reportables && <ReportButton objetivos={reportables} surface={`game:${gameKey}`} />}
         </div>
       </div>
     </div>

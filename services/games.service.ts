@@ -36,6 +36,12 @@ export type GameWord = {
   title: string;
   src: string | null;
   answered: boolean;
+  /**
+   * ¡No lo revientes!: otras palabras que también valen para esta imagen (las
+   * que el admin aceptó, spec reportes §4); no salen como señuelo. Un backend
+   * viejo no lo manda.
+   */
+  accepted?: string[];
 };
 
 export type DotaxiQuestion = {
@@ -187,6 +193,11 @@ export type BuilderSentence = {
   voiceKey?: string;
   /** ordered answer tokens */
   answer: string[];
+  /**
+   * Todos los órdenes válidos, el de referencia (`answer`) incluido (spec
+   * reportes §4). Un backend viejo no lo manda: entonces vale solo `answer`.
+   */
+  answers?: string[][];
   /** answer + 2 distractors, shuffled — the chip pool */
   chips: string[];
 };
