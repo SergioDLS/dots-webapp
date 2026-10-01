@@ -16,7 +16,7 @@ import LessonFooter from "@/components/lesson/lesson-footer";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ResultScreen from "@/components/lesson/result-screen";
 import ExplanationCard from "@/components/lesson/grammar/explanation-card";
-import ReportFlag from "@/components/report/report-flag";
+import ReportFlagRow from "@/components/report/report-flag-row";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
 import { useLessonKeys } from "@/hooks/use-lesson-keys";
 import { usePublicarObjetivos } from "@/hooks/use-report-targets";
@@ -121,10 +121,7 @@ export default function GrammarPill({ nodeId, content }: Props) {
   if (stage === "explain") {
     return (
       <div className="flex flex-col gap-4 w-full">
-        {/* Alto fijo (14 px) = la caja de layout de la banderita: aparece cuando un efecto publica la lista y, sin esta reserva, empujaría la tarjeta. */}
-        <div className="flex h-3.5 items-center justify-end">
-          <ReportFlag />
-        </div>
+        <ReportFlagRow />
         <PanelWrapper>
           <SectionLabel emoji={<Icon name="lapiz" size={20} />}>{content.title}</SectionLabel>
           <div className="flex flex-col gap-3 w-full">

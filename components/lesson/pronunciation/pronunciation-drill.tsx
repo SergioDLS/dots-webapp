@@ -17,7 +17,7 @@ import {
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
 import ExplanationHint from "@/components/lesson/explanation-hint";
 import ResultScreen from "@/components/lesson/result-screen";
-import ReportFlag from "@/components/report/report-flag";
+import ReportFlagRow from "@/components/report/report-flag-row";
 import { useLessonSeries } from "@/hooks/use-lesson-series";
 import { useLessonKeys } from "@/hooks/use-lesson-keys";
 import { usePublicarObjetivos } from "@/hooks/use-report-targets";
@@ -141,40 +141,39 @@ export default function PronunciationDrill({ nodeId, content }: Props) {
 
   if (stage === "start") {
     return (
-      <PanelWrapper>
-        {/* Alto fijo (14 px) = la caja de layout de la banderita: aparece cuando un efecto publica la lista y, sin esta reserva, empujaría el contenido. */}
-        <div className="flex h-3.5 w-full items-center justify-end">
-          <ReportFlag />
-        </div>
-        <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
-        {(content.soundA || content.soundB) && (
-          <div className="flex items-center gap-3 font-display font-extrabold text-lg">
-            <span
-              className="px-3 py-1 rounded-full"
-              style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
-            >
-              {content.soundA}
-            </span>
-            <span style={{ color: "var(--muted)" }}>vs</span>
-            <span
-              className="px-3 py-1 rounded-full"
-              style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
-            >
-              {content.soundB}
-            </span>
-          </div>
-        )}
-        {content.descriptionEs && (
-          <p className="text-center text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-            {content.descriptionEs}
-          </p>
-        )}
-        <Doty pose="escuchando" size="small" say="¡Escucha con atención!" />
-        {/* The start tap is the user gesture the browser needs before autoplay */}
-        <UIButton tone="accent" onClick={() => setStage("play")} fullWidth>
-          Empezar
-        </UIButton>
-      </PanelWrapper>
+      <div className="flex flex-col gap-4 w-full">
+        <ReportFlagRow />
+        <PanelWrapper>
+          <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
+          {(content.soundA || content.soundB) && (
+            <div className="flex items-center gap-3 font-display font-extrabold text-lg">
+              <span
+                className="px-3 py-1 rounded-full"
+                style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
+              >
+                {content.soundA}
+              </span>
+              <span style={{ color: "var(--muted)" }}>vs</span>
+              <span
+                className="px-3 py-1 rounded-full"
+                style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
+              >
+                {content.soundB}
+              </span>
+            </div>
+          )}
+          {content.descriptionEs && (
+            <p className="text-center text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+              {content.descriptionEs}
+            </p>
+          )}
+          <Doty pose="escuchando" size="small" say="¡Escucha con atención!" />
+          {/* The start tap is the user gesture the browser needs before autoplay */}
+          <UIButton tone="accent" onClick={() => setStage("play")} fullWidth>
+            Empezar
+          </UIButton>
+        </PanelWrapper>
+      </div>
     );
   }
 
