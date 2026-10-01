@@ -493,7 +493,10 @@ que va». En «Arma la oración» y el Constructor, lo segundo es lo que importa
 otro orden de las mismas fichas pasa a valer.
 
 - `kind = "word"`: otra palabra que cabe en el hueco (oraciones) u otra
-  respuesta (gramática). Se compara con `trim().toUpperCase()`, como hoy.
+  respuesta (gramática). Se compara con `trim()`, sin la puntuación final y en
+  mayúsculas (`normalizarPalabra`). Es lo de hoy más la puntuación final, que
+  los juegos ya quitan con su `clean()`: así «feel.» y «feel» son la misma
+  alternativa tanto al sortear opciones como al corregir.
 - `kind = "sentence"`: la oración completa en otro orden. Se compara
   normalizada igual que la de referencia: espacios colapsados, sin la
   puntuación final y en mayúsculas.
