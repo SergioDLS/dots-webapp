@@ -44,8 +44,11 @@ type Paso = "elegir" | "motivos" | "gracias";
  *
  * El teclado se queda dentro: los atajos de la lección (Enter y 1-9, en
  * hooks/use-lesson-keys.ts) cuelgan de window y solo se apartan de
- * input/textarea, así que sin cortar la propagación un Enter sobre una casilla
- * de la hoja avanzaría el ejercicio que hay detrás.
+ * input/textarea, así que un Enter con la hoja abierta avanzaría el ejercicio
+ * que hay detrás. Tres cierres lo impiden: el panel corta lo que nace dentro,
+ * el listener de captura corta lo que nace fuera (cada paso desmonta el botón
+ * que tenía el foco y este cae al body) y el panel recupera el foco en cada
+ * paso. Reportar no gasta vidas ni toca el progreso (spec §1.3).
  */
 export default function ReportSheet({ candidatos, modo = "ejercicio", onCerrar }: Props) {
   const pathname = usePathname();
@@ -63,19 +66,29 @@ export default function ReportSheet({ candidatos, modo = "ejercicio", onCerrar }
   const [lugar, setLugar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // Tras un fallo el botón dice «Reintentar» (spec §1.3.4) hasta el siguiente intento.
+  const [falloEnvio, setFalloEnvio] = useState(false);
 
-  // Foco al abrir, en su propio efecto (mismo motivo que install-sheet.tsx).
+  // Foco al abrir y en cada paso, en su propio efecto y sin `onCerrar` (mismo
+  // motivo que install-sheet.tsx). Un paso nuevo desmonta el botón que tenía
+  // el foco; sin esto caería al body y las teclas dejarían de pasar por el panel.
   useEffect(() => {
     panelRef.current?.focus();
-  }, []);
+  }, [paso]);
 
   useEffect(() => {
-    // En captura y sin propagar: si la hoja se abrió sobre Ajustes, Escape
-    // cierra solo esta y no también la de abajo.
+    // En captura. Escape, sin propagar: si la hoja se abrió sobre Ajustes,
+    // cierra solo esta y no también la de abajo. Cualquier otra tecla que
+    // nazca fuera del panel (foco en el body) tampoco debe llegar a los
+    // atajos de la lección en window; sin preventDefault, solo se aísla.
     const alTeclear = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.stopPropagation();
-      onCerrar();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onCerrar();
+        return;
+      }
+      const panel = panelRef.current;
+      if (panel && !panel.contains(e.target as Node | null)) e.stopPropagation();
     };
     document.addEventListener("keydown", alTeclear, true);
     const soltar = bloquearScroll();
@@ -102,18 +115,23 @@ export default function ReportSheet({ candidatos, modo = "ejercicio", onCerrar }
       return;
     }
     setEnviando(true);
+    setFalloEnvio(false);
     setError(null);
     const conErrores = motivosValidos.includes("bug") || elegido.type === null;
     createReportService(cuerpoDelReporte(elegido, borrador, contextoTecnico(pathname, conErrores)))
       .then(() => setPaso("gracias"))
       .catch((e: unknown) => {
-        const status = (e as { response?: { status?: number } })?.response?.status;
+        // Sin `response` no llegó al servidor (red); con ella, manda el estado.
+        const respuesta = (e as { response?: { status?: number } } | null)?.response;
+        setFalloEnvio(true);
         setError(
-          status === 429
-            ? "Ya mandaste muchos reportes hoy. ¡Gracias! Vuelve mañana."
-            : status === 503
-              ? "Los reportes aún no están disponibles. Prueba más tarde."
-              : "No se pudo enviar. Revisa tu conexión y vuelve a intentarlo.",
+          !respuesta
+            ? "No se pudo enviar. Revisa tu conexión y vuelve a intentarlo."
+            : respuesta.status === 429
+              ? "Ya mandaste muchos reportes hoy. ¡Gracias! Vuelve mañana."
+              : respuesta.status === 503
+                ? "Los reportes aún no están disponibles. Prueba más tarde."
+                : "No se pudo enviar. Inténtalo de nuevo en un rato.",
         );
       })
       .finally(() => setEnviando(false));
@@ -154,7 +172,7 @@ export default function ReportSheet({ candidatos, modo = "ejercicio", onCerrar }
           {paso === "elegir" && (
             <>
               <h2 id="reporte-titulo" className="pr-10 font-display text-xl font-extrabold text-foreground">
-                ¿Sobre cuál ejercicio?
+                ¿Sobre cuál?
               </h2>
               <div className="mt-4 flex flex-col gap-2">
                 {candidatos.map((c) => (
@@ -267,7 +285,7 @@ export default function ReportSheet({ candidatos, modo = "ejercicio", onCerrar }
 
               <div className="mt-4">
                 <UIButton tone="accent" onClick={enviar} disabled={enviando} fullWidth>
-                  {enviando ? "Enviando…" : "Enviar reporte"}
+                  {enviando ? "Enviando…" : falloEnvio ? "Reintentar" : "Enviar reporte"}
                 </UIButton>
               </div>
             </>
