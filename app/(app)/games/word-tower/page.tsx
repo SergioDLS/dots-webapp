@@ -303,10 +303,15 @@ function WordTowerInner({ seed }: { seed?: number }) {
     // Revancha con rondas frescas: startGame no re-fetchea, así que sin esto
     // las 20 rondas se repetían en el mismo orden y bastaba memorizarlas.
     // Con seed se conserva el determinismo (torneo/retos).
+    // Se baraja aquí y no en un updater para armar los carriles con el mismo
+    // mazo que se guarda: leerlos de `rounds[0]` tomaba la ronda 0 de antes
+    // de barajar, y la primera palabra caía con los carriles de otra ronda.
+    let next = rounds;
     if (seed === undefined && rounds.length > 1) {
-      setRounds((prev) => shuffled(prev));
+      next = shuffled(rounds);
+      setRounds(next);
     }
-    const firstRound = rounds[0];
+    const firstRound = next[0];
     completedRef.current = false;
     livesRef.current = MAX_LIVES;
     roundIndexRef.current = 0;
