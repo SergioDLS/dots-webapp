@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import ReportNotice from "@/components/report/report-notice";
@@ -36,6 +36,11 @@ export default function ReportNoticeWatch() {
   const pathname = usePathname();
   const { isBootstrapping, accessToken } = useAuth();
   const [aviso, setAviso] = useState<{ ruta: string; avisos: Aviso[] } | null>(null);
+  // Lo que el alumno ya cerró mientras este vigilante siga montado. Si sale de
+  // /levels sin cerrar y vuelve, la hoja guardada reaparece al instante y su
+  // scroll tomado es un tapón: el fetch nuevo (que trajo lo mismo) queda
+  // sondeando detrás y, al cerrar, volvería a emitir lo que acaba de marcarse.
+  const cerrados = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (pathname !== "/levels" || isBootstrapping || !accessToken) return;
@@ -47,7 +52,8 @@ export default function ReportNoticeWatch() {
       const emitir = () => {
         if (!vivo) return;
         if (!pantallaTapada()) {
-          setAviso({ ruta: pathname, avisos });
+          const pendientes = avisos.filter((a) => !cerrados.current.has(a.id));
+          if (pendientes.length > 0) setAviso({ ruta: pathname, avisos: pendientes });
           return;
         }
         if (performance.now() - desde >= ESPERA_TAPADO_MS) return;
@@ -64,9 +70,12 @@ export default function ReportNoticeWatch() {
   const cerrar = useCallback(() => {
     const ids = aviso?.avisos.map((a) => a.id) ?? [];
     setAviso(null);
+    for (const id of ids) cerrados.current.add(id);
     // Si marcar falla, el aviso vuelve a salir la próxima vez: mejor que perderlo.
     markReportNoticesSeenService(ids)
-      .catch(() => {})
+      .catch(() => {
+        for (const id of ids) cerrados.current.delete(id);
+      })
       .finally(() => bumpCuenta());
   }, [aviso]);
 
