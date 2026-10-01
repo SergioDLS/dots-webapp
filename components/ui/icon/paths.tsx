@@ -125,9 +125,9 @@ export const ICON_PATHS = {
   ),
   bandera: (
     <g fill="none" stroke="currentColor" strokeWidth={3.5}>
-      <path d="M12,42 V7" />
+      <path d="M10,42 V7" />
       <path
-        d="M12,9 Q19,5 26,9 Q33,13 40,9 V27 Q33,31 26,27 Q19,23 12,27 Z"
+        d="M10,9 Q17,5 24,9 Q31,13 38,9 V27 Q31,31 24,27 Q17,23 10,27 Z"
         fill="#FF1F8F"
       />
     </g>
