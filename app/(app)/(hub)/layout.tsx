@@ -7,6 +7,7 @@ import DotyEntrada from "@/components/ui/doty/doty-entrada";
 import ThemeSync from "@/components/theme/theme-sync";
 import TipsController from "@/components/tips/tips-controller";
 import RivalWatch from "@/components/rival/rival-watch";
+import ReportNoticeWatch from "@/components/report/report-notice-watch";
 import InstallWatch from "@/components/pwa/install-watch";
 
 /**
@@ -37,6 +38,8 @@ export default function HubLayout({
       {/* Aviso "te pasó" (spec §6.5): reacciona a la ruta y solo en Camino,
           Juegos y Retos. No bloquea nada: no es un modal. */}
       <RivalWatch />
+      {/* Resultados de los reportes del alumno: hoja al entrar al Camino, espera a que nada tape la pantalla. */}
+      <ReportNoticeWatch />
       {/* Invitación a instalar la PWA: solo en móvil, solo al volver de
           terminar algo y dos veces como mucho en la vida del dispositivo. */}
       <InstallWatch />

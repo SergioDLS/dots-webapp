@@ -80,7 +80,7 @@ type NuevoObjetivo = {
 // slice corta por unidades UTF-16: si cae entre las dos mitades de un emoji
 // queda un sustituto alto suelto, y el cast a jsonb del servidor lo rechaza
 // (500 en todos los reportes de ese ítem). Se descarta esa media pareja.
-const recortar = (s: string, max: number) =>
+export const recortar = (s: string, max: number) =>
   s.length > max ? `${s.slice(0, max - 1).replace(/[\ud800-\udbff]$/, "")}…` : s;
 
 export function objetivo(n: NuevoObjetivo): ReportTarget {

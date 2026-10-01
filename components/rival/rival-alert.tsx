@@ -51,6 +51,9 @@ export default function RivalAlert({ aviso, onCerrar, onAbrirRetos }: Props) {
 
   return (
     <div
+      // El atributo lo busca `components/report/report-notice-watch.tsx`: este
+      // aviso no toma el scroll, así que es la única señal de que está en pantalla.
+      data-rival-alert
       // `pointer-events-none` en el envoltorio y `auto` en la tarjeta: el
       // aviso ocupa el ancho de la pantalla para centrarse, pero solo la
       // tarjeta debe recibir toques.
