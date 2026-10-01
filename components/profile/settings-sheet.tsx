@@ -284,7 +284,7 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
                 className="relative flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
               >
                 Panel de admin
-                {pendientes > 0 ? ` · ${pendientes} ${pendientes === 1 ? "reporte" : "reportes"}` : ""}
+                {pendientes > 0 ? ` · ${pendientes} ${pendientes === 1 ? "pendiente" : "pendientes"}` : ""}
                 <Icon name="derecha" size={16} mono />
                 {pendientes > 0 && (
                   <span

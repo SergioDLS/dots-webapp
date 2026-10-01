@@ -40,7 +40,7 @@ export default function AdminPill() {
         onClick={() => setOpen(true)}
         aria-label={`Modo admin: abrir herramientas${
           pendientes > 0
-            ? ` · ${pendientes} ${pendientes === 1 ? "reporte pendiente" : "reportes pendientes"}`
+            ? ` · ${pendientes} ${pendientes === 1 ? "pendiente" : "pendientes"}`
             : ""
         }`}
         className="relative shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black tracking-widest transition-transform before:absolute before:-inset-2 before:content-[''] active:scale-95"
