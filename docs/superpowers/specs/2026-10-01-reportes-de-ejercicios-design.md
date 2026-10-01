@@ -104,8 +104,9 @@ Un glifo nuevo `bandera` en `components/ui/icon/paths.tsx`, familia glifo
 problema"` y área táctil de 40 px aunque el glifo mida 20.
 
 `components/report/report-flag.tsx` es el botón y es dueño del estado de la
-hoja: recibe los candidatos (ver 1.2), abre `ReportSheet` al tocarlo y no
-necesita nada más de la pantalla. Dónde se monta:
+hoja: lee los candidatos (ver 1.2), abre `ReportSheet` al tocarlo y congela la
+lista en ese momento, para que nada cambie bajo el dedo si la pantalla avanza
+sola. Dónde se monta:
 
 | Superficie | Dónde | Candidatos |
 |---|---|---|
@@ -119,9 +120,17 @@ necesita nada más de la pantalla. Dónde se monta:
 | Lecturas | la barra propia de la lectura | la lectura entera y cada pregunta del quiz |
 | Juegos | pantalla de resultado (ver 1.5) | los ítems de la ronda |
 
-`LessonTopBar` gana una prop opcional `report?: ReportTarget[]`; sin ella se ve
-idéntica a hoy. Las pantallas sin `LessonTopBar` montan `ReportFlag`
-directamente en su fila superior.
+**Cómo llega lo que hay en pantalla a la banderita.** En vocabulario, letras y
+números el estado del ejercicio vive en componentes hijos (`ListenQuiz`,
+`AudioChoiceQuiz`, `MatchQuiz`, `MatchRound`) y la barra la pinta el padre, así
+que pasar props no alcanza. Un store de módulo, `lib/report-targets.ts` (mismo
+patrón que `lib/admin-mode.ts`: puro, `useSyncExternalStore`), guarda lo que la
+pantalla publica: `usePublicarObjetivos(lista)` desde el componente que conoce
+el ejercicio (lo retira al desmontarse) y `registrarRespondido(objetivo)` desde
+el handler que corrige. `LessonTopBar` pinta `ReportFlag` a la derecha cuando
+hay algo publicado, sin props nuevas; las pantallas sin `LessonTopBar` montan
+`ReportFlag` en su fila superior. Publicar compara una firma (claves y
+respuestas) y no avisa si nada cambió, así que no hay bucles de render.
 
 ### 1.2 Qué se reporta: `ReportTarget`
 
@@ -151,13 +160,19 @@ type ReportTargetType =
   | "number_item" | "reading" | "false_friend";
 ```
 
-**El anterior.** Un hook pequeño, `hooks/use-report-trail.ts`, guarda el último
-ítem respondido. La pantalla lo alimenta desde su handler de confirmar (un
-evento, nunca un efecto: regla 3) y `candidatosDeReporte(actual, anterior)`
-devuelve la lista ordenada: si el actual ya está respondido, solo el actual;
-si no y hay anterior, los dos. Sirve igual para las pantallas que avanzan
-solas: cuando el alumno toca la banderita, «el anterior» es justo el que acaba
-de pasar.
+**El anterior.** El store guarda también el último ítem respondido, que la
+pantalla registra desde su handler de corregir (un evento, nunca un efecto:
+regla 3). `candidatosDeReporte(actuales, anterior)` devuelve la lista: si algo
+de lo actual ya está respondido, solo lo actual; si no y hay anterior, se añade
+al final (o sustituye a su gemelo sin responder, si el ítem se re-encoló). Sirve
+igual para las pantallas que avanzan solas: cuando el alumno toca la banderita,
+«el anterior» es justo el que acaba de pasar.
+
+Los constructores por tipo (`objetivoDePractica`, `objetivoDeOracion`,
+`objetivoDeVocab`…) viven en `lib/report.ts`, así cada pantalla arma sus
+objetivos igual y con pocas líneas. La píldora de gramática y la unidad de
+pronunciación necesitan su id, que hoy no viaja al cliente: el contenido del
+nodo (`GET /path/nodes/:id`) gana `refId` en esos dos tipos.
 
 ### 1.3 La hoja
 
@@ -216,11 +231,13 @@ Juegos, Perfil, Tienda, Otra) y solo los motivos `bug` y `other`. Va con
 
 ### 1.5 Juegos
 
-`GameResult` gana una prop `reportables?: ReportTarget[]`. Con ella, bajo
-«Salir» aparece un botón fantasma «Reportar un problema» que abre la hoja con
-el selector ya poblado: primero los ítems que fallaste, luego los acertados y al
-final «El juego en general» (`type: null`, cae en Bugs). El
-`ResultCard` propio de ghost-race recibe lo mismo.
+`components/report/report-button.tsx` es un botón fantasma «Reportar un
+problema» que abre la hoja con el selector ya poblado: primero los ítems que
+fallaste, luego los acertados (`ordenarParaJuego`) y al final «El juego en
+general» (`type: null`, cae en Bugs). `GameResult` gana una prop
+`reportables?: ReportTarget[]` y lo pinta bajo «Salir». Los tres juegos que no
+usan `GameResult` lo montan en su propio final: el `ResultCard` de ghost-race y
+el bloque de partida terminada de Palabra del Día y Mini Crucigrama.
 
 Cada juego acumula en un ref los ítems que llegó a ver, con la respuesta del
 alumno y si falló:
@@ -391,10 +408,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS answer_alternatives_unique
   ON dots.answer_alternatives (target_type, target_id, kind, upper(value));
 ```
 
-`content_reports` entra en `KEPT_TABLES` de `admin-me.reset.ts`: un reporte es
+Las dos tablas se leen y escriben con SQL crudo parametrizado, sin entity de
+TypeORM (patrón de `awardGems` y `admin-me`): así una tabla ausente es un error
+`42P01` que se atrapa, y no una consulta de repositorio que rompe. Un reporte es
 feedback sobre el contenido, no progreso, y reiniciar la cuenta no debe
-borrarlo. El test de metadatos de `admin-me.reset.spec.ts` lo exige por la
-columna `user_id`.
+borrarlo; como no hay entity, el test de metadatos de `admin-me.reset.spec.ts`
+no la ve y `KEPT_TABLES` no puede listarla (ese test rechaza entradas sin
+entity). La decisión queda escrita en un comentario sobre `KEPT_TABLES`.
 
 ### 3.2 Endpoints del alumno (`src/modules/reports/`, `JwtAuthGuard` de clase)
 
