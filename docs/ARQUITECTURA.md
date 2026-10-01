@@ -216,9 +216,10 @@ validación y el cuerpo del POST. Un id no numérico degrada el objetivo a «sin
 (`type: null`) y cae en la pestaña Bugs: una píldora o unidad cuyo nodo no trae `refId`, o un
 juego cuyo backend no manda el id.
 
-La banderita no recibe props porque en vocabulario, letras y números el estado vive en hijos
-(`ListenQuiz`, `AudioChoiceQuiz`, `MatchQuiz`) y la barra la pinta el padre. Por eso
-`lib/report-targets.ts` es un store de módulo (el patrón de `lib/admin-mode.ts`): quien conoce
+La banderita no recibe los objetivos por props porque en vocabulario, letras y números el
+estado vive en hijos (`ListenQuiz`, `AudioChoiceQuiz`, `MatchQuiz`) y la barra la pinta el
+padre. Por eso `lib/report-targets.ts` es un store de módulo (el patrón de
+`lib/admin-mode.ts`): quien conoce
 el ejercicio publica con `usePublicarObjetivos` (`hooks/use-report-targets.ts`) y el handler
 que corrige llama a `registrarRespondido` —un evento, nunca un efecto: regla 3—.
 `candidatosDeReporte` entrega lo actual y, si nada de eso está respondido, «el anterior», que
@@ -240,8 +241,11 @@ portadas y explicaciones, letras y números) y en la barra propia de las lectura
 que comparte fila con ella cambiaba de tamaño (la pista de progreso se encogía 34 px). Por eso
 usa márgenes negativos —su caja de layout se queda en esos 22×14 px y el área táctil de 46 px
 sobresale— y pide una fila flex con `items-center`; si los tocas, mide la barra antes y
-después. La hoja vive dentro de la banderita: si la pantalla desmonta la barra con la hoja
-abierta (un cambio de etapa tras avanzar sola), se cierra con lo escrito.
+después. El ancho del hueco va en px (`w-[22px]`) y el alto en rem (`h-3.5`, el de la barra):
+el glifo no escala con el texto del sistema, y con `w-5.5` el hueco saltaba 6,6 px al aparecer
+la banderita con la escala en 1,3. La hoja vive dentro de la banderita: si la pantalla
+desmonta la barra con la hoja abierta (un cambio de etapa tras avanzar sola), se cierra con lo
+escrito.
 
 **La hoja.** `ReportSheet` solo pinta y envía: «¿Sobre cuál?» (con más de un candidato),
 «¿Qué pasó?» y «¡Gracias!». Es un diálogo de verdad: toma el scroll (`lib/scroll-lock.ts`), así
@@ -249,7 +253,10 @@ que pistas y avisos esperan, y contiene el teclado —los atajos de las leccione
 (`hooks/use-lesson-keys.ts`) cuelgan de `window` y, sin el corte del panel, el listener en
 captura y el foco que vuelve al panel en cada paso, un Enter con la hoja abierta avanzaba el
 ejercicio de detrás—. Si el envío falla, el error se queda en la hoja, el botón pasa a
-«Reintentar» y nada se pierde. En modo `app` (la fila «Reportar un problema» de Ajustes) no hay
+«Reintentar» y nada se pierde: la red, el tope diario (429) y la migración sin aplicar (503)
+tienen su texto, y un 400 muestra lo que dijo el servidor (`mensajeDelServidor`: «La foto del
+ejercicio es demasiado grande»), porque mandarlo otra vez igual no lo arregla. En modo `app`
+(la fila «Reportar un problema» de Ajustes) no hay
 objetivo: solo `bug` y `other`, y «¿Dónde pasó?» viaja en `context.lugar`. Todo reporte lleva
 la ruta, el navegador, la ventana, si la app está instalada y la versión
 (`lib/report-browser.ts`, leído al enviar; la versión es `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` y
@@ -320,7 +327,8 @@ montaje nuevo la reutiliza si es de la misma versión y más joven, y si no vuel
 que es lo que refresca una PWA abierta horas. No hay sondeo: lo que no se desmonta (el layout
 de admin, el chip) se actualiza cuando otro consumidor se monta pasados los 2 minutos o tras
 `refrescarConteoReportes()`, que se llama al cerrar un reporte. La cifra suma ejercicios con
-contenido pendiente y bugs pendientes, no reportes sueltos.
+contenido pendiente y bugs pendientes, no reportes sueltos: por eso los rótulos dicen «N
+pendientes» y no «N reportes».
 
 **Respuestas aceptadas.** `lib/accepted-answers.ts` es la gemela cliente de la normalización
 de `src/common/answer-alternatives.ts` en el backend (palabra: recorte, sin puntuación final y
@@ -337,6 +345,21 @@ antes. En ¡No lo revientes! las aceptadas se quitan DESPUÉS de barajar, así q
 alternativas la ronda sembrada sale idéntica a la de siempre. Con ellas no: aceptar una
 palabra que era señuelo de una pregunta con mazo sembrado (torneo, reto) cambia sus opciones
 para quien juegue después.
+
+Dos reglas valen para los órdenes aceptados, en `esOracionAceptada` y en `primerFalloEnOrden`:
+
+- Solo las alternativas se comparan normalizadas; la referencia (la secuencia 0 de `answers`,
+  o el texto de la oración) se compara como siempre, en mayúsculas y ficha a ficha. El
+  servidor tokeniza cada orden aceptado con `tokenizarOracion`, que le quita la puntuación a
+  la ÚLTIMA ficha, y las fichas de la bandeja la conservan («morning,»): sin normalizar, un
+  orden aceptado que acaba en esa ficha no coincidía nunca en el Constructor. La referencia no se
+  toca, para que el comportamiento de siempre y los mazos sembrados queden idénticos.
+- Un orden aceptado solo cuenta si tiene tantas fichas como la oración de ahora (contadas con
+  `tokenizarOracion`, la gemela de la del servidor). El servidor lo exige al crearlo, pero si
+  el admin edita la oración y esta crece, el orden viejo daría por buena una bandeja a medio
+  armar: la práctica corrige en cada cambio de la bandeja y «Confirmar» está listo desde la
+  primera ficha. El servidor también los filtra al armar `accepted_texts` y `answers`; el
+  cliente lo vuelve a comprobar para no depender de eso.
 
 **Al añadir algo.** Una pantalla de ejercicio nueva construye su objetivo con un constructor
 de `lib/report.ts`, lo publica con `usePublicarObjetivos`, registra la respuesta con

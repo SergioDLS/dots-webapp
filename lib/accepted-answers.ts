@@ -55,9 +55,9 @@ function mismaFicha(a: string, b: string): boolean {
 }
 
 /**
- * Las alternativas se compararon con `tokenizarOracion`, que le quita la
- * puntuación a la ÚLTIMA ficha; las de la bandeja la conservan («morning,»),
- * así que aquí se comparan normalizadas.
+ * El servidor tokeniza cada alternativa con `tokenizarOracion`, que le quita la
+ * puntuación a la ÚLTIMA ficha; las fichas de la bandeja la conservan
+ * («morning,»), así que aquí se comparan normalizadas.
  */
 function mismaFichaNormalizada(a: string, b: string): boolean {
   return normalizarPalabra(a) === normalizarPalabra(b);
