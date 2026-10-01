@@ -18,6 +18,8 @@ export type Sentence = {
   // Narration character key (absent for the default Doty voice)
   voice_key?: string;
   options: SentenceOption[];
+  /** «Arma la oración»: otros órdenes que el admin aceptó (spec reportes §4). */
+  accepted_texts?: string[];
 };
 
 /** Practice-session enrichment: per-run answer tracking on top of Sentence */

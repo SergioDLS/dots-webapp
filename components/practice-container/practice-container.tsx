@@ -14,6 +14,7 @@ import RewardPanel from "@/components/lesson/reward-panel";
 import type { Sentence, SentenceOption as Option } from "@/types/practice.types";
 import type { ProgressReward } from "@/services/engagement.service";
 import { resolveSentenceSoundUrl } from "@/constants";
+import { esOracionAceptada } from "@/lib/accepted-answers";
 import { moveItem } from "@/lib/tray-drop";
 import { useTrayDrag, DRAG_SCALE } from "./use-tray-drag";
 
@@ -24,7 +25,8 @@ interface PracticeContainerProps {
   mode: string;
   dataSentence: Sentence;
   answered: string;
-  click: (correct: boolean) => void;
+  /** `respuesta`: lo que el alumno armó o eligió, para el reporte de la pantalla. */
+  click: (correct: boolean, respuesta: string) => void;
   doty: DotyPose;
   streak: number;
   /** Enriched PUT /sentences/progress response (arrives async on end screens) */
@@ -95,7 +97,7 @@ export default function PracticeContainer({
           : arrayBuild.filter((itm) => itm.id !== item.id);
         const text = updatedBuild.map((o) => o.word).join(" ");
         setPracticeState((s) => ({ ...s, options: opts, buildUpSentence: updatedBuild }));
-        click(text.toUpperCase() === dataSentence.text.toUpperCase());
+        click(esOracionAceptada(text, dataSentence.text, dataSentence.accepted_texts), text);
         setFlyingId(null);
       }, 260);
     } else {
@@ -103,9 +105,9 @@ export default function PracticeContainer({
       newOptions.forEach((_, i) => { newOptions[i].selected = false; });
       if (realIdx !== -1) newOptions[realIdx].selected = true;
       setPracticeState((s) => ({ ...s, options: newOptions }));
-      click(item.correct);
+      click(item.correct, item.word);
     }
-  }, [answered, mode, options, buildUpSentence, dataSentence.text, click]);
+  }, [answered, mode, options, buildUpSentence, dataSentence.text, dataSentence.accepted_texts, click]);
 
   // Reordenar arrastrando dentro de la oración, sin desarmarla
   const reorderHandler = (from: number, to: number) => {
@@ -113,7 +115,7 @@ export default function PracticeContainer({
     const updatedBuild = moveItem(buildUpSentence, from, to);
     const text = updatedBuild.map((o) => o.word).join(" ");
     setPracticeState((s) => ({ ...s, buildUpSentence: updatedBuild }));
-    click(text.toUpperCase() === dataSentence.text.toUpperCase());
+    click(esOracionAceptada(text, dataSentence.text, dataSentence.accepted_texts), text);
   };
   const { trayRef, drag, chipProps, consumeClick } = useTrayDrag({
     enabled: mode === "buildUp" && answered === "" && flyingId === null,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
@@ -12,6 +12,9 @@ import AnswerFlash from "@/components/lesson/answer-flash";
 import LessonFooter from "@/components/lesson/lesson-footer";
 import api from "@/lib/api-client";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, esperadaDePractica, objetivoDePractica } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
 import { useAuth } from "@/context/auth-context";
 import type { PracticeSentence } from "@/types/practice.types";
 import {
@@ -37,6 +40,8 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   const [noSentences, setNoSentences] = useState(false);
   const [mode, setMode] = useState("complete");
   const [answer, setAnswer] = useState<boolean | null>(null);
+  // Lo que el alumno armó o eligió en la oración en pantalla (para el reporte).
+  const [respuesta, setRespuesta] = useState<string | null>(null);
   const [answerState, setAnswerState] = useState("");
   const [totalSentences, setTotalSentences] = useState(0);
   const [answered, setAnsweredCount] = useState(0);
@@ -46,6 +51,25 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   const [reward, setReward] = useState<ProgressReward | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [fetchAttempt, setFetchAttempt] = useState(0);
+
+  const isFinalMode =
+    mode === "finished" || mode === "perfect" || mode === "gameover";
+
+  // Reportes (spec 2026-10-01): la oración en pantalla, con su respuesta si ya se corrigió.
+  const sentenciaActual = arraySentences[indexSentence];
+  const objetivosPractica = useMemo(() => {
+    if (!sentenciaActual || isFinalMode || mode === "streak") return [];
+    const base = objetivoDePractica(sentenciaActual, mode, id);
+    if (answerState === "" || respuesta === null) return [base];
+    return [
+      conRespuesta(base, {
+        answer: respuesta,
+        expected: esperadaDePractica(sentenciaActual, mode),
+        wasWrong: answerState === "wrong",
+      }),
+    ];
+  }, [sentenciaActual, isFinalMode, mode, id, answerState, respuesta]);
+  usePublicarObjetivos(objetivosPractica);
 
   // ── Fetch ───────────────────────────────────────────────────────────────
   // Corre al montar y cada vez que "Reintentar" bumpea fetchAttempt.
@@ -78,8 +102,9 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   }, [lifes]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-  const isSelectedHandler = (correct: boolean) => {
+  const isSelectedHandler = (correct: boolean, texto: string) => {
     setAnswer(correct);
+    setRespuesta(texto);
     setConfirmReady(true);
   };
 
@@ -92,6 +117,15 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
       return;
     }
     if (answerState === "") {
+      if (sentenciaActual && respuesta !== null) {
+        registrarRespondido(
+          conRespuesta(objetivoDePractica(sentenciaActual, mode, id), {
+            answer: respuesta,
+            expected: esperadaDePractica(sentenciaActual, mode),
+            wasWrong: !answer,
+          }),
+        );
+      }
       if (answer) {
         const newAnswered = answered + 1;
         const updated = [...arraySentences];
@@ -135,6 +169,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
     setIndexSentence(index);
     setDoty("pensando");
     setAnswer(null);
+    setRespuesta(null);
     setAnswerState("");
     setMode(list[index].mode);
     setConfirmLabel("Confirm");
@@ -185,9 +220,6 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
-  const isFinalMode =
-    mode === "finished" || mode === "perfect" || mode === "gameover";
-
   let content: React.ReactNode = (
     <div className="flex h-full items-center justify-center">
       <Spinner />
