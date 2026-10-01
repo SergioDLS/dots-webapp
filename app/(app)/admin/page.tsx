@@ -45,6 +45,14 @@ const cards: Array<{
     edge: "var(--purple-edge)",
   },
   {
+    title: "Reportes",
+    desc: "Lo que los alumnos marcaron: erratas, oraciones raras, respuestas que deberían valer y fallos.",
+    href: "/admin/reports",
+    pose: "pensando",
+    accent: "var(--flame)",
+    edge: "var(--flame-edge)",
+  },
+  {
     title: "Users",
     desc: "Search students, edit their details, block or unblock accounts.",
     href: "/admin/users",

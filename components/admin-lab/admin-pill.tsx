@@ -3,6 +3,8 @@
 import { useCallback, useState } from "react";
 
 import { useAdminMode } from "@/hooks/use-admin-mode";
+import { useReportCounts } from "@/hooks/use-report-counts";
+import { totalPendientes } from "@/lib/report-counts";
 import AdminLabSheet from "./admin-lab-sheet";
 
 /**
@@ -17,9 +19,15 @@ import AdminLabSheet from "./admin-lab-sheet";
  * encendida: la barra no se estrecha y nada cuelga sobre la cabecera plegable
  * del Camino. En escritorio caben los dos. Para un alumno, y para el admin con
  * la lente apagada, la fila queda idéntica.
+ *
+ * Con reportes pendientes (spec reportes 2026-10-01 §2.1) lleva un puntito: el
+ * admin se entera por los contadores (este, Ajustes y el panel), no por correo.
  */
 export default function AdminPill() {
   const { encendido } = useAdminMode();
+  // Antes del `return null` (reglas de los hooks); un alumno o un admin con la
+  // lente apagada (`encendido` false) no pide nada.
+  const pendientes = totalPendientes(useReportCounts(encendido));
   const [open, setOpen] = useState(false);
   const cerrar = useCallback(() => setOpen(false), []);
 
@@ -30,7 +38,11 @@ export default function AdminPill() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Modo admin: abrir herramientas"
+        aria-label={`Modo admin: abrir herramientas${
+          pendientes > 0
+            ? ` · ${pendientes} ${pendientes === 1 ? "reporte pendiente" : "reportes pendientes"}`
+            : ""
+        }`}
         className="relative shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black tracking-widest transition-transform before:absolute before:-inset-2 before:content-[''] active:scale-95"
         style={{
           background: "var(--purple)",
@@ -39,6 +51,13 @@ export default function AdminPill() {
         }}
       >
         ADMIN
+        {pendientes > 0 && (
+          <span
+            aria-hidden
+            className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full"
+            style={{ background: "var(--danger)" }}
+          />
+        )}
       </button>
       <AdminLabSheet open={open} onClose={cerrar} />
     </>

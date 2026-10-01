@@ -7,7 +7,9 @@ import { useAuth } from "@/context/auth-context";
 import { ADMIN_PROFILE } from "@/constants";
 import Doty from "@/components/ui/doty/doty";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { useReportCounts } from "@/hooks/use-report-counts";
 import { useStoredUser } from "@/hooks/use-stored-user";
+import { totalPendientes } from "@/lib/report-counts";
 
 type Access = "checking" | "granted" | "denied";
 
@@ -17,6 +19,7 @@ const NAV_ITEMS = [
   { label: "Foundations", href: "/admin/foundations" },
   { label: "Path", href: "/admin/path" },
   { label: "Readings", href: "/admin/readings" },
+  { label: "Reportes", href: "/admin/reports" },
   { label: "Users", href: "/admin/users" },
 ];
 
@@ -47,6 +50,17 @@ export default function AdminLayout({
     if (!accessToken) return "denied";
     return Number(storedUser.profile) === ADMIN_PROFILE ? "granted" : "denied";
   }, [hydrated, isBootstrapping, accessToken, storedUser]);
+
+  // Pendientes de la bandeja de reportes (spec reportes 2026-10-01 §2.1), para
+  // el globo de la pestaña «Reportes». Solo se pide con acceso concedido: ni
+  // mientras se comprueba ni a quien no es admin. Antes de los `return` de abajo.
+  const pendientes = totalPendientes(useReportCounts(access === "granted"));
+  const globo =
+    pendientes > 0 ? (
+      <span className="ml-1.5 rounded-full bg-(--danger) px-1.5 py-0.5 text-[10px] font-black text-white">
+        {pendientes > 9 ? "9+" : pendientes}
+      </span>
+    ) : null;
 
   // Side-effect only: bounce unauthenticated visitors to login.
   useEffect(() => {
@@ -112,6 +126,7 @@ export default function AdminLayout({
                   }`}
                 >
                   {item.label}
+                  {item.href === "/admin/reports" && globo}
                 </Link>
               );
             })}
@@ -146,6 +161,7 @@ export default function AdminLayout({
                 }`}
               >
                 {item.label}
+                {item.href === "/admin/reports" && globo}
               </Link>
             );
           })}

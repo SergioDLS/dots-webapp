@@ -6,6 +6,8 @@ import Link from "next/link";
 import AdminModeSwitch from "@/components/admin-lab/admin-mode-switch";
 import ReportSheet from "@/components/report/report-sheet";
 import { Icon } from "@/components/ui/icon";
+import { useReportCounts } from "@/hooks/use-report-counts";
+import { totalPendientes } from "@/lib/report-counts";
 import { PALETTE_ACCENTS, PALETTES, PALETTE_LABELS, type Palette } from "@/lib/theme-colors";
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
 import {
@@ -98,6 +100,9 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
     setReportando(false);
     panelRef.current?.focus();
   }, []);
+  // Antes del `return null` de abajo (reglas de los hooks). Solo pide algo si
+  // `isAdmin`: un alumno nunca llama a /admin/*.
+  const pendientes = totalPendientes(useReportCounts(isAdmin));
 
   // Va en su propio efecto con [open] como única dependencia: si dependiera
   // de onClose (nueva en cada render de la página), le robas el foco al
@@ -276,10 +281,18 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
               <Link
                 href="/admin"
                 onClick={onClose}
-                className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
+                className="relative flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
               >
                 Panel de admin
+                {pendientes > 0 ? ` · ${pendientes} ${pendientes === 1 ? "reporte" : "reportes"}` : ""}
                 <Icon name="derecha" size={16} mono />
+                {pendientes > 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full"
+                    style={{ background: "var(--danger)" }}
+                  />
+                )}
               </Link>
             </section>
           )}
