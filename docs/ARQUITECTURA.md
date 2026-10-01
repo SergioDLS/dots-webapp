@@ -201,10 +201,12 @@ nunca aparece en ellas ni cobra sus premios, y `top-students.tsx` le oculta el b
 El alumno avisa de un ejercicio con una banderita (`components/report/`), el admin lo arregla
 en `/admin/reports` (`components/admin/reports/`) y el alumno se entera al volver al Camino;
 un reporte de alumno cerrado como arreglado le paga 10 gemas (a un perfil 1, nunca). Spec:
-`docs/superpowers/specs/2026-10-01-reportes-de-ejercicios-design.md`. El servidor (tablas,
-fusión de duplicados, tope diario, cierre con gemas) vive en `src/modules/reports/` del
-backend; sin su migración aplicada el POST de reportes responde 503 (cerrar y aceptar
-también) y las lecturas llegan vacías.
+`docs/superpowers/specs/2026-10-01-reportes-de-ejercicios-design.md`. En el backend, el alta,
+la fusión de duplicados, el tope diario y los avisos viven en `src/modules/reports/`; el
+cierre con gemas (`resolve`) y toda la bandeja del admin, en
+`src/modules/admin/admin-reports.service.ts` y `admin-reports.controller.ts`; y las tablas
+las crea `scripts/migrate-reports.js`. Sin esa migración aplicada, el POST de reportes
+responde 503 (cerrar y aceptar también) y las lecturas llegan vacías.
 
 **Qué se reporta, y por qué un store.** Cada pantalla describe lo que tiene delante con un
 `ReportTarget` (`lib/report.ts`; el `id` es string porque `sentences.id` es bigint), armado
