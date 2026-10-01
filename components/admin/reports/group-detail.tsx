@@ -11,6 +11,7 @@ import {
   ETIQUETA_TIPO,
   alternativaPara,
   camposVisibles,
+  cierraAlGuardar,
   etiquetaMotivoAdmin,
   etiquetaSuperficie,
   fechaCorta,
@@ -317,9 +318,9 @@ export default function GroupDetail({
           }}
           onSaved={(m) => {
             flash(m);
-            // La oración sigue abierta tras guardar, como en Levels: ahí se escucha su
-            // narración recién regenerada («revísala abajo»). Los demás modales se cierran.
-            if (type !== "sentence") setEditando(false);
+            // La oración sigue abierta tras guardar, como en Levels (ver cierraAlGuardar);
+            // los demás modales se cierran.
+            if (cierraAlGuardar(type)) setEditando(false);
             setFetchAttempt((n) => n + 1);
           }}
         />

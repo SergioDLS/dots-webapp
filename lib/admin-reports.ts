@@ -132,24 +132,52 @@ export function idsPendientes(reports: ReadonlyArray<{ id: number; status: strin
   return reports.filter((r) => r.status === "pending").map((r) => r.id);
 }
 
+/**
+ * ¿Se puede abrir en un editor el ejercicio de un reporte? Todo el que tenga
+ * ejercicio salvo el falso amigo, que vive fijo en el código (FALSE_FRIENDS en
+ * games.service.ts) y no tiene contenido que editar. Un reporte sin ejercicio
+ * (un bug general) tampoco tiene nada que abrir.
+ */
+export function esEditable(type: string | null, id: string | null): boolean {
+  return Boolean(type) && Boolean(id) && type !== "false_friend";
+}
+
+/**
+ * Qué hace el modal de edición tras «Guardar» cuando se abre desde la bandeja:
+ * se cierra, salvo el de la oración. Ese sigue abierto, como en Levels, porque
+ * el backend re-narra al guardar y el studio de voz que lleva dentro es donde
+ * se escucha (y se avisa «La narración NO se pudo generar — revísala abajo»).
+ */
+export function cierraAlGuardar(type: string): boolean {
+  return type !== "sentence";
+}
+
 const esObjeto = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 
 /**
+ * Los únicos estados cuyo `message` escribe el backend en español y explica el
+ * porqué: 400 (validación y reglas de las alternativas), 404, 409 (otro admin
+ * se adelantó) y 503 (migración sin aplicar). Con los demás no se muestra lo
+ * que diga el servidor: los 401 y 403 de Nest vienen en inglés («Unauthorized»,
+ * «Forbidden resource») y los 5xx son el servidor o su proxy fallando.
+ */
+const ESTADOS_QUE_EXPLICAN: readonly number[] = [400, 404, 409, 503];
+
+/**
  * Lo que el servidor dijo al rechazar una acción del admin (cerrar, aceptar,
- * quitar), o `porDefecto` si no dijo nada utilizable. Los 400, 404, 409 y 503
- * del backend ya vienen en español y explican el porqué («El orden aceptado
- * debe usar las mismas fichas que la oración»). `message` es un texto, o un
- * arreglo de textos cuando lo rechaza el ValidationPipe de Nest, que se une
- * con « · ».
+ * quitar, abrir un ejercicio), o `porDefecto` si no dijo nada utilizable.
+ * `message` es un texto, o un arreglo de textos cuando lo rechaza el
+ * ValidationPipe de Nest, que se une con « · » («El orden aceptado debe usar
+ * las mismas fichas que la oración»).
  *
- * Un 5xx que no sea 503 es el servidor (o su proxy) fallando: su texto no
- * explica nada al admin, así que cae al de por defecto, igual que un error que
- * no trae respuesta del servidor (red caída, fallo de nuestro código).
+ * Solo se fía del texto en `ESTADOS_QUE_EXPLICAN`. Un error sin respuesta del
+ * servidor (red caída, fallo de nuestro código) o con un cuerpo que no es un
+ * objeto con mensaje (el HTML de un proxy) también cae al de por defecto.
  */
 export function mensajeDelServidor(err: unknown, porDefecto: string): string {
   if (!esObjeto(err) || !esObjeto(err.response)) return porDefecto;
   const { status, data } = err.response;
-  if (typeof status === "number" && status >= 500 && status !== 503) return porDefecto;
+  if (typeof status !== "number" || !ESTADOS_QUE_EXPLICAN.includes(status)) return porDefecto;
   if (!esObjeto(data)) return porDefecto;
   const partes = (Array.isArray(data.message) ? data.message : [data.message])
     .filter((p): p is string => typeof p === "string")

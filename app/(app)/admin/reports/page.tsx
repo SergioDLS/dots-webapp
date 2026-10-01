@@ -61,6 +61,9 @@ export default function AdminReportsPage() {
     setFetchAttempt((n) => n + 1);
     refrescarConteoReportes();
   };
+  // Relectura en el sitio: la lista se queda en pantalla mientras llega la nueva (BugList la pide
+  // tras editar un ejercicio; vaciarla desmontaría el editor que sigue abierto).
+  const releer = () => setFetchAttempt((n) => n + 1);
   const cambiarPestana = (p: Pestana) => {
     setPestana(p);
     setLoadError(false);
@@ -128,7 +131,7 @@ export default function AdminReportsPage() {
       ) : pestana === "contenido" ? (
         <GroupList grupos={grupos ?? []} onAbrir={(type, id) => setAbierto({ type, id })} />
       ) : (
-        <BugList bugs={bugs ?? []} flash={flash} onCambio={recargar} />
+        <BugList bugs={bugs ?? []} flash={flash} onCambio={recargar} onReleer={releer} />
       )}
 
       {toast && <ToastBanner toast={toast} />}
