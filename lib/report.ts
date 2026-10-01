@@ -77,7 +77,11 @@ type NuevoObjetivo = {
   context?: Contexto;
 };
 
-const recortar = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
+// slice corta por unidades UTF-16: si cae entre las dos mitades de un emoji
+// queda un sustituto alto suelto, y el cast a jsonb del servidor lo rechaza
+// (500 en todos los reportes de ese ítem). Se descarta esa media pareja.
+const recortar = (s: string, max: number) =>
+  s.length > max ? `${s.slice(0, max - 1).replace(/[\ud800-\udbff]$/, "")}…` : s;
 
 export function objetivo(n: NuevoObjetivo): ReportTarget {
   // Validar id: debe ser un número (incluyendo negativos para false_friend).
@@ -279,7 +283,11 @@ export function objetivoDePractica(
     snapshot: {
       prompt: mode === "witchIs" ? `Which is: ${correcta}?` : s.text,
       ...(mode === "buildUp" ? {} : { options: s.options.map((o) => o.word) }),
-      ...(mode === "guessImg" && s.img ? { image: s.img } : {}),
+      // La foto lleva la imagen solo en los modos que la enseñan: «What is
+      // this?» y «Which is» (ahí es la de la opción correcta). En buildUp y en
+      // los de escucha el backend la cambia por un placeholder, y «complete»
+      // no la pinta.
+      ...((mode === "guessImg" || mode === "witchIs") && s.img ? { image: s.img } : {}),
     },
     hasAudio: Boolean(s.sentence_extension),
     hasImage: mode === "guessImg" || mode === "witchIs",

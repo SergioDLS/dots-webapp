@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Doty, { type DotyPose } from "@/components/ui/doty/doty";
@@ -71,6 +71,17 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
   }, [sentenciaActual, isFinalMode, mode, id, answerState, respuesta]);
   usePublicarObjetivos(objetivosPractica);
 
+  // `PracticeContainer` llama a `click` desde un temporizador de 260 ms (la
+  // ficha que vuela a la bandeja), con el `click` del render en que se tocó la
+  // ficha: ahí `answerState` sigue siendo "" aunque se haya confirmado entre
+  // medias, así que comprobarlo directamente no frena nada. Este ref lo trae al
+  // día para que un toque tardío no cambie `answer` ni `respuesta` después de
+  // corregir.
+  const answerStateRef = useRef(answerState);
+  useEffect(() => {
+    answerStateRef.current = answerState;
+  }, [answerState]);
+
   // ── Fetch ───────────────────────────────────────────────────────────────
   // Corre al montar y cada vez que "Reintentar" bumpea fetchAttempt.
   useEffect(() => {
@@ -103,6 +114,7 @@ function PracticeClient({ onRestart }: { onRestart: () => void }) {
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const isSelectedHandler = (correct: boolean, texto: string) => {
+    if (answerStateRef.current !== "") return;
     setAnswer(correct);
     setRespuesta(texto);
     setConfirmReady(true);
