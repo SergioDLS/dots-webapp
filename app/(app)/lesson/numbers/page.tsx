@@ -11,9 +11,13 @@ import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
 import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
+import ReportFlagRow from "@/components/report/report-flag-row";
 import { useAuth } from "@/context/auth-context";
 import { useLessonAudio } from "@/hooks/use-lesson-audio";
 import { useLessonSession } from "@/hooks/use-lesson-session";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { conRespuesta, objetivoDeNumero } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import {
   getNodeContentService,
   putNodeProgressService,
@@ -170,18 +174,32 @@ function NumbersDrill({
   }, [phase, targetId, targetAudio, play]);
 
   // Ronda inversa: numeral → elige el audio. Distractores del pack completo.
+  // `respuesta` es cómo se nombra cada audio al elegirlo (el número en palabra).
   const inverseItems = useMemo<AudioChoice[]>(
     () =>
       tramo
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio!, character: it.character ?? null })),
-    [tramo],
+        .map((it) => ({
+          id: it.id,
+          prompt: String(it.value),
+          audio: it.audio!,
+          character: it.character ?? null,
+          respuesta: it.word,
+          objetivo: objetivoDeNumero(it, "inverse", nodeId),
+        })),
+    [tramo, nodeId],
   );
   const inversePool = useMemo<AudioChoice[]>(
     () =>
       content.items
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: String(it.value), audio: it.audio!, character: it.character ?? null })),
+        .map((it) => ({
+          id: it.id,
+          prompt: String(it.value),
+          audio: it.audio!,
+          character: it.character ?? null,
+          respuesta: it.word,
+        })),
     [content.items],
   );
   const hasInverse = inverseItems.length >= 2;
@@ -200,6 +218,23 @@ function NumbersDrill({
     const distractors = shuffle(pool).slice(0, OPTION_COUNT - 1);
     return shuffle([t.value, ...distractors]);
   }, [tramo, content.items, targetId]);
+
+  // Reportes (spec 2026-10-01): lo que hay en pantalla, con la respuesta si ya
+  // se corrigió. En inverse y match publican sus hijos (`null`: no los pisa).
+  const objetivos = useMemo(() => {
+    if (phase !== "recognize") return phase === "done" ? [] : null;
+    if (!target) return [];
+    const base = objetivoDeNumero(target, "recognize", nodeId);
+    if (!feedback) return [base];
+    return [
+      conRespuesta(base, {
+        answer: String(feedback.value),
+        expected: String(target.value),
+        wasWrong: feedback.kind !== "correct",
+      }),
+    ];
+  }, [phase, target, feedback, nodeId]);
+  usePublicarObjetivos(objetivos);
 
   // Envía SOLO los ítems del tramo, una vez (guard con ref).
   const finishSession = () => {
@@ -272,6 +307,7 @@ function NumbersDrill({
   if (phase === "inverse") {
     return (
       <div className="flex flex-col gap-4 w-full">
+        <ReportFlagRow />
         <p className="text-center text-sm text-(--muted)">
           Aprendidos {session.learnedBefore} de {session.packTotal} · ahora al
           revés
@@ -298,10 +334,12 @@ function NumbersDrill({
   if (phase === "match") {
     return (
       <div className="flex flex-col gap-4 w-full">
+        <ReportFlagRow />
         <p className="text-center font-semibold">
           Empareja el número con su palabra
         </p>
         <MatchRound
+          nodeId={nodeId}
           items={tramo}
           onWrong={(itemId) =>
             setResults((prev) => ({
@@ -327,6 +365,13 @@ function NumbersDrill({
   const onPick = (value: number) => {
     if (lockRef.current) return;
     lockRef.current = true;
+    registrarRespondido(
+      conRespuesta(objetivoDeNumero(target, "recognize", nodeId), {
+        answer: String(value),
+        expected: String(target.value),
+        wasWrong: value !== target.value,
+      }),
+    );
     if (value === target.value) {
       // Refuerzo: se repite el clip al acertar.
       if (audioSrc) play(audioSrc);
@@ -366,6 +411,7 @@ function NumbersDrill({
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      <ReportFlagRow />
       <div className="text-center text-sm text-(--muted)">
         Aprendidos {session.learnedBefore} de {session.packTotal} · sesión{" "}
         {mastered}/{tramo.length}
@@ -445,10 +491,13 @@ function NumbersDrill({
 // ── Emparejar numeral ↔ palabra en grupos de hasta 5 pares (solo el tramo) ───
 
 function MatchRound({
+  nodeId,
   items,
   onWrong,
   onComplete,
 }: {
+  /** El nodo de la lección, para el contexto de los reportes. */
+  nodeId: number;
   items: NumberItem[];
   /** Se llama por cada pareja errada, con el id del numeral tocado. */
   onWrong: (itemId: number) => void;
@@ -475,6 +524,14 @@ function MatchRound({
   const chunk = useMemo(() => chunks[chunkIdx] ?? [], [chunks, chunkIdx]);
   const words = useMemo(() => shuffle(chunk), [chunk]);
 
+  // Reportes (spec 2026-10-01): las parejas del grupo en pantalla; el padre
+  // no publica mientras tanto.
+  const objetivos = useMemo(
+    () => chunk.map((it) => objetivoDeNumero(it, "match", nodeId)),
+    [chunk, nodeId],
+  );
+  usePublicarObjetivos(objetivos);
+
   const evaluate = (leftId: number, rightId: number) => {
     setSelLeft(null);
     setSelRight(null);
@@ -495,6 +552,17 @@ function MatchRound({
         }, FEEDBACK_MS);
       }
     } else {
+      const izq = chunk.find((it) => it.id === leftId);
+      const der = chunk.find((it) => it.id === rightId);
+      if (izq && der) {
+        registrarRespondido(
+          conRespuesta(objetivoDeNumero(izq, "match", nodeId), {
+            answer: der.word,
+            expected: izq.word,
+            wasWrong: true,
+          }),
+        );
+      }
       onWrong(leftId);
       setWrongPair({ left: leftId, right: rightId });
       setTimeout(() => setWrongPair(null), FEEDBACK_MS);

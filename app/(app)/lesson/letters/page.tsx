@@ -12,9 +12,13 @@ import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
 import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
+import ReportFlagRow from "@/components/report/report-flag-row";
 import { useAuth } from "@/context/auth-context";
 import { useLessonAudio } from "@/hooks/use-lesson-audio";
 import { useLessonSession } from "@/hooks/use-lesson-session";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { conRespuesta, objetivoDeLetra } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import {
   getNodeContentService,
   putNodeProgressService,
@@ -117,18 +121,32 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
   }, [stage, targetId, targetAudio, play]);
 
   // Ronda inversa: ítems del tramo con audio; distractores del pack completo.
+  // `respuesta` es cómo se nombra cada audio al elegirlo (la letra).
   const inverseItems = useMemo<AudioChoice[]>(
     () =>
       tramo
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio!, character: it.character ?? null })),
-    [tramo],
+        .map((it) => ({
+          id: it.id,
+          prompt: it.letter,
+          audio: it.audio!,
+          character: it.character ?? null,
+          respuesta: it.letter,
+          objetivo: objetivoDeLetra(it, "inverse", nodeId),
+        })),
+    [tramo, nodeId],
   );
   const inversePool = useMemo<AudioChoice[]>(
     () =>
       content.items
         .filter((it) => it.audio)
-        .map((it) => ({ id: it.id, prompt: it.letter, audio: it.audio!, character: it.character ?? null })),
+        .map((it) => ({
+          id: it.id,
+          prompt: it.letter,
+          audio: it.audio!,
+          character: it.character ?? null,
+          respuesta: it.letter,
+        })),
     [content.items],
   );
   const hasInverse = inverseItems.length >= 2;
@@ -149,6 +167,26 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
     // targetId + queue.length drive the turn change; target derives from them.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId, queue.length, content.items]);
+
+  // Reportes (spec 2026-10-01): lo que hay en pantalla, con la respuesta si ya
+  // se corrigió. En la ronda inversa publica AudioChoiceQuiz (`null`: no lo pisa).
+  const objetivos = useMemo(() => {
+    if (stage === "present") {
+      return session.newItems.map((it) => objetivoDeLetra(it, "present", nodeId));
+    }
+    if (stage === "inverse") return null;
+    if (stage === "done" || !target) return [];
+    const base = objetivoDeLetra(target, "direct", nodeId);
+    if (feedback === "idle" || picked === null) return [base];
+    return [
+      conRespuesta(base, {
+        answer: picked,
+        expected: target.letter,
+        wasWrong: feedback !== "correct",
+      }),
+    ];
+  }, [stage, session.newItems, target, feedback, picked, nodeId]);
+  usePublicarObjetivos(objetivos);
 
   // Envía SOLO los ítems del tramo, una vez (guard con ref).
   const finishSession = (finalResults: Record<number, ItemResult>) => {
@@ -180,6 +218,13 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
   const onPick = (letter: string) => {
     if (!target || advancingRef.current) return;
     advancingRef.current = true;
+    registrarRespondido(
+      conRespuesta(objetivoDeLetra(target, "direct", nodeId), {
+        answer: letter,
+        expected: target.letter,
+        wasWrong: letter !== target.letter,
+      }),
+    );
 
     if (letter === target.letter) {
       // Refuerzo: se repite el clip al acertar.
@@ -282,10 +327,12 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
         <h1 className="text-center text-lg font-extrabold text-(--foreground)">
           {content.title}
         </h1>
-        <p className="text-center text-xs font-bold text-(--muted)">
-          Letras nuevas de esta sesión — toca cada una para oírla ({seen.size}/
-          {newItems.length})
-        </p>
+        <ReportFlagRow>
+          <p className="text-center text-xs font-bold text-(--muted)">
+            Letras nuevas de esta sesión — toca cada una para oírla ({seen.size}/
+            {newItems.length})
+          </p>
+        </ReportFlagRow>
 
         <div className="grid grid-cols-4 gap-2">
           {newItems.map((it) => {
@@ -323,10 +370,12 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
   if (stage === "inverse") {
     return (
       <div className="flex w-full flex-col gap-4">
-        <p className="text-center text-xs font-bold text-(--muted)">
-          Aprendidas {session.learnedBefore} de {session.packTotal} · ahora al
-          revés
-        </p>
+        <ReportFlagRow>
+          <p className="text-center text-xs font-bold text-(--muted)">
+            Aprendidas {session.learnedBefore} de {session.packTotal} · ahora al
+            revés
+          </p>
+        </ReportFlagRow>
         <div className="dots-card p-5">
           <AudioChoiceQuiz
             items={inverseItems}
@@ -354,10 +403,12 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
   return (
     <div className="flex w-full flex-col gap-4">
       {/* Session + pack progress */}
-      <p className="text-center text-xs font-bold text-(--muted)">
-        Aprendidas {session.learnedBefore} de {session.packTotal} · sesión{" "}
-        {answeredCount}/{tramo.length}
-      </p>
+      <ReportFlagRow>
+        <p className="text-center text-xs font-bold text-(--muted)">
+          Aprendidas {session.learnedBefore} de {session.packTotal} · sesión{" "}
+          {answeredCount}/{tramo.length}
+        </p>
+      </ReportFlagRow>
 
       {/* Prompt: the clip autoplays (tap to replay) — or text if no audio */}
       <div className="dots-card flex flex-col items-center gap-3 p-6 text-center">

@@ -6,7 +6,10 @@ import { Icon } from "@/components/ui/icon";
 import UIButton from "@/components/ui/button/button";
 import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { optionStyles } from "@/components/lesson/option-styles";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, type ReportTarget } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import type { ItemCharacter } from "@/services/lessons.service";
 
 /**
@@ -22,6 +25,10 @@ export type AudioChoice = {
   prompt: string;
   audio: string;
   character?: ItemCharacter | null;
+  /** El ítem como objetivo de reporte; sin él, el quiz no publica nada. */
+  objetivo?: ReportTarget;
+  /** Cómo se nombra este audio al elegirlo («Elegiste «big»»). */
+  respuesta?: string;
 };
 
 interface Props {
@@ -85,6 +92,22 @@ export default function AudioChoiceQuiz({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId, queue.length, pool]);
 
+  // Reportes (spec 2026-10-01): este quiz es el dueño del ejercicio; el padre
+  // no publica mientras tanto.
+  const objetivos = useMemo(() => {
+    if (!target?.objetivo) return null;
+    if (feedback === null || selected === null) return [target.objetivo];
+    const elegido = options.find((o) => o.id === selected);
+    return [
+      conRespuesta(target.objetivo, {
+        answer: elegido?.respuesta ?? elegido?.prompt ?? "",
+        expected: target.respuesta ?? target.prompt,
+        wasWrong: feedback === "wrong",
+      }),
+    ];
+  }, [target, feedback, selected, options]);
+  usePublicarObjetivos(objetivos);
+
   if (!target) return null;
 
   const pick = (option: AudioChoice) => {
@@ -96,6 +119,16 @@ export default function AudioChoiceQuiz({
   const check = () => {
     if (lockRef.current || selected === null) return;
     lockRef.current = true;
+    if (target.objetivo) {
+      const elegido = options.find((o) => o.id === selected);
+      registrarRespondido(
+        conRespuesta(target.objetivo, {
+          answer: elegido?.respuesta ?? elegido?.prompt ?? "",
+          expected: target.respuesta ?? target.prompt,
+          wasWrong: selected !== target.id,
+        }),
+      );
+    }
 
     if (selected === target.id) {
       playSound("correct");

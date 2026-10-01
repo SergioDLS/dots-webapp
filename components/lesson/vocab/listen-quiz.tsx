@@ -5,12 +5,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { baseOptionCls, optionStyles } from "@/components/lesson/option-styles";
 import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeVocab } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import type { VocabContent } from "@/services/lessons.service";
 
 type VocabItem = VocabContent["items"][number];
 
 interface Props {
+  /** El nodo de la lección, para el contexto de los reportes. */
+  nodeId: number;
   /** Ítems de esta sesión (tramo); los sin audio se saltan esta ronda. */
   items: VocabItem[];
   /** Pool de distractores (el pack completo). Default: items. */
@@ -40,6 +45,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 /** Ear-first round: hear the EN word, pick its ES meaning. Wrong picks re-queue. */
 export default function ListenQuiz({
+  nodeId,
   items,
   pool,
   play,
@@ -83,11 +89,35 @@ export default function ListenQuiz({
     return shuffle(picked);
   }, [target, distractorPool]);
 
+  // Reportes (spec 2026-10-01): este quiz es el dueño del ejercicio; el padre
+  // no publica mientras tanto.
+  const objetivos = useMemo(() => {
+    if (!target) return [];
+    const base = objetivoDeVocab(target, "lesson-vocab", "listen", { nodeId });
+    if (!feedback) return [base];
+    const elegido = options.find((o) => o.id === feedback.id);
+    return [
+      conRespuesta(base, {
+        answer: elegido?.meaning ?? "",
+        expected: target.meaning,
+        wasWrong: !feedback.ok,
+      }),
+    ];
+  }, [target, feedback, options, nodeId]);
+  usePublicarObjetivos(objetivos);
+
   if (!target) return null;
 
   const answer = (option: VocabItem) => {
     if (lockRef.current) return;
     lockRef.current = true;
+    registrarRespondido(
+      conRespuesta(objetivoDeVocab(target, "lesson-vocab", "listen", { nodeId }), {
+        answer: option.meaning,
+        expected: target.meaning,
+        wasWrong: option.id !== target.id,
+      }),
+    );
     if (option.id === target.id) {
       // Refuerzo: se repite el clip al acertar.
       if (target.audio) play(target.audio);

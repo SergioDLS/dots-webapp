@@ -16,8 +16,11 @@ import MatchQuiz from "@/components/lesson/vocab/match-quiz";
 import AudioChoiceQuiz, {
   type AudioChoice,
 } from "@/components/lesson/shared/audio-choice-quiz";
+import ReportFlagRow from "@/components/report/report-flag-row";
 import { useLessonAudio } from "@/hooks/use-lesson-audio";
 import { useLessonSession } from "@/hooks/use-lesson-session";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { objetivoDeVocab } from "@/lib/report";
 import {
   putNodeProgressService,
   type NodeProgressReward,
@@ -66,20 +69,45 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
   const allSeen = seen.size === newItems.length;
 
   // Ronda inversa: significado (ES) → elige el audio (EN) entre altavoces.
+  // `respuesta` es cómo se nombra cada audio al elegirlo (la palabra en inglés).
   const inverseItems = useMemo<AudioChoice[]>(
     () =>
       tramo
         .filter((i) => i.audio)
-        .map((i) => ({ id: i.id, prompt: i.meaning, audio: i.audio!, character: i.character ?? null })),
-    [tramo],
+        .map((i) => ({
+          id: i.id,
+          prompt: i.meaning,
+          audio: i.audio!,
+          character: i.character ?? null,
+          respuesta: i.text,
+          objetivo: objetivoDeVocab(i, "lesson-vocab", "inverse", { nodeId }),
+        })),
+    [tramo, nodeId],
   );
   const inversePool = useMemo<AudioChoice[]>(
     () =>
       content.items
         .filter((i) => i.audio)
-        .map((i) => ({ id: i.id, prompt: i.meaning, audio: i.audio!, character: i.character ?? null })),
+        .map((i) => ({
+          id: i.id,
+          prompt: i.meaning,
+          audio: i.audio!,
+          character: i.character ?? null,
+          respuesta: i.text,
+        })),
     [content.items],
   );
+
+  // Reportes (spec 2026-10-01): la presentación publica sus palabras nuevas;
+  // en las otras etapas publica el hijo que tiene el ejercicio (`null`: no lo
+  // pisa) y en el resumen no hay nada que reportar.
+  const objetivos = useMemo(() => {
+    if (stage === "present") {
+      return newItems.map((item) => objetivoDeVocab(item, "lesson-vocab", "present", { nodeId }));
+    }
+    return stage === "summary" ? [] : null;
+  }, [stage, newItems, nodeId]);
+  usePublicarObjetivos(objetivos);
 
   // Report progress exactly once when the match quiz completes. Sends ONLY the
   // session items (tramo); times_wrong accumulates across all rounds.
@@ -115,6 +143,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
   if (stage === "present") {
     return (
       <div className="flex flex-col gap-4 w-full">
+        <ReportFlagRow />
         <PanelWrapper>
           <SectionLabel emoji="🃏">{content.title}</SectionLabel>
           <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
@@ -154,6 +183,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
         <PanelWrapper>
           <SectionLabel emoji={<Icon name="escucha" size={20} />}>{content.title}</SectionLabel>
           <ListenQuiz
+            nodeId={nodeId}
             items={tramo}
             pool={content.items}
             play={play}
@@ -200,6 +230,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
         <PanelWrapper>
           <SectionLabel emoji="🃏">{content.title}</SectionLabel>
           <MatchQuiz
+            nodeId={nodeId}
             items={tramo}
             onWrong={onWrong}
             onProgress={setProgress}

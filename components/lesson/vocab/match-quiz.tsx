@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react";
 
 import { baseOptionCls } from "@/components/lesson/option-styles";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
 import { playSound } from "@/lib/feedback-sounds";
+import { conRespuesta, objetivoDeVocab } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import type { VocabContent } from "@/services/lessons.service";
 
 type VocabItem = VocabContent["items"][number];
@@ -11,6 +14,8 @@ type VocabItem = VocabContent["items"][number];
 const ROUND_SIZE = 5;
 
 interface Props {
+  /** El nodo de la lección, para el contexto de los reportes. */
+  nodeId: number;
   items: VocabItem[];
   /** Called once per wrong EN-word pick (feeds times_wrong). */
   onWrong: (itemId: number) => void;
@@ -30,7 +35,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /** Match EN words to ES meanings in rounds of up to 5 pairs. */
-export default function MatchQuiz({ items, onWrong, onComplete, onProgress }: Props) {
+export default function MatchQuiz({ nodeId, items, onWrong, onComplete, onProgress }: Props) {
   const rounds = useMemo(() => {
     const chunks: VocabItem[][] = [];
     for (let i = 0; i < items.length; i += ROUND_SIZE) {
@@ -48,6 +53,14 @@ export default function MatchQuiz({ items, onWrong, onComplete, onProgress }: Pr
 
   const round = useMemo(() => rounds[roundIdx] ?? [], [rounds, roundIdx]);
   const esColumn = useMemo(() => shuffle(round), [round]);
+
+  // Reportes (spec 2026-10-01): las parejas de la ronda en pantalla; el
+  // padre no publica mientras tanto.
+  const objetivos = useMemo(
+    () => round.map((item) => objetivoDeVocab(item, "lesson-vocab", "match", { nodeId })),
+    [round, nodeId],
+  );
+  usePublicarObjetivos(objetivos);
 
   const evaluate = (enId: number, esId: number) => {
     if (enId === esId) {
@@ -68,6 +81,17 @@ export default function MatchQuiz({ items, onWrong, onComplete, onProgress }: Pr
         }
       }
     } else {
+      const en = round.find((i) => i.id === enId);
+      const es = round.find((i) => i.id === esId);
+      if (en && es) {
+        registrarRespondido(
+          conRespuesta(objetivoDeVocab(en, "lesson-vocab", "match", { nodeId }), {
+            answer: es.meaning,
+            expected: en.meaning,
+            wasWrong: true,
+          }),
+        );
+      }
       playSound("wrong");
       onWrong(enId);
       setShakeId(enId);
