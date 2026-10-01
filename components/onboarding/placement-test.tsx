@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import Doty from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
@@ -11,8 +11,12 @@ import {
 } from "@/components/lesson/option-styles";
 import LessonFooter from "@/components/lesson/lesson-footer";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { conRespuesta, objetivoDeOracion } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
 import {
   answerPlacementService,
+  type PlacementQuestion,
   type PlacementResult,
   type PlacementStart,
 } from "@/services/placement.service";
@@ -21,6 +25,12 @@ interface Props {
   test: PlacementStart;
   onFinished: (result: PlacementResult) => void;
 }
+
+/** La pregunta de la prueba como objetivo de reporte: la misma para lo que se publica y lo que se registra. */
+const objetivoDeNivelacion = (q: PlacementQuestion, testId: number) =>
+  objetivoDeOracion({ id: q.sentenceId, text: q.text, options: q.options }, "placement", {
+    context: { testId },
+  });
 
 /**
  * Adaptive test, one question at a time. Deliberately silent: no
@@ -34,6 +44,12 @@ export default function PlacementTest({ test, onFinished }: Props) {
 
   const confirm = () => {
     if (selected === null || sending) return;
+    // `wasWrong: null` y sin `expected`, aunque la respuesta del servidor traiga
+    // `correct`: la prueba es muda a propósito y reportar no debe delatar si
+    // acertaste.
+    registrarRespondido(
+      conRespuesta(objetivoDeNivelacion(question, test.testId), { answer: selected, wasWrong: null }),
+    );
     setSending(true);
     answerPlacementService(test.testId, question.sentenceId, selected)
       .then((res) => {
@@ -48,6 +64,14 @@ export default function PlacementTest({ test, onFinished }: Props) {
       .catch(console.error)
       .finally(() => setSending(false));
   };
+
+  // Reportes (spec 2026-10-01): la pregunta en pantalla, con la opción elegida
+  // pero sin decir si acierta (`wasWrong: null`: así no sale «debería estar bien»).
+  const objetivos = useMemo(() => {
+    const base = objetivoDeNivelacion(question, test.testId);
+    return [selected === null ? base : conRespuesta(base, { answer: selected, wasWrong: null })];
+  }, [question, selected, test.testId]);
+  usePublicarObjetivos(objetivos);
 
   return (
     <div className="flex flex-col gap-4 w-full">

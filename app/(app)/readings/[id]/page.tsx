@@ -8,8 +8,11 @@ import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import UIButton from "@/components/ui/button/button";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import ReportFlag from "@/components/report/report-flag";
 import { useAuth } from "@/context/auth-context";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
 import { BASE_URL_SOUNDS } from "@/constants";
+import { conRespuesta, objetivoDeLectura, objetivoDePregunta } from "@/lib/report";
 import {
   getReadingService,
   completeReadingService,
@@ -50,6 +53,26 @@ export default function ReadingPage() {
     () => (reading ? [...reading.quiz].sort((a, b) => a.idx - b.idx) : []),
     [reading],
   );
+
+  // Reportes (spec 2026-10-01): la lectura entera y, ya en el quiz, cada pregunta
+  // con la opción marcada. `wasWrong: null`: la lectura se corrige de una vez en
+  // el servidor, así que no sale «debería estar bien» y, al no corregir pregunta
+  // a pregunta, tampoco hay nada que registrar con `registrarRespondido`.
+  const objetivos = useMemo(() => {
+    if (!reading) return [];
+    const lectura = objetivoDeLectura(reading);
+    if (stage === "read") return [lectura];
+    return [
+      lectura,
+      ...quiz.map((q) => {
+        const t = objetivoDePregunta(reading, q);
+        return answers[q.idx] !== undefined
+          ? conRespuesta(t, { answer: answers[q.idx], wasWrong: null })
+          : t;
+      }),
+    ];
+  }, [reading, stage, quiz, answers]);
+  usePublicarObjetivos(objetivos);
 
   const allAnswered = quiz.length > 0 && quiz.every((q) => answers[q.idx] !== undefined);
 
@@ -117,11 +140,20 @@ export default function ReadingPage() {
         <span className="font-display text-lg font-extrabold text-(--accent) truncate">
           {reading.title}
         </span>
-        {/* El mismo icono con el que el Camino marca un nodo de lectura
-            (lib/path-node-meta.ts). Un emoji aqui lo dibujaba el sistema
-            operativo: distinto en Safari de iPhone que en escritorio, y sin
-            poder teñirlo (regla 11). */}
-        <Icon name="lectura" size={24} />
+        <div className="flex shrink-0 items-center gap-3">
+          {/* El mismo icono con el que el Camino marca un nodo de lectura
+              (lib/path-node-meta.ts). Un emoji aqui lo dibujaba el sistema
+              operativo: distinto en Safari de iPhone que en escritorio, y sin
+              poder teñirlo (regla 11). */}
+          <Icon name="lectura" size={24} />
+          {/* Hueco de 22×14 px (la caja de layout de la banderita) siempre
+              reservado y pegado al icono: la banderita aparece cuando un efecto
+              publica y, suelta en esta barra de `justify-between`, corría el
+              título y el icono hacia la izquierda al aparecer. */}
+          <div className="flex h-3.5 w-5.5 items-center justify-center">
+            <ReportFlag />
+          </div>
+        </div>
       </div>
 
       <div className="relative z-10 mt-4 flex w-full max-w-2xl flex-1 flex-col items-center gap-5">

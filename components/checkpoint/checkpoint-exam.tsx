@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
@@ -10,13 +10,22 @@ import {
 } from "@/components/lesson/option-styles";
 import LessonFooter from "@/components/lesson/lesson-footer";
 import LessonTopBar from "@/components/lesson/lesson-top-bar";
-import type { CheckpointStart } from "@/services/lessons.service";
+import { usePublicarObjetivos } from "@/hooks/use-report-targets";
+import { conRespuesta, objetivoDeOracion } from "@/lib/report";
+import { registrarRespondido } from "@/lib/report-targets";
+import type { CheckpointQuestion, CheckpointStart } from "@/services/lessons.service";
 
 interface Props {
   exam: CheckpointStart;
   onSubmit: (answers: { sentenceId: number; word: string }[]) => void;
   onExit: () => void;
 }
+
+/** La pregunta del examen como objetivo de reporte: la misma para lo que se publica y lo que se registra. */
+const objetivoDeExamen = (q: CheckpointQuestion, attemptId: number) =>
+  objetivoDeOracion({ id: q.sentenceId, text: q.text, options: q.options }, "checkpoint", {
+    context: { attemptId },
+  });
 
 /**
  * Exam mode: one question at a time, no feedback, no reveal — the server
@@ -32,6 +41,11 @@ export default function CheckpointExam({ exam, onSubmit, onExit }: Props) {
 
   const confirm = () => {
     if (!question || selected === null) return;
+    // `wasWrong: null` y sin `expected`: el examen esconde si acertaste (la
+    // corrección es del servidor y llega al final).
+    registrarRespondido(
+      conRespuesta(objetivoDeExamen(question, exam.attemptId), { answer: selected, wasWrong: null }),
+    );
     const nextAnswers = [
       ...answers,
       { sentenceId: question.sentenceId, word: selected },
@@ -44,6 +58,15 @@ export default function CheckpointExam({ exam, onSubmit, onExit }: Props) {
       onSubmit(nextAnswers);
     }
   };
+
+  // Reportes (spec 2026-10-01): la pregunta en pantalla, con la opción elegida
+  // pero sin decir si acierta (`wasWrong: null`: así no sale «debería estar bien»).
+  const objetivos = useMemo(() => {
+    if (!question) return [];
+    const base = objetivoDeExamen(question, exam.attemptId);
+    return [selected === null ? base : conRespuesta(base, { answer: selected, wasWrong: null })];
+  }, [question, selected, exam.attemptId]);
+  usePublicarObjetivos(objetivos);
 
   if (!question) return null;
 
