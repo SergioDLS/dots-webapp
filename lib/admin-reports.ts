@@ -131,3 +131,29 @@ export function camposVisibles(type: string, content: Record<string, unknown>): 
 export function idsPendientes(reports: ReadonlyArray<{ id: number; status: string }>): number[] {
   return reports.filter((r) => r.status === "pending").map((r) => r.id);
 }
+
+const esObjeto = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
+
+/**
+ * Lo que el servidor dijo al rechazar una acción del admin (cerrar, aceptar,
+ * quitar), o `porDefecto` si no dijo nada utilizable. Los 400, 404, 409 y 503
+ * del backend ya vienen en español y explican el porqué («El orden aceptado
+ * debe usar las mismas fichas que la oración»). `message` es un texto, o un
+ * arreglo de textos cuando lo rechaza el ValidationPipe de Nest, que se une
+ * con « · ».
+ *
+ * Un 5xx que no sea 503 es el servidor (o su proxy) fallando: su texto no
+ * explica nada al admin, así que cae al de por defecto, igual que un error que
+ * no trae respuesta del servidor (red caída, fallo de nuestro código).
+ */
+export function mensajeDelServidor(err: unknown, porDefecto: string): string {
+  if (!esObjeto(err) || !esObjeto(err.response)) return porDefecto;
+  const { status, data } = err.response;
+  if (typeof status === "number" && status >= 500 && status !== 503) return porDefecto;
+  if (!esObjeto(data)) return porDefecto;
+  const partes = (Array.isArray(data.message) ? data.message : [data.message])
+    .filter((p): p is string => typeof p === "string")
+    .map((p) => p.trim())
+    .filter((p) => p !== "");
+  return partes.length > 0 ? partes.join(" · ") : porDefecto;
+}

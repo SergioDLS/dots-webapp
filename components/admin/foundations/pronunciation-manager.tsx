@@ -643,3 +643,6 @@ function RowActions({
     </div>
   );
 }
+
+// Los usa la bandeja de reportes (components/admin/reports/content-editor.tsx) para editar en el sitio.
+export { ItemModal as PronunciationItemModal, UnitModal as PronunciationUnitModal };

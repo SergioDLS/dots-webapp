@@ -633,3 +633,6 @@ function ItemModal({
     </AdminModal>
   );
 }
+
+// Lo usa la bandeja de reportes (components/admin/reports/content-editor.tsx) para editar en el sitio.
+export { ItemModal as NumberItemModal };
