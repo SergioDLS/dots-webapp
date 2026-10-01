@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
 import SwRegister from "@/components/pwa/sw-register";
 import InstallCapture from "@/components/pwa/install-capture";
+import ErrorTrailCapture from "@/components/report/error-trail-capture";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 const nunito = Nunito({
@@ -121,6 +122,7 @@ export default function RootLayout({
             poco después de cargar: engancharlo en el hub llegaría tarde. */}
         <SwRegister />
         <InstallCapture />
+        <ErrorTrailCapture />
         <AuthProvider>
           <AuthSync />
           {children}
