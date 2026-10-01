@@ -1,3 +1,4 @@
+import { LUGARES_APP } from "./report.ts";
 import type { AdminReportAnswer } from "@/services/admin.service";
 
 /**
@@ -68,6 +69,79 @@ export function etiquetaSuperficie(surface: string): string {
   return SUPERFICIES[surface] ?? surface;
 }
 
+/**
+ * El chip de «¿Dónde pasó?» del reporte de Ajustes (`context.lugar`) con su
+ * etiqueta, la misma que ve el alumno. Una clave que la lista no conoce (otra
+ * versión de la app) se ve tal cual.
+ */
+export function etiquetaLugar(clave: string): string {
+  return LUGARES_APP.find((l) => l.clave === clave)?.etiqueta ?? clave;
+}
+
+/**
+ * Los `mode` que la app manda de verdad —los literales de los constructores de
+ * lib/report.ts y los que pasan las pantallas— con su título en español: el que
+ * ve el alumno donde ya está en español («¡Arma la oración!», «¿Cómo suena?»)
+ * y la traducción donde la pantalla lo dice en inglés («Complete the sentence!»).
+ * Una clave puede cubrir cosas parecidas según la superficie (`match` es
+ * emparejar tanto en vocabulario como en números y en Dot Match), por eso las
+ * etiquetas son generales y la superficie va al lado.
+ */
+const ETIQUETA_MODO: Record<string, string> = {
+  // Práctica: el servidor decide el modo de cada oración (sentences.service.ts).
+  complete: "Completa la oración",
+  buildUp: "Arma la oración",
+  whatDoYouHear: "¿Qué escuchas?",
+  whatDoYouHearSentence: "¿Qué oración escuchas?",
+  guessImg: "¿Qué es esto?",
+  witchIs: "¿Cuál es?",
+  // Gramática y pronunciación.
+  practice: "Ejercicio",
+  explain: "Explicación",
+  drill: "¿Qué palabra oíste?",
+  intro: "Introducción",
+  // Vocabulario, letras y números.
+  present: "Presentación",
+  listen: "Escucha y elige",
+  direct: "Escucha y elige",
+  inverse: "¿Cómo suena?",
+  recognize: "¿Qué número es?",
+  match: "Empareja",
+  // Lecturas.
+  read: "Texto",
+  quiz: "Pregunta",
+  // Juegos.
+  order: "Ordena las fichas",
+  "true-false": "Tarjeta",
+  category: "Elige la categoría",
+  image: "Palabra de la imagen",
+};
+
+/**
+ * El modo con su título; el que no se conoce, tal cual. `mode` lo escribe el
+ * alumno (hasta 40 letras), así que `hasOwn`: «constructor» no es un modo.
+ */
+export function etiquetaModo(mode: string): string {
+  return Object.hasOwn(ETIQUETA_MODO, mode) ? ETIQUETA_MODO[mode] : mode;
+}
+
+/**
+ * El «dónde» de un reporte (spec §2.4): «Práctica · Arma la oración»,
+ * «Ajustes · Tienda». Superficie, modo, lugar de Ajustes y, al final, dónde
+ * vive el ejercicio (nivel, pack, píldora…). Lo vacío o que no es texto no se pinta.
+ */
+export function dondeDelReporte(r: {
+  surface: string;
+  mode: string | null;
+  where?: string | null;
+  context: Record<string, unknown>;
+}): string {
+  const lugar = typeof r.context.lugar === "string" ? etiquetaLugar(r.context.lugar) : "";
+  return [etiquetaSuperficie(r.surface), r.mode ? etiquetaModo(r.mode) : "", lugar, r.where ?? ""]
+    .filter((parte) => parte !== "")
+    .join(" · ");
+}
+
 export function etiquetaMotivoAdmin(m: string): string {
   return ETIQUETA_MOTIVO[m] ?? m;
 }
@@ -130,6 +204,17 @@ export function camposVisibles(type: string, content: Record<string, unknown>): 
 
 export function idsPendientes(reports: ReadonlyArray<{ id: number; status: string }>): number[] {
   return reports.filter((r) => r.status === "pending").map((r) => r.id);
+}
+
+/**
+ * Lo que «Arreglado» / «Descartar» cierra: lo marcado que SIGUE pendiente en la
+ * última lectura. `marcados` sobrevive a las relecturas en el sitio (aceptar,
+ * quitar, apagar, editar) y otro admin pudo cerrar uno entre medias: ese id ni
+ * se manda ni cuenta en el botón. `null` = el admin no ha tocado las casillas,
+ * así que son todos los pendientes; `[]` = los desmarcó a propósito, ninguno.
+ */
+export function idsACerrar(marcados: readonly number[] | null, pendientes: readonly number[]): number[] {
+  return (marcados ?? pendientes).filter((id) => pendientes.includes(id));
 }
 
 /**

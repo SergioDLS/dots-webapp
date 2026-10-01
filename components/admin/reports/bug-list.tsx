@@ -7,9 +7,9 @@ import ResolveBar from "@/components/admin/reports/resolve-bar";
 import {
   ETIQUETA_TIPO,
   cierraAlGuardar,
+  dondeDelReporte,
   esEditable,
   etiquetaMotivoAdmin,
-  etiquetaSuperficie,
   fechaCorta,
   mensajeDelServidor,
 } from "@/lib/admin-reports";
@@ -75,7 +75,6 @@ export default function BugList({
           const ctx = r.context;
           // `context` lo manda el alumno: un elemento que no sea objeto no debe tumbar la bandeja.
           const errores = Array.isArray(ctx.errores) ? ctx.errores.filter(esError) : [];
-          const lugar = texto(ctx.lugar);
           const foto = typeof r.snapshot.prompt === "string" ? r.snapshot.prompt : "";
           const tecnico: Array<[string, unknown]> = [
             ["Ruta", ctx.route],
@@ -102,9 +101,7 @@ export default function BugList({
                   <span className="text-xs font-semibold text-(--muted)">{fechaCorta(r.createdAt)}</span>
                 </span>
                 <span className="break-words text-xs font-bold text-(--muted)">
-                  {etiquetaSuperficie(r.surface)}
-                  {lugar ? ` · ${lugar}` : ""}
-                  {r.where ? ` · ${r.where}` : ""} — {r.reasons.map(etiquetaMotivoAdmin).join(" · ")}
+                  {dondeDelReporte(r)} — {r.reasons.map(etiquetaMotivoAdmin).join(" · ")}
                 </span>
                 {r.comment && <span className="break-words text-sm text-foreground">«{r.comment}»</span>}
               </button>

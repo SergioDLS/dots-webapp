@@ -12,9 +12,11 @@ import {
   alternativaPara,
   camposVisibles,
   cierraAlGuardar,
+  etiquetaModo,
   etiquetaMotivoAdmin,
   etiquetaSuperficie,
   fechaCorta,
+  idsACerrar,
   idsPendientes,
   mensajeDelServidor,
   notaPorDefecto,
@@ -95,7 +97,8 @@ export default function GroupDetail({
   }
 
   const pendientes = idsPendientes(detalle.reports);
-  const seleccion = marcados ?? pendientes;
+  // `marcados` sobrevive a las relecturas en el sitio: solo cuenta (y se manda) lo que sigue pendiente.
+  const seleccion = idsACerrar(marcados, pendientes);
   const contenido = detalle.content;
 
   const aceptar = (r: AdminReportAnswer) => {
@@ -284,7 +287,7 @@ export default function GroupDetail({
                   </span>
                   <span className="text-xs font-bold text-(--muted)">
                     {r.reasons.map(etiquetaMotivoAdmin).join(" · ")} — {etiquetaSuperficie(r.surface)}
-                    {r.mode ? ` · ${r.mode}` : ""}
+                    {r.mode ? ` · ${etiquetaModo(r.mode)}` : ""}
                   </span>
                   {r.answer && (
                     <span className="break-words text-sm font-semibold text-foreground">

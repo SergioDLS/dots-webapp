@@ -64,11 +64,22 @@ export default function AdminReportsPage() {
   // Relectura en el sitio: la lista se queda en pantalla mientras llega la nueva (BugList la pide
   // tras editar un ejercicio; vaciarla desmontaría el editor que sigue abierto).
   const releer = () => setFetchAttempt((n) => n + 1);
+  // Tocar lo que ya está activo recarga (también sirve para salir de un error y como gesto de
+  // «actualizar»): sin esto las dependencias del efecto no cambian y la lista vaciada se quedaría
+  // en el spinner para siempre. Tocar otra cosa cambia de vista y el efecto vuelve a pedir.
   const cambiarPestana = (p: Pestana) => {
+    if (p === pestana) {
+      recargar();
+      return;
+    }
     setPestana(p);
     setLoadError(false);
   };
   const cambiarEstado = (e: AdminReportStatus) => {
+    if (e === estado) {
+      recargar();
+      return;
+    }
     setEstado(e);
     setGrupos(null);
     setBugs(null);
