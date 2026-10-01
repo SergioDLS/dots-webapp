@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 
 import AdminModeSwitch from "@/components/admin-lab/admin-mode-switch";
+import ReportSheet from "@/components/report/report-sheet";
 import { Icon } from "@/components/ui/icon";
 import { PALETTE_ACCENTS, PALETTES, PALETTE_LABELS, type Palette } from "@/lib/theme-colors";
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
@@ -92,6 +93,11 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
   ];
   const sound = soundFlag !== "off";
   const panelRef = useRef<HTMLDivElement>(null);
+  const [reportando, setReportando] = useState(false);
+  const cerrarReporte = useCallback(() => {
+    setReportando(false);
+    panelRef.current?.focus();
+  }, []);
 
   // Va en su propio efecto con [open] como única dependencia: si dependiera
   // de onClose (nueva en cada render de la página), le robas el foco al
@@ -282,6 +288,17 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
           <section className="flex flex-col gap-2 border-t border-(--border) pt-3">
             <button
               type="button"
+              onClick={() => setReportando(true)}
+              className="flex items-center justify-between rounded-2xl bg-(--surface-2) px-4 py-3 text-sm font-extrabold text-foreground"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Icon name="bandera" size={18} />
+                Reportar un problema
+              </span>
+              <Icon name="derecha" size={16} mono />
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 onClose();
                 onChangeAvatar();
@@ -302,6 +319,7 @@ export default function SettingsSheet({ open, onClose, isAdmin, onLogout, onChan
           </section>
         </div>
       </div>
+      {reportando && <ReportSheet candidatos={[]} modo="app" onCerrar={cerrarReporte} />}
     </OverlayPortal>
   );
 }
