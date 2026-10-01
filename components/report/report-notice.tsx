@@ -68,7 +68,7 @@ export default function ReportNotice({ avisos, onCerrar }: { avisos: Aviso[]; on
                   >
                     {l.arreglado ? "Arreglado" : "Revisado"}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-extrabold text-foreground">{l.texto}</span>
+                  <span className="line-clamp-2 min-w-0 flex-1 text-sm font-extrabold text-foreground">{l.texto}</span>
                 </span>
                 {l.nota && <span className="text-xs font-semibold text-(--muted)">{l.nota}</span>}
               </li>

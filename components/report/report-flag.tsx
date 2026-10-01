@@ -23,6 +23,12 @@ import type { ReportTarget } from "@/lib/report";
  * misma caja de 22×14 px: la banderita aparece cuando un efecto publica y, sin
  * el hueco, lo que comparte fila con ella cambiaba al aparecer (la pista de la
  * barra de progreso se encogía 34 px: 22 más el gap).
+ *
+ * El ancho del hueco va en px (`w-[22px]`) y el alto en rem (`h-3.5`): el
+ * glifo mide 22 px a cualquier escala de texto del sistema —el padding y el
+ * margen negativo del botón, los dos en rem, se cancelan— y el alto es el de
+ * la barra de progreso, que sí crece con esa escala. Con `w-5.5` (rem) el
+ * hueco saltaba 6,6 px al aparecer la banderita con la escala en 1,3.
  */
 export default function ReportFlag({
   objetivos,
@@ -48,7 +54,7 @@ export default function ReportFlag({
           <Icon name="bandera" size={22} />
         </button>
       ) : (
-        reservar && <span aria-hidden className="h-3.5 w-5.5 shrink-0" />
+        reservar && <span aria-hidden className="h-3.5 w-[22px] shrink-0" />
       )}
       {abierta && <ReportSheet candidatos={abierta} onCerrar={cerrar} />}
     </>
