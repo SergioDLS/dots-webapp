@@ -298,7 +298,7 @@ emoji lo dibuja el sistema operativo, sale distinto en Safari de iPhone que en
 escritorio, y no se puede teñir con CSS. Dos sistemas lo reemplazan, ninguno
 pasa por `<Doty>` ni por `poses.ts`:
 
-- **35 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
+- **39 SVG propios** — `<Icon name=…>`, `components/ui/icon/paths.tsx` — en
   tres familias: nav, nodo y glifo.
 - **12 PNG de economía** — `<UiIcon name=…>`, `public/images/ui/` —
   generados con Midjourney igual que el resto del arte de Doty, porque su
@@ -307,13 +307,19 @@ pasa por `<Doty>` ni por `poses.ts`:
 
 `npm run lint` verifica los dos (`scripts/check-icons.mjs`).
 
-### Los 35 SVG
+### Los 39 SVG
 
 | Familia | N | `strokeWidth` | Slugs |
 |---|---|---|---|
 | `nav` | 5 | 3 | camino, repaso, retos, juegos, perfil |
 | `nodo` | 8 | 2.5 | leccion, escucha, gramatica, vocabulario, letras, numeros, lectura, checkpoint |
-| `glifo` | 22 | 3.5 | check, cruz, aviso, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate, duelo, brujula, escudo, armar, izquierda, derecha |
+| `glifo` | 26 | 3.5 | check, cruz, aviso, bandera, candado, lupa, lapiz, ajustes, enlace, abajo, sol, luna, imagen, calendario, punto, cuadro, empate, duelo, brujula, escudo, armar, izquierda, derecha, compartir, anadir-inicio, menu-puntos |
+
+`bandera` es el glifo de «Reportar un problema» (ver «Reportes de ejercicios» en
+`docs/ARQUITECTURA.md`). Los tres últimos no son iconos de la marca: citan botones
+que dibuja el sistema operativo para el tutorial de instalación
+(`lib/install-prompt.ts`, `components/pwa/install-sheet.tsx`), y `menu-puntos` va sin
+contorno a propósito.
 
 - **Paleta cerrada de rellenos**: rosa `#FF1F8F`, azul `#3768FF`, cyan
   `#35D8F5` y blanco. Nada más entra en un `fill`.
