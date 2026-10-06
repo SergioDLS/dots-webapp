@@ -8,9 +8,11 @@
       "prompt": "a circle, a triangle, a square and a star in a loose cluster, the circle pink, the triangle cyan, the square blue and the star pink",
       "size": 512,
       "mascot": false,
-      "done": false,
+      "done": true,
       "anchor": true,
-      "anchor_sref": "public/images/levels/estructuras.png"
+      "anchor_sref": "public/images/levels/estructuras.png",
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_shapes_a_circle_a_triangle_a_square_and__3b28e0d3-0caf-425c-b655-6f1300937201_0.png"
     },
     {
       "slug": "abecedario",
@@ -19,18 +21,21 @@
       "prompt": "three chunky toy blocks in a small pyramid, their front faces showing the capital letters A, B and C in thick white letters with a navy outline, the blocks pink, cyan and blue",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "glyphs": true
+      "done": true,
+      "glyphs": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_ABC_blocks_three_chunky_toy_blocks_in_a__bdddf123-f9a3-4a03-be86-eb08034839b3_3.png"
     },
     {
       "slug": "numeros-1-20",
       "group": "levels",
-      "prefix": "Level tile number blocks",
-      "prompt": "three chunky toy blocks in a row, their front faces showing the digits 1, 2 and 3 in thick white numerals, the blocks blue, pink and cyan",
+      "prefix": "Level tile bright number blocks",
+      "prompt": "three chunky toy blocks in a row, their front faces showing the digits 1, 2 and 3 in thick white numerals with a navy outline, the blocks pink, cyan and blue, all bright",
       "size": 512,
       "mascot": false,
       "done": false,
-      "glyphs": true
+      "glyphs": true,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "decenas",
@@ -39,16 +44,19 @@
       "prompt": "three upright base-ten rods standing side by side, each rod made of ten small stacked cubes, the rods pink, cyan and blue, no numbers",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_ten_rods_three_upright_base-ten_rods_sta_f3882631-1e57-48fa-ab67-ae467799db5a_0.png"
     },
     {
       "slug": "dias",
       "group": "levels",
-      "prefix": "Level tile week strip",
-      "prompt": "a horizontal strip of seven rounded square boxes in a row, all white except the fourth one filled pink",
+      "prefix": "Level tile seven day grid",
+      "prompt": "seven rounded square boxes arranged in two rows, four on top and three below, every box white except one filled pink, all bright",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "meses",
@@ -57,7 +65,9 @@
       "prompt": "a wall calendar with two cyan binder rings on top and a grid of twelve small squares, three of them filled pink and two blue",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_wall_calendar_a_wall_calendar_with_two_c_993f7a7f-989d-4d83-a2b4-9a454259f704_2.png"
     },
     {
       "slug": "estaciones",
@@ -66,7 +76,9 @@
       "prompt": "a round tree crown split into four quarters: one covered in white snow, one with pink blossoms, one full of cyan leaves and one bare with a single blue leaf falling",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_seasons_tree_a_round_tree_crown_split_in_e603b0f0-e7ee-44b2-b5bf-a7c398b24bd8_3.png"
     },
     {
       "slug": "partes-del-dia",
@@ -75,7 +87,9 @@
       "prompt": "a dotted arc over a flat horizon line, a small pink sun rising at the left end, a big pink sun at the top of the arc and a blue crescent moon at the right end",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_sun_and_moon_arc_a_dotted_arc_over_a_fla_9784bdde-e786-409b-8728-0e6596a3e746_1.png"
     },
     {
       "slug": "clima",
@@ -84,7 +98,9 @@
       "prompt": "a fluffy white cloud with cyan raindrops and a pink lightning bolt underneath, a small pink sun peeking out from behind its top",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_storm_cloud_a_fluffy_white_cloud_with_cy_eaa71064-b153-4aa0-91e8-f56a361d53bd_0.png"
     },
     {
       "slug": "hora",
@@ -93,7 +109,9 @@
       "prompt": "a round alarm clock with two bells on top, pink body, white face with only tick marks and blue hands pointing at ten past two",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_alarm_clock_a_round_alarm_clock_with_two_c3a1c92d-fca1-48aa-9c25-0b1f8769fc8f_0.png"
     },
     {
       "slug": "colores",
@@ -102,8 +120,10 @@
       "prompt": "a painter's palette with a thumb hole and six round paint blobs, a brush resting across it",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "icon_block": "flat icon, thick rounded #1E1B5C navy outline, the paint blobs in their true colors (red, orange, yellow, green, blue and purple) and the palette itself white, centered, plain white background"
+      "done": true,
+      "icon_block": "flat icon, thick rounded #1E1B5C navy outline, the paint blobs in their true colors (red, orange, yellow, green, blue and purple) and the palette itself white, centered, plain white background",
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_paint_palette_a_painters_palette_with_a__73a28f0c-429b-42e5-b4d8-1a2ee942589d_1.png"
     },
     {
       "slug": "familia",
@@ -112,7 +132,8 @@
       "prompt": "holding hands with a much smaller Doty child walking beside him, both smiling",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_and_a_little_Doty_holding_hands_with_a_much_sm_593a2219-74ae-4d0b-a8fb-0f04c7a02b6d_1.png"
     },
     {
       "slug": "profesiones",
@@ -121,7 +142,9 @@
       "prompt": "three hats side by side: a tall white chef hat, a blue hard hat and a pink nurse cap with a white cross",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_work_hats_three_hats_side_by_side_a_tall_177a121c-e451-4121-a466-417e51320703_2.png"
     },
     {
       "slug": "ropa",
@@ -130,16 +153,19 @@
       "prompt": "a pink t-shirt, a cyan baseball cap and a pair of blue sneakers arranged together",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_clothes_set_a_pink_t-shirt_a_cyan_baseba_f9288964-2b56-450f-a7b4-d676ab2eaf8e_0.png"
     },
     {
       "slug": "cuerpo",
       "group": "levels",
-      "prefix": "Level tile hand eye foot",
-      "prompt": "an open waving hand, one big cartoon eye and a bare foot in a row, the hand and foot pink, the eye white with a blue iris",
+      "prefix": "Level tile artist mannequin",
+      "prompt": "a wooden artist's drawing mannequin standing in a friendly waving pose, its body pink with cyan joints",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "cuidado-personal",
@@ -148,7 +174,9 @@
       "prompt": "a toothbrush with a blob of toothpaste, a comb and a small lotion bottle with a pump, in pink, cyan and blue",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_toothbrush_comb_a_toothbrush_with_a_blob_b4c5e9a9-79f5-4df3-a20f-177b83a2e68d_3.png"
     },
     {
       "slug": "alimentos",
@@ -157,7 +185,9 @@
       "prompt": "a wedge of cheese with holes, a loaf of bread and a sausage grouped together, each in a flat pink, blue or cyan fill",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_cheese_and_bread_a_wedge_of_cheese_with__7b224b53-72f5-4320-a585-049456a473a3_1.png"
     },
     {
       "slug": "comidas",
@@ -166,7 +196,9 @@
       "prompt": "three round plates in a row with a fork and a knife, above them a small rising sun, a high sun and a crescent moon, one over each plate",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_meal_plates_three_round_plates_in_a_row__aecc9e50-5f68-4a1b-a6da-468c14614c8d_2.png"
     },
     {
       "slug": "frutas",
@@ -175,16 +207,19 @@
       "prompt": "a round bowl holding an apple, a banana and a bunch of grapes, all in flat pink, cyan and blue fills",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_fruit_bowl_a_round_bowl_holding_an_apple_246c311e-6ca5-4f7f-aaa1-86908a3872d1_0.png"
     },
     {
       "slug": "cocina",
       "group": "levels",
-      "prefix": "Level tile pot and pan",
-      "prompt": "a cooking pot with a lid, a frying pan and a spatula crossed in front of them",
+      "prefix": "Level tile cyan pot and pink pan",
+      "prompt": "a cyan cooking pot with a lid, a pink frying pan and a white spatula crossed in front of them, all fills light and bright",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "deportes",
@@ -193,7 +228,9 @@
       "prompt": "a pink basketball, a soccer ball with white and cyan panels and a cyan tennis ball grouped together, all their seams drawn as navy lines",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_sports_balls_a_pink_basketball_a_soccer__7d0bd035-cb66-4080-8a96-e3fc72ad304a_1.png"
     },
     {
       "slug": "animales",
@@ -202,7 +239,9 @@
       "prompt": "a sitting cat and a sitting dog side by side with a small bird perched between them, simple friendly faces",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_cat_dog_bird_a_sitting_cat_and_a_sitting_44d36665-fc59-4f65-a511-4b2c62d8a024_1.png"
     },
     {
       "slug": "casa",
@@ -211,25 +250,29 @@
       "prompt": "a small house seen from the front with a pink triangular roof, a blue door, two windows and a patch of front yard with a little fence",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_house_front_a_small_house_seen_from_the__a7215b76-01ec-454d-93fb-d69672005daf_0.png"
     },
     {
       "slug": "muebles",
       "group": "levels",
-      "prefix": "Level tile sofa and lamp",
-      "prompt": "a cozy two-seat sofa with cushions and a tall floor lamp standing beside it",
+      "prefix": "Level tile sofa and floor lamp",
+      "prompt": "a cozy pink two-seat sofa with cyan cushions and a tall floor lamp with a white shade and a pink pole standing beside it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "escuela",
       "group": "levels",
-      "prefix": "Level tile backpack and book",
-      "prompt": "a school backpack with a pencil sticking out of it and a closed book leaning against it",
+      "prefix": "Level tile pink backpack and book",
+      "prompt": "a pink school backpack with a pencil sticking out of it and a closed cyan book leaning against it, all fills light and bright",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "ciudad",
@@ -238,7 +281,9 @@
       "prompt": "three city buildings of different heights with windows, and a bus stop sign with a small bench in front of them",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_city_bus_stop_three_city_buildings_of_di_983baabe-e1e7-4980-87fb-1900c3c9a990_3.png"
     },
     {
       "slug": "luna",
@@ -247,7 +292,9 @@
       "prompt": "a big crescent moon on the right lit by rays coming from a small pink sun on the left",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_glowing_moon_a_big_crescent_moon_on_the__c4ab5723-9c1f-4799-b89b-517cb2756295_0.png"
     },
     {
       "slug": "peces",
@@ -256,25 +303,29 @@
       "prompt": "a round cyan fish with visible gill lines on its side and a trail of bubbles rising from its mouth",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_fish_bubbles_a_round_cyan_fish_with_visi_9c5541f2-7930-4a05-9913-f04fc74b5242_2.png"
     },
     {
       "slug": "volcan",
       "group": "levels",
-      "prefix": "Level tile erupting volcano",
-      "prompt": "a cone-shaped blue volcano erupting pink lava with a puff of white smoke",
+      "prefix": "Level tile cyan volcano",
+      "prompt": "a cone-shaped volcano in light cyan erupting pink lava with a puff of white smoke",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "pelo",
       "group": "levels",
-      "prefix": "Level tile straight curly hair",
-      "prompt": "two locks of hair side by side, one straight and one tightly curly, with a cyan raindrop above them",
+      "prefix": "Level tile two heads of hair",
+      "prompt": "two simple head silhouettes seen from behind side by side, one with long straight pink hair and one with big curly cyan hair",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "oceano",
@@ -283,16 +334,19 @@
       "prompt": "a small round submarine diving down past three wavy water layers, the layers cyan, blue and pink",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_deep_sea_submarine_a_small_round_submari_a4f7f2ec-9e13-4091-8a88-8af78e2c7643_0.png"
     },
     {
       "slug": "telefono",
       "group": "levels",
-      "prefix": "Level tile two phones",
-      "prompt": "two old-fashioned telephone handsets facing each other with curved sound waves between them",
+      "prefix": "Level tile two pink phones",
+      "prompt": "two old-fashioned telephone handsets, one pink and one cyan, facing each other with thick pink and cyan curved sound waves between them",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "saludos",
@@ -301,7 +355,8 @@
       "prompt": "one hand raised high above his head waving hello, big friendly smile, the other arm relaxed at his side",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_waving_hello_one_hand_raised_high_above_his_he_03196daf-9671-4a18-9d71-3066f53eac48_0.png"
     },
     {
       "slug": "supervivencia",
@@ -310,7 +365,8 @@
       "prompt": "hugging a pink and white striped lifebuoy ring around his waist, relieved smile",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_holding_a_lifebuoy_hugging_a_pink_and_white_st_d5c13dd8-7abc-4dde-800a-82a0269aa9f7_2.png"
     },
     {
       "slug": "frases-clase",
@@ -319,7 +375,8 @@
       "prompt": "one arm stretched straight up like asking a question in class, eager expression",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_raising_his_hand_one_arm_stretched_straight_up_5fc1235d-55f0-4ef0-89c5-f762383215e9_2.png"
     },
     {
       "slug": "cognados",
@@ -328,7 +385,9 @@
       "prompt": "an open gift box with a pink ribbon and three empty speech bubbles popping out of it",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_gift_of_words_an_open_gift_box_with_a_pi_301a4dff-4120-43fd-a051-9670780b7418_0.png"
     },
     {
       "slug": "falsos-amigos",
@@ -337,34 +396,38 @@
       "prompt": "looking suspiciously sideways at a speech bubble that wears a cyan eye mask, one eyebrow raised",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_eyeing_a_masked_bubble_looking_suspiciously_si_a6b7d729-5c1f-4dad-92f4-26300a90def0_1.png"
     },
     {
       "slug": "ship-sheep",
       "group": "levels",
-      "prefix": "Level tile ship and sheep",
-      "prompt": "a small sailing ship on the left and a fluffy sheep on the right, separated by a thin vertical line",
+      "prefix": "Level tile sheep on a boat",
+      "prompt": "a fluffy white sheep standing on the deck of a small sailing boat floating on a little wave",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "hat-hut",
       "group": "levels",
-      "prefix": "Level tile hat and hut",
-      "prompt": "a round hat on the left and a little round hut with a pointed roof on the right, separated by a thin vertical line",
+      "prefix": "Level tile whole hat and hut",
+      "prompt": "a whole round hat next to a little round hut with a pointed roof, both complete and side by side, no dividing line",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "bath-bat",
       "group": "levels",
-      "prefix": "Level tile bathtub and bat",
-      "prompt": "a bathtub full of bubbles on the left and a small cute bat with open wings on the right, separated by a thin vertical line",
+      "prefix": "Level tile bathtub and big bat",
+      "prompt": "a cyan bathtub full of white bubbles next to a big friendly pink bat with open wings, both whole and side by side, no dividing line",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "heart-art",
@@ -373,25 +436,29 @@
       "prompt": "a big pink heart on the left and a painter's easel holding a small blank canvas on the right, separated by a thin vertical line",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_heart_and_easel_a_big_pink_heart_on_the__f815a6ac-f1e4-4223-85c7-07d8448011df_3.png"
     },
     {
       "slug": "van-ban",
       "group": "levels",
-      "prefix": "Level tile van and ban sign",
-      "prompt": "a delivery van on the left and a round prohibition sign, a circle crossed by a diagonal bar, on the right, separated by a thin vertical line",
+      "prefix": "Level tile van beside ban sign",
+      "prompt": "a pink delivery van next to a round cyan prohibition sign, a circle crossed by a diagonal bar, both whole and side by side, no dividing line",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "cash-catch",
       "group": "levels",
-      "prefix": "Level tile cash and catch",
-      "prompt": "a small stack of banknotes on the left and a baseball glove catching a ball on the right, separated by a thin vertical line",
+      "prefix": "Level tile cash beside a glove",
+      "prompt": "a small stack of cyan banknotes next to a pink baseball glove catching a white ball, both whole and side by side, no dividing line",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": false,
+      "cutout_model": "isnet-general-use"
     },
     {
       "slug": "sonido",
@@ -400,7 +467,9 @@
       "prompt": "a pair of open cartoon lips with three curved sound waves coming out to the right",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_mouth_sound_waves_a_pair_of_open_cartoon_71f0d200-b61b-41ae-b4b9-2c1bc8117a62_1.png"
     },
     {
       "slug": "adjetivos",
@@ -409,7 +478,9 @@
       "prompt": "a round cyan ball with a small blank pink label tag tied to it by a string",
       "size": 512,
       "mascot": false,
-      "done": false
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Level_tile_ball_with_a_tag_a_round_cyan_ball_with_a_bcba2365-1d7c-43b2-8ace-86d1cd481c05_0.png"
     },
     {
       "slug": "hay",
@@ -418,7 +489,8 @@
       "prompt": "pointing at a two-level shelf: one pink ball alone on the top shelf and several cyan balls on the bottom shelf",
       "size": 512,
       "mascot": true,
-      "done": false
+      "done": true,
+      "source_file": "Mandrakin_Doty_at_a_shelf_pointing_at_a_two-level_shelf_one_p_c562fbec-c0c8-4287-a101-2c39c9b9d2c6_1.png"
     }
   ]
 }
