@@ -303,7 +303,10 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
             return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['anchor_sref']}` "
                     "(ancla que toma prestado el acabado de otra fase: esta pieza fija el look del grupo a partir de ella)")
         return "> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO (esta pieza ES el ancla del grupo)"
-    ref = f"`{cat['fase']}/{ancla['source_file']}`" if ancla.get("source_file") else f"la descarga elegida de `{ancla['slug']}`"
+    # Un ancla en `regen` conserva el source_file de la generación descartada:
+    # apuntar ahí contagiaría al grupo el acabado rechazado.
+    vigente = ancla.get("source_file") and not ancla.get("regen")
+    ref = f"`{cat['fase']}/{ancla['source_file']}`" if vigente else f"la descarga elegida de `{ancla['slug']}`"
     return f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** {ref} (ancla `{ancla['slug']}`)"
 
 

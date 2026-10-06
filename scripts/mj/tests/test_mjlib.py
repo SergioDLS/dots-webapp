@@ -1359,3 +1359,15 @@ def test_slots_de_pieza_con_paleta_propia_van_sin_sref():
     next_section = out.find("### ", colores_block_start + 1)
     colores_block = out[colores_block_start:next_section] if next_section != -1 else out[colores_block_start:]
     assert "la descarga elegida de `formas`" not in colores_block
+
+
+def test_slots_con_ancla_en_regen_no_apuntan_a_su_descarga_vieja():
+    # Un ancla marcada `regen` conserva el source_file de la generación que se
+    # descarta. Si el lote lo pusiera en Style reference, el resto del grupo se
+    # generaría con el acabado rechazado (fase 5: formas con menta, amarillo y
+    # pizarra). Mientras el ancla espera su nueva descarga, la referencia es
+    # "la descarga elegida", como antes de existir la primera.
+    cat = _cat_levels({"done": True, "regen": True, "source_file": "Mandrakin_Level_tile_shapes_viejo_0.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "Mandrakin_Level_tile_shapes_viejo_0.png" not in out
+    assert "la descarga elegida de `formas`" in out

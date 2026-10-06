@@ -67,12 +67,14 @@ Por eso la sección 1 tiene 57 nodos y no 60.
    `#3768FF`, cyan `#35D8F5` y blanco, con contorno navy `#1E1B5C`; el
    vocabulario concreto se reconoce por la forma. Única excepción: el tile de
    colores, donde el color es el contenido.
-   **Enmienda (2026-10-06, Sergio, al revisar la tanda generada):** Midjourney
-   derivó hacia un verde menta en lugar del cyan y metió amarillos (la estrella
-   del ancla, queso, plátano, cojín) y el césped de `casa`. Se acepta: es
-   coherente entre las piezas y ayuda a reconocer los objetos. Los prompts
-   siguen sin nombrar colores fuera de marca (lo fija un test); lo que no se
-   acepta es una masa navy u oscura, que en el tema oscuro desaparece.
+   **Historia (2026-10-06):** la primera generación derivó a menta, amarillos y
+   gris pizarra, y la causa era el ancla: `formas` salió con un triángulo menta,
+   una estrella amarilla y un cuadrado pizarra, y el sref contagió los tres al
+   lote (el pizarra produjo justo las masas oscuras que en el tema oscuro
+   desaparecen). Se aceptó un rato y se revirtió el mismo día: se regeneran el
+   ancla y las 39 piezas que dependen de ella, con la paleta estricta, para que
+   la sección 1 no se vea como otra app al lado de las secciones 2 a 12. Ver
+   §Segunda generación.
 4. **Pronunciación: el par dibujado.** Seis unidades muestran sus dos objetos
    lado a lado, que es literalmente la lección. Las tres sin par dibujable
    (S inicial, S final, `-ED`) comparten un marcador de familia.
@@ -274,6 +276,42 @@ parece:
 | `hay` | `cantidad` | "uno y muchos" |
 | `deportes` | `formas` | balones contra círculo |
 
+### Segunda generación (2026-10-06)
+
+La primera tanda se generó entera y se descartaron 39 de 46 piezas: las que
+dependían de un ancla con colores ajenos (ver la historia de la decisión 3),
+más los conceptos que Sergio rechazó (`cuerpo`, `pelo`, `hat-hut`,
+`ship-sheep`). Se quedan `colores` y las seis de Doty, que no usan el sref del
+ancla. Los conceptos de la tabla de piezas de arriba son los de la primera
+generación; **los vigentes viven en `scripts/mj/batches/fase-5.json`**, con
+prefijos de la familia `Path tile` para que ninguna descarga vieja
+(`Level tile …`) vuelva a emparejar.
+
+Pauta de identidad, pedida por Sergio ("darle identidad a los tiles sin
+sobrecargar"):
+
+- **Un protagonista con un giro que cuenta el tema**, no un inventario: el
+  murciélago que se da un baño de burbujas en la tina (`bath-bat`), la choza
+  cuyo techo es un sombrero (`hat-hut`), el guante que atrapa billetes
+  (`cash-catch`), la oveja de pie en el barco (`ship-sheep`), un perchero con
+  tres gorros de oficio (`profesiones`).
+- **Como mucho dos elementos más, siempre tocando al protagonista**: nada
+  flotando, que `rembg` lo borra. Los pares de pronunciación dejan de ser
+  "mitad y mitad" con línea divisoria.
+- **Las lecturas dibujan lo que el texto explica**, no solo su tema: la luz del
+  sol que rebota en la luna; el pez con las branquias abiertas; el volcán
+  cortado por la mitad con la roca fundida subiendo desde dentro de la tierra;
+  dos cabezas de espaldas, pelo liso y rizado, con una nubecita de lluvia sobre
+  la rizada (el clima riza el pelo); el corte del mar de la orilla a la fosa;
+  dos teléfonos unidos por un cable con un pulso que viaja.
+- **Gramática con la regla dentro de la imagen** cuando se puede: `adjetivos`
+  es un coche de juguete con la etiqueta colgando **delante** (el adjetivo va
+  antes del sustantivo).
+- **Paleta estricta** (decisión 3) y el ancla `formas`, una torrecita de formas
+  apiladas, generada con `estructuras` en Style reference: se elige solo una
+  candidata en rosa, cyan claro, azul y blanco, porque contagia a las 38
+  restantes.
+
 ## Despliegue
 
 1. **Migración**: `migrate-path-node-src.js --apply`, con consentimiento
@@ -325,9 +363,8 @@ avatar `clasico`.
    `path-node.tsx`) — en los dos temas, sobre el fondo real del Camino; las
    de un mismo grupo se distinguen entre sí, y los parecidos de la tabla se
    han revisado lado a lado.
-4. Rellenos en la paleta de marca más el menta y los amarillos aceptados en la
-   enmienda de la decisión 3; ninguna masa navy u oscura; mismo grosor y nivel
-   de abstracción que la fase 2.
+4. Rellenos solo en la paleta de marca salvo `colores`; ninguna masa navy u
+   oscura; mismo grosor y nivel de abstracción que la fase 2.
 5. Los glifos A, B, C y 1, 2, 3 son correctos y legibles.
 6. `set-node-art` no escribe ningún `src` cuya URL no responda 200 — probado
    con un slug aún no publicado.
