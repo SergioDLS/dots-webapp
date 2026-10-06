@@ -338,6 +338,87 @@
       "size": 512,
       "mascot": true,
       "done": false
+    },
+    {
+      "slug": "ship-sheep",
+      "group": "levels",
+      "prefix": "Level tile ship and sheep",
+      "prompt": "a small sailing ship on the left and a fluffy sheep on the right, separated by a thin vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "hat-hut",
+      "group": "levels",
+      "prefix": "Level tile hat and hut",
+      "prompt": "a round hat on the left and a little round hut with a pointed roof on the right, separated by a thin vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "bath-bat",
+      "group": "levels",
+      "prefix": "Level tile bathtub and bat",
+      "prompt": "a bathtub full of bubbles on the left and a small cute bat with open wings on the right, separated by a thin vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "heart-art",
+      "group": "levels",
+      "prefix": "Level tile heart and easel",
+      "prompt": "a big pink heart on the left and a painter's easel holding a small blank canvas on the right, separated by a thin vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "van-ban",
+      "group": "levels",
+      "prefix": "Level tile van and ban sign",
+      "prompt": "a delivery van on the left and a round prohibition sign, a circle crossed by a diagonal bar, on the right, separated by a thin vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "cash-catch",
+      "group": "levels",
+      "prefix": "Level tile cash and catch",
+      "prompt": "a small stack of banknotes on the left and a baseball glove catching a ball on the right, separated by a thin vertical line",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "sonido",
+      "group": "levels",
+      "prefix": "Level tile mouth sound waves",
+      "prompt": "a pair of open cartoon lips with three curved sound waves coming out to the right",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "adjetivos",
+      "group": "levels",
+      "prefix": "Level tile ball with a tag",
+      "prompt": "a round cyan ball with a small blank pink label tag tied to it by a string",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "hay",
+      "group": "levels",
+      "prefix": "Doty at a shelf",
+      "prompt": "pointing at a two-level shelf: one pink ball alone on the top shelf and several cyan balls on the bottom shelf",
+      "size": 512,
+      "mascot": true,
+      "done": false
     }
   ]
 }
