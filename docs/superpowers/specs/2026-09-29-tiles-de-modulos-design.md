@@ -67,6 +67,12 @@ Por eso la sección 1 tiene 57 nodos y no 60.
    `#3768FF`, cyan `#35D8F5` y blanco, con contorno navy `#1E1B5C`; el
    vocabulario concreto se reconoce por la forma. Única excepción: el tile de
    colores, donde el color es el contenido.
+   **Enmienda (2026-10-06, Sergio, al revisar la tanda generada):** Midjourney
+   derivó hacia un verde menta en lugar del cyan y metió amarillos (la estrella
+   del ancla, queso, plátano, cojín) y el césped de `casa`. Se acepta: es
+   coherente entre las piezas y ayuda a reconocer los objetos. Los prompts
+   siguen sin nombrar colores fuera de marca (lo fija un test); lo que no se
+   acepta es una masa navy u oscura, que en el tema oscuro desaparece.
 4. **Pronunciación: el par dibujado.** Seis unidades muestran sus dos objetos
    lado a lado, que es literalmente la lección. Las tres sin par dibujable
    (S inicial, S final, `-ED`) comparten un marcador de familia.
@@ -319,7 +325,8 @@ avatar `clasico`.
    `path-node.tsx`) — en los dos temas, sobre el fondo real del Camino; las
    de un mismo grupo se distinguen entre sí, y los parecidos de la tabla se
    han revisado lado a lado.
-4. Rellenos solo en la paleta de marca salvo `colores`; mismo grosor y nivel
+4. Rellenos en la paleta de marca más el menta y los amarillos aceptados en la
+   enmienda de la decisión 3; ninguna masa navy u oscura; mismo grosor y nivel
    de abstracción que la fase 2.
 5. Los glifos A, B, C y 1, 2, 3 son correctos y legibles.
 6. `set-node-art` no escribe ningún `src` cuya URL no responda 200 — probado
