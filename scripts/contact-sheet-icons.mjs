@@ -8,6 +8,7 @@
 // Escribe un HTML; ábrelo con el preview y hazle captura.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { iconosDe } from "./icon-paths.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const [familia, tam = "24"] = process.argv.slice(2);
@@ -18,7 +19,7 @@ const marcas = [...source.matchAll(/── familia (\S+) · stroke-width ([\d.]+
 const i = marcas.findIndex((m) => m[1] === familia);
 if (i === -1) { console.error(`no existe la familia ${familia}`); process.exit(1); }
 const bloque = source.slice(marcas[i].index, i + 1 < marcas.length ? marcas[i + 1].index : source.length);
-const nombres = [...bloque.matchAll(/^  ([a-z][\w-]*): \(/gm)].map((m) => m[1]);
+const nombres = iconosDe(bloque).map(({ nombre }) => nombre);
 
 // El JSX no se puede renderizar desde Node sin compilar, así que la hoja
 // importa el componente real a través de una página de Next: esto solo genera

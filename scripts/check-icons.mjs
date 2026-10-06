@@ -8,9 +8,11 @@
 // color fuera de fill/stroke) — o si ui-icon.tsx y public/images/ui/ no casan.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { iconosDe } from "./icon-paths.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const source = readFileSync(join(root, "components/ui/icon/paths.tsx"), "utf8");
+const iconos = iconosDe(source);
 
 const PALETA = new Set(["#FF1F8F", "#3768FF", "#35D8F5", "#FFFFFF", "none", "currentColor"]);
 const NAVY = "#1E1B5C";
@@ -69,9 +71,9 @@ for (let i = 0; i < marcas.length; i++) {
 //    tampoco su stroke-width. Es el agujero real de esta regla.
 if (marcas.length > 0) {
   const primeraMarca = marcas[0].index;
-  for (const m of source.matchAll(/^ {2}([a-z][\w-]*): \(/gm)) {
-    if (m.index < primeraMarca) {
-      errors.push(`icono "${m[1]}" antes de toda marca de familia: la regla de grosor nunca lo revisa`);
+  for (const { nombre, index } of iconos) {
+    if (index < primeraMarca) {
+      errors.push(`icono "${nombre}" antes de toda marca de familia: la regla de grosor nunca lo revisa`);
     }
   }
 }
@@ -94,8 +96,7 @@ if (errors.length) {
   console.error(`check-icons: ${errors.length} problema(s)\n  ${errors.join("\n  ")}`);
   process.exit(1);
 }
-const totalIconos = [...source.matchAll(/^ {2}[a-z][\w-]*: \(/gm)].length;
-console.log(`check-icons: ${totalIconos} iconos OK (${marcas.length} familia(s))`);
+console.log(`check-icons: ${iconos.length} iconos OK (${marcas.length} familia(s))`);
 
 // ── UiIcon: los PNG de economía casan 1:1 con NOMBRES ─────────────────────
 // Sin esto, renombrar una clave en ui-icon.tsx o un archivo en
