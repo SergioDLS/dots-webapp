@@ -239,6 +239,105 @@
       "size": 512,
       "mascot": false,
       "done": false
+    },
+    {
+      "slug": "luna",
+      "group": "levels",
+      "prefix": "Level tile glowing moon",
+      "prompt": "a big crescent moon on the right lit by rays coming from a small pink sun on the left",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "peces",
+      "group": "levels",
+      "prefix": "Level tile fish bubbles",
+      "prompt": "a round cyan fish with visible gill lines on its side and a trail of bubbles rising from its mouth",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "volcan",
+      "group": "levels",
+      "prefix": "Level tile erupting volcano",
+      "prompt": "a cone-shaped blue volcano erupting pink lava with a puff of white smoke",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "pelo",
+      "group": "levels",
+      "prefix": "Level tile straight curly hair",
+      "prompt": "two locks of hair side by side, one straight and one tightly curly, with a cyan raindrop above them",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "oceano",
+      "group": "levels",
+      "prefix": "Level tile deep sea submarine",
+      "prompt": "a small round submarine diving down past three wavy water layers, the layers cyan, blue and pink",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "telefono",
+      "group": "levels",
+      "prefix": "Level tile two phones",
+      "prompt": "two old-fashioned telephone handsets facing each other with curved sound waves between them",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "saludos",
+      "group": "levels",
+      "prefix": "Doty waving hello",
+      "prompt": "one hand raised high above his head waving hello, big friendly smile, the other arm relaxed at his side",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "supervivencia",
+      "group": "levels",
+      "prefix": "Doty holding a lifebuoy",
+      "prompt": "hugging a pink and white striped lifebuoy ring around his waist, relieved smile",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "frases-clase",
+      "group": "levels",
+      "prefix": "Doty raising his hand",
+      "prompt": "one arm stretched straight up like asking a question in class, eager expression",
+      "size": 512,
+      "mascot": true,
+      "done": false
+    },
+    {
+      "slug": "cognados",
+      "group": "levels",
+      "prefix": "Level tile gift of words",
+      "prompt": "an open gift box with a pink ribbon and three empty speech bubbles popping out of it",
+      "size": 512,
+      "mascot": false,
+      "done": false
+    },
+    {
+      "slug": "falsos-amigos",
+      "group": "levels",
+      "prefix": "Doty eyeing a masked bubble",
+      "prompt": "looking suspiciously sideways at a speech bubble that wears a cyan eye mask, one eyebrow raised",
+      "size": 512,
+      "mascot": true,
+      "done": false
     }
   ]
 }
