@@ -312,10 +312,15 @@ sobrecargar"):
   sección 1 queda con el acabado del resto del Camino y no depende de acertar
   un ancla nueva. `formas` sigue siendo el ancla del grupo en el catálogo
   (`validate_catalog` exige una), pero con `group_sref` le pasa su referencia
-  prestada a todo el grupo en vez de ser ella la referencia. Su concepto es la
-  composición geométrica tipo póster de diseño (círculo, triángulo y cuadrado
-  superpuestos); se descartaron la torrecita apilada (leía como un arbolito
-  de Navidad) y la caja de encajar formas (juguete de bebé).
+  prestada a todo el grupo en vez de ser ella la referencia. Su concepto es el
+  más simple: tres figuras separadas en fila, sin tocarse (cuadrado azul,
+  triángulo cyan, círculo rosa). Se descartaron la torrecita apilada (leía como
+  un arbolito de Navidad), la caja de encajar formas (juguete de bebé) y el
+  póster con las figuras superpuestas (amontonado, no se distinguía ninguna).
+- **Neutro, no femenino** (Sergio: "un 10 % más masculino o neutro"): el
+  protagonista va en azul o cyan y el rosa queda de acento — una cinta, un
+  cordón, una vela, un detalle. Fuera adjetivos tiernos (`cozy`, `friendly`,
+  `fluffy`). Doty sigue siendo rosa: eso es canon, no paleta de los tiles.
 - **Juvenil, no infantil** (la guía de marca: "juvenil e irreverente, para
   todo público"; el arte dibuja arquetipos). Nada de juguetes de bebé: las
   letras son teclas de teclado mecánico, los números botones de calculadora,
