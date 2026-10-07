@@ -307,10 +307,14 @@ sobrecargar"):
 - **Gramática con la regla dentro de la imagen** cuando se puede: `adjetivos`
   es un coche de juguete con la etiqueta colgando **delante** (el adjetivo va
   antes del sustantivo).
-- **Paleta estricta** (decisión 3) y el ancla `formas`, una torrecita de formas
-  apiladas, generada con `estructuras` en Style reference: se elige solo una
-  candidata en rosa, cyan claro, azul y blanco, porque contagia a las 38
-  restantes.
+- **Paleta estricta** (decisión 3) y **`estructuras` en Style reference para
+  las 39 piezas**, la misma referencia con la que se generó toda la fase 2: la
+  sección 1 queda con el acabado del resto del Camino y no depende de acertar
+  un ancla nueva. `formas` sigue siendo el ancla del grupo en el catálogo
+  (`validate_catalog` exige una), pero con `group_sref` le pasa su referencia
+  prestada a todo el grupo en vez de ser ella la referencia. Su concepto es la
+  caja de encajar formas con una estrella entrando por su agujero; la
+  torrecita apilada se descartó porque leía como un arbolito de Navidad.
 
 ## Despliegue
 

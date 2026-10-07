@@ -135,6 +135,11 @@ def validate_catalog(cat: dict) -> None:
                     "— at most one anchor per group"
                 )
             anchors_by_group[group] = slug
+        if p.get("group_sref") and not (p.get("anchor") and p.get("anchor_sref")):
+            raise CatalogError(
+                f"{slug}: group_sref only goes on an anchor that has anchor_sref — "
+                "it hands that borrowed reference to the whole group"
+            )
     for group in non_mascot_groups:
         if group not in anchors_by_group:
             offending = next(p["slug"] for p in cat["pieces"] if p["group"] == group and not p.get("mascot"))
@@ -298,6 +303,11 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
         return ("> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO "
                 "(esta pieza trae su propia paleta: el sref del ancla la arrastraría a la de marca)")
     ancla = next((q for q in cat["pieces"] if q.get("group") == piece["group"] and q.get("anchor")), None)
+    if ancla is not None and ancla.get("group_sref"):
+        # Todo el grupo usa la referencia prestada del ancla, como hizo la fase 2
+        # con `estructuras`: no hay un ancla nueva que acertar ni de la que derivar.
+        return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{ancla['anchor_sref']}` "
+                "(la misma referencia para todo el grupo)")
     if ancla is None or ancla["slug"] == piece["slug"]:
         if piece.get("anchor_sref"):
             return (f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** `{piece['anchor_sref']}` "

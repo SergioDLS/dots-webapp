@@ -65,6 +65,8 @@ def test_el_ancla_es_formas_y_hereda_de_estructuras():
     anclas = [p for p in _cat()["pieces"] if p.get("anchor")]
     assert [p["slug"] for p in anclas] == ["formas"]
     assert anclas[0]["anchor_sref"] == "public/images/levels/estructuras.png"
+    # Las 39 piezas usan esa misma referencia, como la fase 2 (2ª generación).
+    assert anclas[0].get("group_sref") is True
     assert (BATCHES.parents[2] / anclas[0]["anchor_sref"]).exists()
 
 

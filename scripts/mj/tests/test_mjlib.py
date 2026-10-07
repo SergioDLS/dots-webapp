@@ -1371,3 +1371,32 @@ def test_slots_con_ancla_en_regen_no_apuntan_a_su_descarga_vieja():
     out = mjlib.emit_lote(cat, STYLE, ["levels"])
     assert "Mandrakin_Level_tile_shapes_viejo_0.png" not in out
     assert "la descarga elegida de `formas`" in out
+
+
+def test_group_sref_pone_la_referencia_del_ancla_en_todo_el_grupo():
+    # Fase 5: en vez de acertar un ancla nueva, las 39 piezas usan la misma
+    # referencia con la que se generó toda la fase 2 (estructuras), y el ancla
+    # pasa a ser una pieza más del grupo.
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png", "group_sref": True})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    slots = [l for l in out.splitlines() if l.startswith("> 📎")]
+    assert len(slots) == 2
+    assert all("`public/images/levels/estructuras.png`" in l for l in slots), slots
+    assert "la descarga elegida de `formas`" not in out
+
+
+def test_group_sref_respeta_la_paleta_propia():
+    extra = {"slug": "colores", "group": "levels", "prefix": "Level tile paint palette", "prompt": "a palette",
+             "size": 512, "mascot": False, "done": False, "icon_block": "true colors"}
+    cat = _cat_levels({"anchor_sref": "public/images/levels/estructuras.png", "group_sref": True}, extra)
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "esta pieza trae su propia paleta" in out
+
+
+def test_group_sref_exige_anchor_sref_en_el_ancla():
+    with pytest.raises(mjlib.CatalogError, match="group_sref"):
+        mjlib.validate_catalog(_cat_levels({"group_sref": True}))
+    cat = _cat_levels()
+    cat["pieces"][1]["group_sref"] = True
+    with pytest.raises(mjlib.CatalogError, match="group_sref"):
+        mjlib.validate_catalog(cat)

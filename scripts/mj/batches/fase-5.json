@@ -4,8 +4,8 @@
     {
       "slug": "formas",
       "group": "levels",
-      "prefix": "Path tile shape tower",
-      "prompt": "four chunky toy shapes stacked into a playful little tower: a bright blue square at the bottom, a pink circle on it, a light cyan triangle above and a small pink star on top, only pink, light cyan, bright blue and white",
+      "prefix": "Path tile shape sorter",
+      "prompt": "a chunky light cyan toy shape sorter box with a star, a circle and a triangle shaped hole on its top, a pink star block halfway into the star hole and a bright blue circle block resting against the box",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -13,7 +13,8 @@
       "anchor_sref": "public/images/levels/estructuras.png",
       "cutout_model": "isnet-general-use",
       "source_file": "Mandrakin_Level_tile_shapes_a_circle_a_triangle_a_square_and__3b28e0d3-0caf-425c-b655-6f1300937201_0.png",
-      "regen": true
+      "regen": true,
+      "group_sref": true
     },
     {
       "slug": "abecedario",
