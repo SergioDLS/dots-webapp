@@ -745,7 +745,10 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
         # ambigüedades que se resolvieron a mano (y los --pick de prefijos que
         # no emparejan) y deja el PNG viejo en disco sin avisar: la pieza parece
         # hecha y está sin reprocesar, que es lo peor de los dos mundos.
-        if not chosen and p.get("source_file") and (raw_dir / p["source_file"]).is_file():
+        # Salvo en `regen`: ahí el source_file es justo la elección que se quiere
+        # reemplazar, y tomarlo recortaría otra vez la descarga rechazada.
+        if (not chosen and not p.get("regen") and p.get("source_file")
+                and (raw_dir / p["source_file"]).is_file()):
             chosen = p["source_file"]
         cands = matches.get(slug, [])
         if not chosen:

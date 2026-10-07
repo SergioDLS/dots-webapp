@@ -155,7 +155,8 @@ respondería 500 sin ella.
   temas de cosas van sin él. Canon: sin zapatos, sin gafas, y sin orejas,
   nariz ni pelo — por eso `cuerpo` y `pelo` no pueden ser Doty.
 - **Texto**: prohibido salvo en `abecedario` (A B C), `numeros-1-20`
-  (1 2 3) y, desde la 2ª generación, `decenas` (10 20 30), como glifos
+  (1 2 3) y, desde la 2ª generación, `decenas` (10 20 30) y `dias` (las
+  iniciales M T W T F S S), como glifos
   sueltos; en esas piezas `text` sale de los negativos. Plan B si los glifos
   salen deformes: soportes en blanco y glifos compuestos después con Baloo 2
   (la fuente de display de la app) mediante sharp, como `compose-icons.mjs`.
@@ -321,6 +322,13 @@ sobrecargar"):
   protagonista va en azul o cyan y el rosa queda de acento — una cinta, un
   cordón, una vela, un detalle. Fuera adjetivos tiernos (`cozy`, `friendly`,
   `fluffy`). Doty sigue siendo rosa: eso es canon, no paleta de los tiles.
+- **Lo más sencillo gana** (Sergio, al revisar la 2ª generación: "una luna
+  normal y ya", "el mar lo más sencillo"): cuando un concepto ingenioso no se
+  lee a 128 px, se vuelve al objeto solo. `luna` es una luna creciente,
+  `oceano` unas olas, `cash-catch` un guante junto a un fajo de billetes, y
+  `volcan` un volcán clásico en erupción. Midjourney tiende a meter un panel o
+  marco de fondo que apelmaza el tile: los prompts rehechos piden fondo blanco
+  liso sin panel.
 - **Juvenil, no infantil** (la guía de marca: "juvenil e irreverente, para
   todo público"; el arte dibuja arquetipos). Nada de juguetes de bebé: las
   letras son teclas de teclado mecánico, los números botones de calculadora,

@@ -1400,3 +1400,35 @@ def test_group_sref_exige_anchor_sref_en_el_ancla():
     cat["pieces"][1]["group_sref"] = True
     with pytest.raises(mjlib.CatalogError, match="group_sref"):
         mjlib.validate_catalog(cat)
+
+
+def test_regen_toma_la_descarga_nueva_y_no_la_que_reemplaza(tmp_path):
+    # `regen` pide reemplazar la elección actual. Si el source_file viejo valiera
+    # como pick, el reproceso volvería a recortar la descarga rechazada y daría la
+    # pieza por buena (fase 5: 25 piezas se reprocesaron con su arte de 1ª gen).
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_old_smile_c1.png")
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c2.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file="sergio_Doty_old_smile_c1.png")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    guardado = json.loads(cpath.read_text())["pieces"][0]
+    assert guardado["source_file"] == "sergio_Doty_beaming_with_joy_c2.png"
+    assert "regen" not in guardado
+
+
+def test_regen_sin_descarga_nueva_sigue_en_cola(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_old_smile_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file="sergio_Doty_old_smile_c1.png")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["missing"] == ["feliz"] and rep["done"] == []
+    guardado = json.loads(cpath.read_text())["pieces"][0]
+    assert guardado["regen"] is True
+    assert guardado["source_file"] == "sergio_Doty_old_smile_c1.png"

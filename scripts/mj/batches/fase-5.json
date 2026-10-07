@@ -4,17 +4,17 @@
     {
       "slug": "formas",
       "group": "levels",
-      "prefix": "Path tile three separate shapes",
-      "prompt": "three simple bold shapes standing apart in a neat row with clear space between them: a bright blue square, a light cyan triangle and a pink circle",
+      "prefix": "Path tile three shapes apart",
+      "prompt": "three simple bold shapes standing apart in a neat row with clear space between them: a bright blue square, a light cyan triangle and a pink circle, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
       "anchor": true,
       "anchor_sref": "public/images/levels/estructuras.png",
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_shapes_a_circle_a_triangle_a_square_and__3b28e0d3-0caf-425c-b655-6f1300937201_0.png",
-      "regen": true,
-      "group_sref": true
+      "source_file": "Mandrakin_Path_tile_three_separate_shapes_three_simple_bold_s_4422a1b7-56fa-47c0-b48e-64788e899eb9_0.png",
+      "group_sref": true,
+      "regen": true
     },
     {
       "slug": "abecedario",
@@ -26,8 +26,7 @@
       "done": true,
       "glyphs": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_ABC_blocks_three_chunky_toy_blocks_in_a__bdddf123-f9a3-4a03-be86-eb08034839b3_3.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_ABC_keycaps_three_chunky_mechanical_keybo_d4907f39-9359-4226-aeaa-f905295b6e55_0.png"
     },
     {
       "slug": "numeros-1-20",
@@ -36,32 +35,36 @@
       "prompt": "three round chunky calculator buttons showing the digits 1, 2 and 3 in bold white numerals with a navy outline, the buttons bright blue, light cyan and pink",
       "size": 512,
       "mascot": false,
-      "done": false,
+      "done": true,
       "glyphs": true,
-      "cutout_model": "isnet-general-use"
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_calculator_buttons_three_round_chunky_cal_8087e6d1-9415-4505-923b-1e3a698f7822_3.png"
     },
     {
       "slug": "decenas",
       "group": "levels",
-      "prefix": "Path tile tens scoreboard",
-      "prompt": "a digital scoreboard panel showing the numbers 10, 20 and 30 in big glowing light cyan digits on a bright blue screen inside a white frame",
+      "prefix": "Path tile tens score panel",
+      "prompt": "a digital scoreboard panel showing the numbers 10, 20 and 30 in big bold white digits with a navy outline on a bright blue screen inside a light cyan frame",
       "size": 512,
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_ten_rods_three_upright_base-ten_rods_sta_f3882631-1e57-48fa-ab67-ae467799db5a_0.png",
-      "regen": true,
-      "glyphs": true
+      "source_file": "Mandrakin_Path_tile_tens_scoreboard_a_digital_scoreboard_pane_68453754-f2be-4765-9d8d-70c64deb36f3_0.png",
+      "glyphs": true,
+      "regen": true
     },
     {
       "slug": "dias",
       "group": "levels",
-      "prefix": "Path tile week card",
-      "prompt": "a rounded bright blue weekly planner card with seven little white day boxes in two rows, four on top and three below, one box filled pink",
+      "prefix": "Path tile weekday boxes",
+      "prompt": "seven rounded boxes in two rows, four on top and three below, showing the letters M, T, W, T and F, S, S in bold white letters with a navy outline, the boxes bright blue except one pink, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_week_card_a_rounded_bright_blue_weekly_pl_3bc67319-55a9-43fa-adfb-f0785b75b0c3_3.png",
+      "regen": true,
+      "glyphs": true
     },
     {
       "slug": "meses",
@@ -72,8 +75,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_wall_calendar_a_wall_calendar_with_two_c_993f7a7f-989d-4d83-a2b4-9a454259f704_2.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_wall_calendar_a_wall_calendar_hanging_fro_90f3be96-7c7c-481e-a286-5d40c8b898e1_1.png"
     },
     {
       "slug": "estaciones",
@@ -84,8 +86,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_seasons_tree_a_round_tree_crown_split_in_e603b0f0-e7ee-44b2-b5bf-a7c398b24bd8_3.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_four_season_tree_a_round_tree_whose_crown_882e58e9-0bad-497a-9f57-49f94d2e2db6_0.png"
     },
     {
       "slug": "partes-del-dia",
@@ -96,8 +97,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_sun_and_moon_arc_a_dotted_arc_over_a_fla_9784bdde-e786-409b-8728-0e6596a3e746_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_day_and_night_badge_a_round_badge_split_d_a701e4b8-a6aa-457d-8802-44f28863d131_1.png"
     },
     {
       "slug": "clima",
@@ -108,8 +108,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_storm_cloud_a_fluffy_white_cloud_with_cy_eaa71064-b153-4aa0-91e8-f56a361d53bd_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_rain_cloud_and_sun_a_chubby_white_cloud_w_50867974-3496-4030-ab09-a5c59e2bd31a_1.png"
     },
     {
       "slug": "hora",
@@ -120,8 +119,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_alarm_clock_a_round_alarm_clock_with_two_c3a1c92d-fca1-48aa-9c25-0b1f8769fc8f_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_ringing_alarm_clock_a_round_bright_blue_a_f1ca7c69-a3c0-49a4-86d4-5ed87009ddeb_0.png"
     },
     {
       "slug": "colores",
@@ -154,8 +152,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_work_hats_three_hats_side_by_side_a_tall_177a121c-e451-4121-a466-417e51320703_2.png",
-      "regen": true
+      "source_file": "Mandrakin__Path_tile_hat_rack_a_bright_blue_coat_rack_with_th_2674a143-63a2-462d-9b30-39d209e84f4f_0.png"
     },
     {
       "slug": "ropa",
@@ -166,8 +163,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_clothes_set_a_pink_t-shirt_a_cyan_baseba_f9288964-2b56-450f-a7b4-d676ab2eaf8e_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_t-shirt_on_a_hanger_a_bright_blue_t-shirt_a429f898-5cee-413b-a76b-c6b699510ea8_0.png"
     },
     {
       "slug": "cuerpo",
@@ -176,8 +172,9 @@
       "prompt": "a wooden artist's drawing mannequin standing in a confident pose with one arm raised, its body light cyan with bright blue joints",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_drawing_mannequin_a_wooden_artists_drawin_1ed46b16-58a8-4868-9a2b-078fefa1925c_0.png"
     },
     {
       "slug": "cuidado-personal",
@@ -188,8 +185,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_toothbrush_comb_a_toothbrush_with_a_blob_b4c5e9a9-79f5-4df3-a20f-177b83a2e68d_3.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_bathroom_cup_a_bright_blue_bathroom_cup_h_dc2f9a49-763d-4ffc-bf64-021e1f3266c2_0.png"
     },
     {
       "slug": "alimentos",
@@ -200,8 +196,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_cheese_and_bread_a_wedge_of_cheese_with__7b224b53-72f5-4320-a585-049456a473a3_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_grocery_bag_a_light_cyan_paper_grocery_ba_0a73249c-4ad6-4fda-b62b-03012a858720_3.png"
     },
     {
       "slug": "comidas",
@@ -212,8 +207,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_meal_plates_three_round_plates_in_a_row__aecc9e50-5f68-4a1b-a6da-468c14614c8d_2.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_plate_with_clock_a_round_white_dinner_pla_4d1ada9d-3d44-40bd-b7e4-16935ff536b7_3.png"
     },
     {
       "slug": "frutas",
@@ -224,8 +218,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_fruit_bowl_a_round_bowl_holding_an_apple_246c311e-6ca5-4f7f-aaa1-86908a3872d1_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_fruit_bowl_a_bright_blue_bowl_holding_a_p_7172201f-2099-4b15-b76a-3222339679cb_2.png"
     },
     {
       "slug": "cocina",
@@ -234,8 +227,9 @@
       "prompt": "a bright blue cooking pot with its light cyan lid lifted by puffs of white steam, a pink spatula resting against it",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin__Path_tile_steaming_pot_a_bright_blue_cooking_pot_w_ff6f07d0-9dd5-4283-817e-c51343a694c1_2.png"
     },
     {
       "slug": "deportes",
@@ -246,8 +240,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_sports_balls_a_pink_basketball_a_soccer__7d0bd035-cb66-4080-8a96-e3fc72ad304a_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_ball_and_racket_a_bright_blue_basketball__ea99cf20-3fe6-4372-9082-4dc0f7a6cfbe_2.png"
     },
     {
       "slug": "animales",
@@ -258,8 +251,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_cat_dog_bird_a_sitting_cat_and_a_sitting_44d36665-fc59-4f65-a511-4b2c62d8a024_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_cat_dog_and_bird_a_bright_blue_dog_and_a__53cb1041-e79b-436a-9622-77c19fde7374_3.png"
     },
     {
       "slug": "casa",
@@ -270,28 +262,31 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_house_front_a_small_house_seen_from_the__a7215b76-01ec-454d-93fb-d69672005daf_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_little_house_a_small_house_seen_from_the__abc471f0-e71f-44bc-a21a-43e6623cebb7_0.png"
     },
     {
       "slug": "muebles",
       "group": "levels",
-      "prefix": "Path tile armchair and lamp",
-      "prompt": "a bright blue armchair with a light cyan cushion and a white floor lamp standing right against its arm",
+      "prefix": "Path tile armchair with lamp",
+      "prompt": "a bright blue armchair with a light cyan cushion and a white floor lamp standing right against its arm, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_armchair_and_lamp_a_bright_blue_armchair__dd39c7a7-f0db-45da-b1a8-c1f3671dd970_0.png",
+      "regen": true
     },
     {
       "slug": "escuela",
       "group": "levels",
-      "prefix": "Path tile school backpack",
-      "prompt": "a bright blue school backpack with a pencil and a ruler sticking out of its top pocket and a small pink zipper pull",
+      "prefix": "Path tile backpack with ruler",
+      "prompt": "a bright blue school backpack with a pencil and a ruler sticking out of its top pocket and a small pink zipper pull, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_school_backpack_a_bright_blue_school_back_71e8bc84-42c7-40e7-8052-10956c5775e8_1.png",
+      "regen": true
     },
     {
       "slug": "ciudad",
@@ -302,14 +297,13 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_city_bus_stop_three_city_buildings_of_di_983baabe-e1e7-4980-87fb-1900c3c9a990_3.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_city_block_a_tiny_city_block_of_three_rou_ba3c6bd8-1f16-4972-b023-95813f59191c_3.png"
     },
     {
       "slug": "luna",
       "group": "levels",
-      "prefix": "Path tile sun bouncing on moon",
-      "prompt": "a pink sun on the left sending a beam of light that bounces off a round white full moon on the right, the beam drawn as a light cyan zigzag arrow joining them",
+      "prefix": "Path tile crescent moon",
+      "prompt": "a simple big light cyan crescent moon with a few small craters, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -326,18 +320,19 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_fish_bubbles_a_round_cyan_fish_with_visi_9c5541f2-7930-4a05-9913-f04fc74b5242_2.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_fish_with_gills_a_round_light_cyan_fish_i_d9d28ee4-7323-46d9-a427-73873f59c1bd_2.png"
     },
     {
       "slug": "volcan",
       "group": "levels",
-      "prefix": "Path tile volcano cross section",
-      "prompt": "a volcano cut in half to show its inside, a pink channel of melted rock rising from deep below the ground up through the light cyan mountain and bubbling out of the top",
+      "prefix": "Path tile erupting volcano",
+      "prompt": "a classic bright blue volcano erupting a big plume of pink lava and white smoke from its top, a thin pink line of melted rock visible inside the mountain, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_volcano_cross_section_a_volcano_cut_in_ha_6d04e214-236d-46fc-aa66-853fb8cfd102_2.png",
+      "regen": true
     },
     {
       "slug": "pelo",
@@ -346,19 +341,20 @@
       "prompt": "two heads seen from behind side by side, one with long straight bright blue hair and one with big curly light cyan hair, a tiny rain cloud resting on top of the curly head",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_two_heads_of_hair_two_heads_seen_from_beh_f0b61541-3c31-41d3-8c03-fbc1886cc186_3.png"
     },
     {
       "slug": "oceano",
       "group": "levels",
-      "prefix": "Path tile shore to trench",
-      "prompt": "a cross-section of the sea from a sandy white shore on the left sloping down into a very deep narrow trench on the right, the water in layers from light cyan at the top to bright blue at the bottom",
+      "prefix": "Path tile simple sea waves",
+      "prompt": "three simple layered sea waves, light cyan on top and bright blue below, with a small white foam crest, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_deep_sea_submarine_a_small_round_submari_a4f7f2ec-9e13-4091-8a88-8af78e2c7643_0.png",
+      "source_file": "Mandrakin_Path_tile_shore_to_trench_a_cross-section_of_the_se_c661dc08-4a1e-496e-87ee-812508387b69_0.png",
       "regen": true
     },
     {
@@ -368,8 +364,9 @@
       "prompt": "two old-fashioned telephones, one bright blue and one light cyan, joined by a long curly cord with a pink zigzag pulse travelling along it",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_phones_on_a_cord_two_old-fashioned_teleph_1ac7c1e6-dd50-423e-9a88-bde7e0817ad2_2.png"
     },
     {
       "slug": "saludos",
@@ -410,8 +407,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_gift_of_words_an_open_gift_box_with_a_pi_301a4dff-4120-43fd-a051-9670780b7418_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_twin_words_gift_an_open_bright_blue_gift__3e84039c-ccfb-42ce-8a27-b19fb72a0061_1.png"
     },
     {
       "slug": "falsos-amigos",
@@ -430,8 +426,9 @@
       "prompt": "a white sheep standing on the deck of a small bright blue sailing boat with a pink sail, floating on a little light cyan wave",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_sheep_on_a_boat_a_white_sheep_standing_on_829501f5-69c6-4cb1-9613-620778208784_3.png"
     },
     {
       "slug": "hat-hut",
@@ -440,8 +437,9 @@
       "prompt": "a small round hut whose roof is a big bright blue hat with a pink band, with a little light cyan door",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_hut_wearing_a_hat_a_small_round_hut_whose_694d64d0-2467-4b94-804d-c74eaaad0342_0.png"
     },
     {
       "slug": "bath-bat",
@@ -450,8 +448,9 @@
       "prompt": "a bright blue bat with open wings taking a bubble bath in a light cyan bathtub full of white bubbles",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_bat_in_a_bathtub_a_bright_blue_bat_with_o_a8ff341f-a6cf-4502-ba4e-d1b64f348752_3.png"
     },
     {
       "slug": "heart-art",
@@ -462,8 +461,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_heart_and_easel_a_big_pink_heart_on_the__f815a6ac-f1e4-4223-85c7-07d8448011df_3.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_easel_with_a_heart_a_bright_blue_painters_86bd9538-6b66-4350-b41b-643b54454e2e_2.png"
     },
     {
       "slug": "van-ban",
@@ -472,18 +470,21 @@
       "prompt": "a bright blue delivery van stopped right in front of a big round pink prohibition sign, a circle crossed by a diagonal bar",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_van_at_a_ban_sign_a_bright_blue_delivery__a72ca36a-8857-4809-9944-475ef332874a_1.png"
     },
     {
       "slug": "cash-catch",
       "group": "levels",
-      "prefix": "Path tile glove catching cash",
-      "prompt": "a bright blue baseball glove catching a small stack of light cyan banknotes",
+      "prefix": "Path tile glove beside cash",
+      "prompt": "a bright blue baseball glove next to a thick bundle of light cyan banknotes held by a pink paper band, side by side and touching, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
-      "done": false,
-      "cutout_model": "isnet-general-use"
+      "done": true,
+      "cutout_model": "isnet-general-use",
+      "source_file": "Mandrakin_Path_tile_glove_catching_cash_a_bright_blue_basebal_a33a0284-c1c7-4949-904d-178cea5a303b_0.png",
+      "regen": true
     },
     {
       "slug": "sonido",
@@ -494,8 +495,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_mouth_sound_waves_a_pair_of_open_cartoon_71f0d200-b61b-41ae-b4b9-2c1bc8117a62_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_mouth_and_sound_an_open_mouth_with_pink_l_934c861e-026d-45de-ba34-c35fed1f7ea2_0.png"
     },
     {
       "slug": "adjetivos",
@@ -506,8 +506,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_ball_with_a_tag_a_round_cyan_ball_with_a_bcba2365-1d7c-43b2-8ace-86d1cd481c05_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_sneaker_with_a_label_a_chunky_bright_blue_b8236949-5cd8-47c7-b147-5589e3626a1f_3.png"
     },
     {
       "slug": "hay",
