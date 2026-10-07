@@ -4,8 +4,8 @@
     {
       "slug": "formas",
       "group": "levels",
-      "prefix": "Path tile shape sorter",
-      "prompt": "a chunky light cyan toy shape sorter box with a star, a circle and a triangle shaped hole on its top, a pink star block halfway into the star hole and a bright blue circle block resting against the box",
+      "prefix": "Path tile geometric poster",
+      "prompt": "a bold geometric composition like a modern design poster: a pink circle, a light cyan triangle and a bright blue square overlapping at playful angles, a small white star sparkle on the circle",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -19,8 +19,8 @@
     {
       "slug": "abecedario",
       "group": "levels",
-      "prefix": "Path tile ABC blocks",
-      "prompt": "three chunky toy blocks in a small pyramid, their front faces showing the capital letters A, B and C in thick white letters with a navy outline, the blocks pink, light cyan and bright blue",
+      "prefix": "Path tile ABC keycaps",
+      "prompt": "three chunky mechanical keyboard keycaps in a row showing the capital letters A, B and C in bold white letters with a navy outline, the keycaps pink, light cyan and bright blue",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -32,8 +32,8 @@
     {
       "slug": "numeros-1-20",
       "group": "levels",
-      "prefix": "Path tile 123 blocks",
-      "prompt": "three chunky toy blocks in a row, their front faces showing the digits 1, 2 and 3 in thick white numerals with a navy outline, the blocks pink, light cyan and bright blue",
+      "prefix": "Path tile calculator buttons",
+      "prompt": "three round chunky calculator buttons showing the digits 1, 2 and 3 in bold white numerals with a navy outline, the buttons pink, light cyan and bright blue",
       "size": 512,
       "mascot": false,
       "done": false,
@@ -43,14 +43,15 @@
     {
       "slug": "decenas",
       "group": "levels",
-      "prefix": "Path tile ten rods",
-      "prompt": "three upright rods each made of ten small stacked cubes, standing side by side like a little bar chart, the rods pink, light cyan and bright blue, no numbers",
+      "prefix": "Path tile tens scoreboard",
+      "prompt": "a digital scoreboard panel showing the numbers 10, 20 and 30 in big glowing light cyan digits on a bright blue screen inside a pink frame",
       "size": 512,
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
       "source_file": "Mandrakin_Level_tile_ten_rods_three_upright_base-ten_rods_sta_f3882631-1e57-48fa-ab67-ae467799db5a_0.png",
-      "regen": true
+      "regen": true,
+      "glyphs": true
     },
     {
       "slug": "dias",
@@ -499,8 +500,8 @@
     {
       "slug": "adjetivos",
       "group": "levels",
-      "prefix": "Path tile car with a label",
-      "prompt": "a light cyan toy car with a big blank pink label tag hanging in front of it",
+      "prefix": "Path tile sneaker with a label",
+      "prompt": "a chunky pink sneaker with a big blank light cyan label tag hanging in front of it from a string",
       "size": 512,
       "mascot": false,
       "done": true,

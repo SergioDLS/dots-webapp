@@ -154,11 +154,11 @@ respondería 500 sin ella.
 - **Doty** sale cuando el tema es una persona, una acción o una situación; los
   temas de cosas van sin él. Canon: sin zapatos, sin gafas, y sin orejas,
   nariz ni pelo — por eso `cuerpo` y `pelo` no pueden ser Doty.
-- **Texto**: prohibido salvo en `abecedario` (A B C) y `numeros-1-20`
-  (1 2 3), como glifos sueltos sobre bloques; en esas dos piezas `text` sale
-  de los negativos. Plan B si los glifos salen deformes: bloques en blanco y
-  glifos compuestos después con Baloo 2 (la fuente de display de la app)
-  mediante sharp, como `compose-icons.mjs`. `decenas` no lleva cifras.
+- **Texto**: prohibido salvo en `abecedario` (A B C), `numeros-1-20`
+  (1 2 3) y, desde la 2ª generación, `decenas` (10 20 30), como glifos
+  sueltos; en esas piezas `text` sale de los negativos. Plan B si los glifos
+  salen deformes: soportes en blanco y glifos compuestos después con Baloo 2
+  (la fuente de display de la app) mediante sharp, como `compose-icons.mjs`.
 - **Slugs en español**, como los 38 de la fase 2. Los de pronunciación son el
   propio par inglés, que es el contenido.
 
@@ -313,8 +313,14 @@ sobrecargar"):
   un ancla nueva. `formas` sigue siendo el ancla del grupo en el catálogo
   (`validate_catalog` exige una), pero con `group_sref` le pasa su referencia
   prestada a todo el grupo en vez de ser ella la referencia. Su concepto es la
-  caja de encajar formas con una estrella entrando por su agujero; la
-  torrecita apilada se descartó porque leía como un arbolito de Navidad.
+  composición geométrica tipo póster de diseño (círculo, triángulo y cuadrado
+  superpuestos); se descartaron la torrecita apilada (leía como un arbolito
+  de Navidad) y la caja de encajar formas (juguete de bebé).
+- **Juvenil, no infantil** (la guía de marca: "juvenil e irreverente, para
+  todo público"; el arte dibuja arquetipos). Nada de juguetes de bebé: las
+  letras son teclas de teclado mecánico, los números botones de calculadora,
+  las decenas un marcador digital con 10, 20 y 30, y `adjetivos` una zapatilla
+  con la etiqueta delante.
 
 ## Despliegue
 

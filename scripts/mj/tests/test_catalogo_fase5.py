@@ -74,9 +74,10 @@ def test_doty_solo_donde_la_spec_lo_pone():
     assert {p["slug"] for p in _cat()["pieces"] if p.get("mascot")} == MASCOTA & _slugs()
 
 
-def test_solo_abecedario_y_numeros_llevan_glifos():
+def test_solo_letras_y_numeros_llevan_glifos():
+    # decenas entra en la 2ª generación: su marcador muestra 10, 20 y 30.
     assert {p["slug"] for p in _cat()["pieces"] if p.get("glyphs")} == \
-        {"abecedario", "numeros-1-20"} & _slugs()
+        {"abecedario", "numeros-1-20", "decenas"} & _slugs()
 
 
 def test_solo_colores_sale_de_la_paleta_cerrada():
