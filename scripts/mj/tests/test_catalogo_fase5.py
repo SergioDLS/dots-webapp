@@ -77,7 +77,7 @@ def test_doty_solo_donde_la_spec_lo_pone():
 def test_solo_letras_y_numeros_llevan_glifos():
     # decenas entra en la 2ª generación: su marcador muestra 10, 20 y 30.
     assert {p["slug"] for p in _cat()["pieces"] if p.get("glyphs")} == \
-        {"abecedario", "numeros-1-20", "decenas", "dias"} & _slugs()
+        {"abecedario", "numeros-1-20", "decenas", "dias", "cash-catch"} & _slugs()
 
 
 def test_solo_colores_sale_de_la_paleta_cerrada():
@@ -106,4 +106,5 @@ def test_piezas_sin_mascota_se_recortan_con_isnet_general_use():
     # tiles de la fase 2 se recortaron antes del cambio, con isnet-general-use.
     for p in _cat()["pieces"]:
         if not p.get("mascot"):
-            assert p.get("cutout_model") == "isnet-general-use", p["slug"]
+            # `flood` (fondo conectado al borde) para las que rembg se come el relleno.
+            assert p.get("cutout_model") in {"isnet-general-use", "flood"}, p["slug"]

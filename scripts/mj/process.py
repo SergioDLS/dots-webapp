@@ -99,6 +99,10 @@ def cmd_apply(fase: str, raw: Path, picks: list[str], force: bool) -> int:
         return sesiones[nombre]
 
     def remover(im, model: str = DEFAULT_MODEL):
+        # `flood` no es un modelo de rembg: borra el fondo conectado al borde y
+        # deja el interior intacto (ver mjlib.flood_cutout).
+        if model == "flood":
+            return mjlib.flood_cutout(im)
         return remove(im, session=sesion(model), alpha_matting=True,
                       alpha_matting_foreground_threshold=240, alpha_matting_background_threshold=10,
                       alpha_matting_erode_size=10)

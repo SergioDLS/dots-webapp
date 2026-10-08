@@ -576,6 +576,77 @@ def internal_hole_mask(img: "Image.Image") -> "Image.Image":
     return marco.crop((1, 1, w + 1, h + 1)).point(lambda v: 255 if v == 255 else 0)
 
 
+def flood_cutout(img: "Image.Image", tol: int = 48) -> "Image.Image":
+    """Recorte para iconos planos sobre fondo liso: borra solo el fondo conectado
+    al borde de la imagen, como un bote de pintura invertido.
+
+    Los modelos de `rembg` deciden por saliencia y se equivocan con los rellenos
+    claros grandes: `isnet-general-use` se comió la luna rosa de `luna` y el
+    cuerpo blanco de la ola de `oceano` (fase 5). Aquí el interior nunca se toca,
+    sea del color que sea, porque el contorno navy lo separa del fondo.
+
+    El color de fondo es el más común del borde (cuantizado), no el de una
+    esquina: una figura puede llegar a tocar una esquina. El antialias del borde
+    se resuelve con el vecino más lejano del fondo como color de primer plano:
+    alfa = distancia propia / distancia de ese vecino, y el píxel toma el color
+    del vecino, para que no quede un hilo blanco sobre el tema oscuro.
+    """
+    rgb = img.convert("RGB")
+    w, h = rgb.size
+    buf = rgb.tobytes()
+    borde = ([x for x in range(w)] + [(h - 1) * w + x for x in range(w)]
+             + [y * w for y in range(h)] + [y * w + w - 1 for y in range(h)])
+    cuenta: dict[tuple[int, int, int], int] = {}
+    for i in borde:
+        q = (buf[3 * i] >> 3, buf[3 * i + 1] >> 3, buf[3 * i + 2] >> 3)
+        cuenta[q] = cuenta.get(q, 0) + 1
+    moda = max(cuenta, key=cuenta.get)
+    muestras = [i for i in borde if (buf[3 * i] >> 3, buf[3 * i + 1] >> 3, buf[3 * i + 2] >> 3) == moda]
+    bg = tuple(sum(buf[3 * i + c] for i in muestras) // len(muestras) for c in range(3))
+
+    def dist(i: int) -> int:
+        return max(abs(buf[3 * i] - bg[0]), abs(buf[3 * i + 1] - bg[1]), abs(buf[3 * i + 2] - bg[2]))
+
+    es_fondo = bytearray(w * h)
+    frontera: set[int] = set()
+    pila = list(borde)
+    while pila:
+        i = pila.pop()
+        if es_fondo[i]:
+            continue
+        if dist(i) > tol:
+            frontera.add(i)
+            continue
+        es_fondo[i] = 1
+        x, y = i % w, i // w
+        if x > 0:
+            pila.append(i - 1)
+        if x < w - 1:
+            pila.append(i + 1)
+        if y > 0:
+            pila.append(i - w)
+        if y < h - 1:
+            pila.append(i + w)
+
+    alfa = bytearray(b"\xff" * (w * h))
+    out = bytearray(buf)
+    for i in range(w * h):
+        if es_fondo[i]:
+            alfa[i] = 0
+    for i in frontera:
+        x, y = i % w, i // w
+        vecinos = [j for dx in (-1, 0, 1) for dy in (-1, 0, 1)
+                   if (dx or dy) and 0 <= x + dx < w and 0 <= y + dy < h
+                   and not es_fondo[j := (y + dy) * w + x + dx]]
+        mejor = max(vecinos + [i], key=dist)
+        d_fg = dist(mejor)
+        alfa[i] = 255 if d_fg == 0 else min(255, round(255 * dist(i) / d_fg))
+        out[3 * i:3 * i + 3] = buf[3 * mejor:3 * mejor + 3]
+    res = Image.frombytes("RGB", (w, h), bytes(out)).convert("RGBA")
+    res.putalpha(Image.frombytes("L", (w, h), bytes(alfa)))
+    return res
+
+
 def fill_internal_holes(cut: "Image.Image", src: "Image.Image") -> "Image.Image":
     """Devuelve el color original a los agujeros que `rembg` abrió dentro de la
     figura. El color sale de `src` — la descarga sin recortar, del mismo tamaño —
@@ -751,6 +822,10 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
                 and (raw_dir / p["source_file"]).is_file()):
             chosen = p["source_file"]
         cands = matches.get(slug, [])
+        if p.get("regen"):
+            # Con variaciones del mismo prompt la descarga rechazada sigue
+            # emparejando por prefijo: sin un --pick explícito no vuelve a valer.
+            cands = [c for c in cands if c != p.get("source_file")]
         if not chosen:
             if len(cands) == 1:
                 chosen = cands[0]

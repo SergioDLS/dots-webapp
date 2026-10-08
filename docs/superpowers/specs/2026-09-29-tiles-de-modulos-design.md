@@ -156,7 +156,7 @@ respondería 500 sin ella.
   nariz ni pelo — por eso `cuerpo` y `pelo` no pueden ser Doty.
 - **Texto**: prohibido salvo en `abecedario` (A B C), `numeros-1-20`
   (1 2 3) y, desde la 2ª generación, `decenas` (10 20 30) y `dias` (las
-  iniciales M T W T F S S), como glifos
+  iniciales M T W T F S S) y el símbolo $ de `cash-catch`, como glifos
   sueltos; en esas piezas `text` sale de los negativos. Plan B si los glifos
   salen deformes: soportes en blanco y glifos compuestos después con Baloo 2
   (la fuente de display de la app) mediante sharp, como `compose-icons.mjs`.
@@ -329,6 +329,15 @@ sobrecargar"):
   `volcan` un volcán clásico en erupción. Midjourney tiende a meter un panel o
   marco de fondo que apelmaza el tile: los prompts rehechos piden fondo blanco
   liso sin panel.
+- **Recorte por relleno desde el borde** (`cutout_model: "flood"`, en
+  `mjlib.flood_cutout`): `isnet-general-use` decide por saliencia y se comió la
+  luna rosa de `luna` y el cuerpo blanco de la ola de `oceano`. Para un icono
+  plano con contorno navy sobre fondo liso basta con borrar el fondo conectado
+  al borde: el interior nunca se toca. Se usa pieza a pieza donde rembg falla.
+- **Texto exacto por variaciones**: Midjourney escribió «10 20 30 30» y se
+  saltó un día en «M T W / F S S». Se regeneran con variaciones hasta que el
+  texto salga exacto; una pieza en `regen` ya no vuelve a recortar su descarga
+  rechazada aunque el prefijo siga emparejando (solo con `--pick` explícito).
 - **Juvenil, no infantil** (la guía de marca: "juvenil e irreverente, para
   todo público"; el arte dibuja arquetipos). Nada de juguetes de bebé: las
   letras son teclas de teclado mecánico, los números botones de calculadora,

@@ -4,8 +4,8 @@
     {
       "slug": "formas",
       "group": "levels",
-      "prefix": "Path tile three shapes apart",
-      "prompt": "three simple bold shapes standing apart in a neat row with clear space between them: a bright blue square, a light cyan triangle and a pink circle, on a plain white background with no frame or backdrop panel",
+      "prefix": "Path tile shape stencil",
+      "prompt": "a single flat light cyan plastic stencil ruler with cut-out holes shaped like a circle, a triangle, a star and a heart, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -49,7 +49,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_tens_scoreboard_a_digital_scoreboard_pane_68453754-f2be-4765-9d8d-70c64deb36f3_0.png",
+      "source_file": "Mandrakin_Path_tile_tens_score_panel_a_digital_scoreboard_pan_5869de66-b1d4-4417-8734-ba5230cc9b6f_3.png",
       "glyphs": true,
       "regen": true
     },
@@ -62,9 +62,9 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_week_card_a_rounded_bright_blue_weekly_pl_3bc67319-55a9-43fa-adfb-f0785b75b0c3_3.png",
-      "regen": true,
-      "glyphs": true
+      "source_file": "Mandrakin_Path_tile_weekday_boxes_seven_rounded_boxes_in_two__be8c6448-695c-41c6-b8ff-2e2f38a005ef_1.png",
+      "glyphs": true,
+      "regen": true
     },
     {
       "slug": "meses",
@@ -273,8 +273,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_armchair_and_lamp_a_bright_blue_armchair__dd39c7a7-f0db-45da-b1a8-c1f3671dd970_0.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_armchair_with_lamp_a_bright_blue_armchair_6b373dc8-2010-4a75-9ef6-b7a9bbceeea0_3.png"
     },
     {
       "slug": "escuela",
@@ -285,8 +284,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_school_backpack_a_bright_blue_school_back_71e8bc84-42c7-40e7-8052-10956c5775e8_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_backpack_with_ruler_a_bright_blue_school__70719c08-aee5-4c99-bc1c-a9d81e4e502e_3.png"
     },
     {
       "slug": "ciudad",
@@ -307,9 +305,8 @@
       "size": 512,
       "mascot": false,
       "done": true,
-      "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Level_tile_glowing_moon_a_big_crescent_moon_on_the__c4ab5723-9c1f-4799-b89b-517cb2756295_0.png",
-      "regen": true
+      "cutout_model": "flood",
+      "source_file": "Mandrakin_Path_tile_crescent_moon_a_simple_big_light_cyan_cre_23c53757-b955-44a4-bae1-7d39c1ac524f_3.png"
     },
     {
       "slug": "peces",
@@ -331,8 +328,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_volcano_cross_section_a_volcano_cut_in_ha_6d04e214-236d-46fc-aa66-853fb8cfd102_2.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_erupting_volcano_a_classic_bright_blue_vo_ea958e05-1647-41c7-9a48-9ca0342a0022_2.png"
     },
     {
       "slug": "pelo",
@@ -353,9 +349,8 @@
       "size": 512,
       "mascot": false,
       "done": true,
-      "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_shore_to_trench_a_cross-section_of_the_se_c661dc08-4a1e-496e-87ee-812508387b69_0.png",
-      "regen": true
+      "cutout_model": "flood",
+      "source_file": "Mandrakin_Path_tile_simple_sea_waves_three_simple_layered_sea_e97e6fb6-3c12-4ef7-8cf5-ffb667c47137_1.png"
     },
     {
       "slug": "telefono",
@@ -477,14 +472,15 @@
     {
       "slug": "cash-catch",
       "group": "levels",
-      "prefix": "Path tile glove beside cash",
-      "prompt": "a bright blue baseball glove next to a thick bundle of light cyan banknotes held by a pink paper band, side by side and touching, on a plain white background with no frame or backdrop panel",
+      "prefix": "Path tile mitt and cash stack",
+      "prompt": "a classic bright blue baseball mitt with white stitching catching a white baseball, next to a thick stack of light cyan banknotes wrapped in a pink paper band with a white dollar sign on it, side by side and touching, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
       "source_file": "Mandrakin_Path_tile_glove_catching_cash_a_bright_blue_basebal_a33a0284-c1c7-4949-904d-178cea5a303b_0.png",
-      "regen": true
+      "regen": true,
+      "glyphs": true
     },
     {
       "slug": "sonido",

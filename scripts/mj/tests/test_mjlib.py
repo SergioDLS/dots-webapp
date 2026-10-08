@@ -1432,3 +1432,54 @@ def test_regen_sin_descarga_nueva_sigue_en_cola(tmp_path):
     guardado = json.loads(cpath.read_text())["pieces"][0]
     assert guardado["regen"] is True
     assert guardado["source_file"] == "sergio_Doty_old_smile_c1.png"
+
+
+def test_regen_no_reusa_su_descarga_aunque_el_prefijo_siga_emparejando(tmp_path):
+    # Variaciones con el mismo prompt: la descarga rechazada sigue emparejando por
+    # prefijo. Mientras no llegue una nueva, la pieza sigue en cola.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file="sergio_Doty_beaming_with_joy_c1.png")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["missing"] == ["feliz"] and rep["done"] == []
+    # con un --pick explícito sí se reprocesa (p. ej. para cambiar de recortador)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover,
+                            picks={"feliz": "sergio_Doty_beaming_with_joy_c1.png"})
+    assert rep["done"] == ["feliz"]
+
+
+def _icono_con_interior_blanco():
+    # fondo blanco, anillo navy de 4 px y el interior blanco: lo que isnet-general-use
+    # se come (la ola de `oceano`, la luna de `luna`).
+    im = Image.new("RGB", (40, 40), (255, 255, 255))
+    for x in range(40):
+        for y in range(40):
+            r = ((x - 20) ** 2 + (y - 20) ** 2) ** 0.5
+            if 10 <= r <= 14:
+                im.putpixel((x, y), (30, 27, 92))
+    return im
+
+
+def test_flood_cutout_quita_solo_el_fondo_conectado_al_borde():
+    out = mjlib.flood_cutout(_icono_con_interior_blanco())
+    a = out.getchannel("A")
+    assert a.getpixel((0, 0)) == 0 and a.getpixel((2, 37)) == 0   # fondo exterior
+    assert a.getpixel((20, 20)) == 255                             # interior blanco: intacto
+    assert a.getpixel((20, 8)) == 255                              # el anillo navy
+
+
+def test_flood_cutout_suaviza_el_borde_y_le_quita_el_blanco():
+    im = Image.new("RGB", (20, 10), (255, 255, 255))
+    for x in range(14, 20):
+        for y in range(10):
+            im.putpixel((x, y), (30, 27, 92))
+    # columna de antialias: mitad navy, mitad blanco
+    for y in range(10):
+        im.putpixel((13, y), (142, 141, 173))
+    out = mjlib.flood_cutout(im)
+    r, g, b, a = out.getpixel((13, 5))
+    assert 60 < a < 200                       # semitransparente
+    assert (r, g, b) == (30, 27, 92) or max(abs(r - 30), abs(g - 27), abs(b - 92)) < 12  # sin el blanco mezclado
