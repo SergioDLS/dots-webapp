@@ -155,8 +155,8 @@ respondería 500 sin ella.
   temas de cosas van sin él. Canon: sin zapatos, sin gafas, y sin orejas,
   nariz ni pelo — por eso `cuerpo` y `pelo` no pueden ser Doty.
 - **Texto**: prohibido salvo en `abecedario` (A B C), `numeros-1-20`
-  (1 2 3) y, desde la 2ª generación, `decenas` (10 20 30) y `dias` (las
-  iniciales M T W T F S S) y el símbolo $ de `cash-catch`, como glifos
+  (1 2 3), `decenas` (un «10» grande) y el símbolo $ de `cash-catch`, como
+  glifos
   sueltos; en esas piezas `text` sale de los negativos. Plan B si los glifos
   salen deformes: soportes en blanco y glifos compuestos después con Baloo 2
   (la fuente de display de la app) mediante sharp, como `compose-icons.mjs`.
@@ -334,10 +334,15 @@ sobrecargar"):
   luna rosa de `luna` y el cuerpo blanco de la ola de `oceano`. Para un icono
   plano con contorno navy sobre fondo liso basta con borrar el fondo conectado
   al borde: el interior nunca se toca. Se usa pieza a pieza donde rembg falla.
-- **Texto exacto por variaciones**: Midjourney escribió «10 20 30 30» y se
-  saltó un día en «M T W / F S S». Se regeneran con variaciones hasta que el
-  texto salga exacto; una pieza en `regen` ya no vuelve a recortar su descarga
-  rechazada aunque el prefijo siga emparejando (solo con `--pick` explícito).
+- **Texto: dos o tres caracteres como mucho.** Midjourney escribió «10 20 30
+  30», «10 / 30», «M T W / F S S» y «M T T / F S S»: con más de tres o cuatro
+  caracteres no acierta. `decenas` pasa a un «10» grande y `dias` a un
+  calendario con 7 casillas sin letras. Una pieza en `regen` ya no vuelve a
+  recortar su descarga rechazada aunque el prefijo siga emparejando (solo con
+  `--pick` explícito).
+- `formas`, tras seis rondas (torrecita, caja encajable, póster, fila con
+  panel, cuadrícula), queda como tres figuras sencillas una sobre otra, de
+  tamaño parecido.
 - **Juvenil, no infantil** (la guía de marca: "juvenil e irreverente, para
   todo público"; el arte dibuja arquetipos). Nada de juguetes de bebé: las
   letras son teclas de teclado mecánico, los números botones de calculadora,

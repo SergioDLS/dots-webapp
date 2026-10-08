@@ -4,8 +4,8 @@
     {
       "slug": "formas",
       "group": "levels",
-      "prefix": "Path tile shape stencil",
-      "prompt": "a single flat light cyan plastic stencil ruler with cut-out holes shaped like a circle, a triangle, a star and a heart, on a plain white background with no frame or backdrop panel",
+      "prefix": "Path tile stacked three shapes",
+      "prompt": "three simple bold shapes stacked one above the other with a little space between them, all about the same modest size: a pink circle on top, a light cyan triangle in the middle and a bright blue square at the bottom, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -43,8 +43,8 @@
     {
       "slug": "decenas",
       "group": "levels",
-      "prefix": "Path tile tens score panel",
-      "prompt": "a digital scoreboard panel showing the numbers 10, 20 and 30 in big bold white digits with a navy outline on a bright blue screen inside a light cyan frame",
+      "prefix": "Path tile big ten",
+      "prompt": "a digital scoreboard panel showing a single big number 10 in bold white digits with a navy outline on a bright blue screen inside a light cyan frame",
       "size": 512,
       "mascot": false,
       "done": true,
@@ -56,14 +56,13 @@
     {
       "slug": "dias",
       "group": "levels",
-      "prefix": "Path tile weekday boxes",
-      "prompt": "seven rounded boxes in two rows, four on top and three below, showing the letters M, T, W, T and F, S, S in bold white letters with a navy outline, the boxes bright blue except one pink, on a plain white background with no frame or backdrop panel",
+      "prefix": "Path tile seven day calendar",
+      "prompt": "a simple desk calendar page with two bright blue binder rings on top and exactly seven empty rounded boxes in two rows, four on top and three below, one box pink, no text, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
       "source_file": "Mandrakin_Path_tile_weekday_boxes_seven_rounded_boxes_in_two__be8c6448-695c-41c6-b8ff-2e2f38a005ef_1.png",
-      "glyphs": true,
       "regen": true
     },
     {
@@ -478,8 +477,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_glove_catching_cash_a_bright_blue_basebal_a33a0284-c1c7-4949-904d-178cea5a303b_0.png",
-      "regen": true,
+      "source_file": "Mandrakin_Path_tile_mitt_and_cash_stack_a_classic_bright_blue_4abcdfea-0b84-4eea-8411-119d02b0f2ae_1.png",
       "glyphs": true
     },
     {
