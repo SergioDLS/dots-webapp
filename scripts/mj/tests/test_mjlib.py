@@ -604,7 +604,7 @@ def test_render_report_sections():
     # que un orden de desempaquetado cambiado en render_report debe romper esto.
     txt = mjlib.render_report({"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": ["wow"],
                                "ambiguous": ["triste"], "halo": [("feliz", 2.5)],
-                               "soft": [("cientifica", 0.51)],
+                               "soft": [("cientifica", 0.51)], "no_bg": [],
                                "failed": [("bailando", "RuntimeError: modelo caído")],
                                "duplicates": [("dot-bombs", "sergio_archivo.png", "wordle")]})
     assert "# fase-1 — REPORT" in txt and "## Hechas (1)" in txt and "- wow" in txt
@@ -1483,3 +1483,319 @@ def test_flood_cutout_suaviza_el_borde_y_le_quita_el_blanco():
     r, g, b, a = out.getpixel((13, 5))
     assert 60 < a < 200                       # semitransparente
     assert (r, g, b) == (30, 27, 92) or max(abs(r - 30), abs(g - 27), abs(b - 92)) < 12  # sin el blanco mezclado
+
+
+# ── revisión del arte de la fase 5: regen, lote, dry-run y recorte por relleno ─
+
+UUID_A = "23c53757-b955-44a4-bae1-7d39c1ac524f"
+UUID_B = "9a1b2c3d-0000-4abc-8def-1234567890ab"
+
+
+def _descarga(uuid, n, prefijo="Mandrakin_Doty_beaming_with_joy"):
+    # Así nombra Midjourney: palabras del prompt + uuid del trabajo + índice 0-3.
+    # Las cuatro imágenes de un mismo trabajo (una rejilla) comparten el uuid.
+    return f"{prefijo}_{uuid}_{n}.png"
+
+
+def test_regen_no_toma_otra_imagen_de_la_misma_rejilla_que_rechazo(tmp_path):
+    # Solo se excluía el nombre exacto del source_file: si otra de las 4 imágenes
+    # de esa rejilla seguía en la carpeta, se elegía en silencio, `regen` se
+    # limpiaba y la pieza aparecía como hecha con la generación rechazada.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", _descarga(UUID_A, 2))
+    raw_png(raw / "fase-1", _descarga(UUID_A, 3))
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file=_descarga(UUID_A, 3))]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["missing"] == ["feliz"] and rep["done"] == [] and rep["ambiguous"] == []
+    guardado = json.loads(cpath.read_text())["pieces"][0]
+    assert guardado["regen"] is True and guardado["source_file"] == _descarga(UUID_A, 3)
+
+
+def test_regen_toma_la_descarga_de_otra_rejilla_aunque_queden_hermanas_de_la_vieja(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", _descarga(UUID_A, 2))
+    raw_png(raw / "fase-1", _descarga(UUID_A, 3))
+    raw_png(raw / "fase-1", _descarga(UUID_B, 1))
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file=_descarga(UUID_A, 3))]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    guardado = json.loads(cpath.read_text())["pieces"][0]
+    assert guardado["source_file"] == _descarga(UUID_B, 1) and "regen" not in guardado
+
+
+def test_regen_con_pick_explicito_acepta_una_hermana_de_la_rejilla(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", _descarga(UUID_A, 2))
+    raw_png(raw / "fase-1", _descarga(UUID_A, 3))
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file=_descarga(UUID_A, 3))]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover,
+                            picks={"feliz": _descarga(UUID_A, 2)})
+    assert rep["done"] == ["feliz"]
+
+
+def test_regen_con_source_file_sin_uuid_excluye_solo_el_nombre_exacto(tmp_path):
+    # Descargas sin el formato de Midjourney (nombres de prueba, renombradas a
+    # mano): no hay trabajo que reconocer, así que se excluye solo ese archivo.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c1.png")
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_c2.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file="sergio_Doty_beaming_with_joy_c1.png")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, fake_remover)
+    assert rep["done"] == ["feliz"]
+    assert json.loads(cpath.read_text())["pieces"][0]["source_file"] == "sergio_Doty_beaming_with_joy_c2.png"
+
+
+def test_candidates_for_sin_regen_devuelve_todo_lo_que_emparejo():
+    p = piece(done=False, source_file=_descarga(UUID_A, 3))
+    todos = [_descarga(UUID_A, 2), _descarga(UUID_A, 3)]
+    assert mjlib.candidates_for(p, {"feliz": todos}) == todos
+
+
+def test_dry_run_de_una_pieza_en_cola_no_ofrece_la_descarga_que_rechazo():
+    # apply la excluye, así que el dry-run no puede mostrarla como `OK ← ...`
+    # (caso real: `--dry-run fase-4` mostraba `OK nerd ← ..._3.png` y apply la saltaba).
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file=_descarga(UUID_A, 3))]}
+    salida = mjlib.render_dry_run(cat, {"feliz": [_descarga(UUID_A, 3)]})
+    assert salida == "FALTA    feliz"
+    # ni la hermana de la misma rejilla
+    salida = mjlib.render_dry_run(cat, {"feliz": [_descarga(UUID_A, 2), _descarga(UUID_A, 3)]})
+    assert salida == "FALTA    feliz"
+
+
+def test_dry_run_de_una_pieza_en_cola_solo_cuenta_las_descargas_validas():
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, done=True, regen=True,
+                                              source_file=_descarga(UUID_A, 3))]}
+    salida = mjlib.render_dry_run(cat, {"feliz": [_descarga(UUID_A, 3), _descarga(UUID_B, 0)]})
+    assert salida == f"OK       feliz ← {_descarga(UUID_B, 0)}"
+    salida = mjlib.render_dry_run(cat, {"feliz": [_descarga(UUID_A, 3), _descarga(UUID_B, 0),
+                                                  _descarga(UUID_B, 1)]})
+    assert salida.startswith("AMBIGUO  feliz ← ") and _descarga(UUID_A, 3) not in salida
+
+
+# lote con referencia compartida (group_sref)
+
+SREF = "public/images/levels/estructuras.png"
+
+
+def _cabecera(out):
+    return out.split("## Criterios de acierto")[0]
+
+
+def test_lote_de_grupo_con_group_sref_no_manda_generar_un_ancla():
+    # Con group_sref TODAS las piezas del grupo llevan la referencia prestada:
+    # la cabecera mandaba "genera la marcada ANCLA y arrástrala al slot Style
+    # reference", y el encabezado del ancla decía que era la única con algo
+    # adjunto. Las dos cosas contradicen la línea 📎 de cada pieza.
+    cat = _cat_levels({"anchor_sref": SREF, "group_sref": True})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    cab = _cabecera(out)
+    assert "arrástrala" not in cab and "genera la marcada" not in cab
+    assert f"`{SREF}`" in cab and "Style reference" in cab
+    assert "a diferencia de las demás" not in out
+    assert "NO tiene un ancla que generar primero" in cab
+    assert "generar primero, sin nada adjunto" not in out and "sin nada adjunto" not in out
+
+
+def test_lote_de_group_sref_encabezado_del_ancla_dice_que_comparte_la_referencia():
+    cat = _cat_levels({"anchor_sref": SREF, "group_sref": True})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    encabezado = next(l for l in out.splitlines() if l.startswith("### ") and "`formas`" in l)
+    assert f"`{SREF}`" in encabezado
+    assert "sí lleva algo adjunto" not in encabezado and "ANCLA" not in encabezado
+
+
+def test_lote_mixto_group_sref_y_ancla_propia_conserva_el_texto_del_ancla():
+    # Un grupo sin group_sref sigue necesitando su ancla: el texto de siempre se
+    # queda, y el grupo con referencia compartida se añade como excepción.
+    otro = [{"slug": "casa", "group": "icons", "prefix": "Icon house", "prompt": "a house",
+             "size": 256, "mascot": False, "anchor": True, "done": False}]
+    cat = _cat_levels({"anchor_sref": SREF, "group_sref": True}, *otro)
+    out = mjlib.emit_lote(cat, STYLE, ["levels", "icons"])
+    cab = _cabecera(out)
+    assert "arrástrala" in cab                # el grupo `icons` sí tiene ancla que generar
+    assert f"`{SREF}`" in cab and "levels" in cab
+    assert "a diferencia de las demás" not in out
+
+
+def test_lote_sin_group_sref_conserva_el_texto_del_ancla():
+    out = mjlib.emit_lote(_cat_levels({"anchor_sref": SREF}), STYLE, ["levels"])
+    assert "arrástrala" in _cabecera(out) and "a diferencia de las demás" in out
+
+
+def test_lote_pendientes_con_group_sref_aunque_el_ancla_ya_este_hecha():
+    # El ancla queda fuera de un lote `--pendientes` si está hecha, pero su
+    # group_sref sigue mandando sobre el resto del grupo.
+    cat = _cat_levels({"anchor_sref": SREF, "group_sref": True, "done": True})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"], pendientes_solo=True)
+    assert "`formas`" not in out
+    cab = _cabecera(out)
+    assert "arrástrala" not in cab and f"`{SREF}`" in cab
+
+
+# edit_from con la fuente en cola de regeneración
+
+def _cat_con_edicion(fuente_over):
+    base = {"slug": "taxi", "group": "levels", "prefix": "Level tile taxi", "prompt": "a taxi",
+            "size": 512, "mascot": False, "done": False}
+    base.update(fuente_over)
+    ancla = {"slug": "formas", "group": "levels", "prefix": "Level tile shapes", "prompt": "shapes",
+             "size": 512, "mascot": False, "anchor": True, "done": False}
+    variante = {"slug": "taxi-abollado", "group": "levels", "prefix": "Level tile dented taxi",
+                "prompt": "dented", "size": 512, "mascot": False, "done": False, "edit_from": "taxi"}
+    return {"fase": "fase-t", "pieces": [ancla, base, variante]}
+
+
+def test_edit_from_con_fuente_vigente_adjunta_su_descarga():
+    cat = _cat_con_edicion({"done": True, "source_file": "Mandrakin_taxi_bueno_0.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert out.count("`fase-t/Mandrakin_taxi_bueno_0.png`") == 2   # línea 📎 y nota 🖌️
+
+
+def test_edit_from_con_fuente_en_regen_no_reparte_su_descarga_rechazada():
+    # Mismo fallo que el ancla en `regen` (spec: slots con ancla en regen): el
+    # source_file de una pieza en cola es justo la generación que se descarta, y
+    # editar a partir de ella contagia a la variante el arte rechazado.
+    cat = _cat_con_edicion({"done": True, "regen": True, "source_file": "Mandrakin_taxi_viejo_0.png"})
+    out = mjlib.emit_lote(cat, STYLE, ["levels"])
+    assert "Mandrakin_taxi_viejo_0.png" not in out
+    variante = out.split("`taxi-abollado`")[1]
+    assert variante.count("la descarga que elijas de `taxi`") == 1                  # línea 📎
+    assert "en cola de regeneración" in variante and "adjunta aquí" in variante      # nota 🖌️
+
+
+# flood_cutout: fondo del borde y guardia de "sin fondo claro"
+
+def _sujeto_en_esquina():
+    # fondo blanco; un bloque navy de 12x12 que toca la esquina superior izquierda
+    im = Image.new("RGB", (40, 40), (255, 255, 255))
+    for x in range(12):
+        for y in range(12):
+            im.putpixel((x, y), (30, 27, 92))
+    return im
+
+
+def test_flood_cutout_el_fondo_sale_de_la_moda_del_borde_no_de_la_esquina():
+    out = mjlib.flood_cutout(_sujeto_en_esquina())
+    a = out.getchannel("A")
+    assert a.getpixel((0, 0)) == 255          # el sujeto que toca la esquina se queda
+    assert a.getpixel((5, 5)) == 255
+    assert a.getpixel((39, 39)) == 0 and a.getpixel((30, 8)) == 0    # el fondo blanco se va
+
+
+def test_flood_cutout_una_linea_diagonal_de_un_pixel_no_deja_pasar_el_relleno():
+    # Un rombo navy de 1 px: sus píxeles contiguos solo se tocan por la esquina.
+    # El relleno es de 4 vecinos, así que no puede colarse entre ellos: el blanco
+    # de dentro es interior (alfa 255), no fondo. Con 8 vecinos se vaciaría el rombo.
+    im = Image.new("RGB", (41, 41), (255, 255, 255))
+    for x in range(41):
+        for y in range(41):
+            if abs(x - 20) + abs(y - 20) == 10:
+                im.putpixel((x, y), (30, 27, 92))
+    a = mjlib.flood_cutout(im).getchannel("A")
+    assert a.getpixel((20, 20)) == 255 and a.getpixel((20, 14)) == 255 and a.getpixel((24, 20)) == 255
+    assert a.getpixel((0, 0)) == 0 and a.getpixel((20, 5)) == 0
+
+
+def test_flood_background_share_es_la_parte_del_borde_que_tiene_el_color_del_fondo():
+    assert mjlib.flood_background_share(Image.new("RGB", (20, 20), (255, 255, 255))) == 1.0
+    # sujeto que toca la esquina: el borde sigue siendo casi todo blanco
+    assert 0.8 < mjlib.flood_background_share(_sujeto_en_esquina()) < 1.0
+    # mitad del borde de un color y mitad de otro: ningún fondo manda
+    im = Image.new("RGB", (20, 20), (255, 255, 255))
+    for x in range(20):
+        for y in range(10):
+            im.putpixel((x, y), (30, 27, 92))
+    assert mjlib.flood_background_share(im) < 0.8
+
+
+def test_flood_cutout_sigue_devolviendo_solo_la_imagen():
+    out = mjlib.flood_cutout(_sujeto_en_esquina())
+    assert isinstance(out, Image.Image) and out.mode == "RGBA"
+
+
+def _raw_sin_fondo_claro(dirpath, name):
+    # el sujeto llega a la mitad del borde (mitad navy, mitad blanco): ningún color
+    # manda en el borde, así que el "fondo" que elegiría el recorte es una apuesta
+    im = Image.new("RGBA", (300, 300), (255, 255, 255, 255))
+    for x in range(150):
+        for y in range(300):
+            im.putpixel((x, y), (30, 27, 92, 255))
+    im.save(dirpath / name)
+
+
+def _remover_flood(im, model=None):
+    return mjlib.flood_cutout(im) if model == "flood" else fake_remover(im)
+
+
+def test_apply_avisa_cuando_el_recorte_por_relleno_no_encontro_un_fondo_claro(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    _raw_sin_fondo_claro(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    raw_png(raw / "fase-1", "sergio_Doty_feeling_sad_aaaa.png")      # fondo blanco liso
+    cat = {"fase": "fase-1", "pieces": [
+        piece(size=64, cutout_model="flood"),
+        piece(slug="triste", prefix="Doty feeling sad", size=64, cutout_model="flood"),
+    ]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, _remover_flood)
+    assert rep["done"] == ["feliz", "triste"]
+    assert rep["no_bg"] == ["feliz"]
+
+
+def test_apply_avisa_si_el_recorte_por_relleno_borro_menos_del_5_por_ciento(tmp_path):
+    # El borde es de un solo color (share 1.0) pero el sujeto lo ocupa casi todo:
+    # solo un marco de 1 px se va (~1 % del área), no hay fondo que recortar.
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    im = Image.new("RGBA", (300, 300), (30, 27, 92, 255))
+    for x in range(300):
+        for y in range(300):
+            if x in (0, 299) or y in (0, 299):
+                im.putpixel((x, y), (255, 255, 255, 255))
+    im.save(raw / "fase-1" / "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, cutout_model="flood")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, _remover_flood)
+    assert rep["done"] == ["feliz"] and rep["no_bg"] == ["feliz"]
+
+
+def test_apply_no_avisa_de_fondo_en_piezas_que_no_usan_flood(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    _raw_sin_fondo_claro(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, cutout_model="isnet-general-use")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, _remover_flood)
+    assert rep["no_bg"] == []
+
+
+def test_apply_no_avisa_de_fondo_en_un_recorte_por_relleno_limpio(tmp_path):
+    raw, repo = tmp_path / "raw", tmp_path / "repo"
+    (raw / "fase-1").mkdir(parents=True)
+    raw_png(raw / "fase-1", "sergio_Doty_beaming_with_joy_aaaa.png")
+    cat = {"fase": "fase-1", "pieces": [piece(size=64, cutout_model="flood")]}
+    cpath = write(tmp_path, "fase-1.json", cat)
+    rep = mjlib.apply_batch(cat, cpath, raw, repo, _remover_flood)
+    assert rep["done"] == ["feliz"] and rep["no_bg"] == []
+
+
+def test_render_report_lista_la_alerta_de_fondo():
+    rep = {"fase": "fase-1", "done": ["feliz"], "skipped": [], "missing": [], "ambiguous": [],
+           "halo": [], "soft": [], "failed": [], "duplicates": [], "no_bg": ["luna"]}
+    txt = mjlib.render_report(rep)
+    assert "Alerta de fondo" in txt and "no encontró un fondo claro" in txt
+    assert "## Alerta de fondo: el recorte por relleno no encontró un fondo claro, revisar (1)" in txt
+    assert "- luna" in txt

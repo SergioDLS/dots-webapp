@@ -285,6 +285,17 @@ SEPARADOR_SREF_VACIO = (
 )
 
 
+def _descarga_vigente(piece: dict) -> str | None:
+    """`source_file` de una pieza, si todavía vale como referencia de otra. Una
+    pieza en `regen` conserva el de la generación que se descarta: repartirlo como
+    ancla de estilo o como fuente de una edición contagiaría el acabado rechazado."""
+    return None if piece.get("regen") else piece.get("source_file")
+
+
+def _ancla_del_grupo(cat: dict, grupo: str) -> dict | None:
+    return next((q for q in cat["pieces"] if q.get("group") == grupo and q.get("anchor")), None)
+
+
 def _slots_line(cat: dict, piece: dict, style: dict) -> str:
     """Qué va en cada slot de Midjourney para ESTA pieza, sin tener que deducirlo
     de la cabecera: la confusión entre *Attach to prompt* (Edit Model) y *Style
@@ -294,7 +305,8 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
                 "🎨 **Style reference:** VACÍO (sácalo si quedó el ancla de un grupo anterior)")
     if piece.get("edit_from"):
         fuente = next(q for q in cat["pieces"] if q["slug"] == piece["edit_from"])
-        origen = (f"`{cat['fase']}/{fuente['source_file']}`" if fuente.get("source_file")
+        vigente = _descarga_vigente(fuente)
+        origen = (f"`{cat['fase']}/{vigente}`" if vigente
                   else f"la descarga que elijas de `{fuente['slug']}` (misma carpeta)")
         return f"> 📎 **Attach to prompt:** {origen} · 🎨 **Style reference:** VACÍO"
     if piece.get("icon_block"):
@@ -302,7 +314,7 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
         # arrastraría a la de marca — describirla con palabras no basta (gemas).
         return ("> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO "
                 "(esta pieza trae su propia paleta: el sref del ancla la arrastraría a la de marca)")
-    ancla = next((q for q in cat["pieces"] if q.get("group") == piece["group"] and q.get("anchor")), None)
+    ancla = _ancla_del_grupo(cat, piece["group"])
     if ancla is not None and ancla.get("group_sref"):
         # Todo el grupo usa la referencia prestada del ancla, como hizo la fase 2
         # con `estructuras`: no hay un ancla nueva que acertar ni de la que derivar.
@@ -315,8 +327,8 @@ def _slots_line(cat: dict, piece: dict, style: dict) -> str:
         return "> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** VACÍO (esta pieza ES el ancla del grupo)"
     # Un ancla en `regen` conserva el source_file de la generación descartada:
     # apuntar ahí contagiaría al grupo el acabado rechazado.
-    vigente = ancla.get("source_file") and not ancla.get("regen")
-    ref = f"`{cat['fase']}/{ancla['source_file']}`" if vigente else f"la descarga elegida de `{ancla['slug']}`"
+    vigente = _descarga_vigente(ancla)
+    ref = f"`{cat['fase']}/{vigente}`" if vigente else f"la descarga elegida de `{ancla['slug']}`"
     return f"> 📎 **Attach to prompt:** nada · 🎨 **Style reference:** {ref} (ancla `{ancla['slug']}`)"
 
 
@@ -355,6 +367,15 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
     hay_mascota = any(p.get("mascot") for p in pieces)
     hay_icono = any(not p.get("mascot") for p in pieces)
 
+    # Con `group_sref` en el ancla, TODO el grupo parte de la referencia prestada:
+    # no hay un ancla nueva que generar ni que arrastrar al slot. La cabecera tiene
+    # que decirlo, o contradice la línea 📎 de cada pieza. Se busca el ancla en el
+    # catálogo y no en el lote: con `--pendientes` el ancla ya hecha queda fuera.
+    grupos_icono = [g for g in grupos if g in por_grupo and any(not p.get("mascot") for p in por_grupo[g])]
+    sref_comun = {g: a for g in grupos_icono
+                  if (a := _ancla_del_grupo(cat, g)) is not None and a.get("group_sref")}
+    grupos_con_ancla = [g for g in grupos_icono if g not in sref_comun]
+
     lines = [f"# Lote: {' + '.join(grupos)} ({len(pieces)} piezas)", ""]
 
     if hay_mascota:
@@ -369,7 +390,7 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
             "encuadre de la fuente, y encadenar acumula deriva.",
             "",
         ]
-    if hay_icono:
+    if hay_icono and grupos_con_ancla:
         lines += [
             "**Piezas de icono** (🔤): **no se adjunta ninguna imagen en \"Attach to "
             "prompt\"**. Cada grupo no-mascota trae su propio ancla — no se comparte "
@@ -381,6 +402,23 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
             "antes de seguir con el resto de ese grupo. **No es \"Attach to prompt\"**: "
             "esa fila es el Edit Model y hace otra cosa. Midjourney inserta el `--sref` "
             "solo al soltar la imagen ahí; no lo escribas en el prompt.",
+            "",
+        ]
+    if sref_comun:
+        # Una frase por grupo: «`levels` lleva `ruta`».
+        detalle = "; ".join(f"`{g}` lleva `{a['anchor_sref']}`" for g, a in sref_comun.items())
+        arranque = ("**Piezas de icono** (🔤): **no se adjunta ninguna imagen en \"Attach to "
+                    "prompt\"**. " if not grupos_con_ancla else "**Excepción, con referencia compartida:** ")
+        lines += [
+            arranque +
+            f"{'Este grupo NO tiene' if len(sref_comun) == 1 else 'Estos grupos NO tienen'} "
+            "un ancla que generar primero: todas sus piezas de "
+            f"icono llevan la misma referencia en el slot **Style reference** — {detalle}. "
+            "Ponla una sola vez al empezar el grupo, reemplazando lo que hubiera ahí. "
+            "Si la línea 📎 de una pieza dice otra cosa (paleta propia, edición), esa "
+            "manda. **No es \"Attach to prompt\"**: esa fila es el Edit Model y hace otra "
+            "cosa. Midjourney inserta el `--sref` solo al soltar la imagen ahí; no lo "
+            "escribas en el prompt.",
             "",
         ]
 
@@ -431,6 +469,11 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
             # que sí generan su ancla sin nada adjunto.
             if not p.get("anchor"):
                 ancla = ""
+            elif p.get("group_sref") and p.get("anchor_sref"):
+                # Su referencia es la de todo el grupo: no es la única pieza con
+                # algo en Style reference ni hay que generarla antes que las demás.
+                ancla = (" · ⚓ Ancla del grupo, que comparte la referencia de todas: "
+                         f"`{p['anchor_sref']}` en Style reference")
             elif p.get("anchor_sref"):
                 ancla = (" · ⚓ **ANCLA de este grupo — generar con "
                           f"`{p['anchor_sref']}` en Style reference** (esta ancla "
@@ -441,12 +484,17 @@ def emit_lote(cat: dict, style: dict, grupos: list[str],
             lines += [_slots_line(cat, p, style), ""]
             if p.get("edit_from"):
                 fuente = next(q for q in cat["pieces"] if q["slug"] == p["edit_from"])
-                if fuente.get("source_file"):
-                    lines += [f"> 🖌️ Edit Model: adjunta **`{cat['fase']}/{fuente['source_file']}`** en "
+                vigente = _descarga_vigente(fuente)
+                if vigente:
+                    lines += [f"> 🖌️ Edit Model: adjunta **`{cat['fase']}/{vigente}`** en "
                               f"*Attach to prompt* — la descarga ORIGINAL de `{fuente['slug']}`, no el "
                               "recorte publicado. El slot *Style reference* va vacío.", ""]
                 else:
-                    lines += [f"> 🖌️ Edit Model a partir de `{fuente['slug']}`, que **aún no está generada**: "
+                    # En `regen` el source_file es la generación que se descarta:
+                    # no se reparte, se espera la nueva.
+                    estado = ("que está **en cola de regeneración** (su descarga anterior se descarta)"
+                              if fuente.get("regen") else "que **aún no está generada**")
+                    lines += [f"> 🖌️ Edit Model a partir de `{fuente['slug']}`, {estado}: "
                               "genérala primero y adjunta aquí, en *Attach to prompt*, la MISMA descarga que "
                               "elijas para ella (basta con que esté en esta carpeta; no hace falta aplicarla). "
                               "El slot *Style reference* va vacío.", ""]
@@ -531,10 +579,44 @@ def match_downloads(cat: dict, filenames: list[str]) -> dict[str, list[str]]:
     return out
 
 
+# Midjourney nombra cada descarga `<palabras del prompt>_<uuid del trabajo>_<0-3>.png`:
+# las cuatro imágenes de una misma rejilla comparten el uuid.
+_TRABAJO_MJ = re.compile(
+    r"_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})_\d\.png$", re.I)
+
+
+def mj_job(filename: str) -> str | None:
+    """uuid del trabajo de Midjourney del que salió esta descarga, o None si el
+    nombre no sigue ese formato (descargas renombradas a mano, archivos de prueba)."""
+    m = _TRABAJO_MJ.search(filename or "")
+    return m.group(1).lower() if m else None
+
+
+def candidates_for(piece: dict, matches: dict[str, list[str]]) -> list[str]:
+    """Descargas que `piece` puede tomar sola, sin `--pick`. Es lo que comparten
+    `apply_batch` y `render_dry_run`, para que el dry-run no prometa un `OK ← archivo`
+    que apply luego descarta.
+
+    Una pieza en `regen` pide reemplazar la generación guardada en su `source_file`,
+    así que esa generación ya no vale: ni el archivo exacto (con variaciones del
+    mismo prompt sigue emparejando por prefijo) ni sus hermanas, las otras tres
+    imágenes de la misma rejilla — comparten el uuid del trabajo y son la misma
+    generación rechazada. Sin uuid solo se excluye el nombre exacto. Un `--pick`
+    explícito no pasa por aquí: siempre gana.
+    """
+    cands = matches.get(piece["slug"], [])
+    rechazada = piece.get("source_file")
+    if not piece.get("regen") or not rechazada:
+        return cands
+    trabajo = mj_job(rechazada)
+    return [c for c in cands
+            if c != rechazada and not (trabajo and mj_job(c) == trabajo)]
+
+
 def render_dry_run(cat: dict, matches: dict[str, list[str]]) -> str:
     lines = []
     for p in cat["pieces"]:
-        files = matches.get(p["slug"], [])
+        files = candidates_for(p, matches)
         if p.get("done") and not p.get("regen"):
             lines.append(f"HECHO    {p['slug']}")
         elif len(files) == 1:
@@ -576,6 +658,33 @@ def internal_hole_mask(img: "Image.Image") -> "Image.Image":
     return marco.crop((1, 1, w + 1, h + 1)).point(lambda v: 255 if v == 255 else 0)
 
 
+def _borde_y_fondo(buf: bytes, w: int, h: int) -> tuple[list[int], tuple[int, int, int], float]:
+    """Índices del borde de la imagen, color de fondo (la moda cuantizada del borde,
+    promediada) y fracción del borde que cae en ese color. Una esquina cuenta dos
+    veces (la fila y la columna que la comparten): da igual, es una proporción."""
+    borde = ([x for x in range(w)] + [(h - 1) * w + x for x in range(w)]
+             + [y * w for y in range(h)] + [y * w + w - 1 for y in range(h)])
+    cuenta: dict[tuple[int, int, int], int] = {}
+    for i in borde:
+        q = (buf[3 * i] >> 3, buf[3 * i + 1] >> 3, buf[3 * i + 2] >> 3)
+        cuenta[q] = cuenta.get(q, 0) + 1
+    moda = max(cuenta, key=cuenta.get)
+    muestras = [i for i in borde if (buf[3 * i] >> 3, buf[3 * i + 1] >> 3, buf[3 * i + 2] >> 3) == moda]
+    bg = tuple(sum(buf[3 * i + c] for i in muestras) // len(muestras) for c in range(3))
+    return borde, bg, len(muestras) / len(borde)
+
+
+def flood_background_share(img: "Image.Image") -> float:
+    """Fracción del borde de la imagen que tiene el color que `flood_cutout` toma
+    por fondo. Cerca de 1 = fondo liso, que es lo que el recorte da por hecho;
+    bajo (el sujeto toca buena parte del borde, o el fondo es un degradado) el
+    color "dominante" es una apuesta y se borraría sin avisar la parte equivocada.
+    """
+    rgb = img.convert("RGB")
+    w, h = rgb.size
+    return _borde_y_fondo(rgb.tobytes(), w, h)[2]
+
+
 def flood_cutout(img: "Image.Image", tol: int = 48) -> "Image.Image":
     """Recorte para iconos planos sobre fondo liso: borra solo el fondo conectado
     al borde de la imagen, como un bote de pintura invertido.
@@ -586,47 +695,47 @@ def flood_cutout(img: "Image.Image", tol: int = 48) -> "Image.Image":
     sea del color que sea, porque el contorno navy lo separa del fondo.
 
     El color de fondo es el más común del borde (cuantizado), no el de una
-    esquina: una figura puede llegar a tocar una esquina. El antialias del borde
-    se resuelve con el vecino más lejano del fondo como color de primer plano:
-    alfa = distancia propia / distancia de ese vecino, y el píxel toma el color
-    del vecino, para que no quede un hilo blanco sobre el tema oscuro.
+    esquina: una figura puede llegar a tocar una esquina. El relleno es de 4
+    vecinos: una línea de 1 px en diagonal cierra el paso, no se cuela entre sus
+    píxeles. El antialias del borde se resuelve con el vecino más lejano del fondo
+    como color de primer plano: alfa = distancia propia / distancia de ese vecino,
+    y el píxel toma el color del vecino, para que no quede un hilo blanco sobre el
+    tema oscuro.
+
+    Si no hay un fondo claro (`flood_background_share` bajo) igual elige el más
+    común del borde: avisar es cosa de quien lo llama (`apply_batch`).
     """
     rgb = img.convert("RGB")
     w, h = rgb.size
     buf = rgb.tobytes()
-    borde = ([x for x in range(w)] + [(h - 1) * w + x for x in range(w)]
-             + [y * w for y in range(h)] + [y * w + w - 1 for y in range(h)])
-    cuenta: dict[tuple[int, int, int], int] = {}
-    for i in borde:
-        q = (buf[3 * i] >> 3, buf[3 * i + 1] >> 3, buf[3 * i + 2] >> 3)
-        cuenta[q] = cuenta.get(q, 0) + 1
-    moda = max(cuenta, key=cuenta.get)
-    muestras = [i for i in borde if (buf[3 * i] >> 3, buf[3 * i + 1] >> 3, buf[3 * i + 2] >> 3) == moda]
-    bg = tuple(sum(buf[3 * i + c] for i in muestras) // len(muestras) for c in range(3))
+    borde, bg, _ = _borde_y_fondo(buf, w, h)
 
     def dist(i: int) -> int:
         return max(abs(buf[3 * i] - bg[0]), abs(buf[3 * i + 1] - bg[1]), abs(buf[3 * i + 2] - bg[2]))
 
     es_fondo = bytearray(w * h)
     frontera: set[int] = set()
-    pila = list(borde)
+    # Se marca al meter en la pila, no al sacar: un píxel entra una sola vez y la
+    # pila no acumula duplicados (en una imagen de 1024 px de lado, hasta cuatro
+    # entradas por píxel de fondo).
+    visto = bytearray(w * h)
+    pila: list[int] = []
+    for i in borde:
+        if not visto[i]:
+            visto[i] = 1
+            pila.append(i)
     while pila:
         i = pila.pop()
-        if es_fondo[i]:
-            continue
         if dist(i) > tol:
             frontera.add(i)
             continue
         es_fondo[i] = 1
         x, y = i % w, i // w
-        if x > 0:
-            pila.append(i - 1)
-        if x < w - 1:
-            pila.append(i + 1)
-        if y > 0:
-            pila.append(i - w)
-        if y < h - 1:
-            pila.append(i + w)
+        for j in ((i - 1) if x > 0 else -1, (i + 1) if x < w - 1 else -1,
+                  (i - w) if y > 0 else -1, (i + w) if y < h - 1 else -1):
+            if j >= 0 and not visto[j]:
+                visto[j] = 1
+                pila.append(j)
 
     alfa = bytearray(b"\xff" * (w * h))
     out = bytearray(buf)
@@ -781,6 +890,13 @@ def soft_interior_fraction(img: "Image.Image") -> float:
 SOFT_INTERIOR_THRESHOLD = 0.10
 
 
+# `flood` solo es de fiar con un fondo liso: si menos de esta fracción del borde
+# tiene el color que toma por fondo, o si borra menos de FLOOD_ERASED_MIN de la
+# imagen, la pieza se marca para revisar (el sujeto toca el borde, o no había fondo).
+FLOOD_BG_SHARE_MIN = 0.8
+FLOOD_ERASED_MIN = 0.05
+
+
 def save_catalog(cat: dict, path: Path) -> None:
     Path(path).write_text(json.dumps(cat, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -793,7 +909,8 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
     raw_dir = Path(raw_root) / fase
     files = [f.name for f in raw_dir.iterdir() if f.is_file()] if raw_dir.exists() else []
     matches = match_downloads(cat, files)
-    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": [], "soft": [], "duplicates": [], "failed": []}
+    rep = {"fase": fase, "done": [], "skipped": [], "missing": [], "ambiguous": [], "halo": [], "soft": [],
+           "no_bg": [], "duplicates": [], "failed": []}
 
     # Validar picks: todos los archivos deben existir
     missing_picks = [f"{s}={f}" for s, f in picks.items() if not (raw_dir / f).is_file()]
@@ -821,11 +938,9 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
         if (not chosen and not p.get("regen") and p.get("source_file")
                 and (raw_dir / p["source_file"]).is_file()):
             chosen = p["source_file"]
-        cands = matches.get(slug, [])
-        if p.get("regen"):
-            # Con variaciones del mismo prompt la descarga rechazada sigue
-            # emparejando por prefijo: sin un --pick explícito no vuelve a valer.
-            cands = [c for c in cands if c != p.get("source_file")]
+        # En `regen` la generación rechazada (y sus hermanas de rejilla) no vale
+        # sin un --pick explícito: ver candidates_for.
+        cands = candidates_for(p, matches)
         if not chosen:
             if len(cands) == 1:
                 chosen = cands[0]
@@ -840,10 +955,13 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
         try:
             src = Image.open(raw_dir / chosen).convert("RGBA")
             # `cutout_model` deja que una pieza pida un recortador distinto del
-            # defecto (`DEFAULT_MODEL` en process.py). Hoy no lo usa ninguna:
-            # nació para que `cientifica`, `astronauta` y `dj` saltaran a
-            # `isnet-anime` sin arrastrar a las 102 publicadas, y al pasar ese a
-            # ser el defecto las tres se quedaron sin nada especial que pedir.
+            # defecto (`DEFAULT_MODEL` en process.py). Lo usan varias piezas de la
+            # fase 1 y todas las de icono de la fase 5. El valor es el nombre de un
+            # modelo de rembg ("isnet-general-use", "isnet-anime"...) o `flood`,
+            # que NO es un modelo: es el recorte por relleno de `flood_cutout`, y
+            # el `remover` de process.py lo despacha antes de llegar a rembg.
+            # Nació para que `cientifica`, `astronauta` y `dj` saltaran a
+            # `isnet-anime` sin arrastrar a las 102 publicadas.
             #
             # NO se llama `model` porque esa clave ya existe en fase-0 con otro
             # significado — la versión de Midjourney ("7") — y sus quince piezas
@@ -853,6 +971,15 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             # Se pasa por nombre para no romper los `remover` de un argumento.
             cut = (remover(src, model=p["cutout_model"]) if p.get("cutout_model")
                    else remover(src))
+            # `flood` da por hecho un fondo liso: si el sujeto toca buena parte del
+            # borde, el color "dominante" es una apuesta y borra lo que no debe sin
+            # fallar. Se mide aquí, sobre la descarga y el recorte tal como salen.
+            sin_fondo = False
+            if p.get("cutout_model") == "flood":
+                alfa = cut.convert("RGBA").getchannel("A")
+                borrado = alfa.histogram()[0] / (alfa.width * alfa.height)
+                sin_fondo = (flood_background_share(src) < FLOOD_BG_SHARE_MIN
+                             or borrado < FLOOD_ERASED_MIN)
             if not p.get("keep_holes"):
                 cut = fill_internal_holes(cut, src)
             out = trim_square_resize(cut, p["size"])
@@ -862,6 +989,8 @@ def apply_batch(cat: dict, catalog_path: Path, raw_root: Path, repo_root: Path,
             rep["failed"].append((slug, f"{type(exc).__name__}: {exc}"))
             continue
         consumed[chosen] = slug
+        if sin_fondo:
+            rep["no_bg"].append(slug)
         grosor = halo_thickness_px(cut)
         # `ghost-race` es un fantasma translucido a proposito: sus pixeles
         # semitransparentes rosados son el dibujo, no un fleco, y la metrica no
@@ -894,4 +1023,5 @@ def render_report(rep: dict) -> str:
     lines += section("Mismo archivo usado por dos piezas", [f"{s} y {otro} -> {f}" for s, f, otro in rep["duplicates"]])
     lines += section("Alerta de halo: banda gruesa, regenerar o retocar", [f"{s} ({r:.2f} px)" for s, r in rep["halo"]])
     lines += section("Alerta de relleno: el recorte se comió el cuerpo, regenerar", [f"{s} ({f:.0%} del interior traslúcido)" for s, f in rep["soft"]])
+    lines += section("Alerta de fondo: el recorte por relleno no encontró un fondo claro, revisar", rep["no_bg"])
     return "\n".join(lines)

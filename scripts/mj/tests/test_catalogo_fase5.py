@@ -98,13 +98,14 @@ def test_ningun_prompt_nombra_colores_fuera_de_la_marca():
         assert not FUERA_DE_MARCA.search(p["prompt"]), (p["slug"], p["prompt"])
 
 
-def test_piezas_sin_mascota_se_recortan_con_isnet_general_use():
+def test_piezas_sin_mascota_declaran_isnet_general_use_o_flood():
     # El recortador por defecto es isnet-anime desde el 2026-09-18: lee bien el
     # dibujo de Doty, pero en un icono plano deja el interior entero
     # semitransparente (fase 5: 38 de 42 tiles salieron fantasma, 0% opaco).
     # Las 23 piezas de objetos del dotaxi ya lo fijaban pieza a pieza; los 37
     # tiles de la fase 2 se recortaron antes del cambio, con isnet-general-use.
+    # Aquí vale `isnet-general-use` o `flood` (fondo conectado al borde, que no es
+    # un modelo de rembg): este último es para las que rembg se come el relleno.
     for p in _cat()["pieces"]:
         if not p.get("mascot"):
-            # `flood` (fondo conectado al borde) para las que rembg se come el relleno.
             assert p.get("cutout_model") in {"isnet-general-use", "flood"}, p["slug"]

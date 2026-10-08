@@ -24,13 +24,14 @@ sys.path.insert(0, str(HERE))
 import mjlib  # noqa: E402
 
 
-# Modelo de recorte por defecto. Una pieza puede pedir otro con "model" en el
-# catálogo, pero ya casi ninguna lo necesita: todo el arte de Doty es dibujo
-# plano de contorno grueso, que es justo para lo que `isnet-anime` está
-# entrenado. `isnet-general-use` lee los blancos grandes como fondo y se los
-# come — la bata de `cientifica` (218/255 de alfa medio contra 253), la cúpula
-# y el traje de `astronauta` (98/255 en la cúpula), la mesa de `dj` (150/255) —
-# y las tres se arreglaron solo cambiándole el modelo.
+# Modelo de recorte por defecto. Una pieza puede pedir otro con "cutout_model" en
+# el catálogo (o `flood`, que no es un modelo sino el recorte por relleno), pero
+# ya casi ninguna lo necesita: todo el arte de Doty es dibujo plano de contorno
+# grueso, que es justo para lo que `isnet-anime` está entrenado.
+# `isnet-general-use` lee los blancos grandes como fondo y se los come — la bata
+# de `cientifica` (218/255 de alfa medio contra 253), la cúpula y el traje de
+# `astronauta` (98/255 en la cúpula), la mesa de `dj` (150/255) — y las tres se
+# arreglaron solo cambiándole el modelo.
 #
 # Cambiarlo NO retoca nada publicado: las 102 piezas siguen `done` y el pipeline
 # las salta. Solo manda sobre lo que se procese a partir de ahora. Recortar el
