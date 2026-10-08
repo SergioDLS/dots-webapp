@@ -4,15 +4,15 @@
     {
       "slug": "formas",
       "group": "levels",
-      "prefix": "Path tile stacked three shapes",
-      "prompt": "three simple bold shapes stacked one above the other with a little space between them, all about the same modest size: a pink circle on top, a light cyan triangle in the middle and a bright blue square at the bottom, on a plain white background with no frame or backdrop panel",
+      "prefix": "Path tile diagonal shapes",
+      "prompt": "three simple bold shapes of the same size slightly overlapping in a diagonal line from bottom left to top right: a bright blue square, a light cyan triangle and a pink circle, on a plain white background with no frame or backdrop panel",
       "size": 512,
       "mascot": false,
       "done": true,
       "anchor": true,
       "anchor_sref": "public/images/levels/estructuras.png",
-      "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_three_separate_shapes_three_simple_bold_s_4422a1b7-56fa-47c0-b48e-64788e899eb9_0.png",
+      "cutout_model": "flood",
+      "source_file": "Mandrakin_Path_tile_stacked_three_shapes_three_simple_bold_sh_a4fe1f6e-f663-49a0-a77a-0ed42919abfb_3.png",
       "group_sref": true,
       "regen": true
     },
@@ -48,10 +48,9 @@
       "size": 512,
       "mascot": false,
       "done": true,
-      "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_tens_score_panel_a_digital_scoreboard_pan_5869de66-b1d4-4417-8734-ba5230cc9b6f_3.png",
-      "glyphs": true,
-      "regen": true
+      "cutout_model": "flood",
+      "source_file": "Mandrakin_Path_tile_big_ten_a_digital_scoreboard_panel_showin_7256ac62-47bd-4e50-bf74-0cb4676b488e_1.png",
+      "glyphs": true
     },
     {
       "slug": "dias",
@@ -62,8 +61,7 @@
       "mascot": false,
       "done": true,
       "cutout_model": "isnet-general-use",
-      "source_file": "Mandrakin_Path_tile_weekday_boxes_seven_rounded_boxes_in_two__be8c6448-695c-41c6-b8ff-2e2f38a005ef_1.png",
-      "regen": true
+      "source_file": "Mandrakin_Path_tile_seven_day_calendar_a_simple_desk_calendar_4519c883-a413-4dbb-bd6b-3ba24ad5d647_1.png"
     },
     {
       "slug": "meses",

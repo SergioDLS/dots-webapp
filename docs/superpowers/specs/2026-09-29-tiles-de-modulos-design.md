@@ -340,9 +340,12 @@ sobrecargar"):
   calendario con 7 casillas sin letras. Una pieza en `regen` ya no vuelve a
   recortar su descarga rechazada aunque el prefijo siga emparejando (solo con
   `--pick` explícito).
-- `formas`, tras seis rondas (torrecita, caja encajable, póster, fila con
-  panel, cuadrícula), queda como tres figuras sencillas una sobre otra, de
-  tamaño parecido.
+- `formas`, tras siete rondas (torrecita, caja encajable, póster, fila con
+  panel, cuadrícula, pila vertical): cualquier pila vertical se lee como un
+  arbolito o una figurita. Va en diagonal, del mismo tamaño y apenas
+  superpuestas. Plan B ya descargado: la cuadrícula 2×2 (círculo, triángulo,
+  estrella, corazón). `dias` (calendario de escritorio) salió con 9 casillas
+  en vez de 7 y se acepta: a 128 px nadie las cuenta y se lee como «días».
 - **Juvenil, no infantil** (la guía de marca: "juvenil e irreverente, para
   todo público"; el arte dibuja arquetipos). Nada de juguetes de bebé: las
   letras son teclas de teclado mecánico, los números botones de calculadora,
