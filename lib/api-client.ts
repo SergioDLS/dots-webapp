@@ -12,8 +12,24 @@ export const getAccessToken = () => accessTokenMemory;
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
+// Tope por petición. Sin él, una conexión muerta (la red del celular que
+// cambia, un proxy que no suelta) dejaba la pantalla en «Cargando…» para
+// siempre; con él falla, y la pantalla ofrece Reintentar (regla 5). Es largo a
+// propósito: una petición que despierta a la API (Render en frío, hasta un
+// minuto) tiene que llegar, no cortarse a mitad del arranque como le pasaba al
+// refresh con sus 8 s.
+const API_TIMEOUT_MS = 90_000;
+
+/**
+ * Para lo que de verdad trabaja en el servidor: generar voz con ElevenLabs,
+ * subir a Cloudinary, mandar invitaciones en lote. Se pasa por petición:
+ * `api.post(url, body, { timeout: LONG_REQUEST_TIMEOUT_MS })`.
+ */
+export const LONG_REQUEST_TIMEOUT_MS = 5 * 60_000;
+
 const api = axios.create({
   baseURL: API_BASE,
+  timeout: API_TIMEOUT_MS,
   headers: { "Content-Type": "application/json" },
   // The refresh token lives in an HttpOnly cookie, so every request must
   // carry credentials for the backend to be able to rotate/revoke it.

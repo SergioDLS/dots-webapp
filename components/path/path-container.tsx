@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/ui/Spinner/Spinner";
@@ -88,7 +89,15 @@ export default function PathContainer() {
           setPath(data);
           setPathIsCanonical(true);
         }
-      } catch {
+      } catch (pathErr) {
+        // El fallback solo sirve si el servidor RESPONDIÓ que /path no está
+        // (404, 500 en su código). Sin respuesta (timeout, red) o sin sesión,
+        // pedirle /levels al mismo servidor solo duplica la espera: con el
+        // tope de 90 s de api-client eran tres minutos de spinner.
+        if (!axios.isAxiosError(pathErr) || !pathErr.response || isSessionError(pathErr)) {
+          if (mounted) setError(isSessionError(pathErr) ? "sesion" : "carga");
+          return;
+        }
         // Silent fallback: /path is not deployed yet → adapt /levels
         console.warn("GET /path unavailable, falling back to /levels + adapter");
         try {

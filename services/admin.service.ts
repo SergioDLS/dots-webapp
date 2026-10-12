@@ -1,4 +1,8 @@
-import api from "../lib/api-client";
+import api, { LONG_REQUEST_TIMEOUT_MS } from "../lib/api-client";
+
+// Generar voz, subir a Cloudinary y mandar correos en lote tardan de verdad:
+// el tope normal de la instancia (90 s) los cortaría a mitad de trabajo.
+const LONG = { timeout: LONG_REQUEST_TIMEOUT_MS };
 
 // ── Characters (narrators) ─────────────────────────────────────
 
@@ -329,10 +333,11 @@ export async function bulkInvitations(
   emails: string,
   accessExpires: string | null,
 ): Promise<BulkInviteResult> {
-  const { data } = await api.post("/admin/invitations/bulk", {
-    emails,
-    accessExpires,
-  });
+  const { data } = await api.post(
+    "/admin/invitations/bulk",
+    { emails, accessExpires },
+    LONG,
+  );
   return data;
 }
 
@@ -353,6 +358,7 @@ export async function uploadMedia(
   const form = new FormData();
   form.append("file", file);
   const { data } = await api.post(`/admin/upload?kind=${kind}`, form, {
+    ...LONG,
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
@@ -492,6 +498,7 @@ export async function generatePronunciationAudio(
   const { data } = await api.post(
     `/admin/pronunciation-items/${id}/generate-audio`,
     characterId != null ? { characterId } : {},
+    LONG,
   );
   return data;
 }
@@ -685,6 +692,7 @@ export async function generateVocabAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/vocab-items/${id}/generate-audio`,
     characterId != null ? { characterId } : {},
+    LONG,
   );
   return data;
 }
@@ -978,6 +986,7 @@ export async function draftNarration(
       ...(opts.seed != null && { seed: opts.seed }),
       ...(opts.voiceSettings && { voiceSettings: opts.voiceSettings }),
     },
+    LONG,
   );
   return data;
 }
@@ -988,9 +997,11 @@ export async function publishNarration(
   id: number,
   characterId: number,
 ): Promise<{ characterKey: string; url: string; urls: string[] }> {
-  const { data } = await api.post(`/admin/${entity}/${id}/narration-publish`, {
-    characterId,
-  });
+  const { data } = await api.post(
+    `/admin/${entity}/${id}/narration-publish`,
+    { characterId },
+    LONG,
+  );
   return data;
 }
 
@@ -1040,6 +1051,7 @@ export async function generateLetterAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/letter-items/${id}/generate-audio`,
     characterId != null ? { characterId } : {},
+    LONG,
   );
   return data;
 }
@@ -1052,6 +1064,7 @@ export async function generateNumberAudio(id: number, characterId?: number) {
   const { data } = await api.post(
     `/admin/number-items/${id}/generate-audio`,
     characterId != null ? { characterId } : {},
+    LONG,
   );
   return data;
 }
