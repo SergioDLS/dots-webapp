@@ -1,8 +1,10 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import Doty from "@/components/ui/doty/doty";
 import { useAuth } from "@/context/auth-context";
+import { hasSlowRequests, subscribeSlowRequests } from "@/lib/api-client";
 
 /**
  * Aviso de arranque en frío. La API (Render) se duerme sin tráfico y el primer
@@ -11,12 +13,36 @@ import { useAuth } from "@/context/auth-context";
  * agotan los reintentos ofrece Reintentar. Tapa la pantalla entera a propósito:
  * sin servidor no funciona nada, y así ninguna página tiene que saberlo.
  *
- * Vive en el layout raíz, dentro de AuthProvider. El estado lo decide
- * auth-context (`connection`); aquí solo se pinta.
+ * A mitad de sesión la API también se duerme, pero ahí la pantalla ya está
+ * pintada y muchas peticiones son de fondo: en vez de taparlo todo, una
+ * píldora arriba que no bloquea, mientras alguna petición lleve más de 4 s en
+ * vuelo (lib/api-client.ts, `hasSlowRequests`). Se va sola cuando responden.
+ *
+ * Vive en el layout raíz, dentro de AuthProvider. El arranque lo decide
+ * auth-context (`connection`) y la lentitud api-client; aquí solo se pinta.
  */
 export default function ServerWake() {
   const { connection, retryBootstrap } = useAuth();
-  if (connection === "ok") return null;
+  const slow = useSyncExternalStore(subscribeSlowRequests, hasSlowRequests, () => false);
+
+  if (connection === "ok") {
+    if (!slow) return null;
+    return (
+      <div
+        className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[60] flex justify-center px-4"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex items-center gap-2 rounded-full bg-(--accent) px-4 py-2 text-sm font-extrabold text-(--accent-contrast) shadow-lg [animation:dots-pop-in_.3s_ease-out_both]">
+          <span
+            className="h-4 w-4 animate-spin rounded-full border-2 border-(--accent-contrast) border-t-transparent"
+            aria-hidden
+          />
+          Despertando al servidor…
+        </div>
+      </div>
+    );
+  }
 
   const unreachable = connection === "unreachable";
 

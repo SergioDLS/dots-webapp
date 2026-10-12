@@ -10,7 +10,11 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessTokenMemory;
 
-type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+type RetryableConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  /** Id de seguimiento de peticiones lentas (ver trackStart). */
+  _trackId?: number;
+};
 
 // Tope por petición. Sin él, una conexión muerta (la red del celular que
 // cambia, un proxy que no suelta) dejaba la pantalla en «Cargando…» para
@@ -26,6 +30,52 @@ const API_TIMEOUT_MS = 90_000;
  * `api.post(url, body, { timeout: LONG_REQUEST_TIMEOUT_MS })`.
  */
 export const LONG_REQUEST_TIMEOUT_MS = 5 * 60_000;
+
+// ── Peticiones lentas ────────────────────────────────────────────────────────
+// A mitad de sesión la API también se duerme (Render, tras un rato sin
+// tráfico) y la siguiente petición espera lo que tarde en despertar, sin que
+// la pantalla diga por qué. Se lleva la cuenta de las que pasan de
+// SLOW_REQUEST_MS en vuelo; components/shell/server-wake.tsx la lee con
+// useSyncExternalStore y pinta «Despertando al servidor…». 4 s y no menos:
+// una API despierta responde en ~200 ms, pero una red móvil floja puede rozar
+// los 2-3 s y el aviso no debe salir con el servidor despierto.
+const SLOW_REQUEST_MS = 4_000;
+let lastTrackId = 0;
+const slowIds = new Set<number>();
+const slowTimers = new Map<number, ReturnType<typeof setTimeout>>();
+const slowListeners = new Set<() => void>();
+
+const emitSlow = () => slowListeners.forEach((listener) => listener());
+
+const trackStart = (): number => {
+  const id = ++lastTrackId;
+  slowTimers.set(
+    id,
+    setTimeout(() => {
+      slowTimers.delete(id);
+      slowIds.add(id);
+      emitSlow();
+    }, SLOW_REQUEST_MS),
+  );
+  return id;
+};
+
+const trackEnd = (id: number | undefined) => {
+  if (id === undefined) return;
+  clearTimeout(slowTimers.get(id));
+  slowTimers.delete(id);
+  if (slowIds.delete(id)) emitSlow();
+};
+
+export const subscribeSlowRequests = (listener: () => void) => {
+  slowListeners.add(listener);
+  return () => {
+    slowListeners.delete(listener);
+  };
+};
+
+/** ¿Hay alguna petición en vuelo desde hace más de SLOW_REQUEST_MS? */
+export const hasSlowRequests = () => slowIds.size > 0;
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -98,6 +148,10 @@ let refreshPromise: Promise<RefreshOutcome> | null = null;
 
 export const refreshSession = (): Promise<RefreshOutcome> => {
   if (!refreshPromise) {
+    // El refresh también cuenta: va por axios a secas (sin los interceptores
+    // de `api`) y, con sus reintentos y pausas, puede ser él quien deja
+    // esperando a la pantalla después de que la petición original volviera 401.
+    const trackId = trackStart();
     refreshPromise = postRefresh()
       .then((res): RefreshOutcome => {
         const token: string | null =
@@ -127,6 +181,7 @@ export const refreshSession = (): Promise<RefreshOutcome> => {
         return { kind: "anon" };
       })
       .finally(() => {
+        trackEnd(trackId);
         refreshPromise = null;
       });
   }
@@ -134,6 +189,12 @@ export const refreshSession = (): Promise<RefreshOutcome> => {
 };
 
 api.interceptors.request.use((config) => {
+  // Lo que lleva el tope largo (voz, subidas, correos en lote) tarda porque
+  // trabaja, no porque el servidor duerma: no se cuenta, o el aviso mentiría.
+  // `config.timeout` ya trae aquí el default de la instancia fusionado.
+  if (config.timeout && config.timeout <= API_TIMEOUT_MS) {
+    (config as RetryableConfig)._trackId = trackStart();
+  }
   if (accessTokenMemory) {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${accessTokenMemory}`;
@@ -142,9 +203,15 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    trackEnd((response.config as RetryableConfig)._trackId);
+    return response;
+  },
   async (error: AxiosError) => {
     const original = error.config as RetryableConfig | undefined;
+    // El reintento de abajo vuelve a pasar por el interceptor de request, que
+    // le da un id nuevo: este se cierra aquí en todos los caminos.
+    trackEnd(original?._trackId);
 
     if (!original || error.response?.status !== 401 || original._retry) {
       throw error;
