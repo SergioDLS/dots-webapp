@@ -3,7 +3,10 @@
 - **Fecha**: 2026-10-12
 - **Repos afectados**: `dots-backend` (un script de datos nuevo). En
   `dots-webapp` solo este documento: no cambia código en ninguno de los dos.
-- **Estado**: diseño aprobado y revisado por Sergio; plan en
+- **Estado**: aplicado en producción el 2026-10-12 con
+  `dots-backend/scripts/rebalance-sections.js` (respaldo
+  `scripts/out/backup-rebalance-sections-2026-10-12T23-22-50-298Z.json`; se
+  deshace con `npm run sections:rebalance -- --rollback <respaldo>`). Plan en
   `docs/superpowers/plans/2026-10-12-secciones-parejas.md`.
 - **Predecesoras**: `2026-07-22-contenido-camino-y-modulos-design.md` (F3b, que
   convirtió la sección 1 en módulos) y `2026-09-29-tiles-de-modulos-design.md`
