@@ -1992,6 +1992,23 @@ EOF
 )"
 ```
 
+### Después de la revisión final
+
+El código de las Tasks 1 a 6 quedó como se transcribe arriba, con tres cambios
+posteriores que viven en la rama y no en estos bloques:
+
+- `moverNodos` y las `DB_*` fijadas en `run()` del ensayo: sí están reflejados
+  arriba (rulings del pre-flight y de la Task 6, backend `1d73baa`).
+- Backend `34f0941`, después del pre-flight de producción: `section.id` es
+  `GENERATED ALWAYS AS IDENTITY` y su secuencia está en 1 sin usar, así que el
+  apply la alinea hacia adelante con el máximo antes de insertar (lógica pura
+  `planSecuencia` en `core.js`, con 4 tests: 33 en total); el dry-run predice
+  los ids reales; el rollback se niega con cualquier `section_test` y no
+  devuelve la secuencia; argumentos estrictos antes de conectarse; COMMIT al
+  final del `try` y un ROLLBACK que falla no tapa el error original. El ensayo
+  reproduce la identidad de producción y suma pasos 9 a 12 (31 ✔). Para esos
+  archivos, la fuente de verdad es la rama, no estos bloques.
+
 ---
 
 ## Parte B — Producción (con Sergio)
@@ -2027,7 +2044,7 @@ SELECT s.level_id, count(*) AS cloze FROM dots.sentences s JOIN dots.levels l ON
 Expected:
 - Ninguna FK con `ON DELETE CASCADE` hacia `section`, ningún CHECK sobre `position`, ningún UNIQUE sobre `section.name`, 0 triggers.
 - Ninguna columna NOT NULL sin default en `section` aparte de `id`, `name` e `id_difficulty`.
-- `last_value` 12 (las nuevas serán 13 a 16); todos los privilegios en `true`.
+- `last_value` 1 con `is_called` false (medido el 2026-10-12: el apply la alinea a 12 y las nuevas serán 13 a 16); todos los privilegios en `true`, también `SELECT` y `UPDATE` sobre `dots.section_id_seq`, que el CLI necesita para leerla y alinearla.
 - Cloze por sección con checkpoint, sumando los niveles de cada una: Level 8 {19–25}, Level 9 {26–31, 33, 34}, Level 10 {35–41}, Level 11 {42, 43, 51–54}, Level 12 {55–63}, Level 13 {64–72}, Level 14 {73–80}, Level 15 {81–88}, Level 16 {89–95}. **Cada suma ≥ 5.** Si alguna queda por debajo, su checkpoint aparecería disponible y el examen fallaría: detente y llévaselo a Sergio.
 
 - [ ] **Step 3: Correr el dry-run**
@@ -2040,6 +2057,7 @@ source ~/.nvm/nvm.sh && nvm use && npm run sections:rebalance
 Expected, en este orden:
 - El informe: `Dificultad 1` con Level 1 a Level 11, `Dificultad 2` con Level 12 a 14 y `Dificultad 3` con Level 15 y 16, igual que las tablas de la spec. Level 8 es `sección 13  8 nodos, checkpoint 39` y Level 16, `sección 10  7 nodos, checkpoint 93`.
 - `4 secciones nuevas y 12 reutilizadas · 134 nodos cambian de sección, posición o estado · 3 checkpoints se retiran · 54 niveles cambian de sección`.
+- `Secuencia de section alineada: 1 → 12 (solo con --apply)` y `Secciones nuevas: 13 a 16`.
 - Siete líneas `ok` en `Verificaciones:`.
 - `usuario 8: 108 → 108`. Si aparece otro usuario, anótalo para Sergio.
 - `(dry-run: nada escrito. Usa --apply.)`.
@@ -2063,9 +2081,11 @@ cd /home/endurance/Projects/Endurance/dots/dots-backend/.claude/worktrees/seccio
 source ~/.nvm/nvm.sh && nvm use && npm run sections:rebalance -- --apply
 ```
 
-Expected: siete `ok` en `Verificaciones:`, el informe con las 16 secciones, la línea de resumen y `Escrito. Respaldo: …/scripts/out/backup-rebalance-sections-<ts>.json`. **Anota la ruta del respaldo.** Las secciones nuevas serán 13 a 16, salvo que un apply anterior se haya deshecho: la secuencia no retrocede y entonces serán otras, todas mayores que 12.
+Expected: `Secuencia de section alineada: 1 → 12`, siete `ok` en `Verificaciones:`, el informe con las 16 secciones, la línea de resumen y `Escrito. Respaldo: …/scripts/out/backup-rebalance-sections-<ts>.json`. **Anota la ruta del respaldo.** Las secciones nuevas serán 13 a 16, salvo que un apply anterior se haya deshecho: la secuencia no retrocede y entonces serán otras, todas mayores que 12.
 
 Si sale `La verificación falló; se deshace todo:`, no se escribió nada: lleva los errores a Sergio.
+
+Si termina con un error que no es de esos (por ejemplo, la conexión se corta con el COMMIT en vuelo), **no lo repitas**: el COMMIT pudo haber ocurrido. Mira si apareció un respaldo nuevo en `scripts/out/` y corre el dry-run: si dice que la BD no coincide con el inventario y las diferencias son las del reparto, el cambio quedó aplicado.
 
 - [ ] **Step 2: Verificar el Camino en el navegador integrado**
 

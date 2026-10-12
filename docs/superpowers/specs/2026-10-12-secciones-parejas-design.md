@@ -135,8 +135,12 @@ falta tocar código:
 - Intermediate se queda con 5, 6 y 7; Advanced, con 9 y 10.
 - Las secciones con `section.id` 8, 11 y 12 sobran en sus dificultades y pasan a Beginner
   (`id_difficulty = 1`), como Level 5, 6 y 7.
-- Las 4 nuevas salen de `dots.section_id_seq` (hoy el id máximo es 12, así que
-  se esperan 13 a 16). El script comprueba que sean mayores que 12: si no,
+- Las 4 nuevas salen de la identidad de `section.id` (`GENERATED ALWAYS AS
+  IDENTITY`, secuencia `dots.section_id_seq`). En producción esa secuencia
+  está en 1 sin usar, porque las 12 secciones se cargaron con ids explícitos
+  (medido el 2026-10-12): el apply la alinea hacia adelante con el máximo (12)
+  antes de insertar, así que las nuevas son 13 a 16, y el rollback no la
+  devuelve. El script comprueba igual que sean mayores que 12: si no,
   quedarían ordenadas antes que alguna sección reutilizada.
 
 Un humano que lea la tabla `section` verá ids intercalados entre dificultades.
@@ -191,8 +195,9 @@ nodo retirado que no es uno de los 4 conocidos.
 
 **Orden de operaciones, todo en una transacción:**
 
-1. Crear las 4 secciones nuevas en Beginner y comprobar que sus ids son
-   mayores que 12.
+1. Si la secuencia de `section` va atrás del máximo, alinearla con él (solo
+   hacia adelante). Crear las 4 secciones nuevas en Beginner y comprobar que
+   sus ids son mayores que 12.
 2. Actualizar `name` e `id_difficulty` de las 12 existentes. `section.name` no
    tiene índice único, así que basta un paso.
 3. Llevar todos los nodos a posiciones temporales únicas (por ejemplo,
@@ -213,7 +218,11 @@ nodo retirado que no es uno de los 4 conocidos.
 (`id`, `section_id`, `position`, `enabled`) y el `id_section` previo de los 69
 niveles. **El rollback** devuelve los nodos a posiciones temporales, restaura
 nodos, niveles y secciones, y borra las 4 secciones creadas cuando ya no las
-referencia ningún nodo ni nivel. Va en una transacción.
+referencia ningún nodo ni nivel. Va en una transacción. Se niega si
+`section_progress` tiene alguna sección saltada por test o alguna fila apunta a
+una sección creada, y no devuelve la secuencia a 1 (dejarla alineada no cambia
+datos). El CLI rechaza argumentos desconocidos y `--apply` junto con
+`--rollback`, antes de conectarse.
 
 ### Verificaciones (dry-run, y apply antes del COMMIT)
 
