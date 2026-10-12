@@ -11,6 +11,7 @@ import React, {
 import api, {
   refreshSession,
   setAccessToken as setApiAccessToken,
+  subscribeAccessToken,
 } from "@/lib/api-client";
 import { clearAvatarMirror } from "@/lib/avatar-mirror";
 import { marcarConocido } from "@/lib/doty-transformacion";
@@ -27,6 +28,11 @@ import { DIRTY_KEY, MODE_KEY, PALETTE_KEY } from "@/lib/theme-prefs";
 export type ServerConnection = "ok" | "waking" | "unreachable";
 
 type AuthContextType = {
+  /**
+   * Presente mientras haya sesión. Sigue a api-client solo cuando la sesión
+   * entra o muere, no en cada rotación del token: úsalo como "¿hay sesión?",
+   * nunca como credencial. Para llamar a la API, siempre `api`.
+   */
   accessToken: string | null;
   isBootstrapping: boolean;
   connection: ServerConnection;
@@ -56,6 +62,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // lib/doty-transformacion.ts). El logout no la borra a propósito.
     if (token) marcarConocido();
   }, []);
+
+  // El interceptor de api-client refresca por su cuenta. Si ese refresh dice
+  // que la sesión murió (logout en otra pestaña, cookie vencida), el contexto
+  // tiene que enterarse: si no, la app se sigue creyendo logueada y `/`
+  // rebota a /levels en vez de mostrar el login. Solo se sigue la PRESENCIA
+  // de sesión: la rotación del token cada 15 min no debe volver a disparar
+  // los efectos que dependen de `accessToken` (FirstRunGate, RivalWatch…).
+  useEffect(
+    () =>
+      subscribeAccessToken((token) => {
+        setAccessTokenState((prev) =>
+          Boolean(prev) === Boolean(token) ? prev : token,
+        );
+      }),
+    [],
+  );
 
   // Bootstrap: try to restore a session from the HttpOnly refresh cookie.
   // Uses the shared single-flight refresh so it can't race with interceptors.

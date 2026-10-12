@@ -3,7 +3,6 @@ import { Baloo_2, Geist_Mono, Nunito } from "next/font/google";
 import "./themes.generated.css";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
-import AuthSync from "@/context/auth-sync";
 import ServerWake from "@/components/shell/server-wake";
 import SwRegister from "@/components/pwa/sw-register";
 import InstallCapture from "@/components/pwa/install-capture";
@@ -125,7 +124,6 @@ export default function RootLayout({
         <InstallCapture />
         <ErrorTrailCapture />
         <AuthProvider>
-          <AuthSync />
           {children}
           {/* Arranque en frío de la API: aviso y Reintentar a pantalla completa. */}
           <ServerWake />

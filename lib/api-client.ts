@@ -3,12 +3,24 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 let accessTokenMemory: string | null = null;
+const tokenListeners = new Set<(token: string | null) => void>();
 
+// Única fuente de verdad del token. El refresh del interceptor lo cambia sin
+// pasar por React, así que avisa: auth-context se suscribe para enterarse de
+// que la sesión murió (o volvió) a mitad de uso.
 export const setAccessToken = (token: string | null) => {
   accessTokenMemory = token;
+  tokenListeners.forEach((listener) => listener(token));
 };
 
 export const getAccessToken = () => accessTokenMemory;
+
+export const subscribeAccessToken = (listener: (token: string | null) => void) => {
+  tokenListeners.add(listener);
+  return () => {
+    tokenListeners.delete(listener);
+  };
+};
 
 type RetryableConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
@@ -160,8 +172,11 @@ export const refreshSession = (): Promise<RefreshOutcome> => {
         return token ? { kind: "ok", token } : { kind: "anon" };
       })
       .catch((err: unknown): RefreshOutcome => {
-        setAccessToken(null);
+        // Sin respuesta no sabemos nada de la sesión: el token se queda como
+        // está. Borrarlo avisaría a auth-context de que la sesión murió y la
+        // app se mostraría deslogueada por un timeout.
         if (isTransient(err)) return { kind: "unreachable", error: err };
+        setAccessToken(null);
         // Un 403 significa que la sesión no solo expiró localmente: el backend
         // rechaza explícitamente este refresh token (usuario bloqueado o con
         // acceso vencido). En ese caso guardamos el motivo, limpiamos el
