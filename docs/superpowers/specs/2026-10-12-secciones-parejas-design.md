@@ -3,8 +3,8 @@
 - **Fecha**: 2026-10-12
 - **Repos afectados**: `dots-backend` (un script de datos nuevo). En
   `dots-webapp` solo este documento: no cambia código en ninguno de los dos.
-- **Estado**: diseño aprobado en conversación con Sergio; pendiente de revisión
-  del documento y de plan de implementación.
+- **Estado**: diseño aprobado y revisado por Sergio; plan en
+  `docs/superpowers/plans/2026-10-12-secciones-parejas.md`.
 - **Predecesoras**: `2026-07-22-contenido-camino-y-modulos-design.md` (F3b, que
   convirtió la sección 1 en módulos) y `2026-09-29-tiles-de-modulos-design.md`
   (la fusión de duplicados que dejó cuatro nodos retirados).
@@ -243,11 +243,15 @@ panel, no en el Chrome de Sergio):
 - El Camino muestra 11, 3 y 2 secciones, con los nombres y tamaños de las
   tablas. La barra segmentada del banner tiene un segmento por sección.
 - Las secciones Level 1 a 7 no tienen checkpoint. En Level 8 a 16 está al
-  final, y abrirlo muestra el examen. El examen de Level 8 se abre con la
-  cuenta de admin y su modo admin, que se salta el cupo diario, y se abandona
-  sin enviar.
+  final y `GET /path` lo da por disponible. La portada del examen de Level 12
+  (`section.id` 5) se abre, pero el examen no se empieza: empezarlo escribe un
+  intento en producción, y uno en una sección creada bloquearía el rollback.
 - «Las decenas» aparece justo después de «Números 1–20».
-- El nodo actual de la cuenta 8 sigue siendo «Saludos» (108).
+
+El nodo actual de cada alumno con progreso lo calcula el dry-run, antes y
+después del cambio, con la misma regla que `findCurrentNodeId`: la cuenta 8
+sigue en «Saludos» (108). Después del apply no se puede comprobar en el
+navegador, porque no entramos con esa cuenta.
 
 ## Fuera de alcance
 
