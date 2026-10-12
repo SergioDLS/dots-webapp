@@ -2004,7 +2004,33 @@ EOF
 
 Si en esta conversación Sergio todavía no autorizó lecturas de producción, pídeselo antes de correr nada: el dry-run lee la BD compartida. Si el clasificador bloquea el comando, no busques otra vía; déjale el comando listo para que lo corra él y te pegue la salida.
 
-- [ ] **Step 2: Correr el dry-run**
+- [ ] **Step 2: Pre-flight de solo lectura (lo pidió la revisión final)**
+
+El ensayo corre sobre un `schema.sql` escrito a mano, así que lo que el esquema real tenga de más (un trigger, una FK con `ON DELETE CASCADE` hacia `section`) no lo ve nadie. Además, el examen del checkpoint (`checkpoint.service.ts`, `loadSectionSentences`) solo usa oraciones *cloze* (`text LIKE '%\_\_%'` y `m_word` no vacío) y responde 400 con menos de 5, mientras que la verificación 4 cuenta todas las oraciones activas. Corre, dentro de `BEGIN READ ONLY` … `ROLLBACK`:
+
+```sql
+SELECT conrelid::regclass, conname, pg_get_constraintdef(oid) FROM pg_constraint
+ WHERE conrelid IN ('dots.section'::regclass, 'dots.path_nodes'::regclass, 'dots.levels'::regclass)
+    OR confrelid IN ('dots.section'::regclass, 'dots.path_nodes'::regclass, 'dots.levels'::regclass);
+SELECT tgrelid::regclass, tgname FROM pg_trigger
+ WHERE NOT tgisinternal AND tgrelid IN ('dots.section'::regclass, 'dots.path_nodes'::regclass, 'dots.levels'::regclass);
+SELECT table_name, column_name, is_nullable, column_default FROM information_schema.columns
+ WHERE table_schema = 'dots' AND table_name IN ('section', 'path_nodes', 'levels') ORDER BY 1, ordinal_position;
+SELECT last_value, is_called FROM dots.section_id_seq;
+SELECT has_table_privilege('dots.section', 'INSERT'), has_table_privilege('dots.section', 'UPDATE'),
+       has_table_privilege('dots.section', 'DELETE'), has_table_privilege('dots.path_nodes', 'UPDATE'),
+       has_table_privilege('dots.levels', 'UPDATE'), has_sequence_privilege('dots.section_id_seq', 'USAGE');
+SELECT s.level_id, count(*) AS cloze FROM dots.sentences s JOIN dots.levels l ON l.id = s.level_id AND l.enabled
+ WHERE s.enabled AND s.text LIKE '%\_\_%' AND COALESCE(s.m_word, '') <> '' GROUP BY 1 ORDER BY 1;
+```
+
+Expected:
+- Ninguna FK con `ON DELETE CASCADE` hacia `section`, ningún CHECK sobre `position`, ningún UNIQUE sobre `section.name`, 0 triggers.
+- Ninguna columna NOT NULL sin default en `section` aparte de `id`, `name` e `id_difficulty`.
+- `last_value` 12 (las nuevas serán 13 a 16); todos los privilegios en `true`.
+- Cloze por sección con checkpoint, sumando los niveles de cada una: Level 8 {19–25}, Level 9 {26–31, 33, 34}, Level 10 {35–41}, Level 11 {42, 43, 51–54}, Level 12 {55–63}, Level 13 {64–72}, Level 14 {73–80}, Level 15 {81–88}, Level 16 {89–95}. **Cada suma ≥ 5.** Si alguna queda por debajo, su checkpoint aparecería disponible y el examen fallaría: detente y llévaselo a Sergio.
+
+- [ ] **Step 3: Correr el dry-run**
 
 ```bash
 cd /home/endurance/Projects/Endurance/dots/dots-backend/.claude/worktrees/secciones-parejas
@@ -2020,9 +2046,9 @@ Expected, en este orden:
 
 Si en cambio sale `La BD no coincide con el inventario del 2026-10-12`, **detente**. Alguien cambió el Camino desde el inventario (por ejemplo, desde `/admin/path`). Lleva la lista de diferencias a Sergio y no edites `antes.json` ni `reparto.js` sin volver a validar el reparto con él.
 
-- [ ] **Step 3: Mostrarle el resultado a Sergio y pedir el sí**
+- [ ] **Step 4: Mostrarle el resultado a Sergio y pedir el sí**
 
-Resúmele el informe (16 secciones, tamaños, checkpoints, nodo actual de la cuenta 8) y pregúntale si corres el `--apply` en producción. Sin un sí explícito no se sigue.
+Resúmele el pre-flight y el informe (16 secciones, tamaños, checkpoints con su pool cloze, nodo actual de la cuenta 8) y pregúntale si corres el `--apply` en producción, idealmente en una hora tranquila: el apply bloquea las 143 filas de `path_nodes` hasta el COMMIT. Sin un sí explícito no se sigue.
 
 ---
 
@@ -2053,7 +2079,11 @@ Si sale `La verificación falló; se deshace todo:`, no se escribió nada: lleva
 4. Abre `/checkpoint?id=5` (el checkpoint de Level 12) y comprueba que muestra la portada del examen. **No lo empieces**: empezarlo escribe un intento en producción. Además, un intento en una sección creada (13 a 16) bloquearía el rollback.
 5. No toques `localStorage`, cookies ni la sesión del panel.
 
+6. Justo después del apply, una lectura: `SELECT user_id, section_id FROM dots.section_progress WHERE section_test` debe devolver 0 filas. La guarda del apply lee esa tabla sin lock; un placement o un checkpoint confirmado durante el apply quedaría grabado sobre el reparto viejo.
+
 - [ ] **Step 3: Si algo no cuadra, rollback (también con el sí de Sergio)**
+
+La ventana práctica del rollback es corta: la primera práctica en Level 8 a 11 crea `section_progress` en una sección nueva y, a propósito, la guarda del rollback se niega. Decídelo en minutos, no en días.
 
 ```bash
 cd /home/endurance/Projects/Endurance/dots/dots-backend/.claude/worktrees/secciones-parejas
