@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { NAV_ITEMS } from "./nav-items";
 import { getChallengesService } from "@/services/challenges.service";
+import { useAuth } from "@/context/auth-context";
 import { Icon } from "@/components/ui/icon";
 
 function isActive(pathname: string, href: string): boolean {
@@ -37,11 +38,13 @@ function ChallengeBadge({ count }: { count: number }) {
 export default function AppNav() {
   const pathname = usePathname() || "";
 
-  // Retos 1v1 entrantes → badge en el tab Retos. Fetch único al montar
-  // (resiliente: 0 si no hay sesión); una leve obsolescencia es aceptable.
+  // Retos 1v1 entrantes → badge en el tab Retos. Fetch único en cuanto hay
+  // sesión (resiliente: 0 si no la hay); una leve obsolescencia es aceptable.
   const [incomingCount, setIncomingCount] = useState(0);
+  const { isBootstrapping, accessToken } = useAuth();
 
   useEffect(() => {
+    if (isBootstrapping || !accessToken) return;
     let active = true;
     getChallengesService().then((data) => {
       if (active) setIncomingCount(data.incoming.length);
@@ -49,7 +52,7 @@ export default function AppNav() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isBootstrapping, accessToken]);
 
   const badgeFor = (href: string) =>
     href === "/quests" ? <ChallengeBadge count={incomingCount} /> : null;

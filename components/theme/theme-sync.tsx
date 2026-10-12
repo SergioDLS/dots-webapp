@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
 import { getMySettingsService, patchMySettingsService } from "@/services/settings.service";
 import { readSoundEnabled, writeSoundEnabled } from "@/lib/sound-prefs";
 import {
@@ -41,10 +42,16 @@ import {
  * Además, en modo Auto sigue los cambios de tema del SO con la pestaña abierta:
  * el CSS cambia solo, pero la clase `dark`, `colorScheme` y la meta no.
  *
+ * Espera al bootstrap de la sesión: sin token, la petición sale sin
+ * Authorization, vuelve 401 y obliga al interceptor a un refresh extra.
+ *
  * Sin estado ni setState (regla 3): solo efectos.
  */
 export default function ThemeSync() {
+  const { isBootstrapping, accessToken } = useAuth();
+
   useEffect(() => {
+    if (isBootstrapping || !accessToken) return;
     let alive = true;
     if (hasPendingSettings()) {
       const { palette, mode } = readMirror();
@@ -72,7 +79,7 @@ export default function ThemeSync() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [isBootstrapping, accessToken]);
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;

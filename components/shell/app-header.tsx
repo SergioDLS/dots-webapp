@@ -9,6 +9,7 @@ import { levelProgress } from "@/lib/level-math";
 import { useAccountVersion } from "@/hooks/use-account-version";
 import { useAdminMode } from "@/hooks/use-admin-mode";
 import AdminPill from "@/components/admin-lab/admin-pill";
+import { useAuth } from "@/context/auth-context";
 
 /**
  * HUD superior de las pantallas hub, sin marcos (spec §3.3): llama encendida
@@ -24,8 +25,12 @@ export default function AppHeader() {
   // XP: la barra no se estrecha y nada cuelga sobre la cabecera plegable del
   // Camino. En escritorio hay sitio para los dos.
   const { encendido: modoAdmin } = useAdminMode();
+  const { isBootstrapping, accessToken } = useAuth();
 
   useEffect(() => {
+    // Sin token todavía, /me/stats sale sin Authorization, vuelve 401 y obliga
+    // al interceptor a un refresh extra: se espera al bootstrap.
+    if (isBootstrapping || !accessToken) return;
     let mounted = true;
     getMyStatsService().then((data) => {
       if (mounted && data) setStats(data);
@@ -33,7 +38,7 @@ export default function AppHeader() {
     return () => {
       mounted = false;
     };
-  }, [version]);
+  }, [version, isBootstrapping, accessToken]);
 
   const { pct } = stats ? levelProgress(stats.xp, stats.level, stats.xpForNextLevel) : { pct: 0 };
   // Sin el campo (backend viejo) la llama sigue la racha, como hasta ahora.

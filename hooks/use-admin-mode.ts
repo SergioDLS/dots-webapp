@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 import { ADMIN_PROFILE } from "@/constants";
+import { useAuth } from "@/context/auth-context";
 import { useStoredUser } from "@/hooks/use-stored-user";
 import {
   estadoModoAdmin,
@@ -36,7 +37,9 @@ const servidor = (): EstadoModoAdmin => "desconocido";
  * Estado del modo admin para esta cuenta. Un alumno no paga la petición: sin
  * perfil de admin no se pregunta nada y `encendido` es siempre false. El
  * fetch va en un efecto (no hay setState síncrono: el store avisa cuando
- * responde el servidor).
+ * responde el servidor). Espera al bootstrap: el perfil sale de localStorage y
+ * se conoce antes que el token, y una respuesta fallida (`null`) fijaría
+ * "apagado" aunque el modo esté encendido en el servidor.
  */
 export function useAdminMode(): {
   esAdmin: boolean;
@@ -46,11 +49,13 @@ export function useAdminMode(): {
   const user = useStoredUser();
   const esAdmin = user.profile === ADMIN_PROFILE;
   const estado = useSyncExternalStore(suscribirModoAdmin, estadoModoAdmin, servidor);
+  const { isBootstrapping, accessToken } = useAuth();
 
   useEffect(() => {
     if (!esAdmin || estado !== "desconocido") return;
+    if (isBootstrapping || !accessToken) return;
     void averiguar();
-  }, [esAdmin, estado]);
+  }, [esAdmin, estado, isBootstrapping, accessToken]);
 
   return { esAdmin, estado, encendido: esAdmin && estado === "encendido" };
 }
