@@ -1766,6 +1766,19 @@ async function readSnapshot(db) {
   return { sections, nodes, levels, sentencesByLevel };
 }
 
+/**
+ * Lleva cada nodo a su sección, posición y estado. Primero todos pasan a una
+ * posición temporal única (TEMP_BASE + id): UNIQUE (section_id, position) se
+ * comprueba fila a fila y saltaría a mitad del movimiento.
+ */
+async function moverNodos(db, nodes) {
+  await db.query('UPDATE path_nodes SET position = $1 + id WHERE id = ANY($2)', [TEMP_BASE, nodes.map((n) => n.id)]);
+  for (const n of nodes) {
+    await db.query('UPDATE path_nodes SET section_id = $1, position = $2, enabled = $3 WHERE id = $4',
+      [n.sectionId, n.position, n.enabled, n.id]);
+  }
+}
+
 /** Lo que tiene que cumplirse antes de escribir. Vacío = se puede seguir. */
 async function precondiciones(db, antes) {
   const errores = [...core.checkReparto(ANTES), ...core.checkPreconditions(antes, ANTES)];
@@ -1858,13 +1871,8 @@ async function apply(db) {
     for (const s of changes.sections.filter((x) => !x.nueva)) {
       await db.query('UPDATE section SET name = $1, id_difficulty = $2 WHERE id = $3', [s.name, s.idDifficulty, s.id]);
     }
-    // 3. Todos los nodos a una posición temporal única: UNIQUE (section_id, position) no salta a mitad.
-    await db.query('UPDATE path_nodes SET position = $1 + id WHERE id = ANY($2)', [TEMP_BASE, changes.nodes.map((n) => n.id)]);
-    // 4. Sección, posición y estado finales.
-    for (const n of changes.nodes) {
-      await db.query('UPDATE path_nodes SET section_id = $1, position = $2, enabled = $3 WHERE id = $4',
-        [n.sectionId, n.position, n.enabled, n.id]);
-    }
+    // 3 y 4. Cada nodo a su sección, posición y estado, pasando por una posición temporal.
+    await moverNodos(db, changes.nodes);
     // 5. Cada nivel de práctica, a la sección de su nodo.
     for (const l of changes.levels) {
       await db.query('UPDATE levels SET id_section = $1 WHERE id = $2', [l.idSection, l.id]);
@@ -1907,11 +1915,7 @@ async function rollback(db, file) {
         ]);
       }
     }
-    await db.query('UPDATE path_nodes SET position = $1 + id WHERE id = ANY($2)', [TEMP_BASE, b.nodes.map((n) => n.id)]);
-    for (const n of b.nodes) {
-      await db.query('UPDATE path_nodes SET section_id = $1, position = $2, enabled = $3 WHERE id = $4',
-        [n.sectionId, n.position, n.enabled, n.id]);
-    }
+    await moverNodos(db, b.nodes);
     for (const l of b.levels) await db.query('UPDATE levels SET id_section = $1 WHERE id = $2', [l.idSection, l.id]);
     for (const s of b.sections) {
       await db.query('UPDATE section SET name = $1, id_difficulty = $2 WHERE id = $3', [s.name, s.idDifficulty, s.id]);
