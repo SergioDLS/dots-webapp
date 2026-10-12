@@ -198,3 +198,55 @@ unos 150 minutos de generación repartidos en tandas.
 4. Los símbolos comparten grosor de línea y nivel de abstracción entre sí.
 5. `npm run lint` y `npx next build` pasan; el script de BD tiene su respaldo y
    su rollback probados.
+
+## Revisión 2026-10-12
+
+Repaso de las secciones 2 a 12 en producción, a 128 px (el tamaño del nodo
+desde la fase 3), después de cerrar `2026-09-29-tiles-de-modulos-design.md`.
+Todos los nodos tienen imagen; lo que falla es repetición y legibilidad.
+
+### Aplicado: 7 niveles a un tile que ya existía
+
+Sin arte nuevo: la suscripción de Midjourney terminó. Se hizo con
+`dots-backend/scripts/set-level-art.js` (respaldo
+`scripts/out/backup-level-art-2026-10-12T17-07-48-542Z.json`).
+
+| Nivel | Antes | Ahora | Contenido que lo justifica |
+|---|---|---|---|
+| 33 `indefinite` | `articulos` | `pronombres` | pronombres indefinidos: *something, nothing, everywhere, somebody*. Con `articulos` incumplía el criterio 2 |
+| 39 `Rather/Such` | `articulos` | `exclamaciones` | intensificadores: *such a great teacher, such lovely pants* |
+| 71 `Suppose` | `estructuras` | `condicionales` | hipótesis: *Suppose that you agreed with me* |
+| 79 `Use of Let` | `estructuras` | `imperativo` | *Let me know, let's go for a walk* |
+| 80 `Like` | `estructuras` | `parecido` | *It looks like, he sounds like*: el solape con 37 que esta spec ya trataba como el mismo tema |
+| 82 `the ING form` | `estructuras` | `acciones` | gerundios: *Painting is my favorite activity* |
+| 83 `questions tags` | `estructuras` | `preguntas` | *…, aren't you?* |
+
+`estructuras` baja de 10 niveles a 5 (63 phrasal verbs, 68 active/passive,
+72 have/get something done, 78 use of For, 81 about) y ninguna sección queda
+solo con el puzzle.
+
+### Pendiente de arte (cuando vuelva a haber generador)
+
+1. **Los marcadores de tiempo no se distinguen** (12 niveles). La tabla pedía
+   relojes con la flecha hacia atrás o hacia delante; salieron tres barras finas
+   que solo cambian la posición del bloque rosa, y a 128 px `pasado` y `futuro`
+   son la misma barra. Hay que rehacer `presente`, `pasado` y `futuro` como tres
+   siluetas distintas. Tres relojes casi iguales repetirían el problema.
+   `perfectos` (barra con marca de completado) sí se lee y se queda.
+2. **Sección 12: siete Dotys rosas seguidos** (87 a 93). Solo cambia el gesto,
+   `no-me-gusta` se lee como un saludo, y choca con la regla de la fase 3
+   (protagonista azul/cyan, rosa de acento). Propuesta: objetos sin Doty —
+   pulgar abajo, corazón, apretón de manos, taza humeante, teléfono con corazón,
+   palma de «alto», lanzaconfeti.
+3. **Lo que queda en `estructuras`**, si se quiere bajar más: active/passive
+   (una flecha que da la vuelta), have/get something done (alguien te arregla
+   algo), use of For (un regalo con etiqueta). A phrasal verbs le queda bien el
+   puzzle (verbo y partícula que encajan) y `about` no tiene dibujo honesto.
+4. **`articulos`** ya solo lo usa 19 `articles`: tres fichas sin texto que no
+   dicen «a, an, the». Midjourney acierta hasta 3-4 caracteres por rótulo, así
+   que `A`, `AN` y `THE` en tres fichas está en el límite.
+
+Las reglas de arte de esa tanda son las de la fase 3 (§Segunda generación de
+`2026-09-29-tiles-de-modulos-design.md`): juvenil y no infantil, neutro, lo más
+sencillo gana, sin texto largo y `estructuras.png` como Style reference del
+grupo.
