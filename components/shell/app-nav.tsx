@@ -107,6 +107,12 @@ export default function AppNav() {
       </nav>
 
       {/* ── Barra inferior móvil ─────────────────────────────── */}
+      {/* Solo iconos: el rótulo se comía casi la mitad del alto de la barra.
+          El icono ocupa ese hueco (40 px en vez de 24) y la barra mide lo
+          mismo que antes, 57 px. Sin rótulo, el color del contorno era la
+          única pista de dónde estás, así que el activo lleva además la
+          pastilla del riel de escritorio. El nombre sigue en `sr-only`: es
+          el nombre accesible del enlace. */}
       <nav
         aria-label="Navegación principal"
         className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-(--border) bg-(--surface) pb-[env(safe-area-inset-bottom)] ps-[env(safe-area-inset-left)] pe-[env(safe-area-inset-right)] md:hidden"
@@ -118,17 +124,21 @@ export default function AppNav() {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex flex-col items-center justify-center gap-0.5 py-2 transition-colors duration-150 ${
+              className={`grid place-items-center py-1 transition-colors duration-150 ${
                 active ? "text-(--accent)" : "text-(--muted)"
               }`}
             >
-              <span className="relative leading-none">
-                <Icon name={item.icon} size={24} />
-                {badgeFor(item.href)}
+              <span
+                className={`rounded-2xl px-2.5 py-1 transition-colors duration-150 ${
+                  active ? "bg-(--accent)/12" : ""
+                }`}
+              >
+                <span className="relative block">
+                  <Icon name={item.icon} size={40} className="block" />
+                  {badgeFor(item.href)}
+                </span>
               </span>
-              <span className="text-[10px] font-extrabold tracking-tight">
-                {item.label}
-              </span>
+              <span className="sr-only">{item.label}</span>
             </Link>
           );
         })}

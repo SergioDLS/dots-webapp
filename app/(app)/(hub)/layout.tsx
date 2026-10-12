@@ -45,7 +45,7 @@ export default function HubLayout({
       <InstallWatch />
       <AppNav />
       <AppHeader />
-      {/* El hueco inferior es la barra de nav (58 px) más un respiro, y suma
+      {/* El hueco inferior es la barra de nav (57 px) más un respiro, y suma
           el inset del home indicator porque la barra también lo suma: con el
           `pb-24` plano de antes, un iPhone con notch dejaba 4 px de holgura
           —el contenido casi pisaba la nav— y un Android sin inset se comía
