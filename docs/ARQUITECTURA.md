@@ -447,6 +447,8 @@ porque cambiar este comportamiento sería incorrecto para el resto.
 
 `lib/api-client.ts`: axios con access token **en memoria** + refresh cookie HttpOnly → por eso `router.push` obligatorio. Usuario cacheado en `localStorage["user"]` (id/nombre para UI). Services resilientes: los de features sociales devuelven null/[] en error para no romper el shell.
 
+**Arranque en frío.** La API (Render) se duerme sin tráfico y el primer pedido puede tardar hasta un minuto. `refreshSession()` devuelve `ok`, `anon` (el servidor dijo 401/403) o `unreachable` (timeout, red o 5xx tras 3 intentos de 20 s con pausas de 1 y 3 s). Solo `anon` cierra el bootstrap sin sesión; con `unreachable`, `isBootstrapping` se queda en `true` para que ninguna pantalla mande al login por un timeout, y `components/shell/server-wake.tsx` pinta a pantalla completa «Despertando al servidor…» (a los 3 s) o «El servidor no responde» con Reintentar. En una pantalla, «inicia sesión» solo va con `isSessionError(err)`; cualquier otro fallo es de carga y lleva Reintentar.
+
 ## Temas y preferencias
 
 `design/themes.json` (paleta × modo) → `scripts/themes/render.mjs` (funciones puras) + `scripts/themes/build.mjs` (E/S, `--check`) → generados `app/themes.generated.css` y `lib/theme-colors.ts`; `npm run lint` falla si están desactualizados.

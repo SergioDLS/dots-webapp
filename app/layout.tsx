@@ -4,6 +4,7 @@ import "./themes.generated.css";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import AuthSync from "@/context/auth-sync";
+import ServerWake from "@/components/shell/server-wake";
 import SwRegister from "@/components/pwa/sw-register";
 import InstallCapture from "@/components/pwa/install-capture";
 import ErrorTrailCapture from "@/components/report/error-trail-capture";
@@ -126,6 +127,8 @@ export default function RootLayout({
         <AuthProvider>
           <AuthSync />
           {children}
+          {/* Arranque en frío de la API: aviso y Reintentar a pantalla completa. */}
+          <ServerWake />
         </AuthProvider>
       </body>
     </html>

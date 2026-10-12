@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 import api, {
-  refreshAccessToken,
+  refreshSession,
   setAccessToken as setApiAccessToken,
 } from "@/lib/api-client";
 import { clearAvatarMirror } from "@/lib/avatar-mirror";
@@ -18,18 +18,35 @@ import { borrarEspejo } from "@/lib/first-run";
 import { SOUND_KEY } from "@/lib/sound-prefs";
 import { DIRTY_KEY, MODE_KEY, PALETTE_KEY } from "@/lib/theme-prefs";
 
+/**
+ * Cómo va el arranque contra la API: `waking` cuando el refresh tarda más de
+ * lo normal (casi siempre, Render despertando) y `unreachable` cuando se
+ * agotaron los reintentos sin hablar con el servidor. Lo pinta
+ * components/shell/server-wake.tsx.
+ */
+export type ServerConnection = "ok" | "waking" | "unreachable";
+
 type AuthContextType = {
   accessToken: string | null;
   isBootstrapping: boolean;
+  connection: ServerConnection;
+  retryBootstrap: () => void;
   setAccessToken: (token: string | null) => void;
   logout: () => Promise<void>;
 };
+
+// Un refresh con la API despierta tarda ~200 ms. Pasado esto, avisamos de que
+// el servidor está despertando en vez de dejar un spinner mudo.
+const WAKING_HINT_MS = 3_000;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [connection, setConnection] = useState<ServerConnection>("ok");
+  // Patrón fetchAttempt (regla 3): Reintentar solo bumpea este contador.
+  const [bootAttempt, setBootAttempt] = useState(0);
 
   const setAccessToken = useCallback((token: string | null) => {
     setAccessTokenState(token);
@@ -44,17 +61,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Uses the shared single-flight refresh so it can't race with interceptors.
   useEffect(() => {
     let mounted = true;
+    const hint = setTimeout(() => {
+      if (mounted) setConnection("waking");
+    }, WAKING_HINT_MS);
     (async () => {
-      const token = await refreshAccessToken();
-      if (mounted) {
-        setAccessToken(token);
-        setIsBootstrapping(false);
+      const outcome = await refreshSession();
+      clearTimeout(hint);
+      if (!mounted) return;
+      if (outcome.kind === "unreachable") {
+        // isBootstrapping se queda en true a propósito: "no hay sesión" solo
+        // lo puede decir el servidor. Así ninguna pantalla manda al login (ni
+        // pinta «inicia sesión») por un timeout; server-wake ofrece Reintentar.
+        setConnection("unreachable");
+        return;
       }
+      setConnection("ok");
+      setAccessToken(outcome.kind === "ok" ? outcome.token : null);
+      setIsBootstrapping(false);
     })();
     return () => {
       mounted = false;
+      clearTimeout(hint);
     };
-  }, [setAccessToken]);
+  }, [setAccessToken, bootAttempt]);
+
+  const retryBootstrap = useCallback(() => {
+    // Ya sabemos que va lento: el aviso de "despertando" sale sin esperar.
+    setConnection("waking");
+    setBootAttempt((n) => n + 1);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -106,8 +141,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setAccessToken]);
 
   const value = useMemo(
-    () => ({ accessToken, isBootstrapping, setAccessToken, logout }),
-    [accessToken, isBootstrapping, setAccessToken, logout],
+    () => ({
+      accessToken,
+      isBootstrapping,
+      connection,
+      retryBootstrap,
+      setAccessToken,
+      logout,
+    }),
+    [accessToken, isBootstrapping, connection, retryBootstrap, setAccessToken, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

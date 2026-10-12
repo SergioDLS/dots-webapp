@@ -11,6 +11,7 @@ import FoldedHeader from "./folded-header";
 import BackToCurrent from "./back-to-current";
 import { getLevelsService, getPathService, getPathNeighborsService } from "@/services/levels.service";
 import { adaptLevelsToPath } from "@/lib/path-adapter";
+import { isSessionError } from "@/lib/api-client";
 import { useAuth } from "@/context/auth-context";
 import { useInView } from "@/hooks/use-in-view";
 import { useAccountVersion } from "@/hooks/use-account-version";
@@ -67,7 +68,11 @@ export default function PathContainer() {
   // unrelated node if both responses happen to share a number. When the adapter
   // is active, we suppress peers entirely rather than show misleading positions.
   const [pathIsCanonical, setPathIsCanonical] = useState(false);
-  const [error, setError] = useState(false);
+  // "sesion": el servidor rechazó la sesión (401/403) → al login. "carga":
+  // cualquier otra cosa (red, 5xx) → Reintentar; mandar al login a alguien
+  // con sesión válida por un fallo de red era justo el bug del arranque en frío.
+  const [error, setError] = useState<"sesion" | "carga" | null>(null);
+  const [fetchAttempt, setFetchAttempt] = useState(0);
   const [peersByNodeId, setPeersByNodeId] = useState<
     Record<number, PathPeer[]>
   >({});
@@ -92,15 +97,15 @@ export default function PathContainer() {
           // pathIsCanonical stays false: adapter uses levels.id as node ids,
           // which is a different id space from path_nodes.id that peers reference.
           if (mounted) setPath(normalizeCurrent(adaptLevelsToPath(list)));
-        } catch {
-          if (mounted) setError(true);
+        } catch (err) {
+          if (mounted) setError(isSessionError(err) ? "sesion" : "carga");
         }
       }
     })();
     return () => {
       mounted = false;
     };
-  }, [isBootstrapping, version]);
+  }, [isBootstrapping, version, fetchAttempt]);
 
   // Vecinos en el camino. Adorno deliberado: si falla, se pone lento o no está
   // desplegado, el camino se ve exactamente como hoy. Sin loadError, sin botón
@@ -226,7 +231,31 @@ export default function PathContainer() {
     return () => clearTimeout(t);
   }, [shownId, currentId, scrollToCurrent]);
 
-  if (error) {
+  if (error === "carga") {
+    return (
+      <div className="dots-card mx-auto flex w-full max-w-md flex-col items-center gap-4 px-6 py-10 text-center">
+        <Doty pose="facepalm" size="tiny" />
+        <h2 className="font-display text-2xl font-extrabold text-foreground">
+          No pudimos cargar tu camino
+        </h2>
+        <p className="text-sm font-semibold text-(--muted)">
+          Se me cayó algo. Culpa mía. ¿Reintentamos?
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setFetchAttempt((n) => n + 1);
+          }}
+          className="dots-pressable rounded-2xl bg-(--accent) px-6 py-3 text-sm font-extrabold text-(--accent-contrast) [--press-color:var(--accent-edge)]"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  if (error === "sesion") {
     return (
       <div className="dots-card mx-auto flex w-full max-w-md flex-col items-center gap-4 px-6 py-10 text-center">
         <Doty pose="oh-no" size="tiny" />

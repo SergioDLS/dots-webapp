@@ -20,31 +20,78 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Single-flight refresh: concurrent 401s (and the AuthProvider bootstrap)
-// all await the same promise instead of firing parallel /auth/refresh calls.
-let refreshPromise: Promise<string | null> | null = null;
+/**
+ * Cómo terminó un refresh. `anon` y `unreachable` NO son lo mismo: el primero
+ * es el servidor diciendo que no hay sesión (401/403); el segundo, que no
+ * logramos hablar con él (timeout, red caída o 5xx). Quien trate un
+ * `unreachable` como "sin sesión" manda al login a alguien que sí la tiene.
+ */
+export type RefreshOutcome =
+  | { kind: "ok"; token: string }
+  | { kind: "anon" }
+  | { kind: "unreachable"; error: unknown };
 
-export const refreshAccessToken = (): Promise<string | null> => {
-  if (!refreshPromise) {
-    // Plain axios (no interceptors) so a 401 from /auth/refresh itself
-    // can't recurse back into the response interceptor.
-    // Body must be a JSON object: axios serializes `null` to the literal
-    // string "null", which Express' strict JSON parser rejects with 400
-    // before the request ever reaches the auth controller.
-    refreshPromise = axios
-      .post(`${API_BASE}/auth/refresh`, {}, {
+// La API vive en Render y se duerme tras un rato sin tráfico: el primer pedido
+// la despierta y el proxy de Render lo retiene hasta que el proceso arranca,
+// que puede tardar hasta un minuto. Con un único intento de 8 s (lo que había)
+// el refresh se abortaba a mitad del arranque y la app concluía "sin sesión".
+// Reintentar es seguro: el refresh token es un JWT sin estado, así que un
+// intento abortado que el backend llegue a procesar no invalida el siguiente.
+const REFRESH_ATTEMPT_TIMEOUT_MS = 20_000;
+// Pausa antes de cada reintento; su largo + 1 = intentos (~64 s en el peor caso).
+const REFRESH_BACKOFF_MS = [1_000, 3_000];
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Sin respuesta (timeout, red, CORS de una página de error del proxy) o 5xx: vale la pena reintentar. */
+const isTransient = (err: unknown) => {
+  if (!axios.isAxiosError(err)) return false;
+  const status = err.response?.status;
+  return status === undefined || status >= 500;
+};
+
+/** El servidor respondió y rechazó la sesión: esto sí es "inicia sesión". */
+export const isSessionError = (err: unknown) => {
+  const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+  return status === 401 || status === 403;
+};
+
+const postRefresh = async () => {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      // Plain axios (no interceptors) so a 401 from /auth/refresh itself
+      // can't recurse back into the response interceptor.
+      // Body must be a JSON object: axios serializes `null` to the literal
+      // string "null", which Express' strict JSON parser rejects with 400
+      // before the request ever reaches the auth controller.
+      return await axios.post(`${API_BASE}/auth/refresh`, {}, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
-        timeout: 8000,
-      })
-      .then((res) => {
+        timeout: REFRESH_ATTEMPT_TIMEOUT_MS,
+      });
+    } catch (err) {
+      if (!isTransient(err) || attempt >= REFRESH_BACKOFF_MS.length) throw err;
+      await sleep(REFRESH_BACKOFF_MS[attempt]);
+    }
+  }
+};
+
+// Single-flight refresh: concurrent 401s (and the AuthProvider bootstrap)
+// all await the same promise instead of firing parallel /auth/refresh calls.
+let refreshPromise: Promise<RefreshOutcome> | null = null;
+
+export const refreshSession = (): Promise<RefreshOutcome> => {
+  if (!refreshPromise) {
+    refreshPromise = postRefresh()
+      .then((res): RefreshOutcome => {
         const token: string | null =
           res.data?.token ?? res.data?.accessToken ?? null;
         setAccessToken(token);
-        return token;
+        return token ? { kind: "ok", token } : { kind: "anon" };
       })
-      .catch((err: unknown) => {
+      .catch((err: unknown): RefreshOutcome => {
         setAccessToken(null);
+        if (isTransient(err)) return { kind: "unreachable", error: err };
         // Un 403 significa que la sesión no solo expiró localmente: el backend
         // rechaza explícitamente este refresh token (usuario bloqueado o con
         // acceso vencido). En ese caso guardamos el motivo, limpiamos el
@@ -61,7 +108,7 @@ export const refreshAccessToken = (): Promise<string | null> => {
           window.localStorage.removeItem("user");
           window.location.replace("/");
         }
-        return null;
+        return { kind: "anon" };
       })
       .finally(() => {
         refreshPromise = null;
@@ -96,16 +143,18 @@ api.interceptors.response.use(
 
     original._retry = true;
 
-    const newToken = await refreshAccessToken();
-    if (!newToken) {
+    const outcome = await refreshSession();
+    if (outcome.kind !== "ok") {
       // Don't redirect here — let callers (AuthProvider, pages) decide
       // what to do when auth fails. Redirecting from the interceptor
       // causes a hard navigation that prevents components from mounting.
-      throw error;
+      // Si el refresh ni siquiera llegó al servidor, se propaga ESE error y
+      // no el 401 original: quien lo reciba no debe leerlo como "sin sesión".
+      throw outcome.kind === "unreachable" ? outcome.error : error;
     }
 
     original.headers = original.headers ?? {};
-    original.headers.Authorization = `Bearer ${newToken}`;
+    original.headers.Authorization = `Bearer ${outcome.token}`;
     return api(original);
   }
 );
