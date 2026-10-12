@@ -1564,7 +1564,8 @@ Crea `scripts/rebalance-sections/ensayo/ensayo.sh`:
 # <dir de trabajo>/repo, con su propio .env apuntando al Postgres local (TCP
 # 55432, con SSL porque el script lo pide siempre). El .env del checkout, que
 # en un worktree es un enlace al del backend con la BD de producción, no se
-# lee ni se toca. Sin <dir de trabajo>, usa uno temporal y lo borra al salir.
+# lee ni se toca; las DB_* del shell que lo lanza también se ignoran (run()
+# fija las suyas). Sin <dir de trabajo>, usa uno temporal y lo borra al salir.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRC="$1"
@@ -1573,7 +1574,9 @@ PGDATA="$E/pgdata"
 PORT=55432
 REPO="$E/repo"
 PSQL=(env PGOPTIONS=-csearch_path=dots psql -h localhost -p "$PORT" -U ensayo -d dots_ensayo -q -v ON_ERROR_STOP=1 -X)
-run() { (cd "$REPO" && NODE_PATH="$SRC/node_modules" node scripts/rebalance-sections.js "$@"); }
+# loadEnv() no pisa variables ya exportadas: sin fijarlas aquí, unas DB_* del
+# shell (por ejemplo, las de producción) recibirían los --apply del ensayo.
+run() { (cd "$REPO" && DB_HOST=localhost DB_PORT="$PORT" DB_USERNAME=ensayo DB_PASSWORD=ensayo DB_NAME=dots_ensayo NODE_PATH="$SRC/node_modules" node scripts/rebalance-sections.js "$@"); }
 ok() { echo "✔ $*"; }
 ko() { echo "✖ $*"; FALLOS=$((FALLOS + 1)); }
 FALLOS=0
