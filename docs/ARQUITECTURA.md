@@ -32,6 +32,20 @@ propio caen a `poseOrFallback` (`components/ui/doty/doty.tsx`, sobre la
 lógica pura de `pending.ts`). El HUD (`components/shell/app-header.tsx`)
 enciende la llama solo con `streakSecuredToday`.
 
+**Secciones del Camino.** El backend las ordena por `section.id` dentro de
+cada dificultad (`path.service.ts`, `path-neighbors.service.ts`,
+`skip-applier.service.ts`), no por una columna de orden. Desde el
+re-corte del 2026-10-12 (`docs/superpowers/specs/2026-10-12-secciones-parejas-design.md`)
+hay 16 secciones de 7 a 9 nodos y los ids van intercalados: Beginner usa 1, 2,
+3, 4, 8, 11, 12 y 13–16; Intermediate, 5–7; Advanced, 9 y 10. Insertar una
+sección en medio de una dificultad exigiría añadir esa columna de orden. Una
+sección sin niveles `practice` (Level 1 a 7) no lleva checkpoint. El examen
+del checkpoint (`checkpoint.service.ts`, `loadSectionSentences`) usa solo
+oraciones con hueco (`__` en `text` y `m_word` no vacío) y responde 400 con
+menos de 5, pero `checkpointAvailable` de `GET /path` cuenta todas las
+oraciones activas: una sección con muchas oraciones sin hueco puede ofrecer un
+examen que no arranca.
+
 Flujos inmersivos (sin chrome): `/practice`, `/lesson/{pronunciation,grammar,vocab}`, `/checkpoint`, `/onboarding` (placement), `/readings/:id`, `/games/*`.
 
 Fuera de `(app)` y sin sesión: `/` (login), `/forgot` (recuperar contraseña) y `/invite/[token]` (aceptar invitación y crear la cuenta). Esta última es la **única vía de alta que existe en la app** — no hay registro público. El panel de invitaciones vive en `/admin/users`, pestaña *Invitations*.
