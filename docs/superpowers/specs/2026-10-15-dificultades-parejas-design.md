@@ -4,8 +4,14 @@
 - **Repos afectados**: `dots-backend` (contenido en `scripts/seed-data/` y un
   script de datos). En `dots-webapp`, solo documentación: el Camino ya sabe
   pintar píldoras de gramática.
-- **Estado**: decidido por defecto con «avanza con todas» (Sergio,
-  2026-10-15); las decisiones van listadas al final para que las revise.
+- **Estado**: aplicado en producción el 2026-10-17 con
+  `dots-backend/scripts/difficulty-content.js` (respaldo
+  `scripts/out/backup-difficulty-content-2026-10-17T14-22-00-883Z.json`; se
+  deshace con `npm run content:difficulties -- --rollback <respaldo>`, que se
+  niega en cuanto alguien practica en algo nuevo). Las decisiones se tomaron
+  por defecto con «avanza con todas» (Sergio, 2026-10-15) y Sergio dio el sí
+  al apply después de verlas. Plan en
+  `docs/superpowers/plans/2026-10-15-dificultades-parejas.md`.
 - **Predecesora**: `2026-10-12-secciones-parejas-design.md`, que dejó
   explícitamente fuera emparejar las dificultades: «requiere contenido nuevo
   para Intermediate y Advanced».
@@ -92,6 +98,15 @@ subjuntivo formal (I suggest he go).
   formal vs informal, ways to say…) explican uso y registro, con el mismo
   formato.
 
+Cómo quedó: el contenido se escribió en cuatro tandas y cada una la revisó
+otro agente (una sola opción válida por ítem en inglés americano y británico,
+reglas correctas, español neutro, sin calcos de los niveles); un cruce
+automático entre tandas no deja frases repetidas. Hubo unas 170 correcciones.
+Dos píldoras se ajustaron a su nivel: «Antonyms» resultó ser de pares de
+verbos, así que su píldora enseña verbos opuestos (pares, un- y dis-,
+increase/decrease) y la de «Opposites» queda con los adjetivos; la de jerga
+explica también lit, slay, throw shade y on fleek, que el nivel usa.
+
 ## El script
 
 Un script nuevo, `dots-backend/scripts/difficulty-content.js`, con el patrón
@@ -138,5 +153,6 @@ que el script lo acepte.
 - Vocabulario, pronunciación y lecturas nuevas, que necesitan audio.
 - Arte nuevo para las píldoras.
 - Corregir oraciones flojas de los niveles existentes (por ejemplo,
-  «Compound words» tiene oraciones que no son de palabras compuestas): se
-  anotan para la revisión de contenido.
+  «Compound words» tiene oraciones que no son de palabras compuestas). Los
+  revisores encontraron problemas en unos 25 niveles de Intermediate y
+  Advanced; la lista quedó para una tarea aparte.

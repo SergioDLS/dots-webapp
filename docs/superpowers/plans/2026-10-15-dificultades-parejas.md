@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-15-dificultades-parejas-design.md` (webapp).
 
+**Estado:** ejecutado. Aplicado en producción el 2026-10-17 (respaldo `dots-backend/scripts/out/backup-difficulty-content-2026-10-17T14-22-00-883Z.json`); backend en main hasta `b2059f8`.
+
 ## Global Constraints
 
 - Backend en el worktree `/home/endurance/Projects/Endurance/dots/dots-backend/.claude/worktrees/dificultades` (branch `feat/dificultades-parejas` desde `origin/main`). El checkout compartido no se toca.
