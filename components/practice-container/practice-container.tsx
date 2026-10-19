@@ -362,7 +362,8 @@ export default function PracticeContainer({
   if (mode === "whatDoYouHear" || mode === "whatDoYouHearSentence" || mode === "guessImg") {
     titleText = mode === "guessImg" ? "What is this?" : "What do you hear?";
     titleEmoji = mode === "guessImg" ? <Icon name="imagen" size={20} /> : <Icon name="escucha" size={20} />;
-    const src = mode === "whatDoYouHearSentence" ? audioSrc : (dataSentence.img_sound ?? audioSrc);
+    // || y no ??: sin audio de la respuesta el servidor manda "" y hay que caer a la narración.
+    const src = mode === "whatDoYouHearSentence" ? audioSrc : (dataSentence.img_sound || audioSrc);
     soundContent = mode !== "guessImg"
       ? (
         <div className="flex flex-col items-center gap-2">
