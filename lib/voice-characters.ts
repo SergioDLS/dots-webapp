@@ -1,18 +1,23 @@
 import type { DotyPose } from "@/components/ui/doty/doty";
 import type { ItemCharacter } from "@/services/lessons.service";
 
-export type VoiceCharacterInfo = { key: string; name: string; pose: DotyPose };
+export type VoiceCharacterInfo = {
+  key: string;
+  name: string;
+  pose: DotyPose;
+  /** Avatar de la tienda con el mismo personaje (public/images/avatars/). */
+  avatar?: string;
+};
 
-/** Pose de respaldo por personaje mientras `characters.img` está vacío (lo llena
- *  dots-backend/scripts/set-doty-art.js). VoiceAvatar prefiere `img` cuando existe,
- *  así que en cuanto llegue el arte estas poses dejan de usarse: su único trabajo
- *  hoy es que los cuatro narradores se distingan entre sí, y por eso cada uno cae
- *  a un sprite legacy distinto (13 / 14 / 07 / 11) en vez de compartir `hablando`. */
+/** `avatar` es el arte de la práctica, que solo recibe `voice_key` y no la
+ *  `characters.img` que traen las lecciones. Doty no tiene avatar propio:
+ *  la voz por defecto se queda con su pose. La pose de los otros tres solo
+ *  sale si alguna vez falta el PNG del avatar. */
 const BY_KEY: Record<string, VoiceCharacterInfo> = {
   doty:             { key: "doty",           name: "Doty",            pose: "hablando" },
-  "doty-fem":       { key: "doty-fem",       name: "Doty Fem",        pose: "saludando" },
-  "doty-sailor":    { key: "doty-sailor",    name: "Doty marinero",   pose: "pensando" },
-  "doty-scientist": { key: "doty-scientist", name: "Doty científica", pose: "riendo" },
+  "doty-fem":       { key: "doty-fem",       name: "Doty Fem",        pose: "saludando", avatar: "/images/avatars/fem.png" },
+  "doty-sailor":    { key: "doty-sailor",    name: "Doty marinero",   pose: "pensando",  avatar: "/images/avatars/marinero.png" },
+  "doty-scientist": { key: "doty-scientist", name: "Doty científica", pose: "riendo",    avatar: "/images/avatars/cientifica.png" },
 };
 
 const DEFAULT_CHARACTER = BY_KEY.doty;
@@ -29,6 +34,7 @@ export function resolveVoiceCharacter(
       key: character.key,
       name: character.name,
       pose: base?.pose ?? DEFAULT_CHARACTER.pose,
+      avatar: base?.avatar,
     };
   }
   if (voiceKey && BY_KEY[voiceKey]) return BY_KEY[voiceKey];

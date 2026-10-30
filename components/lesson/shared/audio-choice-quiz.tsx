@@ -4,13 +4,11 @@ import { useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import UIButton from "@/components/ui/button/button";
-import { VoiceAvatar } from "@/components/lesson/shared/voice-avatar";
 import { optionStyles } from "@/components/lesson/option-styles";
 import { usePublicarObjetivos } from "@/hooks/use-report-targets";
 import { playSound } from "@/lib/feedback-sounds";
 import { conRespuesta, type ReportTarget } from "@/lib/report";
 import { registrarRespondido } from "@/lib/report-targets";
-import type { ItemCharacter } from "@/services/lessons.service";
 
 /**
  * Ronda inversa (F3e): ves el texto (letra/numeral/significado) y eliges el
@@ -24,7 +22,6 @@ export type AudioChoice = {
   /** Texto grande mostrado como consigna. */
   prompt: string;
   audio: string;
-  character?: ItemCharacter | null;
   /** El ítem como objetivo de reporte; sin él, el quiz no publica nada. */
   objetivo?: ReportTarget;
   /** Cómo se nombra este audio al elegirlo («Elegiste «big»»). */
@@ -194,7 +191,6 @@ export default function AudioChoiceQuiz({
             style={optionStyle(option.id)}
             onClick={() => pick(option)}
           >
-            <VoiceAvatar character={option.character} size="xs" />
             <Icon name="escucha" size={30} />
             <span className="text-xs" style={{ opacity: 0.7 }}>
               Opción {idx + 1}
