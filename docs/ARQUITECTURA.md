@@ -157,7 +157,7 @@ abierto es preferible a dejar a alguien sin placement.
 ### El perfil (`/profile`)
 
 `components/profile/` reparte la pantalla: `profile-identity.tsx` (avatar, nombre, chips
-MCER y racha, engranaje), `profile-xp-bar.tsx`, `profile-stats.tsx` (los cuatro números
+de etapa (sin código MCER) y racha, engranaje), `profile-xp-bar.tsx`, `profile-stats.tsx` (los cuatro números
 sin cajas), `badges-grid.tsx`, `gestures-card.tsx` y `settings-sheet.tsx`. La lógica de
 vista es pura y está bajo `node --test` en `lib/profile-view.ts`. El avatar de
 `profile-identity.tsx` se pinta con `<Avatar>` a 78 px en móvil y 96 en escritorio —no

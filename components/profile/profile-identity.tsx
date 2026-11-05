@@ -4,7 +4,7 @@ import AvatarFlip from "@/components/profile/avatar-flip";
 import type { DotyAnimation } from "@/components/ui/doty/doty";
 import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
-import { cefrBand } from "@/lib/profile-view";
+import { levelBand } from "@/lib/profile-view";
 import type { PublicAvatar } from "@/lib/avatar";
 import type { MyStats } from "@/services/engagement.service";
 
@@ -39,7 +39,7 @@ export default function ProfileIdentity({
   onChangeAvatar,
   onOpenSettings,
 }: Props) {
-  const band = cefrBand(stats?.level ?? 1);
+  const band = levelBand(stats?.level ?? 1);
   const streak = stats?.streak ?? 0;
   // La key remonta la carta al cambiar de gesto: reinicia su estado (fijado,
   // hover) y repite el giro de entrada como confirmación de haber equipado.
@@ -82,9 +82,8 @@ export default function ProfileIdentity({
               border: "1.5px solid color-mix(in srgb, var(--primary) 35%, transparent)",
               color: "var(--primary)",
             }}
-            title="Nivel de inglés estimado (MCER)"
           >
-            {band.code} · {band.name}
+            {band.name}
           </span>
           <span
             role="img"

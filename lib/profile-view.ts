@@ -7,14 +7,17 @@ import type { InventoryItem } from "@/services/shop.service";
  * este archivo sin bundler y no resolvería el alias `@/`).
  */
 
-/** Banda MCER estimada por nivel de XP. Los umbrales son los que ya usaba el perfil. */
-export function cefrBand(level: number): { code: string; name: string } {
-  if (level <= 2) return { code: "A1", name: "Principiante" };
-  if (level <= 4) return { code: "A2", name: "Básico" };
-  if (level <= 7) return { code: "B1", name: "Intermedio" };
-  if (level <= 10) return { code: "B2", name: "Intermedio alto" };
-  if (level <= 14) return { code: "C1", name: "Avanzado" };
-  return { code: "C2", name: "Experto" };
+/**
+ * Etapa del alumno por nivel de XP. Sin código MCER (A1, B2…): no clasificamos
+ * a los alumnos por A, B o C. Los umbrales son los que ya usaba el perfil.
+ */
+export function levelBand(level: number): { name: string } {
+  if (level <= 2) return { name: "Principiante" };
+  if (level <= 4) return { name: "Básico" };
+  if (level <= 7) return { name: "Intermedio" };
+  if (level <= 10) return { name: "Intermedio alto" };
+  if (level <= 14) return { name: "Avanzado" };
+  return { name: "Experto" };
 }
 
 export function badgeCounts(badges: Badge[]): { earned: number; total: number } {
