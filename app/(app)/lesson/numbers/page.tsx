@@ -279,7 +279,8 @@ function NumbersDrill({
         <p className="text-center font-semibold">
           {firstTry}/{tramo.length} a la primera
         </p>
-        {learnedNow != null && (
+        {/* con 0 no se muestra: la primera sesión nunca deja nada aprendido */}
+        {learnedNow != null && learnedNow > 0 && (
           <p className="flex items-center justify-center gap-1 text-center font-semibold">
             <UiIcon name="corona" size={16} /> Aprendidos {learnedNow} de {session.packTotal}
           </p>

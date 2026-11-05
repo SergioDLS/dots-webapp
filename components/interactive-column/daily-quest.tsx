@@ -81,7 +81,7 @@ export default function DailyQuestCard({
       <div
         className="h-2.5 w-full overflow-hidden rounded-full"
         role="progressbar"
-        aria-label="Quest progress"
+        aria-label="Progreso de la misión"
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -107,7 +107,7 @@ export default function DailyQuestCard({
               className="ml-2 text-(--gold-edge)"
               style={{ animation: "dots-pop-in 0.4s ease-out both" }}
             >
-              ✨ +{justClaimed} XP
+              <UiIcon name="xp" size={16} className="inline-block align-middle" /> +{justClaimed} XP
             </span>
           )}
         </p>

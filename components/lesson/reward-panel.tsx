@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
+import { Icon } from "@/components/ui/icon";
 import { UiIcon } from "@/components/ui/ui-icon";
 import type { ProgressReward } from "@/services/engagement.service";
 
@@ -59,7 +60,11 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
       background: "color-mix(in srgb, var(--gold) 18%, transparent)",
       border: "2px solid color-mix(in srgb, var(--gold) 45%, transparent)",
       color: "var(--gold-edge)",
-      content: `✨ +${xp} XP`,
+      content: (
+        <span className="inline-flex items-center gap-1">
+          <UiIcon name="xp" size={16} /> +{xp} XP
+        </span>
+      ),
     },
     reward.streakUp && {
       key: "streak",
@@ -77,14 +82,22 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
       background: "rgba(56,189,248,0.14)",
       border: "2px solid rgba(56,189,248,0.4)",
       color: "#0284c7",
-      content: "❄️ ¡Un escudo salvó tu racha!",
+      content: (
+        <span className="inline-flex items-center gap-1">
+          <Icon name="escudo" size={16} /> ¡Un escudo salvó tu racha!
+        </span>
+      ),
     },
     reward.freezeEarned && {
       key: "freeze-earned",
       background: "rgba(56,189,248,0.14)",
       border: "2px solid rgba(56,189,248,0.4)",
       color: "#0284c7",
-      content: "❄️ ¡Ganaste un escudo de racha!",
+      content: (
+        <span className="inline-flex items-center gap-1">
+          <Icon name="escudo" size={16} /> ¡Ganaste un escudo de racha!
+        </span>
+      ),
     },
   ];
   const chips = chipDefs.filter((c): c is Chip => Boolean(c));
@@ -117,7 +130,7 @@ export default function RewardPanel({ reward }: { reward: ProgressReward | null 
             animation: "pc-streak-glow 2s ease-in-out infinite",
           }}
         >
-          🎉 ¡Racha de {reward.streak} días! Increíble
+          ¡Racha de {reward.streak} días! Increíble
         </p>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/icon";
+import { UiIcon } from "@/components/ui/ui-icon";
 import ExitFlow from "@/components/ui/exit-flow/exit-flow";
 import { useParams, useRouter } from "next/navigation";
 import Doty from "@/components/ui/doty/doty";
@@ -290,7 +291,7 @@ export default function ReadingPage() {
                   animation: "dots-pop-in 0.4s ease-out both",
                 }}
               >
-                ✨ +{result.xpGained} XP
+                <UiIcon name="xp" size={16} className="inline-block align-middle" /> +{result.xpGained} XP
               </span>
             )}
             <div className="flex w-full max-w-xs flex-col gap-3">

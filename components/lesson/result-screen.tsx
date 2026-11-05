@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import Doty from "@/components/ui/doty/doty";
 import Confetti from "@/components/ui/confetti/confetti";
 import UIButton from "@/components/ui/button/button";
+import { UiIcon } from "@/components/ui/ui-icon";
 import { PanelWrapper, SectionLabel } from "@/components/lesson/panel";
 import RewardPanel from "@/components/lesson/reward-panel";
 import { marcarActividadCompletada } from "@/lib/install-browser";
@@ -52,7 +53,12 @@ export default function ResultScreen({
     marcarActividadCompletada();
   }, [mode]);
 
-  const emoji = mode === "perfect" ? "🌟" : isGameover ? "💔" : "🎉";
+  const emoji = (
+    <UiIcon
+      name={mode === "perfect" ? "corona" : isGameover ? "vidas" : "trofeo"}
+      size={22}
+    />
+  );
   const title =
     mode === "perfect" ? "¡Perfecto!" : isGameover ? "¡Oh no!" : "¡Muy bien!";
   const defaultSubtext =

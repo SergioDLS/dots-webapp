@@ -124,7 +124,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
   if (content.items.length === 0) {
     return (
       <PanelWrapper>
-        <SectionLabel emoji="🃏">{content.title}</SectionLabel>
+        <SectionLabel emoji={<Icon name="vocabulario" size={20} />}>{content.title}</SectionLabel>
         <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
           Este pack aún no tiene palabras.
         </p>
@@ -143,7 +143,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
       <div className="flex flex-col gap-4 w-full">
         <ReportFlagRow />
         <PanelWrapper>
-          <SectionLabel emoji="🃏">{content.title}</SectionLabel>
+          <SectionLabel emoji={<Icon name="vocabulario" size={20} />}>{content.title}</SectionLabel>
           <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
             Palabras nuevas de esta sesión — toca cada una para conocerla{" "}
             ({seen.size}/{newItems.length})
@@ -226,7 +226,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
       <div className="flex flex-col gap-4 w-full">
         <LessonTopBar progress={progress} />
         <PanelWrapper>
-          <SectionLabel emoji="🃏">{content.title}</SectionLabel>
+          <SectionLabel emoji={<Icon name="vocabulario" size={20} />}>{content.title}</SectionLabel>
           <MatchQuiz
             nodeId={nodeId}
             items={tramo}
@@ -240,6 +240,9 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
     );
   }
 
+  // Una palabra cuenta como aprendida recién en su segunda sesión limpia: tras
+  // la primera, «Aprendidas 0 de 10» suena a fracaso. Con 0 se cuentan las
+  // practicadas.
   const learnedNow =
     reward?.mastery != null
       ? Math.round((reward.mastery / 100) * session.packTotal)
@@ -251,7 +254,7 @@ export default function VocabPack({ nodeId, content, onRestart }: Props) {
       subtext={
         session.isReview
           ? "¡Repaso completo! Estas palabras siguen firmes."
-          : learnedNow != null
+          : learnedNow
             ? (
                 <span className="inline-flex items-center gap-1.5 align-middle">
                   <UiIcon name="corona" size={24} /> Aprendidas {learnedNow} de {session.packTotal} palabras

@@ -26,7 +26,7 @@ export default function XpReward({ reward }: { reward: ScoreResult | null }) {
             color: "var(--gold-edge)",
           }}
         >
-          ✨ +{reward.xpGained} XP
+          <UiIcon name="xp" size={16} className="inline-block align-middle" /> +{reward.xpGained} XP
         </span>
       )}
       {reward.isNewHighScore && (

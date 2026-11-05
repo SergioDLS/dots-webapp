@@ -290,14 +290,15 @@ function LettersDrill({ nodeId, content, onRestart }: DrillProps) {
         : null;
     return (
       <div className="dots-card flex flex-col items-center gap-4 p-8 text-center">
-        <span className="text-5xl">🎉</span>
+        <UiIcon name="trofeo" size={56} />
         <h2 className="text-xl font-extrabold text-(--accent)">
           {session.isReview ? "¡Repaso completo!" : "¡Sesión lista!"}
         </h2>
         <p className="text-sm text-(--muted)">
           {firstTry}/{tramo.length} a la primera
         </p>
-        {learnedNow != null && (
+        {/* con 0 no se muestra: la primera sesión nunca deja nada aprendido */}
+        {learnedNow != null && learnedNow > 0 && (
           <p className="flex items-center gap-1 text-sm font-bold text-(--foreground)">
             <UiIcon name="corona" size={16} /> Aprendidas {learnedNow} de {session.packTotal}
           </p>

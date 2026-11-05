@@ -164,10 +164,11 @@ export default function PracticeContainer({
   // ── End states ────────────────────────────────────────────────────────────
   if (mode === "perfect" || mode === "finished" || mode === "gameover") {
     const isGameover = mode === "gameover";
-    const emoji   = mode === "perfect" ? "🌟" : isGameover ? "💔" : "🎉";
-    const title   = mode === "perfect" ? "Perfect!" : isGameover ? "Oh no!" : "Success!";
-    const subtext = mode === "perfect" ? "No mistakes! DOTY is SO proud of you!" : isGameover ? "You ran out of hearts!" : "You completed the level!";
-    const dotySays = mode === "perfect" ? "WOW! You're a star!" : isGameover ? "Let's try again together!" : "I knew you could do it!";
+    // Mismo copy que el ResultScreen de las lecciones: la UI va en español.
+    const emoji   = <UiIcon name={mode === "perfect" ? "corona" : isGameover ? "vidas" : "trofeo"} size={22} />;
+    const title   = mode === "perfect" ? "¡Perfecto!" : isGameover ? "¡Oh no!" : "¡Muy bien!";
+    const subtext = mode === "perfect" ? "¡Sin errores! Doty está orgullosísimo de ti." : isGameover ? "Te quedaste sin corazones." : "¡Completaste el nivel!";
+    const dotySays = mode === "perfect" ? "¡Guau! ¡Eres una estrella!" : isGameover ? "¡Lo intentamos de nuevo juntos!" : "¡Sabía que podías!";
     const gradient = isGameover
       ? "linear-gradient(135deg, #f43f5e, #ef4444)"
       : "linear-gradient(135deg, var(--accent), #fbbf24)";

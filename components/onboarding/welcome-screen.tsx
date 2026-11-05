@@ -15,7 +15,7 @@ export default function WelcomeScreen({ onSkip, onStartTest, busy }: Props) {
     "w-full flex flex-col items-start gap-1 rounded-2xl px-5 py-4 text-left transition-all duration-200 cursor-pointer active:scale-[.98] disabled:opacity-50";
   return (
     <PanelWrapper>
-      <SectionLabel emoji="👋">¡Bienvenido a Dots!</SectionLabel>
+      <SectionLabel>¡Bienvenido a Dots!</SectionLabel>
       <Doty pose="saludando" size="small" animation="cheer" say="¡Hola! Soy Doty." />
       <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
         Antes de empezar, cuéntanos cuánto inglés sabes para llevarte al punto
@@ -32,7 +32,7 @@ export default function WelcomeScreen({ onSkip, onStartTest, busy }: Props) {
           disabled={busy}
         >
           <span className="font-display font-extrabold text-lg">
-            🌱 Empiezo desde cero
+            Empiezo desde cero
           </span>
           <span className="text-sm" style={{ color: "var(--muted)" }}>
             Arranca en los primeros pasos: saludos, sonidos y frases básicas.
@@ -48,7 +48,7 @@ export default function WelcomeScreen({ onSkip, onStartTest, busy }: Props) {
           disabled={busy}
         >
           <span className="font-display font-extrabold text-lg">
-            🚀 Ya sé algo de inglés
+            Ya sé algo de inglés
           </span>
           <span className="text-sm" style={{ color: "var(--muted)" }}>
             Haz una prueba corta (5-14 preguntas) y salta lo que ya dominas.

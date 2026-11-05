@@ -165,7 +165,7 @@ export default function GameResult({
                 animation: "dots-pop-in 0.4s ease-out 0.1s both",
               }}
             >
-              ✨ +{result.xpGained} XP
+              <UiIcon name="xp" size={16} className="inline-block align-middle" /> +{result.xpGained} XP
             </span>
           )}
           {isNewRecord && (
